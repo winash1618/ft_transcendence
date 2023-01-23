@@ -1,0 +1,50 @@
+version: '3'
+services:
+  nestjs:
+    build:
+      context: ./requirements/nest
+    image: nest
+    container_name: nest
+    ports:
+      - "80:3000"
+    volumes:
+      - nestjs-data:/app
+    command: npm run start:dev
+  postgres:
+    build:
+      context: ./requirements/postgres
+    image: postgres
+    container_name: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+  react:
+    build:
+        context: ./requirements/react
+    image: react
+    container_name: react
+    volumes:
+      - type: bind
+        source: ./react
+        target: /app
+    command: npm start
+    depends_on:
+      - nestjs
+volumes:
+  nestjs-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /goinfre/mkaruvan/ft_transcendence/nestjs
+  postgress-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /goinfre/mkaruvan/ft_transcendence/postgress
+  
+
