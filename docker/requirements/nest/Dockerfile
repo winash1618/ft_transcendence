@@ -1,20 +1,25 @@
 # Use the official Node.js image as the base image
 FROM node:latest
 
-# Create a working directory
+# Create makea working directory
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files to the working directory
-COPY package*.json ./
+# # # # # Copy the package.json and package-lock.json files to the working directory
+# COPY ./package.json .
 
-# Install the dependencies
-RUN npm install
+# # Install the dependencies
+RUN npm install -g npm@9.4.0 && npm install -g @nestjs/cli
 
-# Copy the rest of the application files
-COPY . .
+# # # Copy the rest of the application files
+# COPY ./entry_point.sh .
 
-# Expose the application port
+# # Expose the application port
 EXPOSE 3000
 
-# Run the NestJS development server
-CMD [ "npm", "run", "start:dev" ]
+RUN npm config set script-shell /bin/sh
+
+# RUN 
+
+# # Run the NestJS development server
+ENTRYPOINT ["/bin/sh", "entry_point.sh"]
+

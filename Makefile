@@ -1,25 +1,23 @@
 all:
-	docker-compose -f ./docker/docker-compose.yml --env-file docker/.env up -d
+	docker-compose -f ./docker/docker-compose.yml up
 
 build:
-	docker-compose -f ./docker/docker-compose.yml --env-file docker/.env up -d --build
+	docker-compose -f ./docker/docker-compose.yml --build
 
 down:
-	docker-compose -f ./docker/docker-compose.yml --env-file docker/.env down
+	docker-compose -f ./docker/docker-compose.yml down
 
 re: down
-	docker-compose -f ./docker/docker-compose.yml --env-file docker/.env up -d --build
+	docker-compose -f ./docker/docker-compose.yml up --build
 
 clean: down
 	docker system prune -a
-	rm -rf /home/mkaruvan/data/wordpress/*
-	rm -rf /home/mkaruvan/data/mariadb/*
 
 fclean: down
 	docker system prune --all --force --volumes
 	docker network prune --force
 	docker volume prune --force
-	rm -rf /home/mkaruvan/data/wordpress/*
-	rm -rf /home/mkaruvan/data/mariadb/*
+	rm -rf ./srcs/backend
+	rm -rm ./srcs/postgress
 
 .PHONY	: all build down re clean fclean
