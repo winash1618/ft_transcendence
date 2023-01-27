@@ -1,7 +1,7 @@
-FROM postgres:latest
+FROM postgres:buster
 
-ENV POSTGRES_USER=myuser
-ENV POSTGRES_PASSWORD=mypassword
-ENV POSTGRES_DB=mydb
+ENV POSTGRES_USER myuser
+ENV POSTGRES_PASSWORD postgres
+ENV POSTGRES_DB my-db
 
-COPY init.sql /docker-entrypoint-initdb.d/
+EXPOSE 5432
