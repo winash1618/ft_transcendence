@@ -1,6 +1,35 @@
-version: '3'
+# version: '3'
+# services:
+#   web:
+#     build: .
+#     ports:
+#      - "80:80"
+
+
+# version: '3'
+# services:
+#   postgres:
+#     image: postgres
+#     environment:
+#       - POSTGRES_PASSWORD=mysecretpassword
+#     ports:
+#       - "5432:5432"
+
+
+version: "3"
 services:
-  web:
-    build: .
+  db:
+    image: "postgres:buster"  # << added "buster" for the workaround
+    container_name: "db-server"
+    environment:
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'my-db'
+    expose:
+      - "5432"
     ports:
-     - "80:80"
+      - "5432:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data
+volumes:
+  database_data:
+    driver: local
