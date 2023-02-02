@@ -1,7 +1,0 @@
-FROM postgres:buster
-
-ENV POSTGRES_USER myuser
-ENV POSTGRES_PASSWORD postgres
-ENV POSTGRES_DB my-db
-
-EXPOSE 5432

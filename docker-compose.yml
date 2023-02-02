@@ -1,35 +1,37 @@
-# version: '3'
-# services:
-#   web:
-#     build: .
-#     ports:
-#      - "80:80"
-
-
-# version: '3'
-# services:
-#   postgres:
-#     image: postgres
-#     environment:
-#       - POSTGRES_PASSWORD=mysecretpassword
-#     ports:
-#       - "5432:5432"
-
-
 version: "3"
+
 services:
-  db:
-    image: "postgres:buster"  # << added "buster" for the workaround
-    container_name: "db-server"
-    environment:
-      POSTGRES_PASSWORD: 'postgres'
-      POSTGRES_DB: 'my-db'
-    expose:
-      - "5432"
+  backend:
+    container_name: backend
+    build:
+      context: ./
+      dockerfile: ./requirement/backend/Dockerfile
+    depends_on:
+      - database
+    networks:
+      - transcendence
     ports:
-      - "5432:5432"
+      - "3001:3001"
+    restart: always
+    env_file:
+      - .env
+
+  db:
+    image: postgres:12
+    container_name: database
+    environment:
+      PGPORT: ${DB_PGPORT}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+    env_file:
+      - ./requirement/postgres.env
     volumes:
-      - database_data:/var/lib/postgresql/data
-volumes:
-  database_data:
-    driver: local
+      - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    networks:
+      - transcendence
+    command: postgres
+    restart: always
+
+networks:
+  transcendence:
