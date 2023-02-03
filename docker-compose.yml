@@ -4,28 +4,26 @@ services:
   backend:
     container_name: backend
     build:
-      context: ./
-      dockerfile: ./requirement/backend/Dockerfile
+      context: ./requirement/backend
+      dockerfile: Dockerfile
     depends_on:
-      - database
+      - db
     networks:
       - transcendence
     ports:
       - "3001:3001"
     restart: always
-    env_file:
-      - .env
+    volumes:
+      - ./backend:/app
 
   db:
-    image: postgres:12
+    image: postgres
     container_name: database
     environment:
-      PGPORT: ${DB_PGPORT}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      DB_DATABASE: ${DB_DATABASE}
-    env_file:
-      - ./requirement/postgres.env
+      PGPORT: 5432
+      POSTGRES_USER: mpatel
+      POSTGRES_PASSWORD: transcendence
+      DB_DATABASE: ft_database
     volumes:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     networks:

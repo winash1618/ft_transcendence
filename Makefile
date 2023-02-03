@@ -1,23 +1,55 @@
-all:
-	docker-compose -f ./docker/docker-compose.yml up
+DOCKER-COMPOSE := docker-compose -f docker-compose.yml
+
+all: up
+
+up:
+	@printf "\033[0;31mBuild, recreate, start containers\033[0m\n"
+	$(DOCKER-COMPOSE) up -d --build
 
 build:
-	docker-compose -f ./docker/docker-compose.yml --build
+		@printf "\033[0;31mBuild images from dockerfiles\033[0m\n"
+		$(DOCKER-COMPOSE) build
+
+start:
+		@printf "\033[0;31mStart stopped containers\033[0m\n"
+		$(DOCKER-COMPOSE) start
+
+restart:
+		@printf "\033[0;31mRestart stopped containers\033[0m\n"
+		$(DOCKER-COMPOSE) restart
+
+stop:
+		@printf "\033[0;31mStop containers (main process receive SIGTERM) \033[0m\n"
+		$(DOCKER-COMPOSE) stop
 
 down:
-	docker-compose -f ./docker/docker-compose.yml down
+		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
+		$(DOCKER-COMPOSE) down --rmi all --volumes --remove-orphans
 
-re: down
-	docker-compose -f ./docker/docker-compose.yml up --build
+ps:
+		@printf "\033[0;31mList containers\033[0m\n"
+		$(DOCKER-COMPOSE) ps
+
+images:
+		@printf "\033[0;31mList images\033[0m\n"
+		docker images
+
+volume:
+		@printf "\033[0;31mList volumes\033[0m\n"
+		docker volume ls
+#docker volume inspect VOLUME
 
 clean: down
-	docker system prune -a
 
-fclean: down
-	docker system prune --all --force --volumes
-	docker network prune --force
-	docker volume prune --force
-	rm -rf ./srcs/backend
-	rm -rm ./srcs/postgress
+fclean: clean
+		@printf "\033[0;31mRemoves images, containers and volumes\033[0m\n"
+		sudo rm -rf /home/$(USER)/data/wordpress/*
+		sudo rm -rf /home/$(USER)/data/mariadb/*
 
-.PHONY	: all build down re clean fclean
+prune:	fclean
+		@printf "\033[0;31mRemoves all unused images, containers and volumes\033[0m\n"
+		sudo docker system prune -f -a
+
+re: fclean all
+
+.PHONY: all up build start restart stop down ps images volume clean fclean prune re

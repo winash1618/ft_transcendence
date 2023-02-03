@@ -1,7 +1,4 @@
-FROM node:16.17.1-alpine3.15
-
-# Copy the backend source code into the container
-COPY ../../backend /app
+FROM node:16
 
 # Set the working directory
 WORKDIR /app
