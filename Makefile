@@ -37,18 +37,18 @@ images:
 volume:
 		@printf "\033[0;31mList volumes\033[0m\n"
 		docker volume ls
-#docker volume inspect VOLUME
+
+delete:
+		@printf "\033[0;31mDelete all the images\033[0m\n"
+		docker rmi -f $(docker images -aq)
 
 clean: down
 
 fclean: clean
 		@printf "\033[0;31mRemoves images, containers and volumes\033[0m\n"
-		sudo rm -rf /home/$(USER)/data/wordpress/*
-		sudo rm -rf /home/$(USER)/data/mariadb/*
 
 prune:	fclean
 		@printf "\033[0;31mRemoves all unused images, containers and volumes\033[0m\n"
-		sudo docker system prune -f -a
 
 re: fclean all
 
