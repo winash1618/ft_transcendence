@@ -42,6 +42,10 @@ delete:
 		@printf "\033[0;31mDelete all the images\033[0m\n"
 		docker rmi -f $(docker images -aq)
 
+nest:
+		@printf "\033[0;31mStart NestJS\033[0m\n"
+		docker-compose exec nestjs bash
+
 clean: down
 
 fclean: clean

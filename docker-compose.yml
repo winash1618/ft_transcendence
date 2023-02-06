@@ -2,6 +2,7 @@ version: '3'
 services:
   postgres:
     image: postgres:13.4-buster
+    container_name: postgres
     environment:
       PGPORT: 5432
       POSTGRES_USER: mpatel
@@ -13,8 +14,12 @@ services:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
   nestjs:
     image: node:19
+    container_name: nestjs
     working_dir: /app/backend
-    command: bash -c "npm install && npm run start:dev"
+    command: >
+      bash -c "npm install
+      && npm run start:dev
+      && npm i -g @nestjs/cli"
     ports:
       - "3000:3000"
     environment:
