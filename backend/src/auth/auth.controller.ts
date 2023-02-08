@@ -1,22 +1,19 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { FortyTwoAuthGuard } from './ft_auth/ft-auth.guard';
-import { FortyTwoStrategy } from './ft_auth/ft.strategy';
 
 @Controller()
 export class AuthController {
-  constructor(
-    private FortyTwoStrategy: FortyTwoStrategy,
-    private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
-  @Get('login')
-  getHello(@Req() req, @Res() res): string {
-    console.log("Hello");
+  @Get()
+  getHello(): string {
     return this.authService.getHello();
   }
 
-  @Get('42')
-  @UseGuards(FortyTwoAuthGuard)
-  async fortyTwoLogin(@Req() req, @Res() res) {
+  @UseGuards(AuthGuard('42'))
+  @Get('42/login')
+  handleLogin() {
+    return ;
   }
 }
