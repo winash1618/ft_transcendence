@@ -46,6 +46,10 @@ nest:
 		@printf "\033[0;31mStart NestJS\033[0m\n"
 		docker-compose exec nestjs bash
 
+logs:
+		@printf "\033[0;31mShow logs\033[0m\n"
+		$(DOCKER-COMPOSE) logs -f
+
 clean: down
 
 fclean: clean
