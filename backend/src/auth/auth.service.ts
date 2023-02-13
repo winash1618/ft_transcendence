@@ -17,8 +17,12 @@ export class AuthService {
 
   //able to fetch user data but can't make too many requests using retrieveAccessToken()
   fetchToken(code: string): void {
-    this.fortyTwoApi.setCode(code);
-    // this.fortyTwoApi.retriveAccessToken();
+    this.fortyTwoApi.code = code;
+    // this.fortyTwoApi.tokenDTO = this.fortyTwoApi.retriveAccessToken();
+    const Token = this.fortyTwoApi.retriveAccessToken();
+    Token.then((token) => {
+      this.fortyTwoApi.tokenDTO = token;
+    })
     this.fortyTwoApi.fetchUser();
   }
 

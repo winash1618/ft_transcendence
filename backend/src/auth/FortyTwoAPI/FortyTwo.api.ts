@@ -1,65 +1,72 @@
 import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios"
 import axios, { AxiosError } from 'axios';
+import { TokenDTO } from "./42DTO/access42.dto";
+
 
 @Injectable()
 export class FortyTwoApi {
-  constructor(private http: HttpService) {}
-
-  private code: string;
-  private access_code: string = '268950f6e6926c8630573afba49eef572ac7106f4c3800b3e2b9224143c6b566';
-  private refresh_token: string = '61db9fb0f7bd08cba2ca98046bda6550379193e88dc30e5f10435f8cbfe8f6a6';
-
-  private data;
-
-  setCode(code: string) {
-    this.code = code;
+  private _tokenDTO: TokenDTO;
+  constructor(private http: HttpService) {
+    this._tokenDTO = new TokenDTO();
   }
 
-  get getCode(): string {
-    return this.code;
+  private _code: string;
+
+  get code(): string {
+    return this._code;
   }
 
-  formData() {
-    this.data.append('grant_type', 'authorization_code');
-    this.data.append('client_id', process.env.CLIENT_ID);
-    this.data.append('client_secret', process.env.CLIENT_SECRET);
-    this.data.append('code', this.code);
-    this.data.append('redirect_uri', process.env.REDIRECT_URI);
+  set code(code: string) {
+    this._code = code;
   }
 
-  retriveAccessToken() {
+  set tokenDTO(token: TokenDTO) {
+    this._tokenDTO = token;
+  }
+
+  async retriveAccessToken(): Promise<TokenDTO> {
     const headers = {
       'Content-Type': 'application/json',
-    }
+    };
 
     const data = {
-      'grant_type': 'authorization_code',
-      'client_id': process.env.CLIENT_ID,
-      'client_secret': process.env.CLIENT_SECRET,
-      'code': this.code,
-      'redirect_uri': process.env.REDIRECT_URI,
-    }
+      grant_type: 'authorization_code',
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET,
+      code: this.code,
+      redirect_uri: process.env.REDIRECT_URI,
+    };
 
-    axios.post(
-      'https://api.intra.42.fr/oauth/token',
-      JSON.stringify(data),
-      { headers }
-      )
-      .then(function(response) {
-        this.access_code = response.data.access_token;
-        this.refresh_token = response.data.refresh_token;
-      })
-      .catch(function(error) {
-        console.log(error);
-      });
+    try {
+      const response = await axios.post(
+        'https://api.intra.42.fr/oauth/token',
+        JSON.stringify(data),
+        { headers },
+      );
+      const responseData = response.data;
+      const dto: TokenDTO = {
+        access_token: responseData.access_token,
+        token_type: responseData.token_type,
+        expires_in: responseData.expires_in,
+        refresh_token: responseData.refresh_token,
+        scope: responseData.scope,
+        created_at: responseData.created_at
+      };
+      return dto;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   fetchUser() {
-    let bearer: string = 'Bearer ' + this.access_code;
+    let bearer: string = 'Bearer ' + this._tokenDTO.access_token;
     const headers = {
     'Authorization': bearer
     };
+
+    console.log(headers);
 
     axios.get('https://api.intra.42.fr/v2/me', { headers })
       .then(response => {
