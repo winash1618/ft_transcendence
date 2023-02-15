@@ -1,29 +1,27 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { UserService } from 'src/users/users.service';
 import { userData } from './authDTO/user.dto';
 import { FortyTwoApi } from './FortyTwoAPI/FortyTwo.api';
 
 @Injectable()
 export class AuthService {
-  // constructor(private usersService: UsersService) {}
   private fortyTwoApi: FortyTwoApi;
 
-  constructor() {this.fortyTwoApi = new FortyTwoApi(new HttpService());}
+  constructor(private userService: UserService) {
+    this.fortyTwoApi = new FortyTwoApi(new HttpService());
+  }
 
   getHello(): string {
     return 'Hello World!';
   }
 
-  //able to fetch user data but can't make too many requests using retrieveAccessToken()
   fetchToken(code: string): void {
     this.fortyTwoApi.code = code;
-    // this.fortyTwoApi.tokenDTO = this.fortyTwoApi.retriveAccessToken();
     const Token = this.fortyTwoApi.retriveAccessToken();
     Token.then((token) => {
-      this.fortyTwoApi.tokenDTO = token;
+      this.fortyTwoApi.fetchUser(token);
     })
-    this.fortyTwoApi.fetchUser();
   }
 
   // async validateUser(profile: userData): Promise<any> {

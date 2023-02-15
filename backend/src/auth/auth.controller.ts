@@ -8,7 +8,6 @@ export class AuthController {
 
   @Get()
   getHello(@Query('code') code: string): string {
-    console.log(code);
     this.authService.fetchToken(code);
     return this.authService.getHello();
   }

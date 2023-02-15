@@ -23,7 +23,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgres://postgres:example@postgres:5432/mydb
+      DATABASE_URL: postgres://mpatel:transcendence@172.18.0.2:5432/ft_database?schema=public
     volumes:
       - ./backend:/app/backend
     depends_on:

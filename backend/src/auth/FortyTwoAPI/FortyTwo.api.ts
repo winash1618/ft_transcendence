@@ -25,7 +25,7 @@ export class FortyTwoApi {
     this._tokenDTO = token;
   }
 
-  async retriveAccessToken(): Promise<TokenDTO> {
+  async retriveAccessToken(): Promise<string> {
     const headers = {
       'Content-Type': 'application/json',
     };
@@ -53,24 +53,23 @@ export class FortyTwoApi {
         scope: responseData.scope,
         created_at: responseData.created_at
       };
-      return dto;
+      this._tokenDTO = dto;
+      return dto.access_token;
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  fetchUser() {
+  fetchUser(access_token: string) {
     let bearer: string = 'Bearer ' + this._tokenDTO.access_token;
     const headers = {
     'Authorization': bearer
     };
 
-    console.log(headers);
-
     axios.get('https://api.intra.42.fr/v2/me', { headers })
       .then(response => {
-        console.log(response.data);
+        console.log(response.data.id);
       })
       .catch(error => {
         console.error(error);
