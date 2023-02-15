@@ -1,14 +1,13 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { UserService } from 'src/users/users.service';
-import { userData } from './authDTO/user.dto';
+import { UsersService } from 'src/users/users.service';
 import { FortyTwoApi } from './FortyTwoAPI/FortyTwo.api';
 
 @Injectable()
 export class AuthService {
   private fortyTwoApi: FortyTwoApi;
 
-  constructor(private userService: UserService) {
+  constructor(private userService: UsersService) {
     this.fortyTwoApi = new FortyTwoApi(new HttpService());
   }
 
@@ -23,12 +22,4 @@ export class AuthService {
       this.fortyTwoApi.fetchUser(token);
     })
   }
-
-  // async validateUser(profile: userData): Promise<any> {
-  //   const user = await this.usersService.findOne(profile.displayName);
-  //   if (user) {
-  //     return user;
-  //   }
-  //   return null;
-  // }
 }
