@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios"
 import axios, { AxiosError } from 'axios';
 import { TokenDTO } from "./42DTO/access42.dto";
+import { CreateUserDto } from "src/users/dto/create-user.dto";
 
 
 @Injectable()
@@ -61,18 +62,25 @@ export class FortyTwoApi {
     }
   }
 
-  fetchUser(access_token: string) {
+  async fetchUser(): Promise<CreateUserDto> {
     let bearer: string = 'Bearer ' + this._tokenDTO.access_token;
     const headers = {
     'Authorization': bearer
     };
 
-    axios.get('https://api.intra.42.fr/v2/me', { headers })
-      .then(response => {
-        console.log(response.data.id);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+    try {
+      const response = await axios.get('https://api.intra.42.fr/v2/me', { headers });
+      const responseData = response.data;
+      const dto: CreateUserDto = {
+        login: responseData.login,
+        email: responseData.email,
+        first_name: responseData.first_name,
+        last_name: responseData.last_name
+      }
+      return dto;
     }
+    catch (error) {
+      throw error;
+    }
+  }
 }
