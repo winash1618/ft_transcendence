@@ -11,9 +11,10 @@ datasource db {
 }
 
 model User {
-  username          String  @unique
+  id                Int @id @default(autoincrement())
   email             String  @unique
-  first_name        String
-  last_name         String
-  intra_id          String     @default(autoincrement()) @id
+  login             String
+  first_name        String?
+  last_name         String?
+  createAt          DateTime @default(now())
 }

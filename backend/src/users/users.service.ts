@@ -9,24 +9,22 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const user = await this.prisma.user.create({
-          data: {
-              username: createUserDto.login,
-              email: createUserDto.email,
-              first_name: createUserDto.first_name,
-              last_name: createUserDto.last_name,
-              intra_id: createUserDto.id,
-          },
+        data: {
+          email: createUserDto.email,
+          login: createUserDto.login,
+          first_name: createUserDto.first_name,
+          last_name: createUserDto.last_name,
+        },
       });
       return user;
-  } catch (error) {
-      //console.log('error:', error);
+    } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
           throw error;
       }
-  }
+    }
     // return 'This action adds a new user';
   }
 
