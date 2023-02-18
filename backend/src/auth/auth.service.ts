@@ -19,9 +19,9 @@ export class AuthService {
     this.fortyTwoApi.code = code;
     const Token = this.fortyTwoApi.retriveAccessToken();
     Token.then((token) => {
-      const user =  this.fortyTwoApi.fetchUser();
+      const user = this.fortyTwoApi.fetchUser();
       user.then((user) => {
-        this.userService.create(user);
+        this.userService.add42User(user);
       })
     })
   }
