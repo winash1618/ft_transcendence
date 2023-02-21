@@ -1,7 +1,8 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { FortyTwoApi } from './FortyTwoAPI/FortyTwo.api';
+import { FortyTwoApi } from './Strategy/FortyTwoAPI/FortyTwo.api';
+import * as moment from 'moment';
 
 @Injectable()
 export class AuthService {
@@ -24,5 +25,15 @@ export class AuthService {
         this.userService.add42User(user);
       })
     })
+  }
+
+  public async validRefreshToken(email: string, pass: string): Promise<any> {
+    // const currentDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    const user = await this.userService.findOne(email);
+    if (!user) {
+      return null;
+    }
+    return user;
+    // let currentUser =
   }
 }
