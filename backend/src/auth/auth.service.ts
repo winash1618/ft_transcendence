@@ -3,12 +3,16 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { FortyTwoApi } from './Strategy/FortyTwoAPI/FortyTwo.api';
 import * as moment from 'moment';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   private fortyTwoApi: FortyTwoApi;
 
-  constructor(private userService: UsersService) {
+  constructor(
+    private jwtService: JwtService,
+    private userService: UsersService
+    ) {
     this.fortyTwoApi = new FortyTwoApi(new HttpService());
   }
 
@@ -25,6 +29,15 @@ export class AuthService {
         this.userService.add42User(user);
       })
     })
+  }
+
+  async getJwt(user): Promise<string> {
+    const payload = {
+      id: user.id,
+      login: user.login,
+      email: user.email,
+    }
+    return this.jwtService.sign(payload);
   }
 
   public async validRefreshToken(email: string, pass: string): Promise<any> {
