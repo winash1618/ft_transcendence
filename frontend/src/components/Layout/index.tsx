@@ -1,76 +1,58 @@
-import React, { useState } from 'react';
+import React from "react";
 import {
-  AppstoreOutlined,
-  ContainerOutlined,
-  DesktopOutlined,
-  MailOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  PieChartOutlined,
-} from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import { Button, Menu } from 'antd';
+  UploadOutlined,
+  UserOutlined,
+  VideoCameraOutlined,
+} from "@ant-design/icons";
+import { Layout, Menu, theme } from "antd";
+import { Outlet } from "react-router-dom";
 
-type MenuItem = Required<MenuProps>['items'][number];
+const { Header, Content, Footer, Sider } = Layout;
 
-function getItem(
-  label: React.ReactNode,
-  key: React.Key,
-  icon?: React.ReactNode,
-  children?: MenuItem[],
-  type?: 'group',
-): MenuItem {
-  return {
-    key,
-    icon,
-    children,
-    label,
-    type,
-  } as MenuItem;
-}
-
-const items: MenuItem[] = [
-  getItem('Option 1', '1', <PieChartOutlined />),
-  getItem('Option 2', '2', <DesktopOutlined />),
-  getItem('Option 3', '3', <ContainerOutlined />),
-
-  getItem('Navigation One', 'sub1', <MailOutlined />, [
-    getItem('Option 5', '5'),
-    getItem('Option 6', '6'),
-    getItem('Option 7', '7'),
-    getItem('Option 8', '8'),
-  ]),
-
-  getItem('Navigation Two', 'sub2', <AppstoreOutlined />, [
-    getItem('Option 9', '9'),
-    getItem('Option 10', '10'),
-
-    getItem('Submenu', 'sub3', null, [getItem('Option 11', '11'), getItem('Option 12', '12')]),
-  ]),
-];
-
-const Layout = () => {
-  const [collapsed, setCollapsed] = useState(false);
-
-  const toggleCollapsed = () => {
-    setCollapsed(!collapsed);
-  };
+const Navbar: React.FC = () => {
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
 
   return (
-    <div style={{ width: 256 }}>
-      <Button type="primary" onClick={toggleCollapsed} style={{ marginBottom: 16 }}>
-        {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-      </Button>
-      <Menu
-        defaultSelectedKeys={['1']}
-        defaultOpenKeys={['sub1']}
-        mode="inline"
-        theme="dark"
-        inlineCollapsed={collapsed}
-        items={items}
-      />
-    </div>
+    <Layout style={{ height: "100%" }}>
+      <Sider
+        breakpoint="lg"
+        collapsedWidth="0"
+        onBreakpoint={(broken) => {
+          console.log(broken);
+        }}
+        onCollapse={(collapsed, type) => {
+          console.log(collapsed, type);
+        }}
+      >
+        <div className="logo" />
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={["4"]}
+          items={[
+            UserOutlined,
+            VideoCameraOutlined,
+            UploadOutlined,
+            UserOutlined,
+          ].map((icon, index) => ({
+            key: String(index + 1),
+            icon: React.createElement(icon),
+            label: `nav ${index + 1}`,
+          }))}
+        />
+      </Sider>
+      <Layout>
+        <Content style={{ margin: "24px 16px 0" }}>
+          <Outlet />
+        </Content>
+        <Footer style={{ textAlign: "center" }}>
+          42 ft_transcendence ©2023
+        </Footer>
+      </Layout>
+    </Layout>
   );
 };
 
-export default Layout;
+export default Navbar;

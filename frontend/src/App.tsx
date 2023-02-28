@@ -1,20 +1,11 @@
-import {
-  createBrowserRouter,
-  RouteObject,
-  RouterProvider,
-} from "react-router-dom";
-import Layout from "./components/Layout";
-import HomePage from "./pages/homePage";
+import { RouterProvider } from "react-router-dom";
+import { GlobalStyle } from "./globalStyle";
+import { router } from "./router";
 
 function App() {
-  const router = createBrowserRouter([
-    {
-      element: <Layout />,
-      children: [{ path: "/", element: <HomePage /> }],
-    },
-  ]);
   return (
-    <div className="App">
+    <div style={{ height: "100%" }}>
+      <GlobalStyle />
       <RouterProvider router={router} />
     </div>
   );

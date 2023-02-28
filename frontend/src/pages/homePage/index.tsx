@@ -1,7 +1,11 @@
-import React from "react";
+import PingPong from "../../components/pingPong";
 
 const HomePage = () => {
-  return <div>HomePage</div>;
+  return (
+    <>
+      <PingPong />
+    </>
+  );
 };
 
 export default HomePage;
