@@ -131,22 +131,22 @@ export const draw = (
 ) => {
   ctx.clearRect(0, 0, 1000, 1000);
   if (game.paddle1.movingUp && game.paddle1.y > 0) {
-    game.paddle1.y -= 20;
+    game.paddle1.y -= 10;
   }
   if (
     game.paddle1.movingDown &&
     game.paddle1.y < CANVAS_HEIGHT - game.paddle1.height
   ) {
-    game.paddle1.y += 20;
+    game.paddle1.y += 10;
   }
   if (game.paddle2.movingUp && game.paddle2.y > 0) {
-    game.paddle2.y -= 20;
+    game.paddle2.y -= 10;
   }
   if (
     game.paddle2.movingDown &&
     game.paddle2.y < CANVAS_HEIGHT - game.paddle2.height
   ) {
-    game.paddle2.y += 20;
+    game.paddle2.y += 10;
   }
   drawPaddles(ctx, game.paddle1, game.paddle2);
   moveBall(game.ball);
