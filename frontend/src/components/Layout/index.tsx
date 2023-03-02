@@ -1,21 +1,21 @@
 import React from "react";
 import {
-  UploadOutlined,
   UserOutlined,
-  VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider } = Layout;
+
+const navItems = [
+  { icon: UserOutlined, path: "/", label: "Play ping pong" },
+  { icon: UserOutlined, path: "/leaderboard", label: "Leaderboard" },
+  { icon: UserOutlined, path: "/messages", label: "Messages" },
+];
 
 const Navbar: React.FC = () => {
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
-
   return (
-    <Layout style={{ height: "100%" }}>
+    <Layout style={{ minHeight: "100%" }}>
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
@@ -31,15 +31,10 @@ const Navbar: React.FC = () => {
           theme="dark"
           mode="inline"
           defaultSelectedKeys={["4"]}
-          items={[
-            UserOutlined,
-            VideoCameraOutlined,
-            UploadOutlined,
-            UserOutlined,
-          ].map((icon, index) => ({
+          items={navItems.map((item, index) => ({
             key: String(index + 1),
-            icon: React.createElement(icon),
-            label: `nav ${index + 1}`,
+            icon: React.createElement(item.icon),
+            label: <Link to={item.path}>{item.label}</Link>,
           }))}
         />
       </Sider>

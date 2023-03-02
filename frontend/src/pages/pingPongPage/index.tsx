@@ -1,6 +1,6 @@
 import PingPong from "../../components/pingPong";
 
-const HomePage = () => {
+const PingPongPage = () => {
   return (
     <>
       <PingPong />
@@ -8,4 +8,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default PingPongPage;
