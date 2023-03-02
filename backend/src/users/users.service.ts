@@ -10,16 +10,19 @@ export class UsersService {
   constructor(private prisma: PrismaService) { }
 
   create(createUserDto: CreateUserDto) {
-    console.log('createUserDto', createUserDto);
     return this.prisma.user.create({ data: createUserDto });
+  }
+
+  async add42User(userDto: CreateUserDto) {
+    return await this.prisma.user.create({ data: userDto});
   }
 
   async users(): Promise<User[]> {
     return this.prisma.user.findMany();
   }
 
-  async findOne(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
+  async findOne(email: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({ where: { email } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
