@@ -37,14 +37,12 @@ const drawBall = (ctx: any, ball: BallType) => {
 };
 
 const drawPaddles = (ctx: any, paddle1: PaddleType, paddle2: PaddleType) => {
-  // Draw the paddles
   ctx.fillStyle = paddle1.color;
   ctx.fillRect(paddle1.x, paddle1.y, paddle1.width, paddle1.height);
   ctx.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
 };
 
 export const createBall = (ball: BallType) => {
-  console.log("test");
   if (Math.round(Math.random()) === 1) {
     ball.directionX = 1;
   } else {
@@ -86,19 +84,42 @@ const checkCollision = (
     ball.x = CANVAS_WIDTH / 2;
     ball.y = CANVAS_HEIGHT / 2;
   }
-  if (
-    ball.x <= paddle1.x + paddle1.width + ball.radius &&
-    ball.y >= paddle1.y &&
-    ball.y <= paddle1.y + paddle1.height
-  ) {
-    ball.directionX = -ball.directionX;
-  }
-  if (
-	ball.x >= paddle2.x - paddle2.width - ball.radius &&
-	ball.y >= paddle2.y &&
-	ball.y <= paddle2.y + paddle2.height
-  ) {
-	ball.directionX = -ball.directionX;
+  if (ball.x <= paddle1.x + paddle1.width + ball.radius) {
+    if (
+      !(
+        ball.y + ball.radius <= paddle1.y ||
+        ball.y >= paddle1.y + paddle1.height
+      )
+    ) {
+      if (ball.y <= paddle1.y) {
+        ball.directionY = -1;
+        ball.y = paddle1.y - ball.radius;
+      } else if (ball.y + ball.radius >= paddle1.y + paddle1.height) {
+        ball.directionY = 1;
+        ball.y = paddle1.y + paddle1.height;
+      } else {
+        ball.directionX = -ball.directionX;
+        ball.x = paddle1.x + paddle1.width + ball.radius;
+      }
+    }
+  } else if (ball.x >= paddle2.x - ball.radius) {
+    if (
+      !(
+        ball.y + ball.radius <= paddle2.y ||
+        ball.y >= paddle2.y + paddle2.height
+      )
+    ) {
+      if (ball.y <= paddle2.y) {
+        ball.directionY = -1;
+        ball.y = paddle2.y - ball.radius;
+      } else if (ball.y + ball.radius >= paddle2.y + paddle2.height) {
+        ball.directionY = 1;
+        ball.y = paddle2.y + paddle2.height;
+      } else {
+        ball.directionX = -ball.directionX;
+        ball.x = paddle2.x - ball.radius;
+      }
+    }
   }
 };
 
@@ -118,6 +139,15 @@ export const draw = (
   ) {
     game.paddle1.y += 20;
   }
+  if (game.paddle2.movingUp && game.paddle2.y > 0) {
+    game.paddle2.y -= 20;
+  }
+  if (
+    game.paddle2.movingDown &&
+    game.paddle2.y < CANVAS_HEIGHT - game.paddle2.height
+  ) {
+    game.paddle2.y += 20;
+  }
   drawPaddles(ctx, game.paddle1, game.paddle2);
   moveBall(game.ball);
   checkCollision(
@@ -134,17 +164,27 @@ export const draw = (
 };
 
 export const movePaddle = (e: any, game: GameType, canvas: any) => {
-  if (e.key === "ArrowUp" || e.key === "w") {
+  if (e.key === "w") {
     game.paddle1.movingUp = true;
-  } else if (e.key === "ArrowDown" || e.key === "s") {
+  } else if (e.key === "s") {
     game.paddle1.movingDown = true;
+  }
+  if (e.key === "ArrowUp") {
+    game.paddle2.movingUp = true;
+  } else if (e.key === "ArrowDown") {
+    game.paddle2.movingDown = true;
   }
 };
 
 export const stopPaddle = (e: any, game: GameType, canvas: any) => {
-  if (e.key === "ArrowUp" || e.key === "w") {
+  if (e.key === "w") {
     game.paddle1.movingUp = false;
-  } else if (e.key === "ArrowDown" || e.key === "s") {
+  } else if (e.key === "s") {
     game.paddle1.movingDown = false;
+  }
+  if (e.key === "ArrowUp") {
+    game.paddle2.movingUp = false;
+  } else if (e.key === "ArrowDown") {
+    game.paddle2.movingDown = false;
   }
 };
