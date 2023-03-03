@@ -4,21 +4,28 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { parse } from 'cookie';
+import cookieParser from 'cookie-parser';
+import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway(8001, { cors: '*' })
+@WebSocketGateway(8001, {
+  cors: {
+    origin: 'http://localhost:3000',
+    credentials: true,
+  },
+})
 export class PingpongGateway {
   @WebSocketServer()
-  server;
-  handleConnection(client: Socket){
-	console.log(client.request.headers.cookie);
+  server: Server;
+  handleConnection(client: Socket) {
+    console.log(parse(client.request.headers.cookie).esc);
   }
   handleDisconnect(client: any) {
     this.handlePause(true);
   }
   @SubscribeMessage('ballX')
   handleBallX(client: Socket, @MessageBody() data: number): void {
-	this.server.emit('ballX', data);
+    this.server.emit('ballX', data);
   }
   @SubscribeMessage('pause')
   handlePause(@MessageBody() data: boolean): void {

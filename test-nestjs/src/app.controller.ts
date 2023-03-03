@@ -8,17 +8,17 @@ export class AppController {
 
   @Get()
   checkCookie(@Req() request: Request) {
-	console.log(request.cookies);
   }
+
   @Post()
   login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     res.cookie('esc', 'hellooooo1233433', {
       httpOnly: true,
       sameSite: 'strict',
-      signed: true,
+      signed: false,
       path: '/',
       secure: false,
-	  expires: new Date(Date.now() + 900000),
+      expires: new Date(Date.now() + 900000),
     });
   }
 }
