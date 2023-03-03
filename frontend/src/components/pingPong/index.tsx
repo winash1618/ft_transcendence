@@ -8,7 +8,9 @@ const PingPong = () => {
   const [player, setPlayer] = useState<number>(1);
 
   useEffect(() => {
-    setPlayer(2);
+    if (Math.round(Math.random()) === 1) {
+      setPlayer(2);
+    }
   }, []);
   return (
     <PingPongContainer>

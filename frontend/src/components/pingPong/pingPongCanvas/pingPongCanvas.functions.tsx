@@ -1,3 +1,4 @@
+import { Socket } from "socket.io-client";
 import { GameType } from ".";
 
 export const CANVAS_WIDTH = 900;
@@ -55,31 +56,43 @@ export const createBall = (ball: BallType) => {
   }
 };
 
-const moveBall = (ball: BallType) => {
-  ball.x += ball.velocityX * ball.directionX;
-  ball.y += ball.velocityY * ball.directionY;
+const moveBall = (ball: BallType, socket: Socket, player: number) => {
+  if (player === 1) {
+    ball.x += ball.velocityX * ball.directionX;
+    socket.emit("ballX", ball.x);
+    ball.y += ball.velocityY * ball.directionY;
+    socket.emit("ballY", ball.y);
+  }
 };
 
 const checkCollision = (
   ball: BallType,
+  player: number,
   paddle1: PaddleType,
   paddle2: PaddleType,
   setPlayer1Score: any,
-  setPlayer2Score: any
+  setPlayer2Score: any,
+  socket: Socket
 ) => {
   if (ball.y <= 0 || ball.y >= CANVAS_HEIGHT - ball.radius) {
     ball.directionY = -ball.directionY;
   }
   if (ball.x <= 0) {
-    paddle2.score++;
-    setPlayer2Score(paddle2.score);
+    if (player === 1) {
+      paddle2.score++;
+      socket.emit("player2Score", paddle2.score);
+      setPlayer2Score(paddle2.score);
+    }
     createBall(ball);
     ball.x = CANVAS_WIDTH / 2;
     ball.y = CANVAS_HEIGHT / 2;
   }
   if (ball.x >= CANVAS_WIDTH - ball.radius) {
-    paddle1.score++;
-    setPlayer1Score(paddle1.score);
+    if (player === 1) {
+      paddle1.score++;
+      socket.emit("player1Score", paddle1.score);
+      setPlayer1Score(paddle1.score);
+    }
     createBall(ball);
     ball.x = CANVAS_WIDTH / 2;
     ball.y = CANVAS_HEIGHT / 2;
@@ -126,45 +139,62 @@ const checkCollision = (
 export const draw = (
   ctx: any,
   game: GameType,
+  player: number,
   setPlayer1Score: any,
-  setPlayer2Score: any
+  setPlayer2Score: any,
+  socket: Socket
 ) => {
-  ctx.clearRect(0, 0, 1000, 1000);
-  if (game.paddle1.movingUp && game.paddle1.y > 0) {
-    game.paddle1.y -= 10;
+  if (!game.pause) {
+    ctx.clearRect(0, 0, 1000, 1000);
+    if (game.paddle1.movingUp && game.paddle1.y > 0) {
+      game.paddle1.y -= 10;
+      if (player === 1) {
+        socket.emit("player1Y", game.paddle1.y);
+      }
+    }
+    if (
+      game.paddle1.movingDown &&
+      game.paddle1.y < CANVAS_HEIGHT - game.paddle1.height
+    ) {
+      game.paddle1.y += 10;
+      if (player === 1) {
+        socket.emit("player1Y", game.paddle1.y);
+      }
+    }
+    if (game.paddle2.movingUp && game.paddle2.y > 0) {
+      game.paddle2.y -= 10;
+      if (player === 2) {
+        socket.emit("player2Y", game.paddle2.y);
+      }
+    }
+    if (
+      game.paddle2.movingDown &&
+      game.paddle2.y < CANVAS_HEIGHT - game.paddle2.height
+    ) {
+      game.paddle2.y += 10;
+      if (player === 2) {
+        socket.emit("player2Y", game.paddle2.y);
+      }
+    }
+    drawPaddles(ctx, game.paddle1, game.paddle2);
+    moveBall(game.ball, socket, player);
+    checkCollision(
+      game.ball,
+      player,
+      game.paddle1,
+      game.paddle2,
+      setPlayer1Score,
+      setPlayer2Score,
+      socket
+    );
+    drawBall(ctx, game.ball);
   }
-  if (
-    game.paddle1.movingDown &&
-    game.paddle1.y < CANVAS_HEIGHT - game.paddle1.height
-  ) {
-    game.paddle1.y += 10;
-  }
-  if (game.paddle2.movingUp && game.paddle2.y > 0) {
-    game.paddle2.y -= 10;
-  }
-  if (
-    game.paddle2.movingDown &&
-    game.paddle2.y < CANVAS_HEIGHT - game.paddle2.height
-  ) {
-    game.paddle2.y += 10;
-  }
-  drawPaddles(ctx, game.paddle1, game.paddle2);
-  moveBall(game.ball);
-  checkCollision(
-    game.ball,
-    game.paddle1,
-    game.paddle2,
-    setPlayer1Score,
-    setPlayer2Score
-  );
-  drawBall(ctx, game.ball);
   requestAnimationFrame(() =>
-    draw(ctx, game, setPlayer1Score, setPlayer2Score)
+    draw(ctx, game, player, setPlayer1Score, setPlayer2Score, socket)
   );
 };
 
 export const movePaddle = (e: any, game: GameType, player: number) => {
-  console.log(player);
   if (player === 1) {
     if (e.key === "w") {
       game.paddle1.movingUp = true;
