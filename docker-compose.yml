@@ -12,6 +12,20 @@ services:
       - "5432:5432"
     volumes:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+  reactjs:
+    image: node:19
+    container_name: reactjs
+    working_dir: /app/frontend
+    command: >
+      bash -c "npm install
+      && npm start"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    depends_on:
+      - nestjs
   nestjs:
     image: node:19
     container_name: nestjs
@@ -21,7 +35,7 @@ services:
       && npm run start:dev
       && npm i -g @nestjs/cli"
     ports:
-      - "3000:3000"
+      - "3001:3001"
       - "5555:5555"
     environment:
       DATABASE_URL: postgres://mpatel:transcendence@172.18.0.2:5432/ft_database?schema=public

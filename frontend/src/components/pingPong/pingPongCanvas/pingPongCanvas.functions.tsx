@@ -163,28 +163,35 @@ export const draw = (
   );
 };
 
-export const movePaddle = (e: any, game: GameType, canvas: any) => {
-  if (e.key === "w") {
-    game.paddle1.movingUp = true;
-  } else if (e.key === "s") {
-    game.paddle1.movingDown = true;
-  }
-  if (e.key === "ArrowUp") {
-    game.paddle2.movingUp = true;
-  } else if (e.key === "ArrowDown") {
-    game.paddle2.movingDown = true;
+export const movePaddle = (e: any, game: GameType, player: number) => {
+  console.log(player);
+  if (player === 1) {
+    if (e.key === "w") {
+      game.paddle1.movingUp = true;
+    } else if (e.key === "s") {
+      game.paddle1.movingDown = true;
+    }
+  } else if (player === 2) {
+    if (e.key === "w") {
+      game.paddle2.movingUp = true;
+    } else if (e.key === "s") {
+      game.paddle2.movingDown = true;
+    }
   }
 };
 
-export const stopPaddle = (e: any, game: GameType, canvas: any) => {
-  if (e.key === "w") {
-    game.paddle1.movingUp = false;
-  } else if (e.key === "s") {
-    game.paddle1.movingDown = false;
-  }
-  if (e.key === "ArrowUp") {
-    game.paddle2.movingUp = false;
-  } else if (e.key === "ArrowDown") {
-    game.paddle2.movingDown = false;
+export const stopPaddle = (e: any, game: GameType, player: number) => {
+  if (player === 1) {
+    if (e.key === "w") {
+      game.paddle1.movingUp = false;
+    } else if (e.key === "s") {
+      game.paddle1.movingDown = false;
+    }
+  } else if (player === 2) {
+    if (e.key === "w") {
+      game.paddle2.movingUp = false;
+    } else if (e.key === "s") {
+      game.paddle2.movingDown = false;
+    }
   }
 };
