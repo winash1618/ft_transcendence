@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { PingPongContainer } from "./pingPong.styled";
 import CountDown from "./countdown";
-import io, { Socket } from "socket.io-client";
 import PingPongCanvas from "./pingPongCanvas";
 
 const PingPong = () => {

@@ -7,10 +7,12 @@ import { AuthService } from './auth/auth.service';
 import { UsersService } from './users/users.service';
 import { PrismaModule } from './database/prisma.module';
 import { PingpongGateway } from './pingpong/pingpong.gateway';
+import { AppService } from './app.service';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [ConfigModule.forRoot(), AuthModule, UsersModule, PrismaModule],
-  controllers: [AuthController],
-  providers: [AuthService, UsersService, PingpongGateway]
+  controllers: [AuthController, AppController],
+  providers: [AuthService, UsersService, PingpongGateway, AppService]
 })
 export class AppModule {}

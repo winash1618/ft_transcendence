@@ -18,7 +18,7 @@ export class PingpongGateway {
   @WebSocketServer()
   server: Server;
   handleConnection(client: Socket) {
-    console.log(parse(client.request.headers.cookie).esc);
+    // console.log(parse(client.request.headers.cookie).esc);
   }
   handleDisconnect(client: any) {
     this.handlePause(true);

@@ -8,14 +8,16 @@ export class AppController {
 
   @Get()
   checkCookie(@Req() request: Request) {
+	console.log(request.cookies);
   }
 
   @Post()
   login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+	console.log('testttt1233333');
     res.cookie('esc', 'hellooooo1233433', {
-      httpOnly: true,
+      httpOnly: false,
       sameSite: 'strict',
-      signed: false,
+      signed: true,
       path: '/',
       secure: false,
       expires: new Date(Date.now() + 900000),
