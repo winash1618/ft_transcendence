@@ -90,7 +90,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
 
   useEffect(() => {
     axios.get("http://localhost:3001", { withCredentials: true });
-    const socket = io("http://localhost:8001");
+    const socket = io("http://localhost:8001", { withCredentials: true });
     if (canvaRef.current) {
       canvaRef.current.width = CANVAS_WIDTH;
       canvaRef.current.height = CANVAS_HEIGHT;
