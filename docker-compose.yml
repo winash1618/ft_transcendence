@@ -47,7 +47,7 @@ services:
     environment:
       DATABASE_URL: postgres://mpatel:transcendence@172.19.0.2:5432/ft_database?schema=public
     volumes:
-      - ./test-nestjs:/app/backend
+      - ./backend:/app/backend
       - /app/backend/node_modules
     depends_on:
       - postgres
