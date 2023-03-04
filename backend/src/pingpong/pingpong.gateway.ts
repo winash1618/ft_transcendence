@@ -4,14 +4,13 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { parse } from 'cookie';
-import cookieParser from 'cookie-parser';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway(8001, {
   cors: {
     origin: 'http://localhost:3000',
     credentials: true,
+    namespace: '/pingpong',
   },
 })
 export class PingpongGateway {
