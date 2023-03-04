@@ -7,8 +7,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get()
-  getHello(@Query('code') code: string): string {
-    this.authService.fetchToken(code);
+  getHello(): string {
+    // this.authService.fetchToken(code);
     return this.authService.getHello();
   }
 

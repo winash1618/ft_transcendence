@@ -4,7 +4,7 @@ all: up
 
 up:
 	@printf "\033[0;31mBuild, recreate, start containers\033[0m\n"
-	$(DOCKER-COMPOSE) up -d --build
+	$(DOCKER-COMPOSE) up --build
 
 build:
 		@printf "\033[0;31mBuild images from dockerfiles\033[0m\n"
@@ -45,6 +45,10 @@ delete:
 nest:
 		@printf "\033[0;31mStart NestJS\033[0m\n"
 		docker-compose exec nestjs bash
+
+react:
+		@printf "\033[0;31mStart ReactJS\033[0m\n"
+		docker-compose exec reactjs bash
 
 logs:
 		@printf "\033[0;31mShow logs\033[0m\n"

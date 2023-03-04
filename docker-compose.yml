@@ -10,6 +10,8 @@ services:
       DB_DATABASE: ft_database
     ports:
       - "5432:5432"
+    networks:
+      - inception
     volumes:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
   reactjs:
@@ -24,6 +26,8 @@ services:
     volumes:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
+    networks:
+      - inception
     depends_on:
       - nestjs
   nestjs:
@@ -34,14 +38,21 @@ services:
       bash -c "npm install
       && npm run start:dev
       && npm i -g @nestjs/cli"
+    networks:
+      - inception
     ports:
       - "3001:3001"
       - "5555:5555"
+      - "8001:8001"
     environment:
-      DATABASE_URL: postgres://mpatel:transcendence@172.18.0.2:5432/ft_database?schema=public
+      DATABASE_URL: postgres://mpatel:transcendence@172.19.0.2:5432/ft_database?schema=public
     volumes:
       - ./backend:/app/backend
     depends_on:
       - postgres
 volumes:
   postgres_data:
+networks:
+  inception:
+    driver: bridge
+    name: inception
