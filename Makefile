@@ -4,7 +4,7 @@ all: up
 
 up:
 	@printf "\033[0;31mBuild, recreate, start containers\033[0m\n"
-	$(DOCKER-COMPOSE) up --build
+	$(DOCKER-COMPOSE) up -d --build
 
 build:
 		@printf "\033[0;31mBuild images from dockerfiles\033[0m\n"

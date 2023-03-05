@@ -1,9 +1,7 @@
 import { Controller, Get, HttpStatus, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { FtAuthGuard } from 'src/utils/guards/ft.guard';
-import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { AuthService } from './auth.service';
 
 @Controller()
@@ -13,14 +11,8 @@ export class AuthController {
     private readonly userService: UsersService,
     ) {}
 
-<<<<<<< HEAD
-  @Get()
-  getHello(): string {
-    // this.authService.fetchToken(code);
-=======
   @Get('hello')
   async helloWorld() {
->>>>>>> origin/dev
     return this.authService.getHello();
   }
 

@@ -4,8 +4,9 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './database/prisma.module';
 import { ChatModule } from './chat/chat.module';
+import { PingpongModule } from './pingpong/pingpong.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UsersModule, PrismaModule, ChatModule],
+  imports: [ConfigModule.forRoot(), AuthModule, UsersModule, PrismaModule, ChatModule, PingpongModule],
 })
 export class AppModule {}
