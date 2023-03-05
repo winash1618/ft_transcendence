@@ -8,7 +8,7 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
 	app.use(cookieParser('secret'));
-	app.enableCors({ credentials: true, origin: 'http://localhost:3000' });
+	app.enableCors({ credentials: true, origin: process.env.FRONTEND_BASE_URL });
 	app.useGlobalPipes(new ValidationPipe());
 	const config = new DocumentBuilder()
 		.setTitle('Median')

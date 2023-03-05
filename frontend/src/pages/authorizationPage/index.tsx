@@ -30,7 +30,7 @@ const AuthorizationPage = () => {
       authorizeUser(code);
     }
     navigate("/");
-  }, []);
+  }, [navigate, authorizeUser]);
   return <Loading />;
 };
 

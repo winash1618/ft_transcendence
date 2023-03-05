@@ -18,6 +18,8 @@ services:
     image: node:19
     container_name: reactjs
     working_dir: /app/frontend
+    env_file:
+      - .env
     command: >
       bash -c "npm install
       && npm run build"
@@ -36,7 +38,7 @@ services:
       - ./frontend/build:/var/www/html
     ports:
       - 80:80
-    command: /bin/sh -c "ls -la /etc/nginx && nginx -g 'daemon off;'"
+    command: /bin/sh -c "nginx -g 'daemon off;'"
     depends_on:
       - reactjs
     networks:
@@ -52,12 +54,12 @@ services:
       && npm i -g @nestjs/cli"
     networks:
       - inception
+    env_file:
+      - .env
     ports:
       - "3001:3001"
       - "5555:5555"
       - "8001:8001"
-    environment:
-      DATABASE_URL: postgres://mpatel:transcendence@postgres:5432/ft_database?schema=public
     volumes:
       - ./backend:/app/backend
       - /app/backend/node_modules

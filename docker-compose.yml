@@ -23,6 +23,8 @@ services:
       && npm start"
     ports:
       - "3000:3000"
+    env_file:
+      - .env.dev
     volumes:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
@@ -44,8 +46,8 @@ services:
       - "3001:3001"
       - "5555:5555"
       - "8001:8001"
-    environment:
-      DATABASE_URL: postgres://mpatel:transcendence@postgres:5432/ft_database?schema=public
+    env_file:
+      - .env.dev
     volumes:
       - ./backend:/app/backend
       - /app/backend/node_modules
