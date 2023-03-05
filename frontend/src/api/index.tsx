@@ -4,9 +4,15 @@ import dayjs from "dayjs";
 import localStorage from "redux-persist/es/storage";
 import { router } from "../router";
 import { logOut, setUserInfo } from "../store/authReducer";
-import { store } from "../store";
+import { ToolkitStore } from "@reduxjs/toolkit/dist/configureStore";
 
-const BASE_URL = "http://localhost:3080/api";
+let store = null;
+
+export const injectStore = (storeParam: ToolkitStore) => {
+  store = storeParam;
+}
+
+const BASE_URL = "http://localhost:3001/";
 
 export default axios.create({
   baseURL: BASE_URL,
@@ -36,7 +42,7 @@ axiosPrivate.interceptors.request.use(async (req) => {
         });
       } catch (err) {}
       store.dispatch(logOut());
-      router.navigate("/login");
+      router.navigate("/");
       return req;
     }
   }
@@ -63,7 +69,7 @@ axiosPrivate.interceptors.request.use(async (req) => {
     } catch (err) {}
     localStorage.removeItem("auth");
     store.dispatch(logOut());
-    router.navigate("/login");
+    router.navigate("/");
     return req;
   }
 });

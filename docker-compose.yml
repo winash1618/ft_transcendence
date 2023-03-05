@@ -45,7 +45,7 @@ services:
       - "5555:5555"
       - "8001:8001"
     environment:
-      DATABASE_URL: postgres://mpatel:transcendence@172.19.0.2:5432/ft_database?schema=public
+      DATABASE_URL: postgres://mpatel:transcendence@postgres:5432/ft_database?schema=public
     volumes:
       - ./backend:/app/backend
       - /app/backend/node_modules
