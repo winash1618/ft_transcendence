@@ -16,6 +16,7 @@ import { parse } from 'cookie';
 export class PingpongGateway {
 	@WebSocketServer()
 	server: Server;
+
 	handleConnection(client: Socket) {
 		console.log(client.request.headers.cookie);
 		console.log('connected');

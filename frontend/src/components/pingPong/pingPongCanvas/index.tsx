@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import axios from "axios";
 import {
 	CANVAS_HEIGHT,
@@ -172,7 +172,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
         setPlayer2Score(data);
       });
     };
-  }, []);
+  }, [player]);
   return (
     <>
       <StyledCanvas ref={canvaRef} />
