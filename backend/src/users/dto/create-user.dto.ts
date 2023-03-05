@@ -17,4 +17,12 @@ export class CreateUserDto {
   @IsString()
   @ApiProperty()
   last_name: string;
+
+  @IsString()
+  @ApiProperty()
+  refreshToken?: string;
+
+  @IsString()
+  @ApiProperty()
+  refreshTokenExp?: number;
 }

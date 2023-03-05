@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import moment from 'moment';
 import { Strategy, Profile } from 'passport-42';
 import { AuthService } from 'src/auth/auth.service';
 
@@ -20,7 +21,9 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
       login: profile._json.login,
       email: profile._json.email,
       first_name: profile._json.first_name,
-      last_name: profile.last_name
+      last_name: profile.last_name,
+      refreshToken: null,
+      refreshTokenExp: Date.now(),
     });
 
     if (user) {

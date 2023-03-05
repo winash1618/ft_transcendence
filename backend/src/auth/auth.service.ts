@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { IAuthService } from './interface/auth';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { User } from '@prisma/client';
+import moment from 'moment';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -24,22 +25,31 @@ export class AuthService implements IAuthService {
     return user;
   }
 
-  async getJwt(user): Promise<string> {
+  async getJwtToken(user): Promise<string> {
     const payload = {
-      id: user.id,
-      login: user.login,
-      email: user.email,
+      ...user,
     }
-    return this.jwtService.sign(payload, { secret: process.env.JWT_SECRET });
+    return this.jwtService.signAsync(payload);
   }
 
-  public async validRefreshToken(email: string, pass: string): Promise<any> {
-    // const currentDate = moment().format('YYYY-MM-DD HH:mm:ss');
+  async getRefreshToken(user): Promise<string> {
+    const userDataToUpdate = {
+      refreshToken: await this.jwtService.signAsync(user),
+      refreshTokenExp: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    };
+    await this.userService.update(user.email, userDataToUpdate);
+    return userDataToUpdate.refreshToken;
+  }
+
+  public async validRefreshToken(email: string, pass: string): Promise<User> {
+    const currentDate = Date.now();
     const user = await this.userService.findOne(email);
     if (!user) {
       return null;
     }
-    return user;
-    // let currentUser =
+    let currentUser = {
+      ...user,
+    }
+    return currentUser;
   }
 }
