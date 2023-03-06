@@ -1,8 +1,10 @@
 import { Controller, Get, HttpStatus, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { User } from '@prisma/client';
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { FtAuthGuard } from 'src/utils/guards/ft.guard';
+import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { AuthService } from './auth.service';
 
 @Controller()
@@ -15,6 +17,12 @@ export class AuthController {
   @Get('hello')
   async helloWorld() {
     return this.authService.getHello();
+  }
+
+  @Get('test')
+  @UseGuards(JwtAuthGuard)
+  async testing() {
+    return 'testing this';
   }
 
   @Get()
@@ -35,5 +43,19 @@ export class AuthController {
   @Get('42/login')
   handleLogin() {
     return ;
+  }
+
+  @UseGuards(AuthGuard('refresh'))
+  @Get('token')
+  async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const  token = await this.authService.getJwtToken(req.user as User);
+    const refreshToken = await this.authService.getRefreshToken(req.user as User);
+
+    const secretData = {
+      token,
+      refreshToken,
+    }
+    res.cookie('auth-cookie', secretData, { httpOnly: true });
+    return res.status(HttpStatus.OK).json({ msg: 'success' });
   }
 }
