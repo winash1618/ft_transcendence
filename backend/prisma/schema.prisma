@@ -25,26 +25,17 @@ model User {
 }
 
 model Game {
-    id         Int      @id @default(autoincrement())
-    gameInfoId Int      @unique
-    gameInfo   GameInfo @relation(fields: [gameInfoId], references: [id], name: "gameInfo")
-    player1Id  Int
-    player1    User     @relation(fields: [player1Id], references: [id], name: "player1")
-    player2Id  Int
-    player2    User     @relation(fields: [player2Id], references: [id], name: "player2")
-    winnerId   Int
-    winner     User     @relation(fields: [winnerId], references: [id], name: "winner")
-    createAt   DateTime @default(now())
-    updateAt   DateTime @default(now())
-}
-
-model GameInfo {
-    id       Int      @id @default(autoincrement())
-    ballX    Int
-    ballY    Int
-    isPaused Boolean
-    map      Int
-    game     Game?    @relation(name: "gameInfo")
-    createAt DateTime @default(now())
-    updateAt DateTime @default(now())
+    id        Int      @id @default(autoincrement())
+    ballX     Int
+    ballY     Int
+    isPaused  Boolean
+    map       Int
+    player1Id Int
+    player1   User     @relation(fields: [player1Id], references: [id], name: "player1")
+    player2Id Int
+    player2   User     @relation(fields: [player2Id], references: [id], name: "player2")
+    winnerId  Int
+    winner    User     @relation(fields: [winnerId], references: [id], name: "winner")
+    createAt  DateTime @default(now())
+    updateAt  DateTime @default(now())
 }
