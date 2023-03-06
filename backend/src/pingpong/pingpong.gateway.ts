@@ -7,10 +7,13 @@ import {
 import { Server, Socket } from 'socket.io';
 import { parse } from 'cookie';
 
-let ballX = 0;
-let ballY = 0;
-let player1Y = 0;
-let player2Y = 0;
+
+let ArrayOfPlayers = [{
+	id: 1,
+	ballY: 0,
+	ballX: 0,
+	playerY: 0,
+}];
 
 @WebSocketGateway(8001, {
 	cors: {
@@ -31,7 +34,7 @@ export class PingpongGateway {
 	}
 	@SubscribeMessage('ballX')
 	handleBallX(@MessageBody() data: number): void {
-		ballX = data;
+		// ballX = data;
 		this.server.emit('ballX', data);
 	}
 	@SubscribeMessage('pause')
@@ -40,7 +43,7 @@ export class PingpongGateway {
 	}
 	@SubscribeMessage('ballY')
 	handleBallY(@MessageBody() data: number): void {
-		ballY = data;
+		// ballY = data;
 		this.server.emit('ballY', data);
 	}
 	@SubscribeMessage('player1Y')

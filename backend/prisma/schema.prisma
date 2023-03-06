@@ -2,20 +2,49 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 // have to add refresh token and token expiary to primary user
 model User {
-  id                Int @id @default(autoincrement())
-  email             String  @unique
-  login             String
-  first_name        String?
-  last_name         String?
-  createAt          DateTime @default(now())
+    id         Int      @id @default(autoincrement())
+    email      String   @unique
+    login      String
+    first_name String?
+    last_name  String?
+    game1      Game[]   @relation(name: "player1")
+    game2      Game[]   @relation(name: "player2")
+    game3      Game[]   @relation(name: "winner")
+    createAt   DateTime @default(now())
+    updateAt   DateTime @default(now())
+}
+
+model Game {
+    id         Int      @id @default(autoincrement())
+    gameInfoId Int      @unique
+    gameInfo   GameInfo @relation(fields: [gameInfoId], references: [id], name: "gameInfo")
+    player1Id  Int
+    player1    User     @relation(fields: [player1Id], references: [id], name: "player1")
+    player2Id  Int
+    player2    User     @relation(fields: [player2Id], references: [id], name: "player2")
+    winnerId   Int
+    winner     User     @relation(fields: [winnerId], references: [id], name: "winner")
+    createAt   DateTime @default(now())
+    updateAt   DateTime @default(now())
+}
+
+model GameInfo {
+    id       Int      @id @default(autoincrement())
+    ballX    Int
+    ballY    Int
+    isPaused Boolean
+    map      Int
+    game     Game?    @relation(name: "gameInfo")
+    createAt DateTime @default(now())
+    updateAt DateTime @default(now())
 }
