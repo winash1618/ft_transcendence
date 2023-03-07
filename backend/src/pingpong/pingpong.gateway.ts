@@ -26,10 +26,10 @@ export class PingpongGateway {
 	server: Server;
 
 	handleConnection(client: Socket) {
-		console.log(client.request.headers.cookie);
 		console.log('connected');
 	}
 	handleDisconnect(client: any) {
+		console.log('disconnected');
 		this.handlePause(true);
 	}
 	@SubscribeMessage('ballX')

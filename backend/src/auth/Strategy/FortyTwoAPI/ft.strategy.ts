@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import moment from 'moment';
 import { Strategy, Profile } from 'passport-42';
 import { AuthService } from 'src/auth/auth.service';
 

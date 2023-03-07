@@ -25,6 +25,7 @@ export class AuthService implements IAuthService {
     return user;
   }
 
+
   async getJwtToken(user): Promise<string> {
     const payload = {
       id: user.id,
