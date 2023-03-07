@@ -42,7 +42,6 @@ export class AuthController {
     return ;
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('token')
   async GetAuth(
       @Req() req,
@@ -54,6 +53,7 @@ export class AuthController {
 
       const secretData = {
         token,
+		user,
       }
 
       return res.status(HttpStatus.ACCEPTED).json(secretData);
