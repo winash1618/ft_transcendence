@@ -33,7 +33,7 @@ export class AuthController {
       token,
     }
     res.cookie('auth-cookie', secretData, { httpOnly: true });
-    return res.redirect('http://localhost:3000');
+    return res.redirect(process.env.FRONTEND_BASE_URL);
   }
 
   @UseGuards(FtAuthGuard)

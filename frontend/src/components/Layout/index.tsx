@@ -25,7 +25,6 @@ const Navbar: React.FC = () => {
 			dispatch(setUserInfo(response.data.user));
 			setIsLoadingPage(false);
 		} catch (err) {
-      console.log(err);
 			try {
 				await axios.get(`/auth/logout`);
 			} catch (err) { }
