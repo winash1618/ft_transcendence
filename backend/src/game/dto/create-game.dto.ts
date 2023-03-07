@@ -2,19 +2,33 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsNumber } from "class-validator";
 
 export class CreateGameDto {
+	
 	@IsNumber()
 	@ApiProperty()
-	gameInfoId: number;
+	ballX: number;
 
 	@IsNumber()
 	@ApiProperty()
-	player1Id: number;
+	ballY: number;
+
+	@ApiProperty()
+	isPaused: boolean;
 
 	@IsNumber()
 	@ApiProperty()
-	player2Id: number;
+	map: number;
 
 	@IsNumber()
 	@ApiProperty()
-	winnerId: number;
+	score: number;
+
+	@IsNumber()
+	@ApiProperty()
+	side: number;
+
+	@IsNumber()
+	@ApiProperty()
+	status: number;
+
+	
 }

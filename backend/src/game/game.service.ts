@@ -6,23 +6,23 @@ import { PrismaService } from 'src/database/prisma.service';
 @Injectable()
 export class GameService {
 	constructor(private prisma: PrismaService) { }
-	create(createGameDto: CreateGameDto) {
-		return this.prisma.game.create({ data: createGameDto });;
+	async create(createGameDto: CreateGameDto) {
+		return this.prisma.game.create({ data: createGameDto });
 	}
 
-	findAll() {
+  findAll() {
 		return this.prisma.game.findMany();
 	}
 
-	findOne(id: number) {
+  findOne(id: number) {
 		return this.prisma.game.findUnique({ where: { id } });
 	}
 
-	update(id: number, updateGameDto: UpdateGameDto) {
+  update(id: number, updateGameDto: UpdateGameDto) {
 		return this.prisma.game.update({ where: { id }, data: updateGameDto });
 	}
 
-	remove(id: number) {
+  remove(id: number) {
 		return this.prisma.game.delete({ where: { id } });
 	}
 }

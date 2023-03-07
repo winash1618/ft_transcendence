@@ -4,7 +4,7 @@ all: up
 
 up:
 	@printf "\033[0;31mBuild, recreate, start containers\033[0m\n"
-	$(DOCKER-COMPOSE) up -d --build
+	$(DOCKER-COMPOSE) up --build
 
 prod:
 	@printf "\033[0;31mBuild, recreate, start production containers\033[0m\n"
