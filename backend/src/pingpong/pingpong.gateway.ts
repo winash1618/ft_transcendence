@@ -5,8 +5,12 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { parse } from 'cookie';
+import { PingpongService } from './pingpong.service';
 
 let queue = [];
+
+let users = [];
 
 @WebSocketGateway(8001, {
 	cors: {
@@ -15,11 +19,15 @@ let queue = [];
 	},
 })
 export class PingpongGateway {
+	constructor(
+		private readonly pingpongService: PingpongService,
+	) { }
 	@WebSocketServer()
 	server: Server;
 
 	handleConnection(client: Socket) {
-		queue.push(client);
+		const verifyToken = this.pingpongService.verifyToken(parse(client.handshake.headers.cookie).auth);
+		console.log(verifyToken);
 		console.log('connected');
 	}
 	handleDisconnect(client: any) {
