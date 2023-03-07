@@ -20,17 +20,17 @@ const Navbar: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const getToken = async () => {
 		try {
-			const response = await axios.get(`/auth/token`);
+			const response = await axios.get(`/token`);
 			localStorage.setItem("auth", JSON.stringify(response.data));
 			dispatch(setUserInfo(response.data.user));
 			setIsLoadingPage(false);
 		} catch (err) {
+      console.log(err);
 			try {
 				await axios.get(`/auth/logout`);
 			} catch (err) { }
 			dispatch(logOut());
-			//   window.location.replace("http://localhost:3001/42/login");
-			setIsLoadingPage(false);
+			window.location.replace("http://localhost:3001/42/login");
 		}
 	};
 

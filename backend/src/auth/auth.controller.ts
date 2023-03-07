@@ -1,5 +1,4 @@
-import { Controller, Get, HttpStatus, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get, HttpStatus, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
@@ -34,7 +33,7 @@ export class AuthController {
       token,
     }
     res.cookie('auth-cookie', secretData, { httpOnly: true });
-    return res.redirect('http://localhost:3001/hello');
+    return res.redirect('http://localhost:3000');
   }
 
   @UseGuards(FtAuthGuard)
@@ -43,15 +42,20 @@ export class AuthController {
     return ;
   }
 
-  @UseGuards(AuthGuard('refresh'))
+  @UseGuards(JwtAuthGuard)
   @Get('token')
-  async refreshToken(@Req() req, @Res({ passthrough: true }) res: Response) {
-    const  token = await this.authService.getJwtToken(req.user as User);
+  async GetAuth(
+      @Req() req,
+      @Res() res: Response,
+  ): Promise<Response> {
+      const user = await this.authService.validateUser(req.user as User);
 
-    const secretData = {
-      token,
-    }
-    res.cookie('auth-cookie', secretData, { httpOnly: true });
-    return res.status(HttpStatus.OK).json({ msg: 'success' });
+      const token: string = await this.authService.getJwtToken(user);
+
+      const secretData = {
+        token,
+      }
+
+      return res.status(HttpStatus.ACCEPTED).json(secretData);
   }
 }

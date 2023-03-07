@@ -8,6 +8,13 @@ import { PingpongModule } from './pingpong/pingpong.module';
 import { GameModule } from './game/game.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UsersModule, PrismaModule, ChatModule, PingpongModule, GameModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule, UsersModule,
+    PrismaModule,
+    ChatModule,
+    PingpongModule,
+    GameModule
+  ],
 })
 export class AppModule {}
