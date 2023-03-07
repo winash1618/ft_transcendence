@@ -33,7 +33,7 @@ export class AuthController {
       token,
 	  user: req.user,
     }
-    res.cookie('auth-cookie', secretData, { httpOnly: true });
+    res.cookie('auth', secretData, { httpOnly: true });
     return res.redirect(process.env.FRONTEND_BASE_URL);
   }
 
@@ -49,10 +49,11 @@ export class AuthController {
       @Res() res: Response,
   ): Promise<Response> {
 		const cookie = req.cookies.auth;
-		
+
 		if (!cookie) {
 			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
 		}
+		console.log(cookie);
       const user = await this.authService.validateUser(req.cookies.auth.user as User);
       const token: string = await this.authService.getJwtToken(user);
 
