@@ -6,6 +6,10 @@ up:
 	@printf "\033[0;31mBuild, recreate, start containers\033[0m\n"
 	$(DOCKER-COMPOSE) up -d --build
 
+prod:
+	@printf "\033[0;31mBuild, recreate, start production containers\033[0m\n"
+	$(DOCKER-COMPOSE) -f docker-compose.prod.yml up --build
+
 build:
 		@printf "\033[0;31mBuild images from dockerfiles\033[0m\n"
 		$(DOCKER-COMPOSE) build
@@ -24,7 +28,11 @@ stop:
 
 down:
 		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
-		$(DOCKER-COMPOSE) down --rmi all --volumes --remove-orphans
+		$(DOCKER-COMPOSE) down --rmi local --volumes --remove-orphans
+
+down-prod:
+		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
+		$(DOCKER-COMPOSE) -f docker-compose.prod.yml down --rmi local --volumes --remove-orphans
 
 ps:
 		@printf "\033[0;31mList containers\033[0m\n"

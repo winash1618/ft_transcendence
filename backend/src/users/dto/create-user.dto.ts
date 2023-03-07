@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
+import { CreateGameDto } from "src/game/dto/create-game.dto";
 
 export class CreateUserDto {
   @IsString()

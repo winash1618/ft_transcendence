@@ -18,13 +18,11 @@ services:
     image: node:19
     container_name: reactjs
     working_dir: /app/frontend
+    env_file:
+      - .env
     command: >
       bash -c "npm install
-      && npm start"
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env.dev
+      && npm run build"
     volumes:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
@@ -32,22 +30,36 @@ services:
       - inception
     depends_on:
       - nestjs
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/:/etc/nginx/
+      - ./frontend/build:/var/www/html
+    ports:
+      - 80:80
+    command: /bin/sh -c "nginx -g 'daemon off;'"
+    depends_on:
+      - reactjs
+    networks:
+      - inception
   nestjs:
     image: node:19
     container_name: nestjs
     working_dir: /app/backend
     command: >
       bash -c "npm install
-      && npm run start:dev
+      && npm run build
+      && npm run start:prod
       && npm i -g @nestjs/cli"
     networks:
       - inception
+    env_file:
+      - .env
     ports:
       - "3001:3001"
       - "5555:5555"
       - "8001:8001"
-    env_file:
-      - .env.dev
     volumes:
       - ./backend:/app/backend
       - /app/backend/node_modules

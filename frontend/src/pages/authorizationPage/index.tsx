@@ -8,18 +8,18 @@ import { setUserInfo } from "../../store/authReducer";
 const AuthorizationPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  
+
   const authorizeUser = async (code: string) => {
     try {
       const response = await axios.post(`/auth/authorize`, { code });
       localStorage.setItem("auth", JSON.stringify(response.data));
       dispatch(setUserInfo(response.data.user));
-      navigate("/");
+      // navigate("/");
     } catch (err) {
       try {
         await axios.get(`/auth/logout`);
       } catch (err) {}
-      navigate("/");
+      // navigate("/");
     }
   };
 
@@ -30,7 +30,7 @@ const AuthorizationPage = () => {
       authorizeUser(code);
     }
     navigate("/");
-  }, []);
+  }, [navigate, authorizeUser]);
   return <Loading />;
 };
 

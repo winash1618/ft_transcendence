@@ -63,3 +63,8 @@ Google Authenticator or sending a text message to their phone.
 - Stats (such as: wins and losses, ladder level, achievements, and so forth) have to
 be displayed on the user profile.
 - Each user should have a Match History including 1v1 games, ladder, and anything else useful. Anyone who is logged in should be able to consult it.
+
+## Note:
+- if the npx prisma generate is not working, try to run the command npx prisma generate --schema ./prisma/schema.prisma
+- if the npx prisma migrate dev is not working, try to remove node_modules and reinstall them with npm install
+- I didn't try it yet, but if you have any problem with the npx prisma generate try to delete .prisma/client and run the command npx prisma generate --schema ./prisma/schema.prisma

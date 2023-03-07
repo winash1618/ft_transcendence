@@ -9,7 +9,7 @@ import { Server } from 'socket.io';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000'],
+    origin: [process.env.FRONTEND_BASE_URL],
   },
 })
 export class ChatGateway implements OnModuleInit {

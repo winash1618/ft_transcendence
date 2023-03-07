@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
-import axios from "axios";
+import { io } from "socket.io-client";
 import {
 	CANVAS_HEIGHT,
 	CANVAS_WIDTH,
@@ -89,8 +88,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
 	const [player2Score, setPlayer2Score] = useState<number>(0);
 
   useEffect(() => {
-    axios.get("http://localhost:3001", { withCredentials: true });
-    const socket = io("http://localhost:8001", { withCredentials: true });
+    const socket = io(process.env.REACT_APP_SOCKET_URL, { withCredentials: true });
     if (canvaRef.current) {
       canvaRef.current.width = CANVAS_WIDTH;
       canvaRef.current.height = CANVAS_HEIGHT;
@@ -172,7 +170,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
         setPlayer2Score(data);
       });
     };
-  }, []);
+  }, [player]);
   return (
     <>
       <StyledCanvas ref={canvaRef} />
