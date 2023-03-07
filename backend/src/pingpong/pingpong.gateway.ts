@@ -5,15 +5,8 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { parse } from 'cookie';
 
-
-let ArrayOfPlayers = [{
-	id: 1,
-	ballY: 0,
-	ballX: 0,
-	playerY: 0,
-}];
+let queue = [];
 
 @WebSocketGateway(8001, {
 	cors: {
@@ -26,6 +19,7 @@ export class PingpongGateway {
 	server: Server;
 
 	handleConnection(client: Socket) {
+		queue.push(client);
 		console.log('connected');
 	}
 	handleDisconnect(client: any) {
