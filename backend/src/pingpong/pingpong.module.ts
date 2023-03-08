@@ -6,26 +6,21 @@ import { PingpongGateway } from './pingpong.gateway';
 import { PingpongService } from './pingpong.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { UsersModule } from 'src/users/users.module';
-import { PassportModule } from '@nestjs/passport';
-import { PrismaModule } from 'src/database/prisma.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
 	imports: [
-		UsersModule,
-		PassportModule,
-		PrismaModule,
 		JwtModule.registerAsync({
 			imports: [ConfigModule],
 			inject: [ConfigService],
 			useFactory: (configService: ConfigService) => ({
-				secret: configService.get('JWT_SECRET'),
+				secret: configService.getOrThrow('JWT_SECRET'),
 				signOptions: {
 					expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
 				}
 			})
 		})
 	],
-	providers: [PingpongService, PingpongGateway, AuthService, JwtService, UsersService, PrismaService]
+	providers: [PingpongService, PingpongGateway, JwtService]
 })
 export class PingpongModule { }

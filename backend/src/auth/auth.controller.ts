@@ -24,8 +24,8 @@ export class AuthController {
 		return 'testing this';
 	}
 
-	@Get()
 	@UseGuards(FtAuthGuard)
+	@Get()
 	async redirectUri(@Req() req, @Res() res: Response) {
 		const token = await this.authService.getJwtToken(req.user as User);
 

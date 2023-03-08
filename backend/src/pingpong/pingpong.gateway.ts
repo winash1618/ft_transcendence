@@ -7,6 +7,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { parse } from 'cookie';
 import { PingpongService } from './pingpong.service';
+import { JwtService } from '@nestjs/jwt';
 
 let queue = [];
 
@@ -20,7 +21,7 @@ let users = [];
 })
 export class PingpongGateway {
 	constructor(
-		private readonly pingpongService: PingpongService,
+		private pingpongService: PingpongService,
 	) { }
 	@WebSocketServer()
 	server: Server;

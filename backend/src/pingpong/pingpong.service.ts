@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { AuthService } from 'src/auth/auth.service';
 import { CreatePingpongDto } from './dto/create-pingpong.dto';
 import { UpdatePingpongDto } from './dto/update-pingpong.dto';
@@ -6,11 +7,11 @@ import { UpdatePingpongDto } from './dto/update-pingpong.dto';
 @Injectable()
 export class PingpongService {
 	constructor(
-		private readonly authService: AuthService,
+		private readonly jwtService: JwtService,
 	) { }
 
 	verifyToken(token: string) {
-		return this.authService.verifyToken(token);
+		return this.jwtService.verify(token);
 	}
 	create(createPingpongDto: CreatePingpongDto) {
 		return 'This action adds a new pingpong';
