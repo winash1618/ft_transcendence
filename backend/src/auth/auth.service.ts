@@ -44,11 +44,11 @@ export class AuthService implements IAuthService {
 		return userDataToUpdate.refreshToken;
 	}
 
-	async decodeToken(token: string): Promise<any> {
+	public async decodeToken(token: string): Promise<any> {
 		return this.jwtService.decode(token);
 	}
 
-	async verifyToken(token: string): Promise<any> {
+	public async verifyToken(token: string): Promise<any> {
 		return this.jwtService.verify(token);
 	}
 

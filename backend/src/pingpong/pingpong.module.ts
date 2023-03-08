@@ -1,26 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from 'src/auth/auth.service';
-import { UsersService } from 'src/users/users.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { PingpongGateway } from './pingpong.gateway';
-import { PingpongService } from './pingpong.service';
+import { PassportModule } from '@nestjs/passport';
+import { AuthModule } from 'src/auth/auth.module';
+import { AuthService } from 'src/auth/auth.service';
+import { WsJwtStrategy } from 'src/auth/Strategy/Jwt/ws-jwt.strategy';
+import { PrismaModule } from 'src/database/prisma.module';
 import { PrismaService } from 'src/database/prisma.service';
 import { UsersModule } from 'src/users/users.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UsersService } from 'src/users/users.service';
+import { PingpongGateway } from './pingpong.gateway';
+import { PingpongService } from './pingpong.service';
 
 @Module({
 	imports: [
-		JwtModule.registerAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: (configService: ConfigService) => ({
-				secret: configService.getOrThrow('JWT_SECRET'),
-				signOptions: {
-					expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
-				}
-			})
-		})
+		AuthModule,
 	],
-	providers: [PingpongService, PingpongGateway, JwtService]
+	providers: [PingpongService, PingpongGateway, JwtService, AuthService, UsersService, PrismaService],
 })
 export class PingpongModule { }
