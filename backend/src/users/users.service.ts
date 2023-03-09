@@ -21,6 +21,24 @@ export class UsersService {
 	return this.prisma.user.findMany();
 }
 
+findAllUsersInGameRoom(gameRoomId: number) {
+	// return this.prisma.gameRoom.findUnique({
+    //     where: { id: gameRoomId },
+    //     include: {
+    //         user: {
+    //             where: { isPlaying: true }
+    //         },
+    //     },
+    // });
+
+    return this.prisma.gameRoom.findUnique({
+        where: { id: gameRoomId },
+        include: {
+            user: true,
+        },
+    });
+}
+
   async users(): Promise<User[]> {
     return this.prisma.user.findMany();
   }

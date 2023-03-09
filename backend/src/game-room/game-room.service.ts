@@ -6,54 +6,45 @@ import { UpdateGameRoomDto } from './dto/update-game-room.dto';
 @Injectable()
 export class GameRoomService {
 	constructor(private prisma: PrismaService) { }
-  create(createGameRoomDto: CreateGameRoomDto) {
-    return this.prisma.gameRoom.create({data: createGameRoomDto});
-  }
+	create(createGameRoomDto: CreateGameRoomDto) {
+		return this.prisma.gameRoom.create({ data: createGameRoomDto });
+	}
 
-  addGameToGameRoom(gameRoomId: number, gameId: number) {
-	return this.prisma.gameRoom.update({
-		where: { id: gameRoomId },
-		data: {
-			game: {
-				connect: { id: gameId },
+	addGameToGameRoom(gameRoomId: number, gameId: number) {
+		return this.prisma.gameRoom.update({
+			where: { id: gameRoomId },
+			data: {
+				game: {
+					connect: { id: gameId },
+				},
 			},
-		},
-	});
-}
+		});
+	}
 
-addUserToGameRoom(gameRoomId: number, userId: number) {
-	return this.prisma.gameRoom.update({
-		where: { id: gameRoomId },
-		data: {
-			user: {
-				connect: { id: userId },
+	addUserToGameRoom(gameRoomId: number, userId: number) {
+		return this.prisma.gameRoom.update({
+			where: { id: gameRoomId },
+			data: {
+				user: {
+					connect: { id: userId },
+				},
 			},
-		},
-	});
-}
+		});
+	}
 
-findAllUsersInGameRoom(gameRoomId: number) {
-	return this.prisma.gameRoom.findUnique({
-		where: { id: gameRoomId },
-		include: {
-			user: true,
-		},
-	});
-}
+	findAll() {
+		return this.prisma.gameRoom.findMany();
+	}
 
-  findAll() {
-    return this.prisma.gameRoom.findMany();
-  }
+	findOne(id: number) {
+		return this.prisma.gameRoom.findUnique({ where: { id: id } });
+	}
 
-  findOne(id: number) {
-    return this.prisma.gameRoom.findUnique({where: {id: id}});
-  }
+	update(id: number, updateGameRoomDto: UpdateGameRoomDto) {
+		return this.prisma.gameRoom.update({ where: { id: id }, data: updateGameRoomDto });
+	}
 
-  update(id: number, updateGameRoomDto: UpdateGameRoomDto) {
-    return this.prisma.gameRoom.update({where: {id: id}, data: updateGameRoomDto});
-  }
-
-  remove(id: number) {
-    return this.prisma.gameRoom.delete({where: {id: id}});
-  }
+	remove(id: number) {
+		return this.prisma.gameRoom.delete({ where: { id: id } });
+	}
 }

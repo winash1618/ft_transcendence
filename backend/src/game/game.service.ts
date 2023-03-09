@@ -71,8 +71,8 @@ export class GameService {
 		const queryTest = {
 			where: {
 				OR: [
-				{player : {id : 1 }},
-				{player : {opponent : {id : 1 }}},
+					{ player: { id: 1 } },
+					{ player: { opponent: { id: 1 } } },
 				]
 			},
 			select: {

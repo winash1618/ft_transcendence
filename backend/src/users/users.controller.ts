@@ -21,6 +21,12 @@ export class UsersController {
     return this.usersService.users();
   }
 
+
+  @Get(':findAllUsersInGameRoom')
+  findAllUsersInGameRoom() {
+	return this.usersService.findAllUsersInGameRoom(1);
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const user = await this.usersService.findOne(id);
