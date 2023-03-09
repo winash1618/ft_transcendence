@@ -2,19 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateGameRoomDto } from './dto/create-gameRoom.dto';
 
 @Injectable()
 export class GameService {
 	constructor(private prisma: PrismaService) { }
-	async create(createGameDto: CreateGameDto) {
-		return this.prisma.game.create({ data: createGameDto });
-	}
 
-	async createGameRoom(createGameRoomDto: CreateGameRoomDto) {
-		return this.prisma.gameRoom.create({ data: createGameRoomDto });
-	}
-
+	/************************************************/
+	/************* Custom Game Services *************/
+	/************************************************/
 
 	addPlayerToGame(gameId: number, playerId: number) {
 		return this.prisma.game.update({
@@ -38,38 +33,29 @@ export class GameService {
 		});
 	}
 
-
-	addGameRoomToGame(gameId: number, gameRoomId: number) {
+	addGameRoomObjectToGame(gameId: number, gameRoomId: number) {
 		return this.prisma.game.update({
 			where: { id: gameId },
 			data: {
 				gameRoom: {
 					connect: { id: gameRoomId },
-				},
+				}
 			},
 		});
 	}
 
-	addGameToGameRoom(gameRoomId: number, gameId: number) {
-		return this.prisma.gameRoom.update({
-			where: { id: gameRoomId },
+	addGameRoomIdToGame(gameId: number, gameRoomId: number) {
+		return this.prisma.game.update({
+			where: { id: gameId },
 			data: {
-				game: {
-					connect: { id: gameId },
-				},
+				gameRoomId: gameRoomId,
 			},
 		});
 	}
 
-	addUserToGameRoom(gameRoomId: number, userId: number) {
-		return this.prisma.gameRoom.update({
-			where: { id: gameRoomId },
-			data: {
-				user: {
-					connect: { id: userId },
-				},
-			},
-		});
+	addGameRoomToGame(gameId: number, gameRoomId: number) {
+		this.addGameRoomObjectToGame(gameId, gameRoomId);
+		this.addGameRoomIdToGame(gameId, gameRoomId);
 	}
 
 	addIsPlayingToUser(userId: number, isPlaying: boolean) {
@@ -81,9 +67,7 @@ export class GameService {
 		});
 	}
 
-
-	queryData(query: any) {
-
+	getGameData(query: any) {
 		const queryTest = {
 			where: {
 				OR: [
@@ -113,12 +97,15 @@ export class GameService {
 		return this.prisma.game.findMany(queryTest);
 	}
 
+	/*******************************************************/
+	/****************** Basic Game Serivices ***************/
+	/*******************************************************/
 	findAll() {
 		return this.prisma.game.findMany();
 	}
 
-	findAllGameRooms() {
-		return this.prisma.gameRoom.findMany();
+	async create(createGameDto: CreateGameDto) {
+		return this.prisma.game.create({ data: createGameDto });
 	}
 
 	findOne(id: number) {

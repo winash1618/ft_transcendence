@@ -22,22 +22,11 @@ model User {
     opponentRelation User?          @relation("Opponent")
     opponentId       Int?           @unique
 	isPlaying        Boolean        @default(false)
-    // opponents         User[]          @relation("oppenents")
-    // oppenentsRelation User[]          @relation("oppenents")
-    // opponentsId	  Int[]
     gameRoom         GameRoom[]     @relation("user")
     GameRecord       MatchHistory[] @relation("user")
     createAt         DateTime       @default(now())
     updateAt         DateTime       @default(now())
 }
-
-// model User {
-//   id            Int     @id @default(autoincrement())
-//   name          String?
-//   successor     User?   @relation("BlogOwnerHistory")
-//   predecessorId Int?    @unique
-//   predecessor   User?   @relation("BlogOwnerHistory", fields: [predecessorId], references: [id])
-// }
 
 model GameRoom {
     id       Int    @id @default(autoincrement())
@@ -66,23 +55,6 @@ model Game {
     createAt     DateTime  @default(now())
     updateAt     DateTime  @default(now())
 }
-
-// enum Gamestatus {
-//   PAUSED
-//   PLAYING
-//   GAMEOVER
-// }
-
-// enum map {
-//   MAP1
-//   MAP2
-//   MAP3
-// }
-
-// enum side {
-//   LEFT
-//   RIGHT
-// }
 
 model MatchHistory {
     id        Int      @id @default(autoincrement())
