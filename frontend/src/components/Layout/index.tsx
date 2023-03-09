@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import axios from "../../api";
@@ -20,7 +20,7 @@ const Navbar: React.FC = () => {
 	const dispatch = useAppDispatch();
 	const getToken = async () => {
 		try {
-			const response = await axios.get(`/auth/token`);
+			const response = await axios.get(`/token`);
 			localStorage.setItem("auth", JSON.stringify(response.data));
 			dispatch(setUserInfo(response.data.user));
 			setIsLoadingPage(false);
@@ -29,8 +29,7 @@ const Navbar: React.FC = () => {
 				await axios.get(`/auth/logout`);
 			} catch (err) { }
 			dispatch(logOut());
-			//   window.location.replace("http://localhost:3001/42/login");
-			setIsLoadingPage(false);
+			 window.location.replace("http://localhost:3001/42/login");
 		}
 	};
 

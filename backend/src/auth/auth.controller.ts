@@ -1,40 +1,74 @@
-import { Controller, Get, HttpStatus, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { User } from '@prisma/client';
 import { Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { FtAuthGuard } from 'src/utils/guards/ft.guard';
+import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { AuthService } from './auth.service';
 
 @Controller()
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly userService: UsersService,
-    ) {}
+	constructor(
+		private readonly authService: AuthService,
+		private readonly userService: UsersService,
+	) { }
 
-  @Get('hello')
-  async helloWorld() {
-    return this.authService.getHello();
-  }
+	@Get('hello')
+	async helloWorld() {
+		return this.authService.getHello();
+	}
 
-  @Get()
-  @UseGuards(FtAuthGuard)
-  async redirectUri(@Req() req, @Res() res: Response) {
-    const user = await this.userService.findOne(req.user.email);
+	@Get('test')
+	@UseGuards(JwtAuthGuard)
+	async testing() {
+		return 'testing this';
+	}
 
-    const token = await this.authService.getJwt(user);
+	@UseGuards(FtAuthGuard)
+	@Get()
+	async redirectUri(@Req() req, @Res() res: Response) {
+		const token = await this.authService.getJwtToken(req.user as User);
 
-    res.cookie('access_token', token, {
-      maxAge: 2592000000,
-      sameSite: true,
-      secure: false,
-    });
-    res.status(HttpStatus.OK);
-    return res.redirect('http://localhost:3000/hello');
-  }
+		res.cookie('auth', token, { httpOnly: true });
+		return res.redirect(process.env.FRONTEND_BASE_URL);
+	}
 
-  @UseGuards(FtAuthGuard)
-  @Get('42/login')
-  handleLogin() {
-    return ;
-  }
+	@UseGuards(FtAuthGuard)
+	@Get('42/login')
+	handleLogin() {
+		return;
+	}
+
+	@Get('token')
+	async GetAuth(
+		@Req() req,
+		@Res() res: Response,
+	): Promise<Response> {
+		const cookie = req.cookies.auth;
+
+		if (!cookie) {
+			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
+		}
+
+		const verifyToken = await this.authService.verifyToken(cookie);
+
+		if (!verifyToken) {
+			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
+		}
+
+		const cookieToken = await this.authService.decodeToken(cookie);
+
+		if (!cookieToken) {
+			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
+		}
+		const user = await this.authService.validateUser(cookieToken as User);
+		const token: string = await this.authService.getJwtToken(user);
+
+		const secretData = {
+			token,
+			user,
+		}
+
+		return res.status(HttpStatus.ACCEPTED).json(secretData);
+	}
 }

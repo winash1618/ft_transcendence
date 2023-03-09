@@ -5,21 +5,29 @@ import { FortyTwoStrategy } from './Strategy/FortyTwoAPI/ft.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from 'src/database/prisma.module';
 import { UsersService } from 'src/users/users.service';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from './Strategy/Jwt/jwt.strategy';
 import { AuthController } from './auth.controller';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     PrismaModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
-    })
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: {
+            expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
+          }
+      })
+  })
   ],
   providers: [UsersService, AuthService, FortyTwoStrategy, JwtStrategy],
   controllers: [AuthController],
+  exports: [JwtModule]
 })
 export class AuthModule {}

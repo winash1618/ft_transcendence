@@ -4,42 +4,63 @@ import { JwtService } from '@nestjs/jwt';
 import { IAuthService } from './interface/auth';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { User } from '@prisma/client';
+import moment from 'moment';
 
 @Injectable()
 export class AuthService implements IAuthService {
-  constructor(
-    private jwtService: JwtService,
-    private userService: UsersService
-    ) { }
+	constructor(
+		private jwtService: JwtService,
+		private userService: UsersService
+	) { }
 
-  getHello(): string {
-    return 'Hello World!';
-  }
+	getHello(): string {
+		return 'Hello World!';
+	}
 
-  async validateUser(userDto: CreateUserDto): Promise<User> {
-    const user = await this.userService.findOne(userDto.email);
-    if (!user) {
-      await this.userService.add42User(userDto);
-    }
-    return user;
-  }
+	async validateUser(userDto: CreateUserDto): Promise<User> {
+		let user = await this.userService.findOne(userDto.email);
+		if (!user) {
+			user = await this.userService.add42User(userDto);
+		}
+		return user;
+	}
 
-  async getJwt(user): Promise<string> {
-    const payload = {
-      id: user.id,
-      login: user.login,
-      email: user.email,
-    }
-    return this.jwtService.sign(payload, { secret: process.env.JWT_SECRET });
-  }
 
-  public async validRefreshToken(email: string, pass: string): Promise<any> {
-    // const currentDate = moment().format('YYYY-MM-DD HH:mm:ss');
-    const user = await this.userService.findOne(email);
-    if (!user) {
-      return null;
-    }
-    return user;
-    // let currentUser =
-  }
+	async getJwtToken(user): Promise<string> {
+		const payload = {
+			id: user.id,
+			email: user.email,
+			login: user.login,
+		}
+		return this.jwtService.sign(payload);
+	}
+
+	async getRefreshToken(user): Promise<string> {
+		const userDataToUpdate = {
+			refreshToken: await this.jwtService.signAsync(user),
+			refreshTokenExp: Date.now() + 1000 * 60 * 60 * 24 * 7,
+		};
+		await this.userService.update(user.email, userDataToUpdate);
+		return userDataToUpdate.refreshToken;
+	}
+
+	public async decodeToken(token: string): Promise<any> {
+		return this.jwtService.decode(token);
+	}
+
+	public async verifyToken(token: string): Promise<any> {
+		return this.jwtService.verify(token);
+	}
+
+	public async validRefreshToken(email: string, pass: string): Promise<User> {
+		const currentDate = Date.now();
+		const user = await this.userService.findOne(email);
+		if (!user) {
+			return null;
+		}
+		let currentUser = {
+			...user,
+		}
+		return currentUser;
+	}
 }

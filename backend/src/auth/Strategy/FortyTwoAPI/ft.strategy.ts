@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-42';
 import { AuthService } from 'src/auth/auth.service';
@@ -6,12 +7,13 @@ import { AuthService } from 'src/auth/auth.service';
 @Injectable()
 export class FortyTwoStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private authService: AuthService
+    private authService: AuthService,
+    private configService: ConfigService
   ) {
     super({
-      clientID: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: process.env.REDIRECT_URI,
+      clientID: configService.getOrThrow<string>('CLIENT_ID'),
+      clientSecret: configService.getOrThrow<string>('CLIENT_SECRET'),
+      callbackURL: configService.getOrThrow<string>('REDIRECT_URI'),
     });
   }
 
@@ -20,7 +22,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
       login: profile._json.login,
       email: profile._json.email,
       first_name: profile._json.first_name,
-      last_name: profile.last_name
+      last_name: profile._json.last_name,
     });
 
     if (user) {

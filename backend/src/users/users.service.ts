@@ -51,6 +51,13 @@ findAllUsersInGameRoom(gameRoomId: number) {
     return `This action updates a #${id} user`;
   }
 
+  updateRefreshToken(email: string, refreshUpdate: UpdateUserDto) {
+    return this.prisma.user.update({
+      where: { email },
+      data: refreshUpdate,
+    });
+  }
+
   remove(id: number) {
     return `This action removes a #${id} user`;
   }

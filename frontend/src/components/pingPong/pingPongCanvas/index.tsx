@@ -86,7 +86,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
 	const canvaRef = useRef<HTMLCanvasElement>(null);
 	const [player1Score, setPlayer1Score] = useState<number>(0);
 	const [player2Score, setPlayer2Score] = useState<number>(0);
-
+ console.log(game.ball.velocityX)
   useEffect(() => {
     const socket = io(process.env.REACT_APP_SOCKET_URL, { withCredentials: true });
     if (canvaRef.current) {
@@ -169,6 +169,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
       socket.off("player2Score", (data) => {
         setPlayer2Score(data);
       });
+	  socket.disconnect();
     };
   }, [player]);
   return (

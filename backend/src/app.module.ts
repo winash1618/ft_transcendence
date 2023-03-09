@@ -9,6 +9,14 @@ import { GameModule } from './game/game.module';
 import { GameRoomModule } from './game-room/game-room.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UsersModule, PrismaModule, ChatModule, PingpongModule, GameModule, GameRoomModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule, UsersModule,
+    PrismaModule,
+    ChatModule,
+    PingpongModule,
+    GameModule,
+	GameRoomModule
+  ],
 })
 export class AppModule {}

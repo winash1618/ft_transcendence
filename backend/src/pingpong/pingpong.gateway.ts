@@ -6,14 +6,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { parse } from 'cookie';
+import { JwtService } from '@nestjs/jwt';
+import { GameService } from 'src/game/game.service';
 
+let queue = [];
 
-let ArrayOfPlayers = [{
-	id: 1,
-	ballY: 0,
-	ballX: 0,
-	playerY: 0,
-}];
+let users = [];
 
 @WebSocketGateway(8001, {
 	cors: {
@@ -22,44 +20,81 @@ let ArrayOfPlayers = [{
 	},
 })
 export class PingpongGateway {
+	constructor(private readonly jwtService: JwtService) {
+	}
+
 	@WebSocketServer()
 	server: Server;
 
 	handleConnection(client: Socket) {
-		console.log(client.request.headers.cookie);
+
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		users[user.id] = client;
+		queue.push(user);
+		if (queue.length > 1) {
+			const player1 = queue.shift();
+			const player2 = queue.shift();
+			users[player1.id].join(player1.login);
+			users[player2.id].join(player1.login);
+			users[player1.id].emit('start', 1);
+			users[player2.id].emit('start', 2);
+		}
 		console.log('connected');
 	}
 	handleDisconnect(client: any) {
-		this.handlePause(true);
+		console.log('disconnected');
+		this.handlePause(client, true);
 	}
 	@SubscribeMessage('ballX')
-	handleBallX(@MessageBody() data: number): void {
+	async handleBallX(client: Socket, data: number): Promise<void> {
 		// ballX = data;
-		this.server.emit('ballX', data);
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		this.server.to(user.login).emit('ballX', data);
 	}
 	@SubscribeMessage('pause')
-	handlePause(@MessageBody() data: boolean): void {
-		this.server.emit('pause', data);
+	handlePause(client: Socket, data: boolean): void {
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		this.server.to(user.login).emit('pause', data);
 	}
 	@SubscribeMessage('ballY')
-	handleBallY(@MessageBody() data: number): void {
-		// ballY = data;
-		this.server.emit('ballY', data);
+	handleBallY(client: Socket, data: number): void {
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		this.server.to(user.login).emit('ballY', data);
 	}
 	@SubscribeMessage('player1Y')
-	handlePlayer1Y(@MessageBody() data: number): void {
-		this.server.emit('player1Y', data);
+	handlePlayer1Y(client: Socket, data: number): void {
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		this.server.to(user.login).emit('player1Y', data);
 	}
 	@SubscribeMessage('player2Y')
-	handlePlayer2Y(@MessageBody() data: number): void {
-		this.server.emit('player2Y', data);
+	handlePlayer2Y(client: Socket, data: number): void {
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		this.server.to(user.login).emit('player2Y', data);
 	}
 	@SubscribeMessage('player1Score')
-	handlePlayer1Score(client: Socket, @MessageBody() data: number): void {
-		this.server.emit('player1Score', data);
+	handlePlayer1Score(client: Socket, data: number): void {
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		this.server.to(user.login).emit('player1Score', data);
 	}
 	@SubscribeMessage('player2Score')
-	handlePlayer2Score(@MessageBody() data: number): void {
-		this.server.emit('player2Score', data);
+	handlePlayer2Score(client: Socket, data: number): void {
+		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
+			secret: process.env.JWT_SECRET,
+		})
+		this.server.to(user.login).emit('player2Score', data);
 	}
 }
