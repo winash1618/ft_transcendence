@@ -19,6 +19,11 @@ export class GameController {
     return this.gameService.queryData({ where: { id: 1 } });
   }
 
+  @Post(':createGameRoom')
+  createGameRoom() {
+	return this.gameService.createGameRoom({ roomName: 'test' });
+  }
+
   @Get()
   findAllGameObjects() {
     return this.gameService.findAll();
@@ -27,6 +32,26 @@ export class GameController {
   @Get(':updateGameDto')
   findUpdate() {
     return this.gameService.addIsPlayingToUser(1, true);
+  }
+
+  @Get(':gameRooms')
+  findAllGameroom() {
+    return this.gameService.findAllGameRooms();
+  }
+
+  @Get(':addGameToGameRoom')
+  addGameToGameRoom() {
+	return this.gameService.addGameToGameRoom(1, 3);
+  }
+
+  @Get(':gameRoomAdd')
+  addGameRoomToGame() {
+	return this.gameService.addGameRoomToGame(1, 3);
+  }
+
+  @Get(':gameRoomAddUser')
+  addUserToGameRoom() {
+	return this.gameService.addUserToGameRoom(1, 2);
   }
 
   @Get(':id')

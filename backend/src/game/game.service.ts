@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { PrismaService } from 'src/database/prisma.service';
+import { CreateGameRoomDto } from './dto/create-gameRoom.dto';
 
 @Injectable()
 export class GameService {
@@ -9,6 +10,12 @@ export class GameService {
 	async create(createGameDto: CreateGameDto) {
 		return this.prisma.game.create({ data: createGameDto });
 	}
+
+	async createGameRoom(createGameRoomDto: CreateGameRoomDto) {
+		return this.prisma.gameRoom.create({ data: createGameRoomDto });
+	}
+
+
 	addPlayerToGame(gameId: number, playerId: number) {
 		return this.prisma.game.update({
 			where: { id: gameId },
@@ -43,6 +50,17 @@ export class GameService {
 		});
 	}
 
+	addGameToGameRoom(gameRoomId: number, gameId: number) {
+		return this.prisma.gameRoom.update({
+			where: { id: gameRoomId },
+			data: {
+				game: {
+					connect: { id: gameId },
+				},
+			},
+		});
+	}
+
 	addUserToGameRoom(gameRoomId: number, userId: number) {
 		return this.prisma.gameRoom.update({
 			where: { id: gameRoomId },
@@ -62,7 +80,7 @@ export class GameService {
 			},
 		});
 	}
-	
+
 
 	queryData(query: any) {
 
@@ -97,6 +115,10 @@ export class GameService {
 
 	findAll() {
 		return this.prisma.game.findMany();
+	}
+
+	findAllGameRooms() {
+		return this.prisma.gameRoom.findMany();
 	}
 
 	findOne(id: number) {

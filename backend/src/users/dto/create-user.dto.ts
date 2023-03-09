@@ -18,11 +18,4 @@ export class CreateUserDto {
 	@ApiProperty()
 	last_name: string;
 
-	@IsNumber()
-	@ApiProperty()
-	opponentId: number | null;
-
-	@IsNumber()
-	@ApiProperty()
-	isPlaying: boolean;
 }
