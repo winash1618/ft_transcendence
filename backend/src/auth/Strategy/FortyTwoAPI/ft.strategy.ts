@@ -21,7 +21,8 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
       email: profile._json.email,
       first_name: profile._json.first_name,
       last_name: profile.last_name,
-	  opponentId: null
+	  opponentId: null,
+	  isPlaying: false,
     });
 
     if (user) {

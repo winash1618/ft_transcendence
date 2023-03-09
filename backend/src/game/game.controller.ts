@@ -19,6 +19,16 @@ export class GameController {
     return this.gameService.queryData({ where: { id: 1 } });
   }
 
+  @Get()
+  findAllGameObjects() {
+    return this.gameService.findAll();
+  }
+
+  @Get(':updateGameDto')
+  findUpdate() {
+    return this.gameService.addIsPlayingToUser(1, true);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.gameService.findOne(+id);

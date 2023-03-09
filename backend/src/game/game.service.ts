@@ -9,15 +9,87 @@ export class GameService {
 	async create(createGameDto: CreateGameDto) {
 		return this.prisma.game.create({ data: createGameDto });
 	}
+	addPlayerToGame(gameId: number, playerId: number) {
+		return this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				player: {
+					connect: { id: playerId },
+				},
+			},
+		});
+	}
+
+	addOpponentToGame(gameId: number, opponentId: number) {
+		return this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				player: {
+					connect: { id: opponentId },
+				},
+			},
+		});
+	}
+
+
+	addGameRoomToGame(gameId: number, gameRoomId: number) {
+		return this.prisma.game.update({
+			where: { id: gameId },
+			data: {
+				gameRoom: {
+					connect: { id: gameRoomId },
+				},
+			},
+		});
+	}
+
+	addUserToGameRoom(gameRoomId: number, userId: number) {
+		return this.prisma.gameRoom.update({
+			where: { id: gameRoomId },
+			data: {
+				user: {
+					connect: { id: userId },
+				},
+			},
+		});
+	}
+
+	addIsPlayingToUser(userId: number, isPlaying: boolean) {
+		return this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				isPlaying: isPlaying,
+			},
+		});
+	}
+	
 
 	queryData(query: any) {
 
 		const queryTest = {
 			where: {
-				id : 1
+				OR: [
+				{player : {id : 1 }},
+				{player : {opponent : {id : 1 }}},
+				]
 			},
 			select: {
 				player: true,
+				playerId: true,
+				id: true,
+				gameRoomId: true,
+				gameRoom: true,
+				side1: true,
+				side2: true,
+				ballX1: true,
+				ballY1: true,
+				ballX2: true,
+				ballY2: true,
+				isPaused: true,
+				map: true,
+				status: true,
+				player1Score: true,
+				player2Score: true,
 			},
 		};
 		return this.prisma.game.findMany(queryTest);

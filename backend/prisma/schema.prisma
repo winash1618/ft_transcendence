@@ -21,10 +21,11 @@ model User {
     opponent         User?          @relation("Opponent", fields: [opponentId], references: [id])
     opponentRelation User?          @relation("Opponent")
     opponentId       Int?           @unique
+	isPlaying        Boolean        @default(false)
     // opponents         User[]          @relation("oppenents")
     // oppenentsRelation User[]          @relation("oppenents")
     // opponentsId	  Int[]
-    gameRoom         GemeRoom[]     @relation("user")
+    gameRoom         GameRoom[]     @relation("user")
     GameRecord       MatchHistory[] @relation("user")
     createAt         DateTime       @default(now())
     updateAt         DateTime       @default(now())
@@ -38,7 +39,7 @@ model User {
 //   predecessor   User?   @relation("BlogOwnerHistory", fields: [predecessorId], references: [id])
 // }
 
-model GemeRoom {
+model GameRoom {
     id       Int    @id @default(autoincrement())
     roomName String
     game     Game?  @relation("Game")
@@ -50,7 +51,7 @@ model Game {
     playerId     Int?      @unique
     player       User?     @relation("Player", fields: [playerId], references: [id])
     gameRoomId   Int?      @unique
-    gameRoom     GemeRoom? @relation("Game", fields: [gameRoomId], references: [id])
+    gameRoom     GameRoom? @relation("Game", fields: [gameRoomId], references: [id])
     side1        Int
     ballX1       Int
     ballY1       Int

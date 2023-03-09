@@ -54,5 +54,4 @@ export class CreateGameDto {
 	@ApiProperty()
 	gameRoomId: number | null;
 
-	
 }

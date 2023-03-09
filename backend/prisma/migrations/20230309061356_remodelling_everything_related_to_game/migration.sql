@@ -6,6 +6,7 @@ CREATE TABLE "User" (
     "first_name" TEXT,
     "last_name" TEXT,
     "opponentId" INTEGER,
+    "isPlaying" BOOLEAN NOT NULL DEFAULT false,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -13,11 +14,11 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "GemeRoom" (
+CREATE TABLE "GameRoom" (
     "id" SERIAL NOT NULL,
     "roomName" TEXT NOT NULL,
 
-    CONSTRAINT "GemeRoom_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "GameRoom_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -82,7 +83,7 @@ ALTER TABLE "User" ADD CONSTRAINT "User_opponentId_fkey" FOREIGN KEY ("opponentI
 ALTER TABLE "Game" ADD CONSTRAINT "Game_playerId_fkey" FOREIGN KEY ("playerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Game" ADD CONSTRAINT "Game_gameRoomId_fkey" FOREIGN KEY ("gameRoomId") REFERENCES "GemeRoom"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Game" ADD CONSTRAINT "Game_gameRoomId_fkey" FOREIGN KEY ("gameRoomId") REFERENCES "GameRoom"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_user" ADD CONSTRAINT "_user_A_fkey" FOREIGN KEY ("A") REFERENCES "MatchHistory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
