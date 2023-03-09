@@ -10,19 +10,32 @@ export class GameService {
 		return this.prisma.game.create({ data: createGameDto });
 	}
 
-  findAll() {
+	queryData(query: any) {
+
+		const queryTest = {
+			where: {
+				id : 1
+			},
+			select: {
+				player: true,
+			},
+		};
+		return this.prisma.game.findMany(queryTest);
+	}
+
+	findAll() {
 		return this.prisma.game.findMany();
 	}
 
-  findOne(id: number) {
+	findOne(id: number) {
 		return this.prisma.game.findUnique({ where: { id } });
 	}
 
-  update(id: number, updateGameDto: UpdateGameDto) {
+	update(id: number, updateGameDto: UpdateGameDto) {
 		return this.prisma.game.update({ where: { id }, data: updateGameDto });
 	}
 
-  remove(id: number) {
+	remove(id: number) {
 		return this.prisma.game.delete({ where: { id } });
 	}
 }

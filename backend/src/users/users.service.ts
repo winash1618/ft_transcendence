@@ -9,7 +9,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
-  create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
     return this.prisma.user.create({ data: createUserDto });
   }
 
@@ -20,7 +20,6 @@ export class UsersService {
   findAll() {
 	return this.prisma.user.findMany();
 }
-
 
   async users(): Promise<User[]> {
     return this.prisma.user.findMany();

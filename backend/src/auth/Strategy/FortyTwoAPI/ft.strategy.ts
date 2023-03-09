@@ -20,7 +20,8 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
       login: profile._json.login,
       email: profile._json.email,
       first_name: profile._json.first_name,
-      last_name: profile.last_name
+      last_name: profile.last_name,
+	  opponentId: null
     });
 
     if (user) {

@@ -75,7 +75,8 @@ export class FortyTwoApi {
         login: responseData.login,
         email: responseData.email,
         first_name: responseData.first_name,
-        last_name: responseData.last_name
+        last_name: responseData.last_name,
+		opponentId: null
       }
       return dto;
     }

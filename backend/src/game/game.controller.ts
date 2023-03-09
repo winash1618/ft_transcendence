@@ -16,7 +16,7 @@ export class GameController {
 
   @Get()
   findAll() {
-    return this.gameService.findAll();
+    return this.gameService.queryData({ where: { id: 1 } });
   }
 
   @Get(':id')
