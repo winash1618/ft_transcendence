@@ -11,137 +11,106 @@ datasource db {
 }
 
 model User {
-  id             Int            @id @default(autoincrement())
-  email          String         @unique
-  login          String
-  first_name     String?
-  last_name      String?
-  is_active      Boolean        @default(false)
-  is_reported    Boolean        @default(false)
-  is_blocked     Boolean        @default(false)
-  createAt       DateTime       @default(now())
-  updateAt       DateTime       @default(now())
+  id                    Int             @id @default(autoincrement())
+  email                 String          @unique
+  login                 String
+  first_name            String?
+  last_name             String?
+  is_active             Boolean         @default(false)
+  is_reported           Boolean         @default(false)
+  is_blocked            Boolean         @default(false)
+  createAt              DateTime        @default(now())
+  updateAt              DateTime        @default(now())
 
-  game           Game[]
-//   opponent       User?          @relation("Opponent", fields: [opponentId], references: [id])
-//   opponenter     User?          @relation("Opponent")
-//   opponentId     Int            @unique
-//   loseGameRecord MatchHistory[] @relation("Loser")
-//   winGameRecord  MatchHistory[] @relation("Winner")
+  participant_in        Participant?
+  game                  Game[]
 }
-
-model Game {
-  id              Int            @id @default(autoincrement())
-  player          User[]
-  side            Int
-  ballX           Int
-  ballY           Int
-  isPaused        Boolean
-  map             Int
-  status          Int
-  score           Int
-  createAt        DateTime       @default(now())
-  updateAt        DateTime       @default(now())
-}
-
-// enum Gamestatus {
-//   PAUSED
-//   PLAYING
-//   GAMEOVER
-// }
-
-// enum map {
-//   MAP1
-//   MAP2
-//   MAP3
-// }
-
-// enum side {
-//   LEFT
-//   RIGHT
-// }
-
-// model MatchHistory {
-//   id          Int      @id @default(autoincrement())
-//   winnerScore Int
-//   loserScore  Int
-//   createdAt   DateTime @default(now())
-//   loserId     Int
-//   winnerId    Int
-//   loser       User     @relation("Loser", fields: [loserId], references: [id])
-//   winner      User     @relation("Winner", fields: [winnerId], references: [id])
-// }
 
 // Conversation table
 model Conversation {
-  id                Int      @id @default(autoincrement())
-  title             String
-  creator_id        Int
-  channel_id        String
-  created_at        DateTime
-  updated_at        DateTime
-  deleted_at        DateTime?
+  id                    Int             @id @default(autoincrement())
+  title                 String
+  creator_id            Int
+  channel_id            String
+  created_at            DateTime
+  updated_at            DateTime
+  deleted_at            DateTime?
 
-  messages          Message[]
-  participants      Participant[]
+  messages              Message[]       @relation("conversation")
+  participants          Participant[]   @relation("conversation")
 }
 
 // Message table
 model Message {
-  id                Int      @id
-  guid              String
-  conversation_id   Int
-  sender_id         Int
-  message           String   @default("")
-  created_at        DateTime
-  deleted_at        DateTime?
+  id                    Int             @id @default(autoincrement())
+  guid                  String
+  conversation_id       Int
+  message               String          @default("")
+  author_id             Int
+  conversation          Conversation    @relation("conversation", fields: [conversation_id], references: [id])
+  created_at            DateTime
+  deleted_at            DateTime?
 
   @@map(name: "messages")
 }
 
 // Participant table
 model Participant {
-  id                Int      @id @default(autoincrement())
-  conversation_id   Int
-  user_id           Int
-  type              String
-  created_at        DateTime
-  updated_at        DateTime
+  id                    Int             @id @default(autoincrement())
+  conversation_id       Int
+  user_id               Int             @unique
+  type                  String
+  created_at            DateTime
+  updated_at            DateTime
 
-  conversation      Conversation  @relation(fields: [conversation_id], references: [id])
-  user              User          @relation(fields: [user_id], references: [id])
+  user                  User            @relation(fields: [user_id], references: [id])
+  conversation          Conversation    @relation("conversation", fields: [conversation_id], references: [id])
 
   @@unique([conversation_id, user_id])
 }
 
 // BlockList table
 model BlockList {
-  id                Int      @id @default(autoincrement())
-  user_id           Int
-  participant_id    Int
-  created_at        DateTime
+  id                    Int             @id @default(autoincrement())
+  user_id               Int
+  participant_id        Int
+  created_at            DateTime
 }
 
 // DeletedConversation table
 model DeletedConversation {
-  id                Int      @id @default(autoincrement())
-  conversation_id   Int
-  user_id           Int
-  created_at        DateTime
+  id                    Int             @id @default(autoincrement())
+  conversation_id       Int
+  user_id               Int
+  created_at            DateTime
 }
 
 model Access {
-  id                Int      @id @default(autoincrement())
-  user_id           Int
-  token             String
-  created_at        DateTime
-  updated_at        DateTime
+  id                    Int             @id @default(autoincrement())
+  user_id               Int
+  token                 String
+  created_at            DateTime
+  updated_at            DateTime
 }
 
 model DeletedMessages {
-  id                Int      @id @default(autoincrement())
-  message_id        Int
-  user_id           Int
-  created_at        DateTime
-  updateAt          DateTime
+  id                    Int             @id @default(autoincrement())
+  message_id            Int
+  user_id               Int
+  created_at            DateTime
+  updateAt              DateTime
+}
+
+model Game {
+  id                    Int             @id @default(autoincrement())
+  player                User[]
+  side                  Int
+  ballX                 Int
+  ballY                 Int
+  isPaused              Boolean
+  map                   Int
+  status                Int
+  score                 Int
+  createAt              DateTime        @default(now())
+  updateAt              DateTime        @default(now())
 }

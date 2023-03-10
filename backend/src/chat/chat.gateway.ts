@@ -1,26 +1,44 @@
-import { OnModuleInit } from '@nestjs/common';
+import { OnModuleInit, UseGuards } from '@nestjs/common';
 import {
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { AuthenticatedSocket } from 'src/utils/AuthenticatedScoket.interface';
+import { WsJwtStrategy } from 'src/auth/Strategy/ws-jwt.strategy';
+import { GatewaySessionManager } from './gateway.session';
 
 @WebSocketGateway({
-  cors: {
-    origin: [process.env.FRONTEND_BASE_URL],
-  },
+  // cors: {
+  //   origin: [process.env.FRONTEND_BASE_URL],
+  // },
 })
-export class ChatGateway implements OnModuleInit {
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  constructor(private readonly sessionManager: GatewaySessionManager) {}
+
   @WebSocketServer()
   server: Server;
 
-  onModuleInit() {
-    this.server.on('connection', (socket) => {
-      console.log(socket.id);
-      console.log('Connected');
-    });
+  handleConnection(socket: AuthenticatedSocket, ...args: any[]) {
+    console.log('Incoming Connection');
+    // this.sessionManager.setUserSocket(socket.user.id, socket);
+    socket.emit('connected', {});
+  }
+
+  handleDisconnect(socket: AuthenticatedSocket) {
+    console.log('Disconnected');
+    console.log('${socket.user.id} disconnected');
+    this.sessionManager.removeUserSocket(socket.user.id);
+  }
+
+  @SubscribeMessage('joinConversation')
+  async onJoinConversation(socket: AuthenticatedSocket, @MessageBody() body: any) {
+
   }
 
   @SubscribeMessage('newMessage')
