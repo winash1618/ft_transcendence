@@ -7,58 +7,49 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) { }
+	constructor(private prisma: PrismaService) { }
 
-  async create(createUserDto: CreateUserDto) {
-    return this.prisma.user.create({ data: createUserDto });
-  }
+	async create(createUserDto: CreateUserDto) {
+		return this.prisma.user.create({ data: createUserDto });
+	}
 
-  async add42User(userDto: CreateUserDto) {
-    return await this.prisma.user.create({ data: userDto});
-  }
+	async add42User(userDto: CreateUserDto) {
+		return await this.prisma.user.create({ data: userDto });
+	}
 
-  findAll() {
-	return this.prisma.user.findMany();
-}
+	findAll() {
+		return this.prisma.user.findMany();
+	}
 
-findAllUsersInGameRoom(gameRoomId: number) {
-	// return this.prisma.gameRoom.findUnique({
-    //     where: { id: gameRoomId },
-    //     include: {
-    //         user: {
-    //             where: { isPlaying: true }
-    //         },
-    //     },
-    // });
+	findAllgameRoomsInUser(userId: number) {
+		return this.prisma.user.findUnique({
+			where: { id: userId },
+			include: {
+				gameRoom: true,
+			},
+		});
+	}
 
-    return this.prisma.gameRoom.findUnique({
-        where: { id: gameRoomId },
-        include: {
-            user: true,
-        },
-    });
-}
+	async users(): Promise<User[]> {
+		return this.prisma.user.findMany();
+	}
 
-  async users(): Promise<User[]> {
-    return this.prisma.user.findMany();
-  }
+	async findOne(email: string): Promise<User | null> {
+		return await this.prisma.user.findUnique({ where: { email } });
+	}
 
-  async findOne(email: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { email } });
-  }
+	update(id: number, updateUserDto: UpdateUserDto) {
+		return `This action updates a #${id} user`;
+	}
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+	updateRefreshToken(email: string, refreshUpdate: UpdateUserDto) {
+		return this.prisma.user.update({
+			where: { email },
+			data: refreshUpdate,
+		});
+	}
 
-  updateRefreshToken(email: string, refreshUpdate: UpdateUserDto) {
-    return this.prisma.user.update({
-      where: { email },
-      data: refreshUpdate,
-    });
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+	remove(id: number) {
+		return `This action removes a #${id} user`;
+	}
 }

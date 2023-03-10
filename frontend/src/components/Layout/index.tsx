@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
 				await axios.get(`/auth/logout`);
 			} catch (err) { }
 			dispatch(logOut());
-			 window.location.replace("http://localhost:3001/42/login");
+			window.location.replace("http://localhost:3001/42/login");
 		}
 	};
 

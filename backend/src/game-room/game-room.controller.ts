@@ -29,6 +29,11 @@ export class GameRoomController {
 		return this.gameRoomService.findAll();
 	}
 
+	@Get(':findAllUsersInGameRoom')
+	findAllUsersInGameRoom() {
+	  return this.gameRoomService.findAllUsersInGameRoom(2);
+	}
+  
 
 	@Get(':id')
 	findOne(@Param('id') id: string) {

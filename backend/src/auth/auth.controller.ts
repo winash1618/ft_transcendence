@@ -49,7 +49,6 @@ export class AuthController {
 		if (!cookie) {
 			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
 		}
-
 		const verifyToken = await this.authService.verifyToken(cookie);
 
 		if (!verifyToken) {

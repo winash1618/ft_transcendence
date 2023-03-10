@@ -32,6 +32,50 @@ export class GameRoomService {
 		});
 	}
 
+	findAllUsersInGameRoom(gameRoomId: number) {
+		// return this.prisma.gameRoom.findUnique({
+		//     where: { id: gameRoomId },
+		//     include: {
+		//         user: {
+		//             where: { isPlaying: true }
+		//         },
+		//     },
+		// });
+	
+		// return this.prisma.gameRoom.findUnique({
+		// 	where: { id: gameRoomId },
+		// 	include: {
+		// 		user: {
+		// 			where: {
+		// 				gameRoom: {
+		// 					some: {
+		// 						id: gameRoomId,
+		// 					},
+		// 				},
+		// 			}
+		// 		}
+		// 	},
+		// });
+		return this.prisma.gameRoom.findUnique({
+			where: { id: gameRoomId },
+			include: {
+				user: true,
+				},
+		});
+		// return this.prisma.user.findMany({
+		// 	where: { gameRoom: {
+		// 							some: {
+		// 								id: gameRoomId,
+		// 							},
+		// 						}, },
+		// 	include: {
+		// 	  gameRoom: true,
+		// 	},
+		//   });
+		
+	}
+
+
 	findAll() {
 		return this.prisma.gameRoom.findMany();
 	}

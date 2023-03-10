@@ -9,40 +9,39 @@ import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-
 @ApiTags('users')
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+	constructor(private readonly usersService: UsersService) { }
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
+	@Post()
+	create(@Body() createUserDto: CreateUserDto) {
+		return this.usersService.create(createUserDto);
+	}
 
-  @Get()
-  findAll() {
-    return this.usersService.users();
-  }
+	@Get()
+	findAll() {
+		return this.usersService.users();
+	}
 
+	@Get(':findAllGameRoomsInUser')
+	findAllgameRoomsInUser() {
+		return this.usersService.findAllgameRoomsInUser(1);
+	}
 
-  @Get(':findAllUsersInGameRoom')
-  findAllUsersInGameRoom() {
-	return this.usersService.findAllUsersInGameRoom(1);
-  }
+	@Get(':id')
+	async findOne(@Param('id') id: string) {
+		const user = await this.usersService.findOne(id);
+		if (!user) {
+			throw new NotFoundException(`User #${id}: not found`);
+		}
+		return user;
+	}
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findOne(id);
-    if (!user) {
-      throw new NotFoundException(`User #${id}: not found`);
-    }
-    return user;
-  }
+	@Patch(':id')
+	update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+		return this.usersService.update(+id, updateUserDto);
+	}
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
-  }
+	@Delete(':id')
+	remove(@Param('id') id: string) {
+		return this.usersService.remove(+id);
+	}
 }

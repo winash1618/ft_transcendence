@@ -20,14 +20,12 @@ let users = [];
 	},
 })
 export class PingpongGateway {
-	constructor(private readonly jwtService: JwtService) {
-	}
+	constructor(private readonly jwtService: JwtService) {}
 
 	@WebSocketServer()
 	server: Server;
 
 	handleConnection(client: Socket) {
-
 		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
 			secret: process.env.JWT_SECRET,
 		})
@@ -43,10 +41,12 @@ export class PingpongGateway {
 		}
 		console.log('connected');
 	}
+
 	handleDisconnect(client: any) {
 		console.log('disconnected');
 		this.handlePause(client, true);
 	}
+
 	@SubscribeMessage('ballX')
 	async handleBallX(client: Socket, data: number): Promise<void> {
 		// ballX = data;
@@ -55,6 +55,7 @@ export class PingpongGateway {
 		})
 		this.server.to(user.login).emit('ballX', data);
 	}
+
 	@SubscribeMessage('pause')
 	handlePause(client: Socket, data: boolean): void {
 		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
@@ -62,6 +63,7 @@ export class PingpongGateway {
 		})
 		this.server.to(user.login).emit('pause', data);
 	}
+
 	@SubscribeMessage('ballY')
 	handleBallY(client: Socket, data: number): void {
 		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
@@ -69,6 +71,7 @@ export class PingpongGateway {
 		})
 		this.server.to(user.login).emit('ballY', data);
 	}
+
 	@SubscribeMessage('player1Y')
 	handlePlayer1Y(client: Socket, data: number): void {
 		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
@@ -76,6 +79,7 @@ export class PingpongGateway {
 		})
 		this.server.to(user.login).emit('player1Y', data);
 	}
+
 	@SubscribeMessage('player2Y')
 	handlePlayer2Y(client: Socket, data: number): void {
 		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
@@ -83,6 +87,7 @@ export class PingpongGateway {
 		})
 		this.server.to(user.login).emit('player2Y', data);
 	}
+
 	@SubscribeMessage('player1Score')
 	handlePlayer1Score(client: Socket, data: number): void {
 		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
@@ -90,6 +95,7 @@ export class PingpongGateway {
 		})
 		this.server.to(user.login).emit('player1Score', data);
 	}
+
 	@SubscribeMessage('player2Score')
 	handlePlayer2Score(client: Socket, data: number): void {
 		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {

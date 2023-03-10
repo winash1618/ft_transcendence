@@ -32,7 +32,7 @@ export class GameController {
 
 	@Get(':addGameRoomToGame')
 	addGameRoomToGame() {
-		return this.gameService.addGameRoomToGame(1, 3);
+		return this.gameService.addGameRoomToGame(1, 1);
 	}
 
 	@Get(':id')
