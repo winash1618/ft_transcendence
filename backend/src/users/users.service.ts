@@ -49,6 +49,35 @@ export class UsersService {
 		});
 	}
 
+	async addGameResult(userId: number, userScore: number, opponentScore: number) {
+		// const Record = this.prisma.matchHistory.create({
+		// 	data: {
+		// 		userId: userId,
+		// 		userScore: userScore,
+		// 		oppenentScore: oppenentScore,
+		// 	},
+		// });
+		// const statId = this.prisma.matchHistory.findUnique({
+		// 	where: { id: (await Record).id },
+		// 	select: { id: true },
+		// });
+		// const user = this.prisma.user.findUnique({
+		// 	where: { id: userId },
+		// 	select: { id: true, GameRecord: true },
+		// });
+		return this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				GameRecord: {
+					create: {
+						userScore: userScore,
+						opponentScore: opponentScore,
+					},
+				},
+			},
+		});
+	}
+
 	remove(id: number) {
 		return `This action removes a #${id} user`;
 	}

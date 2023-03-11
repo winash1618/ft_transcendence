@@ -20,9 +20,10 @@ model User {
     opponent         User?          @relation("Opponent", fields: [opponentId], references: [id])
     opponentRelation User?          @relation("Opponent")
     opponentId       Int?           @unique
-	isPlaying        Boolean        @default(false)
+    isPlaying        Boolean        @default(false)
     gameRoom         GameRoom[]     @relation("user")
     GameRecord       MatchHistory[] @relation("user")
+	OpponentRecord   MatchHistory[] @relation("opponent")
     createAt         DateTime       @default(now())
     updateAt         DateTime       @default(now())
 }
@@ -56,8 +57,12 @@ model Game {
 }
 
 model MatchHistory {
-    id        Int      @id @default(autoincrement())
-    score     Int
-    createdAt DateTime @default(now())
-    user      User[]   @relation("user")
+    id            Int      @id @default(autoincrement())
+    userScore     Int
+    opponentScore Int
+    userId        Int?
+    user          User?    @relation("user", fields: [userId], references: [id])
+    opponentId        Int?
+    opponent          User?    @relation("opponent", fields: [opponentId], references: [opponentId])
+    createdAt     DateTime @default(now())
 }

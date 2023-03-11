@@ -487,14 +487,6 @@ async function main() {
 //     ],
 //   })
   // Match Histories
-  const matchHistory1 = await prisma.matchHistory.create({
-    data: {
-      score: 100,
-      user: {
-        connect: { id: user1.id },
-      },
-    },
-  });
 }
 
 main()
