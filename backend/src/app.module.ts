@@ -5,7 +5,6 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './database/prisma.module';
 import { ChatModule } from './chat/chat.module';
 import { PingpongModule } from './pingpong/pingpong.module';
-import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -14,7 +13,6 @@ import { GameModule } from './game/game.module';
     PrismaModule,
     ChatModule,
     PingpongModule,
-    GameModule
   ],
 })
 export class AppModule {}

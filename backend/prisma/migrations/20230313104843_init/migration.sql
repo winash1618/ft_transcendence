@@ -96,6 +96,9 @@ CREATE TABLE "_GameToUser" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_login_key" ON "User"("login");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Participant_user_id_key" ON "Participant"("user_id");
 
 -- CreateIndex

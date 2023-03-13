@@ -20,7 +20,7 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'wsjwt') {
   }
 
   async validate(payload: any): Promise<User> {
-    const user = await this.userService.findOne(payload.email);
+    const user = await this.userService.findOne(payload.login);
     if (!user) {
       throw new UnauthorizedException('Invalid token');
     }

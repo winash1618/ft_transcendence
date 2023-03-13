@@ -33,7 +33,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(socket: AuthenticatedSocket) {
     console.log('Disconnected');
     console.log('${socket.user.id} disconnected');
-    this.sessionManager.removeUserSocket(socket.user.id);
   }
 
   @SubscribeMessage('joinConversation')
@@ -41,6 +40,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   }
 
+  @UseGuards(WsJwtStrategy)
   @SubscribeMessage('newMessage')
   onNewMessage(@MessageBody() body: any) {
     console.log(body);

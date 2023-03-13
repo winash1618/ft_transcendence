@@ -18,25 +18,24 @@ export class UsersService {
   }
 
   findAll() {
-	return this.prisma.user.findMany();
-}
-
+	  return this.prisma.user.findMany();
+  }
 
   async users(): Promise<User[]> {
     return this.prisma.user.findMany();
   }
 
-  async findOne(email: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { email } });
+  async findOne(login: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({ where: { login } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
-  updateRefreshToken(email: string, refreshUpdate: UpdateUserDto) {
+  updateRefreshToken(login: string, refreshUpdate: UpdateUserDto) {
     return this.prisma.user.update({
-      where: { email },
+      where: { login },
       data: refreshUpdate,
     });
   }
