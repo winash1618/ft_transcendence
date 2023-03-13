@@ -11,98 +11,70 @@ datasource db {
 }
 
 model User {
-  id                    Int             @id @default(autoincrement())
-  email                 String          @unique
+  id                    String          @id @default(uuid())
   login                 String
+  username              String?
   first_name            String?
   last_name             String?
+  friends               User[]          @relation("friends")
+  friends_of            User[]          @relation("friends")
+  blocked_users         User[]          @relation("blocked_users")
+  blocked_by            User[]          @relation("blocked_users")
   is_active             Boolean         @default(false)
-  is_reported           Boolean         @default(false)
-  is_blocked            Boolean         @default(false)
   createAt              DateTime        @default(now())
   updateAt              DateTime        @default(now())
 
-  participant_in        Participant?
+  participant_in        Participant[]
   game                  Game[]
 }
 
 // Conversation table
 model Conversation {
-  id                    Int             @id @default(autoincrement())
-  title                 String
+  id                    String          @id @default(uuid())
+  title                 String?
   creator_id            Int
   channel_id            String
-  created_at            DateTime
-  updated_at            DateTime
+  password              String?
+  privacy               Privacy         @default(PUBLIC)
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
   deleted_at            DateTime?
 
-  messages              Message[]       @relation("conversation")
-  participants          Participant[]   @relation("conversation")
+  messages              Message[]
+  participants          Participant[]
 }
 
 // Message table
 model Message {
-  id                    Int             @id @default(autoincrement())
-  guid                  String
-  conversation_id       Int
+  id                    String          @id @default(uuid())
   message               String          @default("")
-  author_id             Int
-  conversation          Conversation    @relation("conversation", fields: [conversation_id], references: [id])
+  conversation_id       String
+  conversation          Conversation    @relation(fields: [conversation_id], references: [id])
+  author_id             String
+  author                Participant     @relation(fields: [author_id], references: [id])
   created_at            DateTime
   deleted_at            DateTime?
-
-  @@map(name: "messages")
 }
 
 // Participant table
 model Participant {
-  id                    Int             @id @default(autoincrement())
-  conversation_id       Int
-  user_id               Int             @unique
-  type                  String
+  id                    String          @id @default(uuid())
+  user_id               String          @unique
+  role                  Role            @default(USER)
+  conversation_status   Status          @default(ACTIVE)
+  conversation_id       String
   created_at            DateTime
   updated_at            DateTime
 
   user                  User            @relation(fields: [user_id], references: [id])
-  conversation          Conversation    @relation("conversation", fields: [conversation_id], references: [id])
+  conversation          Conversation    @relation(fields: [conversation_id], references: [id])
+  messages              Message[]
 
   @@unique([conversation_id, user_id])
 }
 
-// BlockList table
-model BlockList {
-  id                    Int             @id @default(autoincrement())
-  user_id               Int
-  participant_id        Int
-  created_at            DateTime
-}
-
-// DeletedConversation table
-model DeletedConversation {
-  id                    Int             @id @default(autoincrement())
-  conversation_id       Int
-  user_id               Int
-  created_at            DateTime
-}
-
-model Access {
-  id                    Int             @id @default(autoincrement())
-  user_id               Int
-  token                 String
-  created_at            DateTime
-  updated_at            DateTime
-}
-
-model DeletedMessages {
-  id                    Int             @id @default(autoincrement())
-  message_id            Int
-  user_id               Int
-  created_at            DateTime
-  updateAt              DateTime
-}
-
 model Game {
-  id                    Int             @id @default(autoincrement())
+  id                    String          @id @default(uuid())
   player                User[]
   side                  Int
   ballX                 Int
@@ -113,4 +85,21 @@ model Game {
   score                 Int
   createAt              DateTime        @default(now())
   updateAt              DateTime        @default(now())
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Privacy {
+  PUBLIC
+  PRIVATE
+  PROTECTED
+}
+
+enum Status {
+  ACTIVE
+  BLOCKED
+  DELETED
 }
