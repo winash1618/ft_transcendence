@@ -21,8 +21,8 @@ model User {
   blocked_users         User[]          @relation("blocked_users")
   blocked_by            User[]          @relation("blocked_users")
   is_active             Boolean         @default(false)
-  createAt              DateTime        @default(now())
-  updateAt              DateTime        @default(now())
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
 
   participant_in        Participant[]
   game                  Game[]
@@ -32,8 +32,8 @@ model User {
 model Conversation {
   id                    String          @id @default(uuid())
   title                 String?
-  creator_id            Int
-  channel_id            String
+  creator_id            String
+  channel_id            String          @default(uuid())
   password              String?
   privacy               Privacy         @default(PUBLIC)
   created_at            DateTime        @default(now())
@@ -52,7 +52,7 @@ model Message {
   conversation          Conversation    @relation(fields: [conversation_id], references: [id])
   author_id             String
   author                Participant     @relation(fields: [author_id], references: [id])
-  created_at            DateTime
+  created_at            DateTime        @default(now())
   deleted_at            DateTime?
 }
 
@@ -63,8 +63,8 @@ model Participant {
   role                  Role            @default(USER)
   conversation_status   Status          @default(ACTIVE)
   conversation_id       String
-  created_at            DateTime
-  updated_at            DateTime
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
 
   user                  User            @relation(fields: [user_id], references: [id])
   conversation          Conversation    @relation(fields: [conversation_id], references: [id])

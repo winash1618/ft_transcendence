@@ -5,6 +5,9 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './database/prisma.module';
 import { ChatModule } from './chat/chat.module';
 import { PingpongModule } from './pingpong/pingpong.module';
+import { ConversationModule } from './conversation/conversation.module';
+import { ParticipantModule } from './participant/participant.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -13,6 +16,9 @@ import { PingpongModule } from './pingpong/pingpong.module';
     PrismaModule,
     ChatModule,
     PingpongModule,
+    ConversationModule,
+    MessageModule,
+    ParticipantModule,
   ],
 })
 export class AppModule {}

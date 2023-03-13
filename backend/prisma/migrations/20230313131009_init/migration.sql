@@ -15,8 +15,8 @@ CREATE TABLE "User" (
     "first_name" TEXT,
     "last_name" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT false,
-    "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -25,7 +25,7 @@ CREATE TABLE "User" (
 CREATE TABLE "Conversation" (
     "id" TEXT NOT NULL,
     "title" TEXT,
-    "creator_id" INTEGER NOT NULL,
+    "creator_id" TEXT NOT NULL,
     "channel_id" TEXT NOT NULL,
     "password" TEXT,
     "privacy" "Privacy" NOT NULL DEFAULT 'PUBLIC',
@@ -42,7 +42,7 @@ CREATE TABLE "Message" (
     "message" TEXT NOT NULL DEFAULT '',
     "conversation_id" TEXT NOT NULL,
     "author_id" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
@@ -55,8 +55,8 @@ CREATE TABLE "Participant" (
     "role" "Role" NOT NULL DEFAULT 'USER',
     "conversation_status" "Status" NOT NULL DEFAULT 'ACTIVE',
     "conversation_id" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Participant_pkey" PRIMARY KEY ("id")
 );

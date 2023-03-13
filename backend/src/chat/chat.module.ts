@@ -1,7 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
-import { WsJwtStrategy } from 'src/auth/Strategy/ws-jwt.strategy';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';

@@ -1,4 +1,4 @@
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import {
   MessageBody,
   OnGatewayConnection,
@@ -11,42 +11,66 @@ import {
 import { Server } from 'socket.io';
 import { AuthenticatedSocket } from 'src/utils/AuthenticatedScoket.interface';
 import { WsJwtStrategy } from 'src/auth/Strategy/ws-jwt.strategy';
-import { GatewaySessionManager } from './gateway.session';
+import { PrismaService } from 'src/database/prisma.service';
 
-@WebSocketGateway({
-  // cors: {
-  //   origin: [process.env.FRONTEND_BASE_URL],
-  // },
-})
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly sessionManager: GatewaySessionManager) {}
+  @WebSocketServer() server: Server;
 
-  @WebSocketServer()
-  server: Server;
+  constructor(private prisma: PrismaService) {}
 
-  handleConnection(socket: AuthenticatedSocket, ...args: any[]) {
-    console.log('Incoming Connection');
-    // this.sessionManager.setUserSocket(socket.user.id, socket);
-    socket.emit('connected', {});
+  async handleConnection(socket: AuthenticatedSocket) {
+    const userID = socket.handshake.query.userID as string;
+    const conversationID = socket.handshake.query.conversationID as string;
+
+    const participant = await this.prisma.participant.findUnique({
+      where: {
+        conversation_id_user_id: {
+          conversation_id: conversationID,
+          user_id: userID,
+        },
+      },
+    });
+
+    if (!participant) {
+      socket.disconnect();
+      return;
+    }
+
+    socket.join(conversationID);
+
+    socket.to(conversationID).emit('userJoined', { userID });
+
+    const messages = await this.prisma.message.findMany({
+      where: { conversation_id: conversationID },
+      include: { author: true },
+      orderBy: { created_at: 'asc' },
+    });
+
+    socket.emit('conversationHistory', messages);
   }
 
   handleDisconnect(socket: AuthenticatedSocket) {
-    console.log('Disconnected');
-    console.log('${socket.user.id} disconnected');
+    const userID = socket.handshake.query.userID as string;
+    const conversationID = socket.handshake.query.conversationID as string;
+
+    socket.to(conversationID).emit('userLeft', { userID });
   }
 
-  @SubscribeMessage('joinConversation')
-  async onJoinConversation(socket: AuthenticatedSocket, @MessageBody() body: any) {
+  @SubscribeMessage('sendMessage')
+  async handleMessage(socket: AuthenticatedSocket, data: any) {
+    const userID = socket.handshake.query.userID as string;
+    const conversationID = socket.handshake.query.conversationID as string;
 
-  }
-
-  @UseGuards(WsJwtStrategy)
-  @SubscribeMessage('newMessage')
-  onNewMessage(@MessageBody() body: any) {
-    console.log(body);
-    this.server.emit('onMessage', {
-      msg: 'New Message',
-      content: body,
+    const message = await this.prisma.message.create({
+      data: {
+        message: data.message,
+        conversation: { connect: { id: conversationID } },
+        author: { connect: { id: userID } },
+      },
+      include: { author: true },
     });
+
+    socket.to(conversationID).emit('newMessage', message);
   }
 }
