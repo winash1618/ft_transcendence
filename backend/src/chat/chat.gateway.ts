@@ -10,27 +10,27 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { AuthenticatedSocket } from 'src/utils/AuthenticatedScoket.interface';
-import { WsJwtStrategy } from 'src/auth/Strategy/ws-jwt.strategy';
 import { PrismaService } from 'src/database/prisma.service';
+import { ConversationService } from 'src/conversation/conversation.service';
+import { ParticipantService } from 'src/participant/participant.service';
+import { MessageService } from 'src/message/message.service';
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private conversationService: ConversationService,
+    private participantService: ParticipantService,
+    private messageService: MessageService,
+    ) {}
 
   async handleConnection(socket: AuthenticatedSocket) {
     const userID = socket.handshake.query.userID as string;
     const conversationID = socket.handshake.query.conversationID as string;
 
-    const participant = await this.prisma.participant.findUnique({
-      where: {
-        conversation_id_user_id: {
-          conversation_id: conversationID,
-          user_id: userID,
-        },
-      },
-    });
+    const participant = await this.participantService.getConversation(userID, conversationID);
 
     if (!participant) {
       socket.disconnect();
@@ -57,20 +57,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.to(conversationID).emit('userLeft', { userID });
   }
 
-  @SubscribeMessage('sendMessage')
-  async handleMessage(socket: AuthenticatedSocket, data: any) {
-    const userID = socket.handshake.query.userID as string;
-    const conversationID = socket.handshake.query.conversationID as string;
+  @SubscribeMessage('createConversation')
+  async createConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
+    const { title, privacy, channel_id } = data;
 
-    const message = await this.prisma.message.create({
-      data: {
-        message: data.message,
-        conversation: { connect: { id: conversationID } },
-        author: { connect: { id: userID } },
-      },
-      include: { author: true },
+    const conversation = await this.conversationService.create({
+      title,
+      privacy,
+      channel_id,
+      creator_id: socket.user.userID,
     });
 
-    socket.to(conversationID).emit('newMessage', message);
+    await this.participantService.create({
+      conversation_id: conversation.id,
+      user_id: socket.user.userID,
+    });
+
+    socket.emit('conversationCreated', conversation);
   }
+
 }
