@@ -96,6 +96,7 @@ enum Privacy {
   PUBLIC
   PRIVATE
   PROTECTED
+  DIRECT
 }
 
 enum Status {

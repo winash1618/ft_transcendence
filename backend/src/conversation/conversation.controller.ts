@@ -7,28 +7,28 @@ import { UpdateConversationDto } from './dto/update-conversation.dto';
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
-  @Post()
-  create(@Body() createConversationDto: CreateConversationDto) {
-    return this.conversationService.create(createConversationDto);
-  }
+  // @Post()
+  // create(@Body() createConversationDto: CreateConversationDto) {
+  //   return this.conversationService.create(createConversationDto);
+  // }
 
-  @Get()
-  findAll() {
-    return this.conversationService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.conversationService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.conversationService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.conversationService.findOne(+id);
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateConversationDto: UpdateConversationDto) {
-    return this.conversationService.update(+id, updateConversationDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateConversationDto: UpdateConversationDto) {
+  //   return this.conversationService.update(+id, updateConversationDto);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.conversationService.remove(+id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.conversationService.remove(+id);
+  // }
 }

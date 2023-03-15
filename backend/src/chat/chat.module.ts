@@ -8,6 +8,12 @@ import { PrismaService } from 'src/database/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewaySessionManager } from './gateway.session';
+import { ConversationModule } from 'src/conversation/conversation.module';
+import { MessageModule } from 'src/message/message.module';
+import { ParticipantModule } from 'src/participant/participant.module';
+import { ConversationService } from 'src/conversation/conversation.service';
+import { MessageService } from 'src/message/message.service';
+import { ParticipantService } from 'src/participant/participant.service';
 
 @Module({
   imports: [
@@ -22,12 +28,19 @@ import { GatewaySessionManager } from './gateway.session';
       })
     }),
     AuthModule,
-    UsersModule],
+    UsersModule,
+    ConversationModule,
+    MessageModule,
+    ParticipantModule
+  ],
   providers: [
     GatewaySessionManager,
     ChatGateway,
     ChatService,
     UsersService,
+    ConversationService,
+    MessageService,
+    ParticipantService,
     PrismaService],
 })
 export class ChatModule {}

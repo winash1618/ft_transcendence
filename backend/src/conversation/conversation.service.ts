@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Privacy } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
@@ -13,7 +14,6 @@ export class ConversationService {
         title: createConversationDto.title,
         creator_id: createConversationDto.creator_id,
         channel_id: createConversationDto.channel_id,
-        privacy: createConversationDto.privacy,
       },
     });
   }
@@ -39,7 +39,6 @@ export class ConversationService {
         title: updateConversationDto.title,
         creator_id: updateConversationDto.creator_id,
         channel_id: updateConversationDto.channel_id,
-        privacy: updateConversationDto.privacy,
       },
     });
   }
@@ -64,7 +63,7 @@ export class ConversationService {
   async removeParticipant(conversation_id: string, user_id: string) {
     return await this.prisma.participant.delete({
       where: {
-        user_id_conversation_id: {
+        conversation_id_user_id: {
           user_id: user_id,
           conversation_id: conversation_id,
         },
@@ -84,14 +83,6 @@ export class ConversationService {
     return await this.prisma.message.findMany({
       where: {
         conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async getConversationByChannelId(channel_id: string) {
-    return await this.prisma.conversation.findUnique({
-      where: {
-        channel_id: channel_id,
       },
     });
   }
@@ -123,7 +114,7 @@ export class ConversationService {
   async getConversationByPrivacy(privacy: string) {
     return await this.prisma.conversation.findMany({
       where: {
-        privacy: privacy,
+        privacy: Privacy.PUBLIC
       },
     });
   }
@@ -132,7 +123,7 @@ export class ConversationService {
     return await this.prisma.conversation.findMany({
       where: {
         creator_id: creator_id,
-        privacy: privacy,
+        privacy: Privacy.PUBLIC,
       },
     });
   }
@@ -151,7 +142,7 @@ export class ConversationService {
       where: {
         creator_id: creator_id,
         title: title,
-        privacy: privacy,
+        privacy: Privacy.PUBLIC,
       },
     });
   }
@@ -161,7 +152,7 @@ export class ConversationService {
       where: {
         user_id: user_id,
         conversation: {
-          privacy: privacy,
+          privacy: Privacy.PUBLIC,
         },
       },
     });
@@ -173,6 +164,20 @@ export class ConversationService {
         user_id: user_id,
         conversation: {
           title: title,
+        },
+      },
+    });
+  }
+
+  async getDirectConversation(user_id: string, creator_id: string) {
+    return await this.prisma.conversation.findMany({
+      where: {
+        creator_id: creator_id,
+        privacy: Privacy.DIRECT,
+        participants: {
+          every: {
+            user_id: user_id,
+          },
         },
       },
     });
