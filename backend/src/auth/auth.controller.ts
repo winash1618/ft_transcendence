@@ -45,30 +45,32 @@ export class AuthController {
 		@Res() res: Response,
 	): Promise<Response> {
 		const cookie = req.cookies.auth;
+		try {
+			if (!cookie) {
+				return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
+			}
 
-		if (!cookie) {
+			const verifyToken = await this.authService.verifyToken(cookie);
+
+			if (!verifyToken) {
+				return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
+			}
+
+			const cookieToken = await this.authService.decodeToken(cookie);
+
+			if (!cookieToken) {
+				return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
+			}
+			const user = await this.authService.validateUser(cookieToken as User);
+			const token: string = await this.authService.getJwtToken(user);
+
+			const secretData = {
+				token,
+				user,
+			}
+			return res.status(HttpStatus.ACCEPTED).json(secretData);
+		} catch (e) {
 			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
 		}
-
-		const verifyToken = await this.authService.verifyToken(cookie);
-
-		if (!verifyToken) {
-			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
-		}
-
-		const cookieToken = await this.authService.decodeToken(cookie);
-
-		if (!cookieToken) {
-			return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
-		}
-		const user = await this.authService.validateUser(cookieToken as User);
-		const token: string = await this.authService.getJwtToken(user);
-
-		const secretData = {
-			token,
-			user,
-		}
-
-		return res.status(HttpStatus.ACCEPTED).json(secretData);
 	}
 }
