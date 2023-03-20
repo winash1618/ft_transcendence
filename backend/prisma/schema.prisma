@@ -2,12 +2,12 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 model User {
@@ -73,20 +73,6 @@ model Participant {
   @@unique([conversation_id, user_id])
 }
 
-model Game {
-  id                    String          @id @default(uuid())
-  player                User[]
-  side                  Int
-  ballX                 Int
-  ballY                 Int
-  isPaused              Boolean
-  map                   Int
-  status                Int
-  score                 Int
-  createAt              DateTime        @default(now())
-  updateAt              DateTime        @default(now())
-}
-
 enum Role {
   ADMIN
   USER
@@ -103,4 +89,43 @@ enum Status {
   ACTIVE
   BLOCKED
   DELETED
+}
+
+model GameRoom {
+    id       Int    @id @default(autoincrement())
+    roomName String
+    game     Game?  @relation("Game")
+    user     User[] @relation("user")
+}
+
+model Game {
+    id           Int       @id @default(autoincrement())
+    playerId     Int?      @unique
+    player       User?     @relation("Player", fields: [playerId], references: [id])
+    gameRoomId   Int?      @unique
+    gameRoom     GameRoom? @relation("Game", fields: [gameRoomId], references: [id])
+    side1        Int
+    ballX1       Int
+    ballY1       Int
+    side2        Int
+    ballX2       Int
+    ballY2       Int
+    isPaused     Boolean
+    map          Int
+    status       Int
+    player1Score Int
+    player2Score Int
+    createAt     DateTime  @default(now())
+    updateAt     DateTime  @default(now())
+}
+
+model MatchHistory {
+    id            Int      @id @default(autoincrement())
+    userScore     Int
+    opponentScore Int
+    userId        Int?
+    user          User?    @relation("user", fields: [userId], references: [id])
+    opponentId        Int?
+    opponent          User?    @relation("opponent", fields: [opponentId], references: [opponentId])
+    createdAt     DateTime @default(now())
 }

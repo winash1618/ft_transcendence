@@ -8,7 +8,7 @@ const PingPong = () => {
 
   useEffect(() => {
     if (Math.round(Math.random()) === 1) {
-      setPlayer(2);
+      setPlayer(1);
     }
   }, []);
   return (

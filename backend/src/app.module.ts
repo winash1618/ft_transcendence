@@ -8,6 +8,9 @@ import { PingpongModule } from './pingpong/pingpong.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { ParticipantModule } from './participant/participant.module';
 import { MessageModule } from './message/message.module';
+import { GameModule } from './game/game.module';
+import { GameRoomModule } from './game-room/game-room.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { MessageModule } from './message/message.module';
     ConversationModule,
     MessageModule,
     ParticipantModule,
+		GameModule,
+		GameRoomModule,
+		StatsModule
   ],
 })
-export class AppModule {}
+export class AppModule { }

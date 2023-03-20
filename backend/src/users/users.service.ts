@@ -7,40 +7,67 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) { }
+	constructor(private prisma: PrismaService) { }
 
-  create(createUserDto: CreateUserDto) {
-    return this.prisma.user.create({ data: createUserDto });
-  }
+	async create(createUserDto: CreateUserDto) {
+		return this.prisma.user.create({ data: createUserDto });
+	}
 
-  async add42User(userDto: CreateUserDto) {
-    return await this.prisma.user.create({ data: userDto});
-  }
+	async add42User(userDto: CreateUserDto) {
+		return await this.prisma.user.create({ data: userDto });
+	}
 
-  findAll() {
-	  return this.prisma.user.findMany();
-  }
+	findAll() {
+		return this.prisma.user.findMany();
+	}
 
-  async users(): Promise<User[]> {
-    return this.prisma.user.findMany();
-  }
+	findAllgameRoomsInUser(userId: number) {
+		return this.prisma.user.findUnique({
+			where: { id: userId },
+			include: {
+				gameRoom: true,
+			},
+		});
+	}
+
+	async users(): Promise<User[]> {
+		return this.prisma.user.findMany();
+	}
 
   async findOne(login: string): Promise<User | null> {
     return await this.prisma.user.findUnique({ where: { login } });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+	async addGameResult(userId: number, userScore: number, opponentScore: number) {
+		// const Record = this.prisma.matchHistory.create({
+		// 	data: {
+		// 		userId: userId,
+		// 		userScore: userScore,
+		// 		oppenentScore: oppenentScore,
+		// 	},
+		// });
+		// const statId = this.prisma.matchHistory.findUnique({
+		// 	where: { id: (await Record).id },
+		// 	select: { id: true },
+		// });
+		// const user = this.prisma.user.findUnique({
+		// 	where: { id: userId },
+		// 	select: { id: true, GameRecord: true },
+		// });
+		return this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				GameRecord: {
+					create: {
+						userScore: userScore,
+						opponentScore: opponentScore,
+					},
+				},
+			},
+		});
+	}
 
-  updateRefreshToken(login: string, refreshUpdate: UpdateUserDto) {
-    return this.prisma.user.update({
-      where: { login },
-      data: refreshUpdate,
-    });
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+	remove(id: number) {
+		return `This action removes a #${id} user`;
+	}
 }

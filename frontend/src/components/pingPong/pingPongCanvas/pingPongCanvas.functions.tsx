@@ -59,9 +59,9 @@ export const createBall = (ball: BallType) => {
 const moveBall = (ball: BallType, socket: Socket, player: number) => {
   if (player === 1) {
     ball.x += ball.velocityX * ball.directionX;
-    socket.emit("ballX", ball.x);
+    socket?.emit("ballX", ball.x);
     ball.y += ball.velocityY * ball.directionY;
-    socket.emit("ballY", ball.y);
+    socket?.emit("ballY", ball.y);
   }
 };
 
@@ -80,7 +80,7 @@ const checkCollision = (
   if (ball.x <= 0) {
     if (player === 1) {
       paddle2.score++;
-      socket.emit("player2Score", paddle2.score);
+      socket?.emit("player2Score", paddle2.score);
       setPlayer2Score(paddle2.score);
     }
     createBall(ball);
@@ -90,7 +90,7 @@ const checkCollision = (
   if (ball.x >= CANVAS_WIDTH - ball.radius) {
     if (player === 1) {
       paddle1.score++;
-      socket.emit("player1Score", paddle1.score);
+      socket?.emit("player1Score", paddle1.score);
       setPlayer1Score(paddle1.score);
     }
     createBall(ball);
@@ -149,7 +149,7 @@ export const draw = (
     if (game.paddle1.movingUp && game.paddle1.y > 0) {
       game.paddle1.y -= 10;
       if (player === 1) {
-        socket.emit("player1Y", game.paddle1.y);
+        socket?.emit("player1Y", game.paddle1.y);
       }
     }
     if (
@@ -158,13 +158,13 @@ export const draw = (
     ) {
       game.paddle1.y += 10;
       if (player === 1) {
-        socket.emit("player1Y", game.paddle1.y);
+        socket?.emit("player1Y", game.paddle1.y);
       }
     }
     if (game.paddle2.movingUp && game.paddle2.y > 0) {
       game.paddle2.y -= 10;
       if (player === 2) {
-        socket.emit("player2Y", game.paddle2.y);
+        socket?.emit("player2Y", game.paddle2.y);
       }
     }
     if (
@@ -173,7 +173,7 @@ export const draw = (
     ) {
       game.paddle2.y += 10;
       if (player === 2) {
-        socket.emit("player2Y", game.paddle2.y);
+        socket?.emit("player2Y", game.paddle2.y);
       }
     }
     drawPaddles(ctx, game.paddle1, game.paddle2);
