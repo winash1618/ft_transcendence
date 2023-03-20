@@ -10,9 +10,9 @@ export const router = createBrowserRouter([
   {
     element: <Navbar />,
     children: [
-      { path: "/", element: <PingPongPage /> },
+      { path: "/", element: <LeaderBoardPage /> },
       { path: "/messages", element: <MessagesPage /> },
-      { path: "/leaderboard", element: <LeaderBoardPage /> },
+      { path: "/pingpong", element: <PingPongPage /> },
     ],
   },
 ]);

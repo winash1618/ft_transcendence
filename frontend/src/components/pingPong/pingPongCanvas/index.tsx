@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
-import dayjs from "dayjs";
 import { logOut, setUserInfo } from "../../../store/authReducer";
-import jwt_decode, { JwtPayload } from "jwt-decode";
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
@@ -14,7 +12,8 @@ import {
 } from "./pingPongCanvas.functions";
 import { ScoreText, StyledCanvas } from "./pingPongCanvas.styled";
 import axios from "../../../api";
-import { useNavigate } from "react-router-dom";
+
+export let globalSocket: Socket | null = null;
 
 export type GameType = {
   pause: boolean;
@@ -96,32 +95,6 @@ const PingPongCanvas = ({ player }: { player: number }) => {
   const dispatch = useAppDispatch();
 
   const getToken = async () => {
-    const data = localStorage.getItem("auth");
-    if (data === null) {
-      try {
-        const response = await axios.get("/token", {
-          withCredentials: true,
-        });
-        localStorage.setItem("auth", JSON.stringify(response.data));
-        dispatch(setUserInfo(response.data.user));
-        return response.data.token;
-      } catch (err) {
-        try {
-          await axios.get("/logout", {
-            withCredentials: true,
-          });
-        } catch (err) {}
-        dispatch(logOut());
-        window.location.reload();
-        return null;
-      }
-    }
-    const token = JSON.parse(data).token;
-    const user = jwt_decode<JwtPayload>(token);
-    const isExpired = dayjs.unix(user.exp!).diff(dayjs()) - 5000 < 1;
-    if (!isExpired) {
-      return token;
-    }
     try {
       const response = await axios.get("/token", {
         withCredentials: true,
@@ -130,14 +103,8 @@ const PingPongCanvas = ({ player }: { player: number }) => {
       dispatch(setUserInfo(response.data.user));
       return response.data.token;
     } catch (err) {
-      try {
-        await axios.get("/logout", {
-          withCredentials: true,
-        });
-      } catch (err) {}
-      localStorage.removeItem("auth");
       dispatch(logOut());
-	  window.location.reload();
+      window.location.reload();
       return null;
     }
   };
@@ -161,16 +128,35 @@ const PingPongCanvas = ({ player }: { player: number }) => {
 
   useEffect(() => {
     if (canvaRef.current) {
+		console.log('test');
       canvaRef.current.width = CANVAS_WIDTH;
       canvaRef.current.height = CANVAS_HEIGHT;
       let ctx = canvaRef.current.getContext("2d");
       createBall(game.ball);
       if (ctx) {
         requestAnimationFrame(() =>
-          draw(ctx, game, player, setPlayer1Score, setPlayer2Score, socket)
+          draw(ctx, game, player, setPlayer1Score, setPlayer2Score)
         );
       }
     }
+    window.addEventListener("keydown", (event) =>
+      movePaddle(event, game, player)
+    );
+    window.addEventListener("keyup", (event) =>
+      stopPaddle(event, game, player)
+    );
+    return () => {
+      window.removeEventListener("keydown", (event) =>
+        movePaddle(event, game, player)
+      );
+      window.removeEventListener("keyup", (event) =>
+        stopPaddle(event, game, player)
+      );
+    };
+  }, [player]);
+
+  useEffect(() => {
+	globalSocket = socket;
     socket?.on("pause", (data) => {
       console.log(data);
       game.pause = data;
@@ -208,21 +194,31 @@ const PingPongCanvas = ({ player }: { player: number }) => {
     socket?.on("error", (data) => {
       console.log(data);
       socket?.disconnect();
+      socket?.off("ballX", (data) => {
+        if (player === 2) {
+          game.ball.x = data;
+        }
+      });
+      socket?.off("ballY", (data) => {
+        if (player === 2) {
+          game.ball.y = data;
+        }
+      });
+      socket?.off("player1Y", (data) => {
+        game.paddle1.y = data;
+      });
+      socket?.off("player2Y", (data) => {
+        game.paddle2.y = data;
+      });
+      socket?.off("player1Score", (data) => {
+        setPlayer1Score(data);
+      });
+      socket?.off("player2Score", (data) => {
+        setPlayer2Score(data);
+      });
       getSocket();
     });
-    window.addEventListener("keydown", (event) =>
-      movePaddle(event, game, player)
-    );
-    window.addEventListener("keyup", (event) =>
-      stopPaddle(event, game, player)
-    );
     return () => {
-      window.removeEventListener("keydown", (event) =>
-        movePaddle(event, game, player)
-      );
-      window.removeEventListener("keyup", (event) =>
-        stopPaddle(event, game, player)
-      );
       socket?.off("ballX", (data) => {
         if (player === 2) {
           game.ball.x = data;
@@ -247,7 +243,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
       });
       socket?.disconnect();
     };
-  }, [player, socket]);
+  }, [socket]);
   return (
     <>
       <StyledCanvas ref={canvaRef} />
