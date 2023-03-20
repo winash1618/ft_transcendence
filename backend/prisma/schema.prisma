@@ -12,7 +12,6 @@ datasource db {
 
 model User {
     id               Int            @id @default(autoincrement())
-    email            String         @unique
     login            String
     first_name       String?
     last_name        String?

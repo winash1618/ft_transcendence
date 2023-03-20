@@ -1,13 +1,12 @@
 import {
-	MessageBody,
 	SubscribeMessage,
 	WebSocketGateway,
 	WebSocketServer,
+	WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { parse } from 'cookie';
 import { JwtService } from '@nestjs/jwt';
-import { GameService } from 'src/game/game.service';
+import { parse } from 'cookie';
 
 let queue = [];
 
@@ -39,68 +38,115 @@ export class PingpongGateway {
 			users[player1.id].emit('start', 1);
 			users[player2.id].emit('start', 2);
 		}
-		console.log('connected');
 	}
 
 	handleDisconnect(client: any) {
-		console.log('disconnected');
 		this.handlePause(client, true);
 	}
 
 	@SubscribeMessage('ballX')
 	async handleBallX(client: Socket, data: number): Promise<void> {
-		// ballX = data;
-		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
-			secret: process.env.JWT_SECRET,
-		})
-		this.server.to(user.login).emit('ballX', data);
+		const token = client.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			console.log(user);
+			this.server.to(user.login).emit('ballX', data);
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access');
+		}
 	}
 
 	@SubscribeMessage('pause')
 	handlePause(client: Socket, data: boolean): void {
-		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
-			secret: process.env.JWT_SECRET,
-		})
-		this.server.to(user.login).emit('pause', data);
+		// const token = client.handshake.auth.token;
+		// let user = null;
+		// try {
+		// 	user = this.jwtService.verify(token, {
+		// 		secret: process.env.JWT_SECRET,
+		// 	});
+		// }
+		// catch (e) {
+		// 	throw new WsException('Unauthorized access');
+		// }
+		// this.server.to(user.login).emit('pause', data);
 	}
 
 	@SubscribeMessage('ballY')
 	handleBallY(client: Socket, data: number): void {
-		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
-			secret: process.env.JWT_SECRET,
-		})
-		this.server.to(user.login).emit('ballY', data);
+		const token = client.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			this.server.to(user.login).emit('ballY', data)
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access');
+		}
 	}
 
 	@SubscribeMessage('player1Y')
 	handlePlayer1Y(client: Socket, data: number): void {
-		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
-			secret: process.env.JWT_SECRET,
-		})
-		this.server.to(user.login).emit('player1Y', data);
+		const token = client.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			this.server.to(user.login).emit('player1Y', data);
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access');
+		}
 	}
 
 	@SubscribeMessage('player2Y')
 	handlePlayer2Y(client: Socket, data: number): void {
-		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
-			secret: process.env.JWT_SECRET,
-		})
-		this.server.to(user.login).emit('player2Y', data);
+		const token = client.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			this.server.to(user.login).emit('player2Y', data);
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access');
+		}
 	}
 
 	@SubscribeMessage('player1Score')
 	handlePlayer1Score(client: Socket, data: number): void {
-		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
-			secret: process.env.JWT_SECRET,
-		})
-		this.server.to(user.login).emit('player1Score', data);
+		const token = client.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			this.server.to(user.login).emit('player1Score', data);
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access');
+		}
 	}
 
 	@SubscribeMessage('player2Score')
 	handlePlayer2Score(client: Socket, data: number): void {
-		const user = this.jwtService.verify(parse(client.handshake.headers.cookie).auth, {
-			secret: process.env.JWT_SECRET,
-		})
-		this.server.to(user.login).emit('player2Score', data);
+		const token = client.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			this.server.to(user.login).emit('player2Score', data);
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access');
+		}
 	}
 }

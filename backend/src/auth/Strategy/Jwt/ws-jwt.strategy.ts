@@ -15,22 +15,10 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, 'wsjwt') {
 		private configService: ConfigService
 	) {
 		super({
-			jwtFromRequest: ExtractJwt.fromExtractors([
-				WsJwtStrategy.extractJWT,
-			]),
-			secretOrKey: configService.get<string>('JWT_SECRET'),
+			jwtFromRequest: ExtractJwt,
+			ignoreExpiration: false,
+			secretOrKey: configService.get<string>('JWT_SECRET')
 		});
-	}
-
-	private static extractJWT(req: Request): string | null {
-		if (
-			req.cookies &&
-			'auth' in req.cookies &&
-			req.cookies.auth.length > 0
-		) {
-			return req.cookies.token;
-		}
-		return null;
 	}
 
 	async validate(payload: any) {
