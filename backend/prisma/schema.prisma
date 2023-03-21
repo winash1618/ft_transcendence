@@ -25,7 +25,7 @@ model User {
   updated_at            DateTime        @default(now())
 
   participant_in        Participant[]
-  game                  Game[]
+  game_history          GameHistory[]
 }
 
 // Conversation table
@@ -119,13 +119,14 @@ model Game {
     updateAt     DateTime  @default(now())
 }
 
-model MatchHistory {
-    id            Int      @id @default(autoincrement())
-    userScore     Int
-    opponentScore Int
-    userId        Int?
-    user          User?    @relation("user", fields: [userId], references: [id])
-    opponentId        Int?
-    opponent          User?    @relation("opponent", fields: [opponentId], references: [opponentId])
+model GameHistory {
+    id            Int      @id @default(uuid())
+    player_one    String
+    player_two    String
+    player_score     Int
+    opponent_score   Int
+    winner        String
+    looser        String
+    users         User[]
     createdAt     DateTime @default(now())
 }
