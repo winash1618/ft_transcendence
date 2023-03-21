@@ -6,8 +6,9 @@ import { Link, Outlet } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { logOut, setUserInfo } from "../../store/authReducer";
 import Loading from "../loading";
+import { LogoImg, LogoWrapper } from "./layout.styled";
 
-const { Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider, Header } = Layout;
 
 const navItems = [
   { icon: UserOutlined, path: "/", label: "Leaderboard" },
@@ -41,6 +42,7 @@ const Navbar: React.FC = () => {
       ) : (
         <Layout style={{ minHeight: "100%" }}>
           <Sider
+            style={{ background: "#222222" }}
             breakpoint="lg"
             collapsedWidth="0"
             onBreakpoint={(broken) => {
@@ -50,8 +52,11 @@ const Navbar: React.FC = () => {
               console.log(collapsed, type);
             }}
           >
-            <div className="logo" />
+            <LogoWrapper>
+              <LogoImg src="https://www.pngall.com/wp-content/uploads/2016/05/Ping-Pong-Download-PNG.png" />
+            </LogoWrapper>
             <Menu
+              style={{ background: "var(--main-700)" }}
               theme="dark"
               mode="inline"
               defaultSelectedKeys={["4"]}
@@ -62,11 +67,14 @@ const Navbar: React.FC = () => {
               }))}
             />
           </Sider>
-          <Layout>
-            <Content style={{ margin: "24px 16px 0" }}>
+          <Layout style={{ background: "var(--main-800)" }}>
+            <Header style={{ padding: 0, background: "var(--main-700)" }}></Header>
+            <Content
+              style={{ margin: "24px 16px 0", background: "var(--main-800)" }}
+            >
               <Outlet />
             </Content>
-            <Footer style={{ textAlign: "center" }}>
+            <Footer style={{ textAlign: "center", background: "var(--main-800)", color: "#fff" }}>
               42 ft_transcendence ©2023
             </Footer>
           </Layout>
