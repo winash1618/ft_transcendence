@@ -1,0 +1,1 @@
+export { default as UserProfilePicture } from "./userImage/user.png";

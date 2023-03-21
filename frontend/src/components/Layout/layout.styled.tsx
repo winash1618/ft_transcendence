@@ -12,3 +12,11 @@ export const LogoImg = styled.img`
   width: 100%;
   max-width: 100px;
 `;
+
+export const HeaderWrapper = styled.div`
+	display: flex;
+	gap: 20px;
+	justify-content: center;
+	align-items: center;
+	float: right;
+`

@@ -6,7 +6,9 @@ import { Link, Outlet } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { logOut, setUserInfo } from "../../store/authReducer";
 import Loading from "../loading";
-import { LogoImg, LogoWrapper } from "./layout.styled";
+import { HeaderWrapper, LogoImg, LogoWrapper } from "./layout.styled";
+import UserInfo from "./userInfo";
+import { IoNotifications } from "react-icons/io5";
 
 const { Content, Footer, Sider, Header } = Layout;
 
@@ -68,13 +70,31 @@ const Navbar: React.FC = () => {
             />
           </Sider>
           <Layout style={{ background: "var(--main-800)" }}>
-            <Header style={{ padding: 0, background: "var(--main-700)" }}></Header>
+            <Header
+              style={{
+                padding: 0,
+                background: "var(--main-700)",
+                color: "white",
+                height: "auto",
+              }}
+            >
+              <HeaderWrapper>
+                <IoNotifications size={30} />
+                <UserInfo />
+              </HeaderWrapper>
+            </Header>
             <Content
               style={{ margin: "24px 16px 0", background: "var(--main-800)" }}
             >
               <Outlet />
             </Content>
-            <Footer style={{ textAlign: "center", background: "var(--main-800)", color: "#fff" }}>
+            <Footer
+              style={{
+                textAlign: "center",
+                background: "var(--main-800)",
+                color: "#fff",
+              }}
+            >
               42 ft_transcendence ©2023
             </Footer>
           </Layout>
