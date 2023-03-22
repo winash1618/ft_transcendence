@@ -94,37 +94,35 @@ const PingPongCanvas = ({ player }: { player: number }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const dispatch = useAppDispatch();
 
-  const getToken = async () => {
-    try {
-      const response = await axios.get("/token", {
-        withCredentials: true,
-      });
-      localStorage.setItem("auth", JSON.stringify(response.data));
-      dispatch(setUserInfo(response.data.user));
-      return response.data.token;
-    } catch (err) {
-      dispatch(logOut());
-      window.location.reload();
-      return null;
-    }
-  };
-
-  const getSocket = async () => {
-    const socket = io(process.env.REACT_APP_SOCKET_URL, {
-      withCredentials: true,
-      auth: async (cb) => {
-        const token = await getToken();
-        cb({
-          token,
-        });
-      },
-    });
-    setSocket(socket);
-  };
-
   useEffect(() => {
+    const getToken = async () => {
+      try {
+        const response = await axios.get("/token", {
+          withCredentials: true,
+        });
+        localStorage.setItem("auth", JSON.stringify(response.data));
+        dispatch(setUserInfo(response.data.user));
+        return response.data.token;
+      } catch (err) {
+        dispatch(logOut());
+        window.location.reload();
+        return null;
+      }
+    };
+    const getSocket = async () => {
+      const socket = io(process.env.REACT_APP_SOCKET_URL, {
+        withCredentials: true,
+        auth: async (cb) => {
+          const token = await getToken();
+          cb({
+            token,
+          });
+        },
+      });
+      setSocket(socket);
+    };
     getSocket();
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (canvaRef.current) {
@@ -155,9 +153,36 @@ const PingPongCanvas = ({ player }: { player: number }) => {
   }, [player]);
 
   useEffect(() => {
-	globalSocket = socket;
+    const getToken = async () => {
+      try {
+        const response = await axios.get("/token", {
+          withCredentials: true,
+        });
+        localStorage.setItem("auth", JSON.stringify(response.data));
+        dispatch(setUserInfo(response.data.user));
+        return response.data.token;
+      } catch (err) {
+        dispatch(logOut());
+        window.location.reload();
+        return null;
+      }
+    };
+    const getSocket = async () => {
+      const socket = io(process.env.REACT_APP_SOCKET_URL, {
+        withCredentials: true,
+        auth: async (cb) => {
+          const token = await getToken();
+          cb({
+            token,
+          });
+        },
+      });
+      setSocket(socket);
+    };
+    globalSocket = socket;
     socket?.on("ballX", (data) => {
       if (player === 2) {
+		console.log(data);
         game.ball.x = data;
       }
     });
@@ -187,7 +212,6 @@ const PingPongCanvas = ({ player }: { player: number }) => {
       }
     });
     socket?.on("error", (data) => {
-      console.log(data);
       socket?.disconnect();
       socket?.off("ballX", (data) => {
         if (player === 2) {
@@ -238,7 +262,7 @@ const PingPongCanvas = ({ player }: { player: number }) => {
       });
       socket?.disconnect();
     };
-  }, [socket]);
+  }, [socket, player, dispatch]);
   return (
     <>
       <StyledCanvas ref={canvaRef} />

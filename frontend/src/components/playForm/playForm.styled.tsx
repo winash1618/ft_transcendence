@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Input, Select } from "antd";
+import { Select } from "antd";
 
 export const FormContainer = styled.form`
   width: 100%;
@@ -54,7 +54,7 @@ export const FormTitle = styled.div`
 `;
 
 export const FormSelect = styled(Select)`
-width: 100%;
+  width: 100%;
 `;
 
 export const FormSwitchMsg = styled.p`
@@ -66,6 +66,15 @@ export const FormSwitchMsg = styled.p`
 `;
 
 export const InputAlert = styled.p`
-	color: #cdcdcd;
-	padding-top: 6px;
-`
+  color: #cdcdcd;
+  padding-top: 6px;
+`;
+
+export const SearchingWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-direction: column;
+`;

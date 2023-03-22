@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
-import axios from "../../api";
+import axios, { BASE_URL } from "../../api";
 import { Link, Outlet } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { logOut, setUserInfo } from "../../store/authReducer";
@@ -29,13 +29,13 @@ const Navbar: React.FC = () => {
       setIsLoadingPage(false);
     } catch (err) {
       dispatch(logOut());
-      window.location.replace("http://localhost:3001/42/login");
+      window.location.replace(`${BASE_URL}/42/login`);
     }
   };
 
   useEffect(() => {
     getToken();
-  }, [getToken]);
+  });
 
   return (
     <>

@@ -1,6 +1,6 @@
 import { Dropdown, MenuProps } from "antd";
 import { IoLogOut } from "react-icons/io5";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { UserProfilePicture } from "../../../assets";
 import { useAppSelector } from "../../../hooks/reduxHooks";
 import {
