@@ -23,8 +23,7 @@ let users = [];
 	},
 })
 export class PingpongGateway {
-	constructor(private readonly jwtService: JwtService) {
-	}
+	constructor(private readonly jwtService: JwtService) {}
 
 	@WebSocketServer()
 	server: Server;
@@ -47,6 +46,7 @@ export class PingpongGateway {
 	handleDisconnect(client: any) {
 		this.handlePause(client, true);
 	}
+
 	@SubscribeMessage('ballX')
 	async handleBallX(client: Socket, data: number): Promise<void> {
 		const token = client.handshake.auth.token;
@@ -84,6 +84,7 @@ export class PingpongGateway {
 			client.emit('error', 'Unauthorized access');
 		}
 	}
+
 	@SubscribeMessage('pause')
 	handlePause(client: Socket, data: boolean): void {
 		// const token = client.handshake.auth.token;
@@ -98,6 +99,7 @@ export class PingpongGateway {
 		// }
 		// this.server.to(user.login).emit('pause', data);
 	}
+
 	@SubscribeMessage('ballY')
 	handleBallY(client: Socket, data: number): void {
 		const token = client.handshake.auth.token;
@@ -112,6 +114,7 @@ export class PingpongGateway {
 			client.emit('error', 'Unauthorized access');
 		}
 	}
+
 	@SubscribeMessage('player1Y')
 	handlePlayer1Y(client: Socket, data: number): void {
 		const token = client.handshake.auth.token;
@@ -126,6 +129,7 @@ export class PingpongGateway {
 			client.emit('error', 'Unauthorized access');
 		}
 	}
+
 	@SubscribeMessage('player2Y')
 	handlePlayer2Y(client: Socket, data: number): void {
 		const token = client.handshake.auth.token;
@@ -140,6 +144,7 @@ export class PingpongGateway {
 			client.emit('error', 'Unauthorized access');
 		}
 	}
+
 	@SubscribeMessage('player1Score')
 	handlePlayer1Score(client: Socket, data: number): void {
 		const token = client.handshake.auth.token;
@@ -154,6 +159,7 @@ export class PingpongGateway {
 			client.emit('error', 'Unauthorized access');
 		}
 	}
+
 	@SubscribeMessage('player2Score')
 	handlePlayer2Score(client: Socket, data: number): void {
 		const token = client.handshake.auth.token;

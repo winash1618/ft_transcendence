@@ -7,30 +7,46 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('game')
 @ApiTags('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) {}
+	constructor(private readonly gameService: GameService) { }
 
-  @Post()
-  create(@Body() createGameDto: CreateGameDto) {
-    return this.gameService.create(createGameDto);
-  }
+	@Post()
+	create(@Body() createGameDto: CreateGameDto) {
+		return this.gameService.create(createGameDto);
+	}
 
-  @Get()
-  findAll() {
-    return this.gameService.findAll();
-  }
+	@Get()
+	findAll() {
+		return this.gameService.getGameData({ where: { id: 1 } });
+	}
 
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.gameService.findOne(+id);
-  }
+	@Get()
+	findAllGameObjects() {
+		return this.gameService.findAll();
+	}
 
-  @Patch(':id')
-  update(@Param('id') id: number, @Body() updateGameDto: UpdateGameDto) {
-    return this.gameService.update(+id, updateGameDto);
-  }
+	@Get(':updateGameDto')
+	findUpdate() {
+		return this.gameService.addIsPlayingToUser(1, true);
+	}
 
-  @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.gameService.remove(+id);
-  }
+
+	@Get(':addGameRoomToGame')
+	addGameRoomToGame() {
+		return this.gameService.addGameRoomToGame(1, 1);
+	}
+
+	@Get(':id')
+	findOne(@Param('id') id: number) {
+		return this.gameService.findOne(+id);
+	}
+
+	@Patch(':id')
+	update(@Param('id') id: number, @Body() updateGameDto: UpdateGameDto) {
+		return this.gameService.update(+id, updateGameDto);
+	}
+
+	@Delete(':id')
+	remove(@Param('id') id: number) {
+		return this.gameService.remove(+id);
+	}
 }

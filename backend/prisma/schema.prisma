@@ -2,69 +2,67 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
-// have to add refresh token and token expiary to primary user
 model User {
-  id             Int            @id @default(autoincrement())
-  email          String         @unique
-  login          String
-  first_name     String?
-  last_name      String?
-  game           Game[]
-//   opponent       User?          @relation("Opponent", fields: [opponentId], references: [id])
-//   opponenter     User?          @relation("Opponent")
-//   opponentId     Int            @unique
-//   loseGameRecord MatchHistory[] @relation("Loser")
-//   winGameRecord  MatchHistory[] @relation("Winner")
-  createAt       DateTime       @default(now())
-  updateAt       DateTime       @default(now())
+    id               Int            @id @default(autoincrement())
+    email            String         @unique
+    login            String
+    first_name       String?
+    last_name        String?
+    game             Game?          @relation("Player")
+    opponent         User?          @relation("Opponent", fields: [opponentId], references: [id])
+    opponentRelation User?          @relation("Opponent")
+    opponentId       Int?           @unique
+    isPlaying        Boolean        @default(false)
+    gameRoom         GameRoom[]     @relation("user")
+    GameRecord       MatchHistory[] @relation("user")
+	OpponentRecord   MatchHistory[] @relation("opponent")
+    createAt         DateTime       @default(now())
+    updateAt         DateTime       @default(now())
+}
+
+model GameRoom {
+    id       Int    @id @default(autoincrement())
+    roomName String
+    game     Game?  @relation("Game")
+    user     User[] @relation("user")
 }
 
 model Game {
-  id       Int        @id @default(autoincrement())
-  player   User[]
-  side     Int
-  ballX    Int
-  ballY    Int
-  isPaused Boolean
-  map      Int
-  status   Int
-  score    Int
-  createAt DateTime   @default(now())
-  updateAt DateTime   @default(now())
+    id           Int       @id @default(autoincrement())
+    playerId     Int?      @unique
+    player       User?     @relation("Player", fields: [playerId], references: [id])
+    gameRoomId   Int?      @unique
+    gameRoom     GameRoom? @relation("Game", fields: [gameRoomId], references: [id])
+    side1        Int
+    ballX1       Int
+    ballY1       Int
+    side2        Int
+    ballX2       Int
+    ballY2       Int
+    isPaused     Boolean
+    map          Int
+    status       Int
+    player1Score Int
+    player2Score Int
+    createAt     DateTime  @default(now())
+    updateAt     DateTime  @default(now())
 }
 
-// enum Gamestatus {
-//   PAUSED
-//   PLAYING
-//   GAMEOVER
-// }
-
-// enum map {
-//   MAP1
-//   MAP2
-//   MAP3
-// }
-
-// enum side {
-//   LEFT
-//   RIGHT
-// }
-
-// model MatchHistory {
-//   id          Int      @id @default(autoincrement())
-//   winnerScore Int
-//   loserScore  Int
-//   createdAt   DateTime @default(now())
-//   loserId     Int
-//   winnerId    Int
-//   loser       User     @relation("Loser", fields: [loserId], references: [id])
-//   winner      User     @relation("Winner", fields: [winnerId], references: [id])
-// }
+model MatchHistory {
+    id            Int      @id @default(autoincrement())
+    userScore     Int
+    opponentScore Int
+    userId        Int?
+    user          User?    @relation("user", fields: [userId], references: [id])
+    opponentId        Int?
+    opponent          User?    @relation("opponent", fields: [opponentId], references: [opponentId])
+    createdAt     DateTime @default(now())
+}

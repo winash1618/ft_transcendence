@@ -5,11 +5,19 @@ export class CreateGameDto {
 	
 	@IsNumber()
 	@ApiProperty()
-	ballX: number;
+	ballX1: number;
 
 	@IsNumber()
 	@ApiProperty()
-	ballY: number;
+	ballY1: number;
+
+	@IsNumber()
+	@ApiProperty()
+	ballX2: number;
+
+	@IsNumber()
+	@ApiProperty()
+	ballY2: number;
 
 	@ApiProperty()
 	isPaused: boolean;
@@ -20,15 +28,30 @@ export class CreateGameDto {
 
 	@IsNumber()
 	@ApiProperty()
-	score: number;
+	player1Score: number;
 
 	@IsNumber()
 	@ApiProperty()
-	side: number;
+	player2Score: number;
+
+	@IsNumber()
+	@ApiProperty()
+	side1: number;
 
 	@IsNumber()
 	@ApiProperty()
 	status: number;
 
-	
+	@IsNumber()
+	@ApiProperty()
+	side2: number;
+
+	@IsNumber()
+	@ApiProperty()
+	playerId:  number | null;
+
+	@IsNumber()
+	@ApiProperty()
+	gameRoomId: number | null;
+
 }
