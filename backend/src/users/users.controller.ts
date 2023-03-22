@@ -21,11 +21,6 @@ export class UsersController {
 		return this.usersService.users();
 	}
 
-	@Get(':findAllGameRoomsInUser')
-	findAllgameRoomsInUser() {
-		return this.usersService.findAllgameRoomsInUser(1);
-	}
-
 	@Get(':id')
 	async findOne(@Param('id') email: string) {
 		const user = await this.usersService.findOne(email);
@@ -33,21 +28,6 @@ export class UsersController {
 			throw new NotFoundException(`User #${email}: not found`);
 		}
 		return user;
-	}
-
-	@Patch(':AddGameResult')
-	async addGameResult(@Param('AddGameResult') id: number) {
-		const user = await this.usersService.addGameResult(1, 1, 1);
-		if (!user) {
-			throw new NotFoundException(`User #${id}: not found`);
-		}
-		return user;
-	}
-
-
-	@Patch(':id')
-	update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-		return this.usersService.update(+id, updateUserDto);
 	}
 
 	@Delete(':id')

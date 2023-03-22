@@ -62,19 +62,17 @@ CREATE TABLE "Participant" (
 );
 
 -- CreateTable
-CREATE TABLE "Game" (
+CREATE TABLE "GameHistory" (
     "id" TEXT NOT NULL,
-    "side" INTEGER NOT NULL,
-    "ballX" INTEGER NOT NULL,
-    "ballY" INTEGER NOT NULL,
-    "isPaused" BOOLEAN NOT NULL,
-    "map" INTEGER NOT NULL,
-    "status" INTEGER NOT NULL,
-    "score" INTEGER NOT NULL,
-    "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "player_one" TEXT NOT NULL,
+    "player_two" TEXT NOT NULL,
+    "player_score" INTEGER NOT NULL,
+    "opponent_score" INTEGER NOT NULL,
+    "winner" TEXT NOT NULL,
+    "looser" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "Game_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "GameHistory_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -90,7 +88,7 @@ CREATE TABLE "_blocked_users" (
 );
 
 -- CreateTable
-CREATE TABLE "_GameToUser" (
+CREATE TABLE "_GameHistoryToUser" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
 );
@@ -117,10 +115,10 @@ CREATE UNIQUE INDEX "_blocked_users_AB_unique" ON "_blocked_users"("A", "B");
 CREATE INDEX "_blocked_users_B_index" ON "_blocked_users"("B");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_GameToUser_AB_unique" ON "_GameToUser"("A", "B");
+CREATE UNIQUE INDEX "_GameHistoryToUser_AB_unique" ON "_GameHistoryToUser"("A", "B");
 
 -- CreateIndex
-CREATE INDEX "_GameToUser_B_index" ON "_GameToUser"("B");
+CREATE INDEX "_GameHistoryToUser_B_index" ON "_GameHistoryToUser"("B");
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "Conversation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -147,7 +145,7 @@ ALTER TABLE "_blocked_users" ADD CONSTRAINT "_blocked_users_A_fkey" FOREIGN KEY 
 ALTER TABLE "_blocked_users" ADD CONSTRAINT "_blocked_users_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_GameToUser" ADD CONSTRAINT "_GameToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_GameHistoryToUser" ADD CONSTRAINT "_GameHistoryToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "GameHistory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_GameToUser" ADD CONSTRAINT "_GameToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "_GameHistoryToUser" ADD CONSTRAINT "_GameHistoryToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
