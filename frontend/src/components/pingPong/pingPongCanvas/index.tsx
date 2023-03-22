@@ -128,7 +128,6 @@ const PingPongCanvas = ({ player }: { player: number }) => {
 
   useEffect(() => {
     if (canvaRef.current) {
-		console.log('test');
       canvaRef.current.width = CANVAS_WIDTH;
       canvaRef.current.height = CANVAS_HEIGHT;
       let ctx = canvaRef.current.getContext("2d");
@@ -157,10 +156,6 @@ const PingPongCanvas = ({ player }: { player: number }) => {
 
   useEffect(() => {
 	globalSocket = socket;
-    socket?.on("pause", (data) => {
-      console.log(data);
-      game.pause = data;
-    });
     socket?.on("ballX", (data) => {
       if (player === 2) {
         game.ball.x = data;

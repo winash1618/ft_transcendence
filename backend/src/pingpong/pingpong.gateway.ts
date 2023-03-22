@@ -7,7 +7,12 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 
-let queue = [];
+let queue = {
+	'1': [],
+	'2': [],
+	'3': [],
+	'4': []
+};
 
 let users = [];
 
@@ -24,30 +29,21 @@ export class PingpongGateway {
 	@WebSocketServer()
 	server: Server;
 
-	handleConnection(client: Socket) {
+	handleConnection(client: any) {
 		const token = client.handshake.auth.token;
-		console.log(token);
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
 			users[user.id] = client;
-			queue.push(user);
-			if (queue.length > 1) {
-				const player1 = queue.shift();
-				const player2 = queue.shift();
-				users[player1.id].join(player1.login);
-				users[player2.id].join(player1.login);
-				users[player1.id].emit('start', 1);
-				users[player2.id].emit('start', 2);
-			}
 			console.log('connected');
 		}
 		catch (e) {
 			client.emit('error', 'Unauthorized access');
 		}
 	}
+
 	handleDisconnect(client: any) {
 		this.handlePause(client, true);
 	}
@@ -59,10 +55,32 @@ export class PingpongGateway {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			console.log(user);
 			this.server.to(user.login).emit('ballX', data);
 		}
 		catch (e) {
+			client.emit('error', 'Unauthorized access');
+		}
+	}
+	@SubscribeMessage('queue')
+	async enterQueue(client: Socket, data: any): Promise<void> {
+		const token = client.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			queue[data.map].push(user);
+			if (queue[data.map].length > 1) {
+				const player1 = queue[data.map].shift();
+				const player2 = queue[data.map].shift();
+				users[player1.id].join(player1.login);
+				users[player2.id].join(player1.login);
+				users[player1.id].emit('start', 1);
+				users[player2.id].emit('start', 2);
+			}
+		}
+		catch (e) {
+			console.log(e);
 			client.emit('error', 'Unauthorized access');
 		}
 	}
