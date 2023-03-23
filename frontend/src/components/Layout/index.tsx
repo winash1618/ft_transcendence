@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import axios from "../../api";
@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
 				await axios.get(`/auth/logout`);
 			} catch (err) { }
 			dispatch(logOut());
-			window.location.replace("http://localhost:3001/42/login");
+			 window.location.replace("http://localhost:3001/42/login");
 		}
 	};
 
