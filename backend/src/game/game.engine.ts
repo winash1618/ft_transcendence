@@ -8,20 +8,21 @@ import {
   SocketData,
   UserMap,
   InvitationMap,
-  Paddle
+  Paddle,
+  BallMovement
 } from './interface/game.interface';
 import { Socket } from 'socket.io';
 import { User } from '@prisma/client';
 import { Server } from 'socket.io';
-import { interval } from 'rxjs';
 
-const GAME_WIDTH = 640;
-const GAME_HEIGHT = 480;
+const GAME_WIDTH = 900;
+const GAME_HEIGHT = 800;
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 80;
 const BALL_SIZE = 10;
 const BALL_SPEED = 5;
 const PADDLE_SPEED = 5;
+const GAME_TIME = 30;
 
 export class GameEngine {
   gameID: string;
@@ -30,15 +31,34 @@ export class GameEngine {
   users: UserMap;
   player1: string;
   player2: string;
+  ballMovement: BallMovement;
   interval: any;
 
-  initGameObj(game: Game): GameObject {
+  initGameObj(
+    points: number,
+    player1: string,
+    player2: string,
+  ): GameObject {
     return {
-      paddle1: { x: 0, y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2), width: PADDLE_WIDTH, height: PADDLE_HEIGHT },
-      paddle2: { x: (GAME_WIDTH - PADDLE_WIDTH), y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2), width: PADDLE_WIDTH, height: PADDLE_HEIGHT },
-      ball: { x: (GAME_WIDTH / 2 ), y: (GAME_HEIGHT / 2 ), dx: BALL_SPEED, dy: BALL_SPEED, size: BALL_SIZE },
-      player1: { points: 0, name: game.player1 },
-      player2: { points: 0, name: game.player2 },
+      gameStatus: GameStatus.WAITING,
+      paddle1: {
+        x: 0,
+        y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2)
+      },
+      paddle2: {
+        x: (GAME_WIDTH - PADDLE_WIDTH),
+        y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2)
+      },
+      ball: {
+        x: (GAME_WIDTH / 2 ),
+        y: (GAME_HEIGHT / 2 )
+      },
+      player1: { points: 0, name: player1 },
+      player2: { points: 0, name: player2 },
+      gameSetting: {
+        speed: 1,
+        points: points,
+      },
       time: 30,
     };
   }
@@ -46,11 +66,17 @@ export class GameEngine {
   constructor(game: Game, server: Server, player1: SocketData, player2: SocketData) {
     this.gameID = game.gameID;
     this.server = server;
-    this.gameObj = this.initGameObj(game);
+    this.gameObj = this.initGameObj(0, game.player1, game.player2);
+    this.ballMovement = {
+      x: 0,
+      y: 0,
+      radian: 0,
+    }
     this.users = new Map<string, SocketData>();
     this.users.set(
       game.player1,
       {
+        playerNumber: 1,
         client: player1.client,
         gameID: game.gameID,
         userID: game.player1,
@@ -60,6 +86,7 @@ export class GameEngine {
     this.users.set(
       game.player2,
       {
+        playerNumber: 2,
         client: player2.client,
         gameID: game.gameID,
         userID: game.player2,
@@ -68,99 +95,112 @@ export class GameEngine {
     )
     this.player1 = game.player1;
     this.player2 = game.player2;
-    this.interval = interval(1000);
   }
 
-  moveBall(ball: GameObject['ball']) {
-    ball.x += ball.dx;
-    ball.y += ball.dy;
-  }
+  ballBounce(paddlePosition: number) {
+    const isBallMovingRight = this.ballMovement.x > 0 ? -1 : 1;
+    const paddleTop = paddlePosition - BALL_SIZE;
+    const paddleBottom = paddlePosition + PADDLE_HEIGHT;
+    const paddleHeight = paddleBottom - paddleTop;
+    const conflictPosition = paddleBottom - this.gameObj.ball.y;
+    let yDirection = 0;
+    let radianRatio = 0;
 
-  ballCollision(ball: GameObject['ball']) {
-    if (ball.y - ball.size <= 0 || ball.y + ball.size >= GAME_HEIGHT) {
-      ball.dy = -ball.dy;
-    }
-  }
-
-  checkCollision(ball: GameObject['ball'], leftPaddle: Paddle, rightPaddle: Paddle) {
-    if (
-      ball.x - ball.size <= leftPaddle.x + leftPaddle.width &&
-      ball.y >= leftPaddle.y &&
-      ball.y <= leftPaddle.y + leftPaddle.height
-    ) {
-      ball.dx = BALL_SPEED;
-    }
-
-    // Check for collision with right paddle
-    if (
-      ball.x + ball.size >= rightPaddle.x &&
-      ball.y >= rightPaddle.y &&
-      ball.y <= rightPaddle.y + rightPaddle.height
-    ) {
-      ball.dx = -BALL_SPEED;
-    }
-
-    // Check for collision with top and bottom walls
-    if (ball.y - ball.size <= 0 || ball.y + ball.size >= GAME_HEIGHT) {
-      ball.dy = -ball.dy;
-    }
-
-    // Check for collision with left and right walls
-    if (ball.x - ball.size <= 0) {
-      ball.dx = BALL_SPEED;
-      this.gameObj.player2.points++;
-    }
-
-    if (ball.x + ball.size >= GAME_WIDTH) {
-      ball.dx = -BALL_SPEED;
-      this.gameObj.player1.points++;
-    }
-  }
-
-  movePaddle(paddle: Paddle, keyPress: KeyPress) {
-    if (keyPress.upKey) {
-      paddle.y -= PADDLE_SPEED;
-    }
-    if (keyPress.downKey) {
-      paddle.y += PADDLE_SPEED;
-    }
-  }
-
-  checkPaddleCollision(paddle: Paddle) {
-    if (paddle.y < 0) {
-      paddle.y = 0;
-    } else if (paddle.y + paddle.height > GAME_HEIGHT) {
-      paddle.y = GAME_HEIGHT - paddle.height;
-    }
-  }
-
-  updateGameState() {
-    this.moveBall(this.gameObj.ball);
-    this.checkCollision(this.gameObj.ball, this.gameObj.paddle1, this.gameObj.paddle2);
-    this.checkPaddleCollision(this.gameObj.paddle1);
-    this.checkPaddleCollision(this.gameObj.paddle2);
-  }
-
-  startGame() {
-    this.interval.subscribe(() => {
-      this.gameObj.time--;
-      if (this.gameObj.time === 0) {
-        this.gameOver();
+    if (conflictPosition / paddleHeight > 0.5) {
+      yDirection = -1;
+      if (this.gameObj.ball.y === GAME_HEIGHT - BALL_SIZE) {
+        yDirection = 1;
       }
-    });
+      radianRatio = (conflictPosition / paddleHeight - 0.5) * 2;
+    } else {
+      yDirection = 1;
+      if (this.gameObj.ball.y === 0) {
+        yDirection = -1;
+      }
+      radianRatio = 1 - (conflictPosition / paddleHeight) * 2;
+    }
+
+    const bounceAngle = (radianRatio * Math.PI) / 4;
+    const speedX = Math.cos(bounceAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
+    const speedY = Math.sin(bounceAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
+
+    this.ballMovement.x = (isBallMovingRight ? -1 : 1) * speedX;
+    this.ballMovement.y = yDirection * speedY;
   }
 
-  gameOver() {
-    this.interval.unsubscribe();
-    this.server.to(this.gameID).emit('gameOver', this.gameObj);
+  ballMove() {
+    const ballRightMax = GAME_WIDTH - BALL_SIZE;
+    const ballBottomMax = GAME_HEIGHT - BALL_SIZE;
+
+    this.gameObj.ball.x = Math.min(ballRightMax, Math.max(0, this.gameObj.ball.x + this.ballMovement.x));
+
+    this.gameObj.ball.y = Math.min(ballBottomMax, Math.max(0, this.gameObj.ball.y + this.ballMovement.y));
+
+    const ball = this.gameObj.ball;
+    const paddle1 = this.gameObj.paddle1;
+    const paddle2 = this.gameObj.paddle2;
+
+    // Check for ball collision with walls
+    if (ball.x <= 0) {
+      // Player 2 scores
+      this.gameObj.player2.points++;
+      this.resetBall();
+    } else if (ball.x >= GAME_WIDTH - BALL_SIZE) {
+      // Player 1 scores
+      this.gameObj.player1.points++;
+      this.resetBall();
+    } else if (ball.y <= 0 || ball.y >= GAME_HEIGHT - BALL_SIZE) {
+      // Ball bounces off ceiling or floor
+      this.ballMovement.y = -this.ballMovement.y;
+    } else if (ball.x <= PADDLE_WIDTH && ball.y >= paddle1.y && ball.y <= paddle1.y + PADDLE_HEIGHT) {
+      // Ball collides with player 1's paddle
+      this.ballBounce(paddle1.y);
+    } else if (ball.x >= GAME_WIDTH - PADDLE_WIDTH - BALL_SIZE && ball.y >= paddle2.y && ball.y <= paddle2.y + PADDLE_HEIGHT) {
+      // Ball collides with player 2's paddle
+      this.ballBounce(paddle2.y);
+    }
+
+    // Move ball according to current movement speed
+    this.gameObj.ball.x += this.ballMovement.x;
+    this.gameObj.ball.y += this.ballMovement.y;
   }
 
-  pauseGame() {
-    this.interval.unsubscribe();
+  resetBall() {
+    this.gameObj.ball.x = (GAME_HEIGHT - BALL_SIZE) / 2;
+    this.gameObj.ball.y = (GAME_WIDTH - BALL_SIZE) / 2;
+    this.ballMovement.radian = (Math.random() * Math.PI) / 4;
+    this.ballMovement.x = (Math.random() < 0.5 ? 1 : -1) * Math.cos(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
+    this.ballMovement.y = (Math.random() < 0.5 ? 1 : -1) * Math.sin(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
   }
 
-  resumeGame() {
-    this.interval = interval(1000);
-    this.startGame();
+  barMove(key: KeyPress, position: Position) {
+    if (key.upKey) {
+      if (position.y >= PADDLE_SPEED)
+        position.y = position.y - PADDLE_SPEED;
+    }
+    if (key.downKey) {
+      if (position.y <= GAME_HEIGHT - PADDLE_HEIGHT - PADDLE_SPEED)
+        position.y = position.y + PADDLE_SPEED;
+    }
+  }
+
+  barSelect(keyStatus: KeyPress, client: Socket) {
+    if (this.users.get(client.data.userId) === undefined) {
+      return ;
+    }
+  }
+
+  startGame(point: number, speed: number) {
+    clearInterval(this.interval);
+    this.initGameObj(0, this.player1, this.player2);
+    this.gameObj.gameStatus = GameStatus.PLAYING;
+    this.resetBall();
+    this.interval = setInterval(() => {
+      this.ballMove();
+      this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+    }, GAME_TIME);
+  }
+
+  stopGame() {
   }
 }

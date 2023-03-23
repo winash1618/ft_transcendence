@@ -8,19 +8,25 @@ export interface Game {
   player2Score: number;
 }
 
+export interface GameSetting {
+  speed: number;
+  points: number;
+}
+
+export interface BallMovement {
+  x: number;
+  y: number;
+  radian: number;
+}
+
 export interface BallPosition {
   x: number;
   y: number;
-  dx: number;
-  dy: number;
-  size: number;
 }
 
 export interface Paddle {
   x: number;
   y: number;
-  width: number;
-  height: number;
 }
 
 export interface Position {
@@ -34,16 +40,19 @@ export interface PlayerStats {
 }
 
 export interface GameObject {
+  gameStatus: GameStatus;
   paddle1: Paddle;
   paddle2: Paddle;
   ball: BallPosition;
   player1: PlayerStats;
   player2: PlayerStats;
+  gameSetting: GameSetting;
   time: number;
 }
 
 export enum GameStatus {
   WAITING,
+  PLAYING,
   STARTED,
   ENDED,
   QUEUED,
@@ -57,6 +66,7 @@ export interface KeyPress {
 }
 
 export interface SocketData {
+  playerNumber: number;
   client: Socket;
   gameID: string;
   userID: string;
