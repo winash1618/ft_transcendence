@@ -1,16 +1,8 @@
-import { useEffect, useState } from "react";
 import { PingPongContainer } from "./pingPong.styled";
 import CountDown from "./countdown";
 import PingPongCanvas from "./pingPongCanvas";
 
-const PingPong = () => {
-  const [player, setPlayer] = useState<number>(1);
-
-  useEffect(() => {
-    if (Math.round(Math.random()) === 1) {
-      setPlayer(1);
-    }
-  }, []);
+const PingPong = ({ player }: { player: number }) => {
   return (
     <PingPongContainer>
       <CountDown element={<PingPongCanvas player={player} />} />

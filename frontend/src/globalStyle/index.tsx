@@ -22,6 +22,7 @@ export const GlobalStyle = createGlobalStyle`
         font-size: 16px;
         margin: 0;
         padding: 0;
+		color: #fff;
         width: 100%;
 		font-family: 'Poppins';
     } 

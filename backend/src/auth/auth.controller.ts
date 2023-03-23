@@ -27,7 +27,7 @@ export class AuthController {
 	@UseGuards(FtAuthGuard)
 	@Get()
 	async redirectUri(@Req() req, @Res() res: Response) {
-		const token = await this.authService.getJwtToken(req.user as User);
+		const token = await this.authService.getLongExpiryJwtToken(req.user as User);
 
 		res.cookie('auth', token, { httpOnly: true });
 		return res.redirect(process.env.FRONTEND_BASE_URL);

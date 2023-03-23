@@ -21,4 +21,4 @@ import { MessageModule } from './message/message.module';
     ParticipantModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

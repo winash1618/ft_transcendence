@@ -1,5 +1,5 @@
 import { Socket } from "socket.io-client";
-import { GameType } from ".";
+import { GameType, globalSocket } from ".";
 
 export const CANVAS_WIDTH = 900;
 export const CANVAS_HEIGHT = 800;
@@ -142,14 +142,13 @@ export const draw = (
   player: number,
   setPlayer1Score: any,
   setPlayer2Score: any,
-  socket: Socket
 ) => {
   if (!game.pause) {
     ctx.clearRect(0, 0, 1000, 1000);
     if (game.paddle1.movingUp && game.paddle1.y > 0) {
       game.paddle1.y -= 10;
       if (player === 1) {
-        socket?.emit("player1Y", game.paddle1.y);
+        globalSocket?.emit("player1Y", game.paddle1.y);
       }
     }
     if (
@@ -158,13 +157,13 @@ export const draw = (
     ) {
       game.paddle1.y += 10;
       if (player === 1) {
-        socket?.emit("player1Y", game.paddle1.y);
+        globalSocket?.emit("player1Y", game.paddle1.y);
       }
     }
     if (game.paddle2.movingUp && game.paddle2.y > 0) {
       game.paddle2.y -= 10;
       if (player === 2) {
-        socket?.emit("player2Y", game.paddle2.y);
+        globalSocket?.emit("player2Y", game.paddle2.y);
       }
     }
     if (
@@ -173,11 +172,11 @@ export const draw = (
     ) {
       game.paddle2.y += 10;
       if (player === 2) {
-        socket?.emit("player2Y", game.paddle2.y);
+        globalSocket?.emit("player2Y", game.paddle2.y);
       }
     }
     drawPaddles(ctx, game.paddle1, game.paddle2);
-    moveBall(game.ball, socket, player);
+    moveBall(game.ball, globalSocket, player);
     checkCollision(
       game.ball,
       player,
@@ -185,12 +184,12 @@ export const draw = (
       game.paddle2,
       setPlayer1Score,
       setPlayer2Score,
-      socket
+      globalSocket
     );
     drawBall(ctx, game.ball);
   }
   requestAnimationFrame(() =>
-    draw(ctx, game, player, setPlayer1Score, setPlayer2Score, socket)
+    draw(ctx, game, player, setPlayer1Score, setPlayer2Score)
   );
 };
 

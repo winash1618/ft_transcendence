@@ -14,7 +14,7 @@ export const CountDownCircle = styled.circle`
   stroke-dashoffset: 0px;
   stroke-linecap: round;
   stroke-width: 5px;
-  stroke: black;
+  stroke: #fff;
   fill: none;
   @keyframes countdown {
     from {
@@ -28,7 +28,7 @@ export const CountDownCircle = styled.circle`
 `;
 
 export const CountDownNumber = styled.div`
-  color: black;
+  color: #fff;
   display: inline-block;
   font-size: 50px;
 `;
