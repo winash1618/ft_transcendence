@@ -1,7 +1,7 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer, ConnectedSocket } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
-import { SocketData, UserMap, GameStatus } from './interface/game.interface';
+import { SocketData, UserMap, GameStatus, Game } from './interface/game.interface';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuid4 } from 'uuid';
@@ -10,7 +10,7 @@ import { v4 as uuid4 } from 'uuid';
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
-  private gameRooms: GameEngine = {};
+  private gameRooms: GameEngine[] = [];
   private users: SocketData[] = [ ]
   private userSockets: UserMap = new Map<string, SocketData>();
 
@@ -44,7 +44,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     player2: SocketData
   ) {
     const id = uuid4();
-    const gameRoom = new GameRoom(id, player1, player2);
+    const game: Game = {
+      gameID: id,
+      player1: player1.userID,
+      player2: player2.userID,
+      player1Score: 0,
+      player2Score: 0,
+    };
+    const gameRoom = new GameEngine(game, this.server, player1, player2);
+    gameRoom.startSettings();
+    this.gameRooms[id] = gameRoom;
+
   }
 
   @SubscribeMessage('Register')
