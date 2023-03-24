@@ -47,6 +47,7 @@ export interface GameObject {
   player1: PlayerStats;
   player2: PlayerStats;
   gameSetting: GameSetting;
+  remainingTime: number;
   time: number;
 }
 

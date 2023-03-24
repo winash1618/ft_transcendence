@@ -12,7 +12,6 @@ import {
   BallMovement
 } from './interface/game.interface';
 import { Socket } from 'socket.io';
-import { User } from '@prisma/client';
 import { Server } from 'socket.io';
 
 const GAME_WIDTH = 900;
@@ -59,6 +58,7 @@ export class GameEngine {
         speed: 1,
         points: points,
       },
+      remainingTime: GAME_TIME,
       time: 30,
     };
   }
@@ -188,6 +188,22 @@ export class GameEngine {
     if (this.users.get(client.data.userId) === undefined) {
       return ;
     }
+    if (this.users.get(client.data.userId).playerNumber === 1) {
+      this.barMove(keyStatus, this.gameObj.paddle1);
+    } else if (this.users.get(client.data.userId).playerNumber === 2) {
+      this.barMove(keyStatus, this.gameObj.paddle2);
+    }
+  }
+
+  startSettings() {
+    this.gameObj.time = GAME_TIME;
+    this.interval = setInterval(() => {
+      this.gameObj.remainingTime--;
+      if (this.gameObj.remainingTime === 0)
+        clearInterval(this.interval);
+      else
+        this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+      }, 1000);
   }
 
   startGame(point: number, speed: number) {
