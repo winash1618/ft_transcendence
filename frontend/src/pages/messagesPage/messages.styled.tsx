@@ -8,10 +8,10 @@ export const ParentContainer = styled.div`
 
 export const ChatListContainer = styled.div`
   display: flex;
-  color: blue;
+  color: #1A1D1F;
   flex-direction: column;
-  background-color: #f5f5f5;
-  border-radius: 10px;
+  background-color: #1A1D1F;
+  border-radius: 15px;
   margin: auto;
   width: 28%;
   height: 100%;
@@ -20,37 +20,196 @@ export const ChatListContainer = styled.div`
 export const MessageBox = styled.div`
   display: flex;
   flex-direction: column;
-  background-color: blue;
-  border-radius: 10px;
+  background-color: #1A1D1F;
+  justify-content: center;
+  align-items: center;
+  border-radius: 15px;
   margin: auto;
   width: 68%;
   height: 100%;
 `;
 
+export const MessageSendDiv = styled.div`
+  display: flex;
+  margin: 1em;
+  background: #1A1D1F;
+  border: 1px white solid;
+  border-radius: 15px;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 100%;
+  height: 85%;
+`;
+
+export const MessageImage = styled.img`
+  width: 70px;
+  height: 70px;
+  margin-right: 10px;
+  border-radius: 50%;
+  padding: 10px;
+`;
+
+export const MessageParent = styled.div`
+  display: flex;
+  overflow: auto;
+  flex-direction: column;
+  width: 100%;
+  height: auto;
+  background: #1A1D1F;
+  color: white;
+  border-radius: 15px;
+  padding: 1em;
+`;
+
+export const MessageRightContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 50%;
+  height: auto;
+  background: #111315;
+  border: 1px solid #00A551;
+  color: white;
+  border-radius: 15px;
+  margin-left: auto;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  padding-left: 1em;
+  padding-right: 1em;
+`;
+
+export const MessageLeftContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 50%;
+  height: auto;
+  background: #111315;
+  border: 1px solid #00A551;
+  color: white;
+  border-radius: 15px;
+  margin-right: auto;
+  margin-bottom: 1em;
+  margin-top: 1em;
+  padding-left: 1em;
+  padding-right: 1em;
+`;
+
+export const MessageRight = styled.div`
+  width: 100%;
+  height: auto;
+  color: white;
+  margin-left: auto;
+  padding-left: 1em;
+  padding-right: 1em;
+`;
+
+export const MessageLeft = styled.div`
+  width: 100%;
+  height: auto;
+  color: white;
+  margin-right: auto;
+  padding-left: 1em;
+  padding-right: 1em;
+`;
+
+export const MessageInputParent = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: auto;
+  align-items: center;
+  justify-content: center;
+  padding-right: 30px;
+  padding-left: 10px;
+`;
+
+export const MessageInput = styled.input.attrs(props => ({
+    // we can define static props
+    type: "text",
+  }))`
+  background-color: #111315;
+  width: 70%;
+  height: 50px;
+  border-radius: 10px;
+  font-size: 1em;
+  padding-left: 10px;
+  margin-right: 10px;
+  margin-left: 10px;
+  border: 1px solid white;
+  color: white;
+  border-radius: 1em;
+  flex: 1;
+`;
+
 export const ParentMessageNav = styled.div`
   display: flex;
   flex-direction: row;
-  background-color: #f5f5f5;
-  border-radius: 10px;
-  margin-top: 10px;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  height: 10%;
+  height: auto;
+  padding: 10px;
+  border-bottom: 2px solid black;
 `;
 
 export const MessageNav = styled.button`
-  color: green;
+  color: white;
   font-size: 1em;
   margin: 1em;
-  padding: 0.25em 1em;
-  border: 2px solid palevioletred;
-  border-radius: 3px;
+  background: #00A551;
+  border: 0px;
+  border-radius: 15px;
+  width: 150px;
+  height: 50px;
 `;
 
 // A new component based on Button, but with some override styles
-export const MessageNavNotUsed = styled(MessageNav)`
-  color: gray;
-  border-color: darkgray;
+export const MessageNavNotUsed = styled.button`
+  color: white;
+  font-size: 1em;
+  margin: 1em;
+  background: #111315;
+  border-radius: 15px;
+  border: 0px;
+  width: 150px;
+  height: 50px;
 `;
 
 
+// create a styled div component that'll render a contact div
+export const ContactDiv = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 70px;
+  border-radius: 10px;
+  margin-top: 10px;
+  border: 2px solid #00A551;
+`;
+
+export const ContactImage = styled.img`
+  width: 50px;
+  height: 50px;
+  margin-right: 5px;
+  border-radius: 50%;
+  padding: 10px;
+`;
+
+export const ContactName = styled.div`
+display: flex;
+flex-direction: column;
+justify-content: center;
+padding-left: 10px;
+  color: white;
+  font-size: 1em;
+  border: 0px;
+  border-radius: 15px;
+  width: 150px;
+  height: 50px;
+`;
 
