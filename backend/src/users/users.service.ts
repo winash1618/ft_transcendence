@@ -17,66 +17,20 @@ export class UsersService {
 		return await this.prisma.user.create({ data: userDto });
 	}
 
-	findAll() {
-		return this.prisma.user.findMany();
-	}
+  findAll() {
+	  return this.prisma.user.findMany();
+  }
 
-	findAllgameRoomsInUser(userId: number) {
-		return this.prisma.user.findUnique({
-			where: { id: userId },
-			include: {
-				gameRoom: true,
-			},
-		});
-	}
+  async findOne(login: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({ where: { login } });
+  }
 
-	async users(): Promise<User[]> {
-		return this.prisma.user.findMany();
-	}
-
-	async findOne(email: string): Promise<User | null> {
-		return await this.prisma.user.findUnique({ where: { email } });
-	}
-
-	update(id: number, updateUserDto: UpdateUserDto) {
-		return `This action updates a #${id} user`;
-	}
-
-	updateRefreshToken(email: string, refreshUpdate: UpdateUserDto) {
-		return this.prisma.user.update({
-			where: { email },
-			data: refreshUpdate,
-		});
-	}
-
-	async addGameResult(userId: number, userScore: number, opponentScore: number) {
-		// const Record = this.prisma.matchHistory.create({
-		// 	data: {
-		// 		userId: userId,
-		// 		userScore: userScore,
-		// 		oppenentScore: oppenentScore,
-		// 	},
-		// });
-		// const statId = this.prisma.matchHistory.findUnique({
-		// 	where: { id: (await Record).id },
-		// 	select: { id: true },
-		// });
-		// const user = this.prisma.user.findUnique({
-		// 	where: { id: userId },
-		// 	select: { id: true, GameRecord: true },
-		// });
-		return this.prisma.user.update({
-			where: { id: userId },
-			data: {
-				GameRecord: {
-					create: {
-						userScore: userScore,
-						opponentScore: opponentScore,
-					},
-				},
-			},
-		});
-	}
+  updateRefreshToken(login: string, refreshUpdate: UpdateUserDto) {
+    return this.prisma.user.update({
+      where: { login },
+      data: refreshUpdate,
+    });
+  }
 
 	remove(id: number) {
 		return `This action removes a #${id} user`;

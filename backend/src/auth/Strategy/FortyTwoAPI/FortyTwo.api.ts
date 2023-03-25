@@ -73,7 +73,6 @@ export class FortyTwoApi {
       const responseData = response.data;
       const dto: CreateUserDto = {
         login: responseData.login,
-        email: responseData.email,
         first_name: responseData.first_name,
         last_name: responseData.last_name,
       }

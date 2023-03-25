@@ -4,5 +4,4 @@ export interface userData {
   displayName: string,
   lastName: string,
   firstName: string | null,
-  email: string,
 }

@@ -6,13 +6,9 @@ export class CreateUserDto {
 	@ApiProperty()
 	login: string;
 
-	@IsString()
-	@ApiProperty()
-	email: string;
-
-	@IsString()
-	@ApiProperty()
-	first_name: string;
+  @IsString()
+  @ApiProperty()
+  first_name: string;
 
 	@IsString()
 	@ApiProperty()
@@ -26,3 +22,4 @@ export class CreateUserDto {
 	@ApiProperty()
 	refreshTokenExp?: number;
 }
+

@@ -18,18 +18,16 @@ export class AuthService implements IAuthService {
 	}
 
 	async validateUser(userDto: CreateUserDto): Promise<User> {
-		let user = await this.userService.findOne(userDto.email);
+		let user = await this.userService.findOne(userDto.login);
 		if (!user) {
 			user = await this.userService.add42User(userDto);
 		}
 		return user;
 	}
 
-
 	async getJwtToken(user): Promise<string> {
 		const payload = {
 			id: user.id,
-			email: user.email,
 			login: user.login,
 		}
 		return this.jwtService.sign(payload);
@@ -44,15 +42,6 @@ export class AuthService implements IAuthService {
 		return this.jwtService.sign(payload, { expiresIn: '3d' });
 	}
 
-	async getRefreshToken(user): Promise<string> {
-		const userDataToUpdate = {
-			refreshToken: await this.jwtService.signAsync(user),
-			refreshTokenExp: Date.now() + 1000 * 60 * 60 * 24 * 7,
-		};
-		await this.userService.update(user.email, userDataToUpdate);
-		return userDataToUpdate.refreshToken;
-	}
-
 	public async decodeToken(token: string): Promise<any> {
 		return this.jwtService.decode(token);
 	}
@@ -61,9 +50,9 @@ export class AuthService implements IAuthService {
 		return this.jwtService.verify(token);
 	}
 
-	public async validRefreshToken(email: string, pass: string): Promise<User> {
+	public async validRefreshToken(login: string, pass: string): Promise<User> {
 		const currentDate = Date.now();
-		const user = await this.userService.findOne(email);
+		const user = await this.userService.findOne(login);
 		if (!user) {
 			return null;
 		}

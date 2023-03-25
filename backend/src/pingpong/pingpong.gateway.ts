@@ -68,7 +68,9 @@ export class PingpongGateway {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			this.server.in(user.login).emit('ballX', data);
+      // console.log(client.rooms)
+      client.to(user.login).emit('ballX', data);
+			// this.server.in(user.login).emit('ballX', data);
 		}
 		catch (e) {
 			client.emit('error', 'Unauthorized access');
@@ -95,15 +97,16 @@ export class PingpongGateway {
 			if (queue[data.map].length > 1) {
 				const player1 = queue[data.map].shift();
 				const player2 = queue[data.map].shift();
-				users[player1.id].client.join(player1.login, () => console.log(users[player1.id].client.rooms));
+				users[player1.id].client.join(player1.login);
 				users[player2.id].client.join(player1.login);
+        console.log(player1.login);
 				users[player1.id] = {
 					...users[player1.id],
 					room: player1.login
 				}
 				users[player2.id] = {
 					...users[player2.id],
-					room: player2.login
+					room: player1.login
 				}
 				users[player1.id].client.emit('start', 1);
 				users[player2.id].client.emit('start', 2);

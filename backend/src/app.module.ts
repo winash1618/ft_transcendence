@@ -5,22 +5,20 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './database/prisma.module';
 import { ChatModule } from './chat/chat.module';
 import { PingpongModule } from './pingpong/pingpong.module';
-import { GameModule } from './game/game.module';
-import { GameRoomModule } from './game-room/game-room.module';
-import { StatsModule } from './stats/stats.module';
-import { MessagesGateway } from './messages/messages.gateway';
+import { ConversationModule } from './conversation/conversation.module';
+import { ParticipantModule } from './participant/participant.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
-	imports: [
-		ConfigModule.forRoot({ isGlobal: true }),
-		AuthModule, UsersModule,
-		PrismaModule,
-		ChatModule,
-		PingpongModule,
-		GameModule,
-		GameRoomModule,
-		StatsModule
-	],
-	providers: [MessagesGateway],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule, UsersModule,
+    PrismaModule,
+    ChatModule,
+    PingpongModule,
+    ConversationModule,
+    MessageModule,
+    ParticipantModule,
+  ],
 })
 export class AppModule { }

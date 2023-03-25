@@ -16,15 +16,15 @@ export class UsersController {
 		return this.usersService.create(createUserDto);
 	}
 
-	@Get()
-	findAll() {
-		return this.usersService.users();
-	}
+	// @Get()
+	// findAll() {
+	// 	return this.usersService.users();
+	// }
 
-	@Get(':findAllGameRoomsInUser')
-	findAllgameRoomsInUser() {
-		return this.usersService.findAllgameRoomsInUser(1);
-	}
+	// @Get(':findAllGameRoomsInUser')
+	// findAllgameRoomsInUser() {
+	// 	return this.usersService.findAllgameRoomsInUser(1);
+	// }
 
 	@Get(':id')
 	async findOne(@Param('id') email: string) {
@@ -35,20 +35,20 @@ export class UsersController {
 		return user;
 	}
 
-	@Patch(':AddGameResult')
-	async addGameResult(@Param('AddGameResult') id: number) {
-		const user = await this.usersService.addGameResult(1, 1, 1);
-		if (!user) {
-			throw new NotFoundException(`User #${id}: not found`);
-		}
-		return user;
-	}
+	// @Patch(':AddGameResult')
+	// async addGameResult(@Param('AddGameResult') id: number) {
+	// 	const user = await this.usersService.addGameResult(1, 1, 1);
+	// 	if (!user) {
+	// 		throw new NotFoundException(`User #${id}: not found`);
+	// 	}
+	// 	return user;
+	// }
 
 
-	@Patch(':id')
-	update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-		return this.usersService.update(+id, updateUserDto);
-	}
+	// @Patch(':id')
+	// update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+	// 	return this.usersService.update(+id, updateUserDto);
+	// }
 
 	@Delete(':id')
 	remove(@Param('id') id: number) {

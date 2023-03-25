@@ -1,5 +1,5 @@
 export interface IAuthService {
   getHello(): string;
   getJwtToken(user): Promise<string>;
-  validRefreshToken(email: string, pass: string): Promise<any>;
+  validRefreshToken(login: string, pass: string): Promise<any>;
 }

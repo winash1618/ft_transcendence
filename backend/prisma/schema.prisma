@@ -11,58 +11,96 @@ datasource db {
 }
 
 model User {
-    id               Int            @id @default(autoincrement())
-    email            String         @unique
-    login            String
-    first_name       String?
-    last_name        String?
-    game             Game?          @relation("Player")
-    opponent         User?          @relation("Opponent", fields: [opponentId], references: [id])
-    opponentRelation User?          @relation("Opponent")
-    opponentId       Int?           @unique
-    isPlaying        Boolean        @default(false)
-    gameRoom         GameRoom[]     @relation("user")
-    GameRecord       MatchHistory[] @relation("user")
-	OpponentRecord   MatchHistory[] @relation("opponent")
-    createAt         DateTime       @default(now())
-    updateAt         DateTime       @default(now())
+  id                    String          @id @default(uuid())
+  login                 String          @unique
+  username              String?
+  first_name            String?
+  last_name             String?
+  friends               User[]          @relation("friends")
+  friends_of            User[]          @relation("friends")
+  blocked_users         User[]          @relation("blocked_users")
+  blocked_by            User[]          @relation("blocked_users")
+  is_active             Boolean         @default(false)
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
+
+  participant_in        Participant[]
+  game                  Game[]
 }
 
-model GameRoom {
-    id       Int    @id @default(autoincrement())
-    roomName String
-    game     Game?  @relation("Game")
-    user     User[] @relation("user")
+// Conversation table
+model Conversation {
+  id                    String          @id @default(uuid())
+  title                 String?
+  creator_id            String
+  channel_id            String          @default(uuid())
+  password              String?
+  privacy               Privacy         @default(PUBLIC)
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
+  deleted_at            DateTime?
+
+  messages              Message[]
+  participants          Participant[]
+}
+
+// Message table
+model Message {
+  id                    String          @id @default(uuid())
+  message               String          @default("")
+  conversation_id       String
+  conversation          Conversation    @relation(fields: [conversation_id], references: [id])
+  author_id             String
+  author                Participant     @relation(fields: [author_id], references: [id])
+  created_at            DateTime        @default(now())
+  deleted_at            DateTime?
+}
+
+// Participant table
+model Participant {
+  id                    String          @id @default(uuid())
+  user_id               String          @unique
+  role                  Role            @default(USER)
+  conversation_status   Status          @default(ACTIVE)
+  conversation_id       String
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
+
+  user                  User            @relation(fields: [user_id], references: [id])
+  conversation          Conversation    @relation(fields: [conversation_id], references: [id])
+  messages              Message[]
+
+  @@unique([conversation_id, user_id])
 }
 
 model Game {
-    id           Int       @id @default(autoincrement())
-    playerId     Int?      @unique
-    player       User?     @relation("Player", fields: [playerId], references: [id])
-    gameRoomId   Int?      @unique
-    gameRoom     GameRoom? @relation("Game", fields: [gameRoomId], references: [id])
-    side1        Int
-    ballX1       Int
-    ballY1       Int
-    side2        Int
-    ballX2       Int
-    ballY2       Int
-    isPaused     Boolean
-    map          Int
-    status       Int
-    player1Score Int
-    player2Score Int
-    createAt     DateTime  @default(now())
-    updateAt     DateTime  @default(now())
+  id                    String          @id @default(uuid())
+  player                User[]
+  side                  Int
+  ballX                 Int
+  ballY                 Int
+  isPaused              Boolean
+  map                   Int
+  status                Int
+  score                 Int
+  createAt              DateTime        @default(now())
+  updateAt              DateTime        @default(now())
 }
 
-model MatchHistory {
-    id            Int      @id @default(autoincrement())
-    userScore     Int
-    opponentScore Int
-    userId        Int?
-    user          User?    @relation("user", fields: [userId], references: [id])
-    opponentId        Int?
-    opponent          User?    @relation("opponent", fields: [opponentId], references: [opponentId])
-    createdAt     DateTime @default(now())
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Privacy {
+  PUBLIC
+  PRIVATE
+  PROTECTED
+  DIRECT
+}
+
+enum Status {
+  ACTIVE
+  BLOCKED
+  DELETED
 }
