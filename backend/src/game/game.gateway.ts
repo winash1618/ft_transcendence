@@ -107,7 +107,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('JoinGame')
   joinGame(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    const roomID = data.roomID;
+    const roomID = data;
     const userID = client.data.userID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
 
@@ -129,7 +129,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('move')
 	handleMove(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-		const roomId = data.roomID;
+		const roomId = data;
 		const keyStatus: KeyPress = data.key;
 		if (roomId in this.gameRooms)
 		  this.gameRooms[roomId].barSelect(keyStatus, client);
@@ -143,3 +143,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 }
+/*
+server.on('GameJoined', (data) => {
+  get player number;
+  set the arena using game object sent from GameJoined
+  set player position using player number: playerNumber = 1 || 2
+
+  server.on('gameUpdate', (data: GameObject) => {
+    keep updating the arena using game object sent from gameUpdate
+    if (number of players are 2) {
+      if (key.upKey || key.downKey)
+        server.emit('move', { key: key pressed, id: roomId })
+    }
+  })
+  */
