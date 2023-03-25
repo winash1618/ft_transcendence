@@ -54,37 +54,59 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const gameRoom = new GameEngine(game, this.server, player1, player2);
     gameRoom.startSettings();
     this.gameRooms[id] = gameRoom;
+    return id;
+  }
+
+  setUserStatus(client: Socket, status: GameStatus) {
+    const userID = client.data.userID;
+    if (!this.userSockets.has(userID)) {
+      const socketData: SocketData = {
+        playerNumber: -1,
+        client: client,
+        gameID: '',
+        userID: userID,
+        status: status
+      };
+      this.userSockets.set(userID, socketData);
+      return socketData;
+    }
+    const socketData = this.userSockets.get(userID);
+    socketData.status = status;
+    return socketData;
 
   }
 
   @SubscribeMessage('Register')
   async registerUser(@ConnectedSocket() client: Socket) {
-    let socketData: SocketData;
-    const userID = client.data.userID;
-    if (!this.userSockets.has(userID)) {
-      socketData = {
-        playerNumber: -1,
-        client: client,
-        gameID: '',
-        userID: userID,
-        status: GameStatus.WAITING
-      };
-      // this.userSockets.set(userID, socketData);
-    }
+    let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
 
-    if (this.users.length >= 2) {
+    if (this.users.length >= 1) {
       this.users[0].playerNumber = 1;
       this.users[0].status = GameStatus.READY;
       socketData.playerNumber = 2;
       socketData.status = GameStatus.READY;
-      // const roomID = this.gameRooms.createGame(this.users[0], socketData);
+      const roomID = this.createGameRoom(this.users[0], socketData);
+      this.users[0].gameID = roomID;
+      socketData.gameID = roomID;
+      this.server.to(client.id).emit('GameCreated', roomID);
+      this.server.to(this.users[0].client.id).emit('GameCreated', roomID);
     }
-
-    socketData.status = GameStatus.READY;
-    this.users.push(socketData);
+    else {
+      socketData.status = GameStatus.READY;
+      this.users.push(socketData);
+    }
   }
 
-  dissconnectUser() {
+  @SubscribeMessage('JoinGame')
+  joinGame(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+    const roomID = data.roomID;
+  }
 
+  @SubscribeMessage('StartGame')
+  startGame(@MessageBody() data: any) {
+    const roomId = data.roomID;
+    if (this.gameRooms[roomId]) {
+      this.gameRooms[roomId].startGame();
+    }
   }
 }

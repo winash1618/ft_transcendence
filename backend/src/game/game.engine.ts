@@ -206,7 +206,7 @@ export class GameEngine {
       }, 1000);
   }
 
-  startGame(point: number, speed: number) {
+  startGame() {
     clearInterval(this.interval);
     this.initGameObj(0, this.player1, this.player2);
     this.gameObj.gameStatus = GameStatus.PLAYING;
