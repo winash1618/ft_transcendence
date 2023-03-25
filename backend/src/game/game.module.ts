@@ -1,11 +1,26 @@
 import { Module } from '@nestjs/common';
 import { GameService } from './game.service';
-import { GameController } from './game.controller';
-import { PrismaModule } from 'src/database/prisma.module';
+import { GameGateway } from './game.gateway';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from 'src/auth/auth.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
-	controllers: [GameController],
-	providers: [GameService],
-	imports: [PrismaModule],
+  imports: [
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.getOrThrow('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
+        }
+      })
+    }),
+    AuthModule,
+    UsersModule,
+  ],
+  providers: [GameGateway, GameService]
 })
 export class GameModule { }
