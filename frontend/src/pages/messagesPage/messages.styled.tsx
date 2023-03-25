@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { BsSend } from 'react-icons/bs';
 
 export const ParentContainer = styled.div`
   display: flex;
@@ -125,6 +126,13 @@ export const MessageInputParent = styled.div`
   justify-content: center;
   padding-right: 30px;
   padding-left: 10px;
+`;
+
+export const SendButton = styled(BsSend)`
+  color: white;
+  ${MessageInputParent}:hover & {
+    fill: #00A551;
+  }
 `;
 
 export const MessageInput = styled.input.attrs(props => ({
