@@ -8,6 +8,7 @@ import { PingpongModule } from './pingpong/pingpong.module';
 import { GameModule } from './game/game.module';
 import { GameRoomModule } from './game-room/game-room.module';
 import { StatsModule } from './stats/stats.module';
+import { MessagesGateway } from './messages/messages.gateway';
 
 @Module({
 	imports: [
@@ -20,5 +21,6 @@ import { StatsModule } from './stats/stats.module';
 		GameRoomModule,
 		StatsModule
 	],
+	providers: [MessagesGateway],
 })
 export class AppModule { }

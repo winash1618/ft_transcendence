@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav } from './messages.styled';
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
 import { UserProfilePicture } from '../../assets';
+import io from 'socket.io-client';
 
+const socket = io(process.env.REACT_APP_SOCKET_URL);
 const MessagesPage = () => {
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState([]);
@@ -10,6 +12,13 @@ const MessagesPage = () => {
 	useEffect(() => {
 		messageEndRef.current.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
+
+	useEffect(() => {
+		// Listen for incoming messages from the server
+		socket.on('message', (message) => {
+		  setMessages((messages) => [...messages, message]);
+		});
+	  }, []);
 
 	const handleSubmit = (event, side) => {
 		event.preventDefault();
@@ -20,8 +29,9 @@ const MessagesPage = () => {
 				content: message,
 				type: side,
 			};
-			setMessages([...messages, newMessage]);
+			// setMessages([...messages, newMessage]);
 			console.log(newMessage);
+			socket.emit('message', newMessage);
 			setMessage("");
 		}
 	};
