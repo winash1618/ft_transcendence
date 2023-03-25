@@ -2,24 +2,56 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav } from './messages.styled';
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
 import { UserProfilePicture } from '../../assets';
-import io from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
+import { useAppDispatch } from '../../hooks/reduxHooks';
+import { logOut, setUserInfo } from '../../store/authReducer';
+import axios from '../../api';
 
-const socket = io(process.env.REACT_APP_SOCKET_URL);
 const MessagesPage = () => {
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState([]);
+	const [socket, setSocket] = useState<Socket | null>(null);
 	const messageEndRef = useRef(null);
+	const dispatch = useAppDispatch();
 	useEffect(() => {
 		messageEndRef.current.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
-
+	
 	useEffect(() => {
-		// Listen for incoming messages from the server
-		socket.on('message', (message) => {
-		  setMessages((messages) => [...messages, message]);
-		});
-	  }, []);
+		const getToken = async () => {
+			try {
+				const response = await axios.get("/token", {
+					withCredentials: true,
+				});
+				localStorage.setItem("auth", JSON.stringify(response.data));
+				dispatch(setUserInfo(response.data.user));
+				return response.data.token;
+			} catch (err) {
+				dispatch(logOut());
+				window.location.reload();
+				return null;
+			}
+		};
+		const getSocket = async () => {
+			const socket = io(process.env.REACT_APP_SOCKET_URL, {
+				withCredentials: true,
+				auth: async (cb) => {
+					const token = await getToken();
+					cb({
+						token,
+					});
+				},
+			});
 
+			setSocket(socket);
+			socket?.on('message', (message) => {
+				console.log(message);
+			  setMessages((messages) => [...messages, message]);
+			});
+		};
+		getSocket();
+	}, [dispatch]);
+	
 	const handleSubmit = (event, side) => {
 		event.preventDefault();
 		console.log(message);
@@ -30,8 +62,8 @@ const MessagesPage = () => {
 				type: side,
 			};
 			// setMessages([...messages, newMessage]);
-			console.log(newMessage);
-			socket.emit('message', newMessage);
+			// console.log(newMessage);
+			socket?.emit('message', newMessage);
 			setMessage("");
 		}
 	};
