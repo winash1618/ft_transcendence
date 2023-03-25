@@ -1,7 +1,7 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer, ConnectedSocket } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
-import { SocketData, UserMap, GameStatus, Game } from './interface/game.interface';
+import { SocketData, UserMap, GameStatus, Game, KeyPress } from './interface/game.interface';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuid4 } from 'uuid';
@@ -118,6 +118,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       gameRoom: gameRoom.gameObj
     });
   }
+
+	@SubscribeMessage('move')
+	handleMove(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+		const roomId = data.roomID;
+		const keyStatus: KeyPress = data.key;
+		if (roomId in this.gameRooms)
+		  this.gameRooms[roomId].barSelect(keyStatus, client);
+	}
 
   @SubscribeMessage('StartGame')
   startGame(@MessageBody() data: any) {
