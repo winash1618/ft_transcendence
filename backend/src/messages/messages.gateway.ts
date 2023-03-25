@@ -30,7 +30,7 @@ export class MessagesGateway{
 			console.log(user.login);
 			// client.join("mkaruvan");
 			// client.rooms.add("mkaruvan");
-			// client.join("mkaruvan");
+			client.join("mkaruvan");
 			number += 1;
 			console.log(client.rooms);
 			console.log("Message gateway: ", number);
@@ -49,13 +49,18 @@ export class MessagesGateway{
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			// console.log("Roooms: ", client.rooms);
+			console.log("Rooms: ", client.rooms);
+			// const roomsArray = [...client.rooms];
+			// console.log(roomsArray[0]);
 			// this.server.in(user.login).emit('message', payload);
 			// console.log(client);
 			// this.server.emit('message', payload);
-			client.emit('message', payload);
+			// client.emit('message', payload);
 			// console.log(payload);
 			// client.to("mkaruvan").emit("message", payload);
+			this.server.to("mkaruvan").emit("message", payload);
+
+			console.log("Sending Success");
 		}
 		catch (e) {
 			client.emit('error', 'Unauthorized access');
