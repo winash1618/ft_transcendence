@@ -7,8 +7,6 @@ import {
   CANVAS_WIDTH,
   createBall,
   draw,
-  movePaddle,
-  stopPaddle,
 } from "./pingPongCanvas.functions";
 import { ScoreText, StyledCanvas } from "./pingPongCanvas.styled";
 import axios from "../../../api";
@@ -87,7 +85,13 @@ let game: GameType = {
   },
 };
 
-const PingPongCanvas = ({ player }: { player: number }) => {
+const PingPongCanvas = ({
+  player,
+  roomID,
+}: {
+  player: number;
+  roomID: string;
+}) => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
@@ -136,133 +140,67 @@ const PingPongCanvas = ({ player }: { player: number }) => {
         );
       }
     }
-    window.addEventListener("keydown", (event) =>
-      movePaddle(event, game, player)
-    );
-    window.addEventListener("keyup", (event) =>
-      stopPaddle(event, game, player)
-    );
+    window.addEventListener("keydown", (event) => socket?.emit("move", true));
+    window.addEventListener("keyup", (event) => socket?.emit("move", false));
     return () => {
       window.removeEventListener("keydown", (event) =>
-        movePaddle(event, game, player)
+        socket?.emit("move", true)
       );
       window.removeEventListener("keyup", (event) =>
-        stopPaddle(event, game, player)
+        socket?.emit("move", false)
       );
     };
   }, [player]);
 
   useEffect(() => {
-    const getToken = async () => {
-      try {
-        const response = await axios.get("/token", {
-          withCredentials: true,
-        });
-        localStorage.setItem("auth", JSON.stringify(response.data));
-        dispatch(setUserInfo(response.data.user));
-        return response.data.token;
-      } catch (err) {
-        dispatch(logOut());
-        window.location.reload();
-        return null;
-      }
-    };
-    const getSocket = async () => {
-      const socket = io(process.env.REACT_APP_SOCKET_URL, {
-        withCredentials: true,
-        auth: async (cb) => {
-          const token = await getToken();
-          cb({
-            token,
-          });
-        },
-      });
-      setSocket(socket);
-    };
+    // const getToken = async () => {
+    //   try {
+    //     const response = await axios.get("/token", {
+    //       withCredentials: true,
+    //     });
+    //     localStorage.setItem("auth", JSON.stringify(response.data));
+    //     dispatch(setUserInfo(response.data.user));
+    //     return response.data.token;
+    //   } catch (err) {
+    //     dispatch(logOut());
+    //     window.location.reload();
+    //     return null;
+    //   }
+    // };
+    // const getSocket = async () => {
+    //   const socket = io(process.env.REACT_APP_SOCKET_URL, {
+    //     withCredentials: true,
+    //     auth: async (cb) => {
+    //       const token = await getToken();
+    //       cb({
+    //         token,
+    //       });
+    //     },
+    //   });
+    //   setSocket(socket);
+    // };
     globalSocket = socket;
-    socket?.on("ballX", (data) => {
-      if (player === 2) {
-		console.log(data);
-        game.ball.x = data;
-      }
+    socket?.on("gameUpdate", (data) => {
+      console.log(data);
     });
-    socket?.on("ballY", (data) => {
-      if (player === 2) {
-        game.ball.y = data;
-      }
-    });
-    socket?.on("player1Y", (data) => {
-      if (player === 2) {
-        game.paddle1.y = data;
-      }
-    });
-    socket?.on("player2Y", (data) => {
-      if (player === 1) {
-        game.paddle2.y = data;
-      }
-    });
-    socket?.on("player1Score", (data) => {
-      if (player === 2) {
-        setPlayer1Score(data);
-      }
-    });
-    socket?.on("player2Score", (data) => {
-      if (player === 2) {
-        setPlayer2Score(data);
-      }
-    });
-    socket?.on("error", (data) => {
-      socket?.disconnect();
-      socket?.off("ballX", (data) => {
-        if (player === 2) {
-          game.ball.x = data;
-        }
-      });
-      socket?.off("ballY", (data) => {
-        if (player === 2) {
-          game.ball.y = data;
-        }
-      });
-      socket?.off("player1Y", (data) => {
-        game.paddle1.y = data;
-      });
-      socket?.off("player2Y", (data) => {
-        game.paddle2.y = data;
-      });
-      socket?.off("player1Score", (data) => {
-        setPlayer1Score(data);
-      });
-      socket?.off("player2Score", (data) => {
-        setPlayer2Score(data);
-      });
-      getSocket();
-    });
+    // socket?.on("error", (data) => {
+    //   console.log("error occured");
+    //   socket?.disconnect();
+    //   socket?.off("gameUpdate", (data) => {
+    //     console.log(data);
+    //   });
+    //   getSocket();
+    // });
+    if (roomID.length > 0) {
+      socket?.emit("StartGame", roomID);
+    }
     return () => {
-      socket?.off("ballX", (data) => {
-        if (player === 2) {
-          game.ball.x = data;
-        }
-      });
-      socket?.off("ballY", (data) => {
-        if (player === 2) {
-          game.ball.y = data;
-        }
-      });
-      socket?.off("player1Y", (data) => {
-        game.paddle1.y = data;
-      });
-      socket?.off("player2Y", (data) => {
-        game.paddle2.y = data;
-      });
-      socket?.off("player1Score", (data) => {
-        setPlayer1Score(data);
-      });
-      socket?.off("player2Score", (data) => {
-        setPlayer2Score(data);
+      socket?.off("gameUpdate", (data) => {
+        console.log(data);
       });
       socket?.disconnect();
     };
-  }, [socket, player, dispatch]);
+  }, [socket, player, dispatch, roomID]);
   return (
     <>
       <StyledCanvas ref={canvaRef} />

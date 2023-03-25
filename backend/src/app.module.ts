@@ -18,7 +18,7 @@ import { GameModule } from './game/game.module';
     ConversationModule,
     MessageModule,
     ParticipantModule,
-    GameModule,
+    GameModule
   ],
 })
 export class AppModule { }

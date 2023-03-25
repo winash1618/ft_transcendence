@@ -29,9 +29,11 @@ export type PlayType = {
 const PlayForm = ({
   setIsGameStarted,
   setPlayer,
+  setRoomID,
 }: {
   setIsGameStarted: any;
   setPlayer: any;
+  setRoomID: any;
 }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -75,7 +77,8 @@ const PlayForm = ({
   useEffect(() => {
     socket?.on("start", (data) => {
       setIsGameStarted(true);
-	  setPlayer(data);
+      setPlayer(data.playerNo);
+      setRoomID(data.roomID);
     });
     socket?.on("error", (data) => {
       ErrorAlert("You are already in the queue", 5000);
@@ -83,7 +86,8 @@ const PlayForm = ({
     return () => {
       socket?.off("start", (data) => {
         setIsGameStarted(true);
-        setPlayer(data);
+        setPlayer(data.playerNo);
+        setRoomID(data.roomID);
       });
       socket?.off("error", (data) => {
         ErrorAlert("You are already in the queue", 5000);
@@ -94,7 +98,7 @@ const PlayForm = ({
 
   const onSubmit: SubmitHandler<PlayType> = (data) => {
     setIsSearching(true);
-    socket?.emit("queue", data);
+    socket?.emit("Register", data);
   };
 
   return (

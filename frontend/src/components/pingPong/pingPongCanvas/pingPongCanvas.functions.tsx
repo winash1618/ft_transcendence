@@ -145,47 +145,7 @@ export const draw = (
 ) => {
   if (!game.pause) {
     ctx.clearRect(0, 0, 1000, 1000);
-    if (game.paddle1.movingUp && game.paddle1.y > 0) {
-      game.paddle1.y -= 10;
-      if (player === 1) {
-        globalSocket?.emit("player1Y", game.paddle1.y);
-      }
-    }
-    if (
-      game.paddle1.movingDown &&
-      game.paddle1.y < CANVAS_HEIGHT - game.paddle1.height
-    ) {
-      game.paddle1.y += 10;
-      if (player === 1) {
-        globalSocket?.emit("player1Y", game.paddle1.y);
-      }
-    }
-    if (game.paddle2.movingUp && game.paddle2.y > 0) {
-      game.paddle2.y -= 10;
-      if (player === 2) {
-        globalSocket?.emit("player2Y", game.paddle2.y);
-      }
-    }
-    if (
-      game.paddle2.movingDown &&
-      game.paddle2.y < CANVAS_HEIGHT - game.paddle2.height
-    ) {
-      game.paddle2.y += 10;
-      if (player === 2) {
-        globalSocket?.emit("player2Y", game.paddle2.y);
-      }
-    }
     drawPaddles(ctx, game.paddle1, game.paddle2);
-    moveBall(game.ball, globalSocket, player);
-    checkCollision(
-      game.ball,
-      player,
-      game.paddle1,
-      game.paddle2,
-      setPlayer1Score,
-      setPlayer2Score,
-      globalSocket
-    );
     drawBall(ctx, game.ball);
   }
   requestAnimationFrame(() =>

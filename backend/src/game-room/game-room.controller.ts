@@ -1,7 +1,4 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { GameRoomService } from './game-room.service';
-import { CreateGameRoomDto } from './dto/create-game-room.dto';
-import { UpdateGameRoomDto } from './dto/update-game-room.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @Controller('game-room')
