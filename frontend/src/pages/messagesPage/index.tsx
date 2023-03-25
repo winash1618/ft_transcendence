@@ -1,22 +1,30 @@
-// import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav } from './messages.styled';
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
-// import { BsSend } from 'react-icons/bs';
 import { UserProfilePicture } from '../../assets';
 
-// import { useState } from "react";
-
-// function MyComponent() {
-//   const [message, setMessage] = useState("");
-
-//   function handleMessageInput(event: React.ChangeEvent<HTMLInputElement>) {
-//     setMessage(event.target.value);
-//   }0
-
 const MessagesPage = () => {
-	// const messages = useState<string[]>([]);
-	// const message = useState<string>('');
-	
+	const [message, setMessage] = useState("");
+	const [messages, setMessages] = useState([]);
+	const messageEndRef = useRef(null);
+	useEffect(() => {
+		messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+	}, [messages]);
+
+	const handleSubmit = (event, side) => {
+		event.preventDefault();
+		console.log(message);
+		if (message.trim() !== "") {
+			const newMessage = {
+				id: Date.now(),
+				content: message,
+				type: side,
+			};
+			setMessages([...messages, newMessage]);
+			console.log(newMessage);
+			setMessage("");
+		}
+	};
 	return (
 		<>
 			<ParentContainer>
@@ -36,45 +44,44 @@ const MessagesPage = () => {
 							John Doe
 						</ContactName>
 					</ContactDiv>
-					<ContactDiv>
-						<ContactImage src={UserProfilePicture} />
-						<ContactName>
-							John Doe
-						</ContactName>
-					</ContactDiv>
-					<ContactDiv>
-						<ContactImage src={UserProfilePicture} />
-						<ContactName>
-							John Doe
-						</ContactName>
-					</ContactDiv>
-					<ContactDiv>
-						<ContactImage src={UserProfilePicture} />
-						<ContactName>
-							John Doe
-						</ContactName>
-					</ContactDiv>
+
 				</ChatListContainer>
 				<MessageBox>
 					<MessageSendDiv>
 						<MessageParent>
-							<MessageRightContainer>
-								<MessageRight>
-									Hello, I am no one dsfa;lfdalkfasldkfjdskflj ksdlfjdkslfjaskldfjaksldfj
-								</MessageRight>
-								<MessageImage src={UserProfilePicture} alt="" />
-							</MessageRightContainer>
-							<MessageLeftContainer>
-								<MessageImage src={UserProfilePicture} alt="" />
-								<MessageLeft>
-									Hello, This is not oggu
-								</MessageLeft>
-							</MessageLeftContainer>
+							{messages.map((message) => {
+								if (message.type === "right") {
+									return (
+										<MessageRightContainer key={message.id}>
+											<MessageRight>{message.content}</MessageRight>
+											<MessageImage src={UserProfilePicture} alt="" />
+										</MessageRightContainer>
+									);
+								} else if (message.type === "left") {
+									return (
+										<MessageLeftContainer key={message.id}>
+											<MessageImage src={UserProfilePicture} alt="" />
+											<MessageLeft>{message.content}</MessageLeft>
+										</MessageLeftContainer>
+									);
+								}
+							})}
+							<div ref={messageEndRef} />
 						</MessageParent>
 					</MessageSendDiv>
 					<MessageInputParent>
-						<MessageInput placeholder="A bigger text input" onChange={() => {}}/>
-						<SendButton size={24} />
+						<MessageInput
+							type="text"
+							placeholder="A bigger text input"
+							value={message}
+							onChange={(event) => setMessage(event.target.value)}
+							onKeyDown={(event) => {
+								if (event.key === 'Enter') {
+									handleSubmit(event, "left");
+								}
+							}}
+						/>
+						<SendButton type="submit" onClick={(e) => handleSubmit(e, "right")} size={24} />
 					</MessageInputParent>
 				</MessageBox>
 			</ParentContainer>
