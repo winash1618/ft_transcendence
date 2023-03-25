@@ -1,7 +1,7 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer, ConnectedSocket } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
-import { SocketData, UserMap, GameStatus, Game, KeyPress } from './interface/game.interface';
+import { SocketData, UserMap, GameStatus, Game, KeyPress, InvitationMap } from './interface/game.interface';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuid4 } from 'uuid';
@@ -12,6 +12,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
   private gameRooms: GameEngine[] = [];
   private users: SocketData[] = [ ]
+  private invitedUser: InvitationMap = new Map<string, SocketData[]>();
   private userSockets: UserMap = new Map<string, SocketData>();
 
   constructor(
@@ -26,6 +27,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       secret: process.env.JWT_SECRET
     });
 
+    console.log('User connected: ', userid);
     client.data.userID = userid;
   }
 
@@ -76,8 +78,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   }
 
+  @SubscribeMessage('Invite')
+  inviteUser(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+
+  }
+
   @SubscribeMessage('Register')
   async registerUser(@ConnectedSocket() client: Socket) {
+    console.log('Register');
     let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
 
     if (this.users.length >= 1) {
@@ -129,7 +137,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('StartGame')
   startGame(@MessageBody() data: any) {
-    const roomId = data.roomID;
+    const roomId = data;
     if (this.gameRooms[roomId]) {
       this.gameRooms[roomId].startGame();
     }

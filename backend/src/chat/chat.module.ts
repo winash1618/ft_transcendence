@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { ChatGateway } from './chat.gateway';
+// import { ChatGateway } from './chat.gateway';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';
@@ -35,7 +35,7 @@ import { ParticipantService } from 'src/participant/participant.service';
   ],
   providers: [
     GatewaySessionManager,
-    ChatGateway,
+    // ChatGateway,
     ChatService,
     UsersService,
     ConversationService,
