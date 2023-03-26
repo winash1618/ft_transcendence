@@ -123,6 +123,9 @@ CREATE UNIQUE INDEX "_GameToUser_AB_unique" ON "_GameToUser"("A", "B");
 CREATE INDEX "_GameToUser_B_index" ON "_GameToUser"("B");
 
 -- AddForeignKey
+ALTER TABLE "Conversation" ADD CONSTRAINT "Conversation_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "Conversation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey

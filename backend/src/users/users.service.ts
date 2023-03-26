@@ -32,7 +32,14 @@ export class UsersService {
     });
   }
 
-	remove(id: number) {
-		return `This action removes a #${id} user`;
-	}
+//   async getAllConversation(id: string): Promise<User> {
+// 	return await this.prisma.user.findUnique({
+// 	  where: { id },
+// 	  include: { conversations: true },
+// 	});
+//   }
+
+	// remove(id: number) {
+	// 	return `This action removes a #${id} user`;
+	// }
 }

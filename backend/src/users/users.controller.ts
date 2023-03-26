@@ -16,6 +16,18 @@ export class UsersController {
 		return this.usersService.create(createUserDto);
 	}
 
+
+
+
+	// @Get(':getAllConversation')
+	// getAllConversation(@Param('getAllConversation') id: string) {
+	// 	return this.usersService.getAllConversation(id);
+	// 	}
+			
+
+
+
+
 	// @Get()
 	// findAll() {
 	// 	return this.usersService.findAll();
@@ -50,8 +62,8 @@ export class UsersController {
 	// 	return this.usersService.update(+id, updateUserDto);
 	// }
 
-	@Delete(':id')
-	remove(@Param('id') id: number) {
-		return this.usersService.remove(+id);
-	}
+	// @Delete(':id')
+	// remove(@Param('id') id: number) {
+	// 	return this.usersService.remove(+id);
+	// }
 }

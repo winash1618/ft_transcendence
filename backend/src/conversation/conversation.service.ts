@@ -79,6 +79,15 @@ export class ConversationService {
     });
   }
 
+//   async getConversationByCreatorID(creator_id: string) {
+// 	return await this.prisma.conversation.findMany({
+// 		where: {
+// 			creator_id: creator_id,
+// 		},
+// 	});
+// }
+
+
   async getMessages(conversation_id: string) {
     return await this.prisma.message.findMany({
       where: {

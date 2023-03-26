@@ -16,7 +16,6 @@ import { ConversationService } from 'src/conversation/conversation.service';
 import { ParticipantService } from 'src/participant/participant.service';
 import { MessageService } from 'src/message/message.service';
 import { Role } from '@prisma/client';
-const listOfSocketIDs = [];
 @WebSocketGateway(8001, {
 	cors: {
 		origin: process.env.FRONTEND_BASE_URL,
@@ -25,6 +24,7 @@ const listOfSocketIDs = [];
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
+	userService: any;
 
   constructor(
     private prisma: PrismaService,
@@ -42,7 +42,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			console.log("User: ", user);
+			// console.log("User: ", user);
 			// what we need to when we are connnecting to the socket
 			// we need find all the conversations that the user is in
 			// then we need to get all the messages for each conversation
@@ -60,30 +60,47 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// so that when we send a message to a particular conversation we can send it to the room with the conversation id
 
 
-			// So now the idea is what we need to is the conversation Id's at the front end
+			// So now what we need is the conversation Id's at the front end
 			// and we need to list all the participants in the conversation other than the current user
 			// if it is a group conversation then we need to list the title of the conversation
-			
+			/* 
+				object = [
+					{
+						conversation_id: conversation_id,
+						title: title,
+						participants: [participant1, participant2, participant3, ...], MyselfNotincluded
+					},
+					{
+						conversation_id: conversation_id,
+						title: title,
+						participants: [participant1, participant2, participant3, ...], MyselfNotincluded
+					},
+					...
+
+				]
+			*/
 
 			
-			const userObject = await this.prisma.user.findUnique({
-				where: {
-					login: user.login,
-				},
-			});
-			console.log("User Object: ", userObject);
-			const participants = await this.participantService.getParticipantsByUserID(userObject.id);
-			console.log("participants: ", participants);
 
-			// join the socket to the room with the conversation id
-			participants.forEach((p) => {
-				socket.join(p.conversation_id);
-			});
+			// const participantsList = [];
+			// conversations.forEach((p) => {
+			// 	participantsList.push({
+			// 		conversation_id: p.conversation_id,
+			// 	  });
+			// });
+			// console.log("Participants List: ", participantsList);
+
+			// // join the socket to the room with the conversation id
+			// participants.forEach((p) => {
+			// 	socket.join(p.conversation_id);
+			// });
+
+
 
 
 			// const users = await this.participantService.getParticipantsByUserID(user.id);
 			// console.log(users);
-			const users = await this.prisma.user.findMany();
+			// const users = await this.prisma.user.findMany();
 			// console.log("Users: ", users);
 			// const socketId = socket.id;
 			// const userObject = {	users: users,  socketId: socketId };
@@ -106,7 +123,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// add this to a dictionary with the conversation id as the key and number of participants as the value
 			// listOfSocketIDs.push(socket.id);
 			// console.log("Socket handshake query: ", socket.handshake.query);
-			socket.emit('availableUsers', users);
+			// socket.emit('availableUsers', users);
+			const conversations = await this.prisma.user.findUnique({
+				where: { id: user.id },
+				include: { conversations: true },
+			  });
+			console.log("successfully emitted");
+			console.log("Conversations: ", conversations);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
