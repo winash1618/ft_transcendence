@@ -17,6 +17,11 @@ export class ParticipantController {
   //   return this.participantService.findAll();
   // }
 
+	  @Get(':id')
+	  getParticipantsByUserID(@Param('id') id: string) {
+		return this.participantService.getParticipantsByUserID(id);
+	}
+
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.participantService.findOne(+id);

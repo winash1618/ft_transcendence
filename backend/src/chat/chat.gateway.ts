@@ -16,7 +16,7 @@ import { ConversationService } from 'src/conversation/conversation.service';
 import { ParticipantService } from 'src/participant/participant.service';
 import { MessageService } from 'src/message/message.service';
 import { Role } from '@prisma/client';
-
+const listOfSocketIDs = [];
 @WebSocketGateway(8001, {
 	cors: {
 		origin: process.env.FRONTEND_BASE_URL,
@@ -54,8 +54,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// then we are going to get all the messages for each conversation from the message table
 
 
+			// So how are we going to create the socket rooms
+			// we are going to create a room for each conversation with the conversation id as the room name
+			// and we are going to make everyone join the room with their respective conversation id
+			// so that when we send a message to a particular conversation we can send it to the room with the conversation id
+
+
+			// So now the idea is what we need to is the conversation Id's at the front end
+			// and we need to list all the participants in the conversation other than the current user
+			// if it is a group conversation then we need to list the title of the conversation
+			
+
+			
+			const userObject = await this.prisma.user.findUnique({
+				where: {
+					login: user.login,
+				},
+			});
+			console.log("User Object: ", userObject);
+			const participants = await this.participantService.getParticipantsByUserID(userObject.id);
+			console.log("participants: ", participants);
+
+			// join the socket to the room with the conversation id
+			participants.forEach((p) => {
+				socket.join(p.conversation_id);
+			});
+
+
+			// const users = await this.participantService.getParticipantsByUserID(user.id);
+			// console.log(users);
 			const users = await this.prisma.user.findMany();
-			console.log("Users: ", users);
+			// console.log("Users: ", users);
+			// const socketId = socket.id;
+			// const userObject = {	users: users,  socketId: socketId };
 			// const participant = await this.participantService.getParticipantsByUserID("f259dca5-fd72-4c34-97a4-c783f60f54b6");
 			// console.log(participant);
 			// participant.forEach(async (p) => {
@@ -73,11 +104,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// then check convesation id if there are more than 2 participants
 			// then we get the messages for that converation id for the group messages 
 			// add this to a dictionary with the conversation id as the key and number of participants as the value
-			socket.emit('conversationHistory', users);
+			// listOfSocketIDs.push(socket.id);
+			// console.log("Socket handshake query: ", socket.handshake.query);
+			socket.emit('availableUsers', users);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
+
     // const userID = socket.handshake.query.userID as string;
     // const conversationID = socket.handshake.query.conversationID as string;
 
@@ -114,9 +148,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			// 
-			socket.emit("sendMessage",data);
+			// console.log("User: ", user);
+
+			// const userObject = data.user;
+			// const participant = await this.participantService.getParticipantsByUserID(userObject.id);
+			// console.log("participant: ", participant);
+			// const conversationID = participant[0].conversation_id;
+			// console.log("conversationID: ", conversationID);
+			// const messageSent = await this.messageService.create({
+			//   conversation_id: conversationID,
+			//   author_id: user.id,
+			//   message: data.message,
+			// });
+
+
+			// const userObject = await this.prisma.user.findUnique({
+			// 	where: {
+			// 		login: user.login,
+			// 	},
+			// });
+			// console.log("User Object: ", userObject);
+			// const participants = await this.participantService.getParticipantsByUserID(userObject.id);
+			// console.log("participants: ", participants);
+			// participants.forEach((p) => {
+			// 	this.server.to(p.conversation_id).emit("sendMessage",data);
+			// });
 			// this.server.to("mkaruvan").emit("sendMessage",data);
+			this.server.emit("sendMessage",data);
 			console.log("Sending Success");
 		}
 		catch (e) {
@@ -144,19 +202,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('createConversation')
   async createConversation(socket: AuthenticatedSocket, data: any) {
-    const { title, channelID, password, privacy } = data;
+    const { title = "", channelID = "", password = "", privacy = "" } = { title: "default title", channelID: "default channelID", password: "default password", privacy: "default privacy" };
+
 
     const conversation = await this.conversationService.create({
-      title,
-      creator_id: socket.user.id,
+      title: title,
+      creator_id: data,
       channel_id: channelID,
-      password,
-      privacy,
+      password: password,
+      privacy: privacy,
     });
-
+	console.log(conversation);
     await this.participantService.create({
       conversation_id: conversation.id,
-      user_id: socket.user.id,
+      user_id: data,
     });
 
     socket.emit('conversationCreated', conversation);

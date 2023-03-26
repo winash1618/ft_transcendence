@@ -12,6 +12,7 @@ const MessagesPage = () => {
 	const [messages, setMessages] = useState([]);
 	const [user, setUser] = useState(null);
 	const [users, setUsers] = useState([]);
+	const [otherUser, setOtherUser] = useState(null);
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
@@ -25,7 +26,6 @@ const MessagesPage = () => {
 				const response = await axios.get("/token", {
 					withCredentials: true,
 				});
-				// console.log(response.data);
 				localStorage.setItem("auth", JSON.stringify(response.data));
 				setUser(response.data.user);
 				dispatch(setUserInfo(response.data.user));
@@ -46,24 +46,12 @@ const MessagesPage = () => {
 					});
 				},
 			});
-		// const getConversationId = async () => {
-		// 	try {
-		// 		const response = await axios.get("/conversation/:id", {
-		// 			withCredentials: true,
-		// 		});
-		// 		console.log("this is response.consversation", response.data);
-		// 		dispatch(setUserInfo(response.data));
-		// 		// setMessages(response.data);
-		// 	} catch (err) {
-		// 		console.log(err);
-		// 	}
-		// };
 			setSocket(socket);
 			socket?.on('message', (message) => {
 				console.log(message);
 			  setMessages((messages) => [...messages, message]);
 			});
-			socket?.on('conversationHistory', (users) => {
+			socket?.on('availableUsers', (users) => {
 				setUsers(users);
 			});
 			socket?.on('sendMessage', (message) => {
@@ -81,6 +69,7 @@ const MessagesPage = () => {
 			const newMessage = {
 				id: Date.now(),
 				content: message,
+				user: user,
 				type: side,
 			};
 			// setMessages([...messages, newMessage]);
@@ -89,6 +78,21 @@ const MessagesPage = () => {
 			setMessage("");
 		}
 	};
+
+
+	const handleSelectUser = async (event, otheruser) => {
+		event.preventDefault();
+		console.log(otheruser);
+		setOtherUser(otheruser);
+		// socket?.emit('createConversation', otheruser);
+		// axios.get(`getParticipantsByUserID/${otheruser}`).then((response) => {
+		// 	console.log(response.data); // Handle the response data here
+		//   }).catch((error) => {
+		// 	console.error(error); // Handle errors here
+		//   });
+	};
+
+	
 	return (
 		<>
 			<ParentContainer>
@@ -107,7 +111,7 @@ const MessagesPage = () => {
 							if (u.login !== user.login)
 							{
 								return (
-									<ContactDiv key={u.login}>
+									<ContactDiv key={u.login} onClick={(e) => handleSelectUser(e, user.id)} >
 										<ContactImage src={UserProfilePicture} alt="" />
 										<ContactName>{u.login}</ContactName>
 									</ContactDiv>
