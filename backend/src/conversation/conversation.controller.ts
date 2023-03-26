@@ -12,15 +12,19 @@ export class ConversationController {
   //   return this.conversationService.create(createConversationDto);
   // }
 
-  // @Get()
-  // findAll() {
-  //   return this.conversationService.findAll();
-  // }
+  @Get()
+  findAll() {
+    return this.conversationService.findAll();
+  }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.conversationService.findOne(+id);
-  // }
+  @Get(':id')
+  getParticipants(@Param('id') id: string) {
+	return this.conversationService.getParticipants(id);
+}
+//   @Get(':id')
+//   findOne(@Param('id') id: string) {
+//     return this.conversationService.findOne(+id);
+//   }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateConversationDto: UpdateConversationDto) {

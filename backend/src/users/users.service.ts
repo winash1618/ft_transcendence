@@ -17,9 +17,9 @@ export class UsersService {
 		return await this.prisma.user.create({ data: userDto });
 	}
 
-  findAll() {
-	  return this.prisma.user.findMany();
-  }
+//   findAll() {
+// 	  return this.prisma.user.findMany();
+//   }
 
   async findOne(login: string): Promise<User | null> {
     return await this.prisma.user.findUnique({ where: { login } });

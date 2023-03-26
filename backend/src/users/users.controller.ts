@@ -18,7 +18,7 @@ export class UsersController {
 
 	// @Get()
 	// findAll() {
-	// 	return this.usersService.users();
+	// 	return this.usersService.findAll();
 	// }
 
 	// @Get(':findAllGameRoomsInUser')

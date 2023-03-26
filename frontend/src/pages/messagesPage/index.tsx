@@ -10,6 +10,8 @@ import axios from '../../api';
 const MessagesPage = () => {
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState([]);
+	const [user, setUser] = useState(null);
+	const [users, setUsers] = useState([]);
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
@@ -23,7 +25,9 @@ const MessagesPage = () => {
 				const response = await axios.get("/token", {
 					withCredentials: true,
 				});
+				// console.log(response.data);
 				localStorage.setItem("auth", JSON.stringify(response.data));
+				setUser(response.data.user);
 				dispatch(setUserInfo(response.data.user));
 				return response.data.token;
 			} catch (err) {
@@ -42,9 +46,27 @@ const MessagesPage = () => {
 					});
 				},
 			});
-
+		// const getConversationId = async () => {
+		// 	try {
+		// 		const response = await axios.get("/conversation/:id", {
+		// 			withCredentials: true,
+		// 		});
+		// 		console.log("this is response.consversation", response.data);
+		// 		dispatch(setUserInfo(response.data));
+		// 		// setMessages(response.data);
+		// 	} catch (err) {
+		// 		console.log(err);
+		// 	}
+		// };
 			setSocket(socket);
 			socket?.on('message', (message) => {
+				console.log(message);
+			  setMessages((messages) => [...messages, message]);
+			});
+			socket?.on('conversationHistory', (users) => {
+				setUsers(users);
+			});
+			socket?.on('sendMessage', (message) => {
 				console.log(message);
 			  setMessages((messages) => [...messages, message]);
 			});
@@ -63,7 +85,7 @@ const MessagesPage = () => {
 			};
 			// setMessages([...messages, newMessage]);
 			// console.log(newMessage);
-			socket?.emit('message', newMessage);
+			socket?.emit('sendMessage', newMessage);
 			setMessage("");
 		}
 	};
@@ -80,12 +102,19 @@ const MessagesPage = () => {
 						</MessageNavNotUsed>
 					</ParentMessageNav>
 
-					<ContactDiv>
-						<ContactImage src={UserProfilePicture} />
-						<ContactName>
-							John Doe
-						</ContactName>
-					</ContactDiv>
+					{
+						users.map((u) => {
+							if (u.login !== user.login)
+							{
+								return (
+									<ContactDiv key={u.login}>
+										<ContactImage src={UserProfilePicture} alt="" />
+										<ContactName>{u.login}</ContactName>
+									</ContactDiv>
+								);
+							}
+					})
+					}
 
 				</ChatListContainer>
 				<MessageBox>
