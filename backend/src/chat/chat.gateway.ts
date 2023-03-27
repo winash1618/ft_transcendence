@@ -321,8 +321,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// 	this.server.to(p.conversation_id).emit("sendMessage",data);
 			// });
 			// this.server.to("mkaruvan").emit("sendMessage",data);
+			// console.log("Sending Success");
+			// console.log("Data: ", data);
+			const participant = await this.participantService.getParticipantsByUserID(user.id);
+			console.log("Participant: ", participant);
+			await this.messageService.create({
+				conversation_id: data.conversation_id,
+				author_id: participant.id,
+				message: data.content,
+			});
+			console.log("Message Sent");
 			this.server.emit("sendMessage", data);
-			console.log("Sending Success");
+
+		// socket.to(conversationID).emit('messageReceived', messageSent);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -345,6 +356,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		// console.log('User disconnected: ', userID, conversationID);
 
 		// socket.to(conversationID).emit('userLeft', { userID });
+	}
+
+	@SubscribeMessage('reloadConversations')
+	async reloadConversations(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const conversationObjects = [];
+			for (const c of data) {
+			 
+			  conversationObjects.push( await this.prisma.conversation.findMany({
+				where: {
+				  id: c.id,
+				},
+				include: {
+				  participants: true,
+				  messages: true,
+				},
+			  }));
+			}
+			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+			console.log("Flattened Conversation Objects: ", flattenedConversationObjects);
+			socket.emit('reloadConversations', flattenedConversationObjects);
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
 	}
 
 	@SubscribeMessage('createConversation')

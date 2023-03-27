@@ -78,13 +78,13 @@ export class ParticipantService {
 //   }
 
 
-//   async getParticipantsByUserID(userID: string) {
-//     return await this.prisma.participant.findMany({
-//       where: {
-//         user_id: userID,
-//       },
-//     });
-//   }
+  async getParticipantsByUserID(userID: string) {
+    return await this.prisma.participant.findUnique({
+      where: {
+        user_id: userID,
+      },
+    });
+  }
 
 //   async getConversations(userID: string) {
 //     return await this.prisma.participant.findMany({

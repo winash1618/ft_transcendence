@@ -15,6 +15,8 @@ const MessagesPage = () => {
 	const [conversations, setConversations] = useState([]);
 	const [otherUser, setOtherUser] = useState(null);
 	const [socket, setSocket] = useState<Socket | null>(null);
+	const [stateMessage, setStateMessage] = useState([]);
+	const [conversationID, setConversationID] = useState(null);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -58,6 +60,10 @@ const MessagesPage = () => {
 				// setUsers(objectFull);
 				
 			});
+			socket?.on('reloadConversations', (conversation) => {
+				setConversations(conversation);
+				console.log("This is what is happending", conversation);
+			});
 			socket?.on('sendMessage', (message) => {
 				console.log(message);
 				setMessages((messages) => [...messages, message]);
@@ -66,15 +72,16 @@ const MessagesPage = () => {
 		getSocket();
 	}, [dispatch]);
 
-	const handleSubmit = (event, side) => {
+	const handleSubmit = (event) => {
 		event.preventDefault();
 		console.log(message);
 		if (message.trim() !== "") {
 			const newMessage = {
 				id: Date.now(),
+				auther_id: user.id,
+				conversation_id: conversationID,
 				content: message,
-				user: user,
-				type: side,
+				type: "right",
 			};
 			// setMessages([...messages, newMessage]);
 			// console.log(newMessage);
@@ -96,6 +103,24 @@ const MessagesPage = () => {
 		//   });
 	};
 
+	const handleSelectedConversation = async (event, conversation) => {
+		event.preventDefault();
+		// console.log(conversation);
+		socket?.emit('reloadConversations', conversations);
+		setMessages([]);
+		setConversationID(conversation.id);
+		conversation.messages.map((m) => {
+			const newMessage = {
+				id: m.id,
+				auther_id: m.auther_id,
+				content: m.message,
+				type: "right",
+			};
+			setMessages((messages) => [...messages, newMessage]);
+		});
+
+	};
+
 
 	return (
 		<>
@@ -112,7 +137,7 @@ const MessagesPage = () => {
 					{
 						conversations.map((c) => {
 								return (
-									<ContactDiv key={c.id}>
+									<ContactDiv key={c.id} onClick={(e) => handleSelectedConversation(e, c)}>
 										<ContactImage src={UserProfilePicture} alt="" />
 										<ContactName>{c.title}</ContactName>
 									</ContactDiv>
@@ -123,23 +148,30 @@ const MessagesPage = () => {
 				<MessageBox>
 					<MessageSendDiv>
 						<MessageParent>
-							{messages.map((message) => {
-								if (message.type === "right") {
-									return (
-										<MessageRightContainer key={message.id}>
-											<MessageRight>{message.content}</MessageRight>
-											<MessageImage src={UserProfilePicture} alt="" />
-										</MessageRightContainer>
-									);
-								} else if (message.type === "left") {
-									return (
-										<MessageLeftContainer key={message.id}>
-											<MessageImage src={UserProfilePicture} alt="" />
-											<MessageLeft>{message.content}</MessageLeft>
-										</MessageLeftContainer>
-									);
-								}
-							})}
+							
+						{
+						(
+							messages.map((message) => {
+								
+							if (message.type === "right") {
+								
+								return (
+								<MessageRightContainer key={message.id}>
+									<MessageRight>{message.content}</MessageRight>
+									<MessageImage src={UserProfilePicture} alt="" />
+								</MessageRightContainer>
+								);
+							} else if (message.type === "left") {
+
+								return (
+								<MessageLeftContainer key={message.id}>
+									<MessageImage src={UserProfilePicture} alt="" />
+									<MessageLeft>{message.content}</MessageLeft>
+								</MessageLeftContainer>
+								);
+							}
+							})
+						)}
 							<div ref={messageEndRef} />
 						</MessageParent>
 					</MessageSendDiv>
@@ -151,11 +183,11 @@ const MessagesPage = () => {
 							onChange={(event) => setMessage(event.target.value)}
 							onKeyDown={(event) => {
 								if (event.key === 'Enter') {
-									handleSubmit(event, "left");
+									handleSubmit(event);
 								}
 							}}
 						/>
-						<SendButton type="submit" onClick={(e) => handleSubmit(e, "right")} size={24} />
+						<SendButton type="submit" onClick={(e) => handleSubmit(e)} size={24} />
 					</MessageInputParent>
 				</MessageBox>
 				<UsersListContainer>
