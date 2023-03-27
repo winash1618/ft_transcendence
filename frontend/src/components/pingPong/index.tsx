@@ -1,11 +1,24 @@
 import { PingPongContainer } from "./pingPong.styled";
 import CountDown from "./countdown";
 import PingPongCanvas from "./pingPongCanvas";
+import { Socket } from "socket.io-client";
 
-const PingPong = ({ player, roomID }: { player: number, roomID: string }) => {
+const PingPong = ({
+  player,
+  roomID,
+  socket,
+}: {
+  player: number;
+  roomID: string;
+  socket: Socket | null;
+}) => {
   return (
     <PingPongContainer>
-      <CountDown element={<PingPongCanvas player={player} roomID={roomID} />} />
+      <CountDown
+        element={
+          <PingPongCanvas player={player} roomID={roomID} socket={socket} />
+        }
+      />
     </PingPongContainer>
   );
 };

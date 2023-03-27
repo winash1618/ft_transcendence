@@ -29,13 +29,14 @@ export type PlayType = {
 const PlayForm = ({
   setIsGameStarted,
   setPlayer,
+  socket,
   setRoomID,
 }: {
   setIsGameStarted: any;
   setPlayer: any;
+  socket: Socket | null;
   setRoomID: any;
 }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const {
@@ -44,35 +45,35 @@ const PlayForm = ({
     control,
   } = useForm<PlayType>({ resolver: yupResolver(PlaySchema) });
 
-  useEffect(() => {
-    const getToken = async () => {
-      try {
-        const response = await axios.get("/token", {
-          withCredentials: true,
-        });
-        localStorage.setItem("auth", JSON.stringify(response.data));
-        dispatch(setUserInfo(response.data.user));
-        return response.data.token;
-      } catch (err) {
-        dispatch(logOut());
-        window.location.reload();
-        return null;
-      }
-    };
-    const getSocket = async () => {
-      const socket = io(process.env.REACT_APP_SOCKET_URL, {
-        withCredentials: true,
-        auth: async (cb) => {
-          const token = await getToken();
-          cb({
-            token,
-          });
-        },
-      });
-      setSocket(socket);
-    };
-    getSocket();
-  }, [dispatch]);
+//   useEffect(() => {
+//     const getToken = async () => {
+//       try {
+//         const response = await axios.get("/token", {
+//           withCredentials: true,
+//         });
+//         localStorage.setItem("auth", JSON.stringify(response.data));
+//         dispatch(setUserInfo(response.data.user));
+//         return response.data.token;
+//       } catch (err) {
+//         dispatch(logOut());
+//         window.location.reload();
+//         return null;
+//       }
+//     };
+//     const getSocket = async () => {
+//       const socket = io(process.env.REACT_APP_SOCKET_URL, {
+//         withCredentials: true,
+//         auth: async (cb) => {
+//           const token = await getToken();
+//           cb({
+//             token,
+//           });
+//         },
+//       });
+//       setSocket(socket);
+//     };
+//     getSocket();
+//   }, [dispatch]);
 
   useEffect(() => {
     socket?.on("start", (data) => {
@@ -92,7 +93,6 @@ const PlayForm = ({
       socket?.off("error", (data) => {
         ErrorAlert("You are already in the queue", 5000);
       });
-      socket?.disconnect();
     };
   }, [socket, setIsGameStarted, setPlayer]);
 

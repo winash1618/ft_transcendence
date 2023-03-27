@@ -27,11 +27,15 @@ export interface BallPosition {
 export interface Paddle {
   x: number;
   y: number;
+  movingUp: boolean;
+  movingDown: boolean;
 }
 
 export interface Position {
   x: number;
   y: number;
+  movingUp: boolean;
+  movingDown: boolean;
 }
 
 export interface PlayerStats {

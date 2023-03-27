@@ -1,5 +1,4 @@
-import { Socket } from "socket.io-client";
-import { GameType, globalSocket } from ".";
+import { GameType } from ".";
 
 export const CANVAS_WIDTH = 900;
 export const CANVAS_HEIGHT = 800;
@@ -8,23 +7,15 @@ type BallType = {
   x: number;
   y: number;
   radius: number;
-  speed: number;
   borderColor: string;
-  directionX: number;
-  directionY: number;
-  velocityX: number;
-  velocityY: number;
   color: string;
 };
 type PaddleType = {
   x: number;
   y: number;
-  movingUp: boolean;
-  movingDown: boolean;
   width: number;
   height: number;
   color: string;
-  score: number;
 };
 
 const drawBall = (ctx: any, ball: BallType) => {
@@ -43,99 +34,6 @@ const drawPaddles = (ctx: any, paddle1: PaddleType, paddle2: PaddleType) => {
   ctx.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
 };
 
-export const createBall = (ball: BallType) => {
-  if (Math.round(Math.random()) === 1) {
-    ball.directionX = 1;
-  } else {
-    ball.directionX = -1;
-  }
-  if (Math.round(Math.random()) === 1) {
-    ball.directionY = 1;
-  } else {
-    ball.directionY = -1;
-  }
-};
-
-const moveBall = (ball: BallType, socket: Socket, player: number) => {
-  if (player === 1) {
-    ball.x += ball.velocityX * ball.directionX;
-    socket?.emit("ballX", ball.x);
-    ball.y += ball.velocityY * ball.directionY;
-    socket?.emit("ballY", ball.y);
-  }
-};
-
-const checkCollision = (
-  ball: BallType,
-  player: number,
-  paddle1: PaddleType,
-  paddle2: PaddleType,
-  setPlayer1Score: any,
-  setPlayer2Score: any,
-  socket: Socket
-) => {
-  if (ball.y <= 0 || ball.y >= CANVAS_HEIGHT - ball.radius) {
-    ball.directionY = -ball.directionY;
-  }
-  if (ball.x <= 0) {
-    if (player === 1) {
-      paddle2.score++;
-      socket?.emit("player2Score", paddle2.score);
-      setPlayer2Score(paddle2.score);
-    }
-    createBall(ball);
-    ball.x = CANVAS_WIDTH / 2;
-    ball.y = CANVAS_HEIGHT / 2;
-  }
-  if (ball.x >= CANVAS_WIDTH - ball.radius) {
-    if (player === 1) {
-      paddle1.score++;
-      socket?.emit("player1Score", paddle1.score);
-      setPlayer1Score(paddle1.score);
-    }
-    createBall(ball);
-    ball.x = CANVAS_WIDTH / 2;
-    ball.y = CANVAS_HEIGHT / 2;
-  }
-  if (ball.x <= paddle1.x + paddle1.width + ball.radius) {
-    if (
-      !(
-        ball.y + ball.radius <= paddle1.y ||
-        ball.y >= paddle1.y + paddle1.height
-      )
-    ) {
-      if (ball.y <= paddle1.y) {
-        ball.directionY = -1;
-        ball.y = paddle1.y - ball.radius;
-      } else if (ball.y + ball.radius >= paddle1.y + paddle1.height) {
-        ball.directionY = 1;
-        ball.y = paddle1.y + paddle1.height;
-      } else {
-        ball.directionX = -ball.directionX;
-        ball.x = paddle1.x + paddle1.width + ball.radius;
-      }
-    }
-  } else if (ball.x >= paddle2.x - ball.radius) {
-    if (
-      !(
-        ball.y + ball.radius <= paddle2.y ||
-        ball.y >= paddle2.y + paddle2.height
-      )
-    ) {
-      if (ball.y <= paddle2.y) {
-        ball.directionY = -1;
-        ball.y = paddle2.y - ball.radius;
-      } else if (ball.y + ball.radius >= paddle2.y + paddle2.height) {
-        ball.directionY = 1;
-        ball.y = paddle2.y + paddle2.height;
-      } else {
-        ball.directionX = -ball.directionX;
-        ball.x = paddle2.x - ball.radius;
-      }
-    }
-  }
-};
-
 export const draw = (
   ctx: any,
   game: GameType,
@@ -151,36 +49,4 @@ export const draw = (
   requestAnimationFrame(() =>
     draw(ctx, game, player, setPlayer1Score, setPlayer2Score)
   );
-};
-
-export const movePaddle = (e: any, game: GameType, player: number) => {
-  if (player === 1) {
-    if (e.key === "w") {
-      game.paddle1.movingUp = true;
-    } else if (e.key === "s") {
-      game.paddle1.movingDown = true;
-    }
-  } else if (player === 2) {
-    if (e.key === "w") {
-      game.paddle2.movingUp = true;
-    } else if (e.key === "s") {
-      game.paddle2.movingDown = true;
-    }
-  }
-};
-
-export const stopPaddle = (e: any, game: GameType, player: number) => {
-  if (player === 1) {
-    if (e.key === "w") {
-      game.paddle1.movingUp = false;
-    } else if (e.key === "s") {
-      game.paddle1.movingDown = false;
-    }
-  } else if (player === 2) {
-    if (e.key === "w") {
-      game.paddle2.movingUp = false;
-    } else if (e.key === "s") {
-      game.paddle2.movingDown = false;
-    }
-  }
 };

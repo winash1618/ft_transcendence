@@ -16,11 +16,11 @@ import { Server } from 'socket.io';
 
 const GAME_WIDTH = 900;
 const GAME_HEIGHT = 800;
-const PADDLE_WIDTH = 10;
-const PADDLE_HEIGHT = 80;
-const BALL_SIZE = 10;
+const PADDLE_WIDTH = 20;
+const PADDLE_HEIGHT = 100;
+const BALL_SIZE = 12.5;
 const BALL_SPEED = 5;
-const PADDLE_SPEED = 5;
+const PADDLE_SPEED = 15;
 const GAME_TIME = 30;
 
 export class GameEngine {
@@ -42,11 +42,15 @@ export class GameEngine {
 			gameStatus: GameStatus.WAITING,
 			paddle1: {
 				x: 0,
-				y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2)
+				y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2),
+				movingUp: false,
+				movingDown: false,
 			},
 			paddle2: {
 				x: (GAME_WIDTH - PADDLE_WIDTH),
-				y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2)
+				y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2),
+				movingUp: false,
+				movingDown: false,
 			},
 			ball: {
 				x: (GAME_WIDTH / 2),
@@ -144,10 +148,12 @@ export class GameEngine {
 		if (ball.x <= 0) {
 			// Player 2 scores
 			this.gameObj.player2.points++;
+			this.server.to(this.gameID).emit('player2Score', this.gameObj.player2.points);
 			this.resetBall();
 		} else if (ball.x >= GAME_WIDTH - BALL_SIZE) {
 			// Player 1 scores
 			this.gameObj.player1.points++;
+			this.server.to(this.gameID).emit('player1Score', this.gameObj.player1.points);
 			this.resetBall();
 		} else if (ball.y <= 0 || ball.y >= GAME_HEIGHT - BALL_SIZE) {
 			// Ball bounces off ceiling or floor
@@ -173,28 +179,54 @@ export class GameEngine {
 		this.ballMovement.y = (Math.random() < 0.5 ? 1 : -1) * Math.sin(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
 	}
 
-	barMove(key: KeyPress, position: Position) {
+	barMove(key: KeyPress, position: Position, isPressed: boolean) {
 		if (key.upKey) {
-			if (position.y >= PADDLE_SPEED)
-				position.y = position.y - PADDLE_SPEED;
+			if (isPressed) {
+				position.movingUp = true
+			}
+			else {
+				position.movingUp = false
+			}
 		}
 		if (key.downKey) {
-			if (position.y <= GAME_HEIGHT - PADDLE_HEIGHT - PADDLE_SPEED)
-				position.y = position.y + PADDLE_SPEED;
+			if (isPressed) {
+				position.movingDown = true
+			}
+			else {
+				position.movingDown = false
+			}
 		}
 	}
 
-	barSelect(keyStatus: KeyPress, client: Socket) {
-		if (this.users.get(client.data.userId) === undefined) {
+	barSelect(keyStatus: KeyPress, client: Socket, isPressed: boolean) {
+		if (this.users.get(client.data.userID) === undefined) {
 			return;
 		}
-		if (this.users.get(client.data.userId).playerNumber === 1) {
-			this.barMove(keyStatus, this.gameObj.paddle1);
-		} else if (this.users.get(client.data.userId).playerNumber === 2) {
-			this.barMove(keyStatus, this.gameObj.paddle2);
+		if (this.users.get(client.data.userID).playerNumber === 1) {
+			this.barMove(keyStatus, this.gameObj.paddle1, isPressed);
+		} else if (this.users.get(client.data.userID).playerNumber === 2) {
+			console.log(" player 2");
+			this.barMove(keyStatus, this.gameObj.paddle2, isPressed);
 		}
 	}
-
+	playerMove() {
+		if (this.gameObj.paddle1.movingUp) {
+			if (this.gameObj.paddle1.y >= PADDLE_SPEED)
+				this.gameObj.paddle1.y = this.gameObj.paddle1.y - PADDLE_SPEED;
+		}
+		if (this.gameObj.paddle2.movingUp) {
+			if (this.gameObj.paddle2.y >= PADDLE_SPEED)
+				this.gameObj.paddle2.y = this.gameObj.paddle2.y - PADDLE_SPEED;
+		}
+		if (this.gameObj.paddle2.movingDown) {
+			if (this.gameObj.paddle2.y <= GAME_HEIGHT - PADDLE_HEIGHT - PADDLE_SPEED)
+				this.gameObj.paddle2.y = this.gameObj.paddle2.y + PADDLE_SPEED;
+		}
+		if (this.gameObj.paddle1.movingDown) {
+			if (this.gameObj.paddle1.y <= GAME_HEIGHT - PADDLE_HEIGHT - PADDLE_SPEED)
+				this.gameObj.paddle1.y = this.gameObj.paddle1.y + PADDLE_SPEED;
+		}
+	}
 	startSettings() {
 		this.gameObj.time = GAME_TIME;
 		this.interval = setInterval(() => {
@@ -213,6 +245,7 @@ export class GameEngine {
 		this.resetBall();
 		this.interval = setInterval(() => {
 			this.ballMove();
+			this.playerMove();
 			this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
 		}, GAME_TIME);
 	}
