@@ -12,7 +12,7 @@ const MessagesPage = () => {
 	const [messages, setMessages] = useState([]);
 	const [user, setUser] = useState(null);
 	const [users, setUsers] = useState([]);
-	const [conversation, setConversation] = useState([]);
+	const [conversations, setConversations] = useState([]);
 	const [otherUser, setOtherUser] = useState(null);
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const messageEndRef = useRef(null);
@@ -54,7 +54,8 @@ const MessagesPage = () => {
 			});
 			socket?.on('availableUsers', (objectFull) => {
 				setUsers(objectFull.ListOfAllUsers);
-				setConversation(objectFull.ListOfConversations);
+				setConversations(objectFull.conversations);
+				// setUsers(objectFull);
 				
 			});
 			socket?.on('sendMessage', (message) => {
@@ -108,18 +109,16 @@ const MessagesPage = () => {
 							<HiOutlineUserGroup /> Groups
 						</MessageNavNotUsed>
 					</ParentMessageNav>
-					{/* {
-						users.map((u) => {
-							if (u.login !== user.login) {
+					{
+						conversations.map((c) => {
 								return (
-									<ContactDiv key={u.login} onClick={(e) => handleSelectUser(e, user.id)} >
+									<ContactDiv key={c.id}>
 										<ContactImage src={UserProfilePicture} alt="" />
-										<ContactName>{u.login}</ContactName>
+										<ContactName>{c.title}</ContactName>
 									</ContactDiv>
 								);
-							}
 						})
-					} */}
+					}
 				</ChatListContainer>
 				<MessageBox>
 					<MessageSendDiv>

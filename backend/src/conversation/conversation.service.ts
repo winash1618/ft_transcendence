@@ -51,33 +51,33 @@ export class ConversationService {
     });
   }
 
-  async addParticipant(conversation_id: string, user_id: string) {
-    return await this.prisma.participant.create({
-      data: {
-        user_id: user_id,
-        conversation_id: conversation_id,
-      },
-    });
-  }
+//   async addParticipant(conversation_id: string, user_id: string) {
+//     return await this.prisma.participant.create({
+//       data: {
+//         user_id: user_id,
+//         conversation_id: conversation_id,
+//       },
+//     });
+//   }
 
-  async removeParticipant(conversation_id: string, user_id: string) {
-    return await this.prisma.participant.delete({
-      where: {
-        conversation_id_user_id: {
-          user_id: user_id,
-          conversation_id: conversation_id,
-        },
-      },
-    });
-  }
+//   async removeParticipant(conversation_id: string, user_id: string) {
+//     return await this.prisma.participant.delete({
+//       where: {
+//         conversation_id_user_id: {
+//           user_id: user_id,
+//           conversation_id: conversation_id,
+//         },
+//       },
+//     });
+//   }
 
-  async getParticipants(conversation_id: string) {
-    return await this.prisma.participant.findMany({
-      where: {
-        conversation_id: conversation_id,
-      },
-    });
-  }
+//   async getParticipants(conversation_id: string) {
+//     return await this.prisma.participant.findMany({
+//       where: {
+//         conversation_id: conversation_id,
+//       },
+//     });
+//   }
 
 //   async getConversationByCreatorID(creator_id: string) {
 // 	return await this.prisma.conversation.findMany({
@@ -156,27 +156,27 @@ export class ConversationService {
     });
   }
 
-  async getConversationByUserIdAndPrivacy(user_id: string, privacy: string) {
-    return await this.prisma.participant.findMany({
-      where: {
-        user_id: user_id,
-        conversation: {
-          privacy: Privacy.PUBLIC,
-        },
-      },
-    });
-  }
+//   async getConversationByUserIdAndPrivacy(user_id: string, privacy: string) {
+//     return await this.prisma.participant.findMany({
+//       where: {
+//         user_id: user_id,
+//         conversation: {
+//           privacy: Privacy.PUBLIC,
+//         },
+//       },
+//     });
+//   }
 
-  async getConversationByUserIdAndTitle(user_id: string, title: string) {
-    return await this.prisma.participant.findMany({
-      where: {
-        user_id: user_id,
-        conversation: {
-          title: title,
-        },
-      },
-    });
-  }
+//   async getConversationByUserIdAndTitle(user_id: string, title: string) {
+//     return await this.prisma.participant.findMany({
+//       where: {
+//         user_id: user_id,
+//         conversation: {
+//           title: title,
+//         },
+//       },
+//     });
+//   }
 
   async getDirectConversation(user_id: string, creator_id: string) {
     return await this.prisma.conversation.findMany({

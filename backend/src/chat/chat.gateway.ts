@@ -1,12 +1,12 @@
 import { UseGuards } from '@nestjs/common';
 import {
-  MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
+	MessageBody,
+	OnGatewayConnection,
+	OnGatewayDisconnect,
+	OnGatewayInit,
+	SubscribeMessage,
+	WebSocketGateway,
+	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
@@ -23,26 +23,26 @@ import { Role } from '@prisma/client';
 	},
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server;
+	@WebSocketServer() server: Server;
 	userService: any;
 
-  constructor(
-    private prisma: PrismaService,
-    private conversationService: ConversationService,
-    private participantService: ParticipantService,
-    private messageService: MessageService,
-	private readonly jwtService: JwtService,
-    ) {}
+	constructor(
+		private prisma: PrismaService,
+		private conversationService: ConversationService,
+		private participantService: ParticipantService,
+		private messageService: MessageService,
+		private readonly jwtService: JwtService,
+	) { }
 
-  async handleConnection(socket: AuthenticatedSocket) {
-	// console.log("Socket: ", socket);
-	const token = socket.handshake.auth.token;
+	async handleConnection(socket: AuthenticatedSocket) {
+		// console.log("Socket: ", socket);
+		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			// console.log("User: ", user);
+			console.log("User: ", user);
 			// what we need to when we are connnecting to the socket
 			// we need find all the conversations that the user is in
 			// then we need to get all the messages for each conversation
@@ -80,7 +80,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				]
 			*/
 
-			
+
 
 			// const participantsList = [];
 			// conversations.forEach((p) => {
@@ -110,6 +110,50 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 			});
 			console.log("List of all users object: ", ListOfAllUsersObject);
+
+			// get the participnt object of the user
+			const participants = await this.prisma.participant.findMany({
+				where: {
+					user_id: user.id,
+				},
+				include: {
+					conversation: true,
+				},
+			});
+			console.log("Participants: ", participants);
+			// const conversations = [];
+			const conversations = participants[0].conversation.map(conversation => ({
+				  ...conversation,
+				}));
+
+			console.log("Conversations: ", conversations);
+			conversations.forEach((c) => {
+				socket.join(c.id);
+			});
+			console.log("Rooms: ", socket.rooms);
+
+			// So now we have conversation list.
+			// Now we need to get the convesation object to the front end
+			// So we need to get the conversation object from the conversation table
+			const conversationObjects = [];
+			for (const c of conversations) {
+			 
+			  conversationObjects.push( await this.prisma.conversation.findMany({
+				where: {
+				  id: c.id,
+				},
+				include: {
+				  participants: true,
+				  messages: true,
+				},
+			  }));
+			}
+			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+
+			console.log("Conversation Object: ", flattenedConversationObjects);
+
+
+
 			// console.log(users);
 			// const users = await this.prisma.user.findMany();
 			// console.log("Users: ", users);
@@ -135,62 +179,62 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// listOfSocketIDs.push(socket.id);
 			// console.log("Socket handshake query: ", socket.handshake.query);
 			// socket.emit('availableUsers', users);
-			const userObject = await this.prisma.user.findUnique({
-				where: { id: user.id },
-				include: { conversations: true, participant_in: true },
-			});
-			console.log("successfully emitted");
+			// const userObject = await this.prisma.user.findUnique({
+			// 	where: { id: user.id },
+			// 	include: { conversations: true, participant_in: true },
+			// });
+			// console.log("successfully emitted");
+			// // console.log("Conversations: ", conversations);
+			// userObject.conversations.forEach((c) => {
+			// 	socket.join(c.id);
+			// });
+			// const participantsList = userObject.participant_in;
+			// console.log("Participants List: ", participantsList);
+
+			// const conversations = [];
+			// for (const c of userObject.conversations) {
+			// 	const participants = [];
+			// 	for (const p of userObject.participant_in) {
+			// 	  if (p.conversation_id === c.id) {
+			// 		const userObject = await this.prisma.user.findUnique({
+			// 		  where: { id: p.user_id },
+			// 		});
+			// 		console.log("User Object mine: ", userObject);
+			// 		participants.push({
+			// 		  login: userObject.login,
+			// 		  username: userObject.username,
+			// 		});
+			// 	  }
+			// 	}
+			// 	const conversation = {
+			// 	  conversation_id: c.id,
+			// 	  title: c.title,
+			// 	  participants: participants,
+			// 	};
+			// 	conversations.push(conversation);
+			//   }
+
 			// console.log("Conversations: ", conversations);
-			userObject.conversations.forEach((c) => {
-				socket.join(c.id);
-			});
-			const participantsList = userObject.participant_in;
-			console.log("Participants List: ", participantsList);
 
-			const conversations = [];
-			for (const c of userObject.conversations) {
-				const participants = [];
-				for (const p of userObject.participant_in) {
-				  if (p.conversation_id === c.id) {
-					const userObject = await this.prisma.user.findUnique({
-					  where: { id: p.user_id },
-					});
-					console.log("User Object mine: ", userObject);
-					participants.push({
-					  login: userObject.login,
-					  username: userObject.username,
-					});
-				  }
-				}
-				const conversation = {
-				  conversation_id: c.id,
-				  title: c.title,
-				  participants: participants,
-				};
-				conversations.push(conversation);
-			  }
-			  
-			console.log("Conversations: ", conversations);
-
-			// get users from conversations.participants
-			const users = [];
-			conversations.forEach((c) => {
-				c.participants.forEach((p) => {
-					if (p.user_id !== user.id) {
-						users.push(p);
-					}
-				})
-			});
-			console.log("Users: ", users);
-			
+			// // get users from conversations.participants
+			// const users = [];
+			// conversations.forEach((c) => {
+			// 	c.participants.forEach((p) => {
+			// 		if (p.user_id !== user.id) {
+			// 			users.push(p);
+			// 		}
+			// 	})
+			// });
+			// console.log("Users: ", users);
 
 
-			// create object to emit
-			const objectToEmit = {
-				conversations: conversations,
-				users: users,
-				ListOfAllUsers: ListOfAllUsersObject
-			}
+
+			// // create object to emit
+			// const objectToEmit = {
+			// 	conversations: conversations,
+			// 	users: users,
+			// 	ListOfAllUsers: ListOfAllUsersObject
+			// }
 			// get the user object for each user
 			// const userObjects = [];
 			// for (const u of users) {
@@ -199,48 +243,53 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// });
 			// userObjects.push({
 			// 	username: userObject.login,
-				
+
 			// });
 			// }
 			// console.log("User Objects: ", userObjects);
-			
+
+			const objectToEmit = {
+				conversations: flattenedConversationObjects,
+				ListOfAllUsers: ListOfAllUsersObject
+			}
+
 			socket.emit('availableUsers', objectToEmit);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
 
-    // const userID = socket.handshake.query.userID as string;
-    // const conversationID = socket.handshake.query.conversationID as string;
+		// const userID = socket.handshake.query.userID as string;
+		// const conversationID = socket.handshake.query.conversationID as string;
 
-    // console.log('User connected: ', userID, conversationID);
+		// console.log('User connected: ', userID, conversationID);
 
-    // const participant = await this.participantService.getConversation(userID, conversationID);
+		// const participant = await this.participantService.getConversation(userID, conversationID);
 
-    // console.log('Participant: ', participant);
+		// console.log('Participant: ', participant);
 
-    // if (!participant) {
-    //   socket.disconnect();
-    //   return;
-    // }
+		// if (!participant) {
+		//   socket.disconnect();
+		//   return;
+		// }
 
-    // socket.join(conversationID);
+		// socket.join(conversationID);
 
-    // socket.to(conversationID).emit('userJoined', { userID });
+		// socket.to(conversationID).emit('userJoined', { userID });
 
-    // const messages = await this.prisma.message.findMany({
-    //   where: { conversation_id: conversationID },
-    //   include: { author: true },
-    //   orderBy: { created_at: 'asc' },
-    // });
+		// const messages = await this.prisma.message.findMany({
+		//   where: { conversation_id: conversationID },
+		//   include: { author: true },
+		//   orderBy: { created_at: 'asc' },
+		// });
 
-    // socket.emit('conversationHistory', messages);
-  }
+		// socket.emit('conversationHistory', messages);
+	}
 
-  @SubscribeMessage('sendMessage')
-  async sendMessage(socket: AuthenticatedSocket, data: any) {
-	// console.log("Sending Message", socket);
-	const token = socket.handshake.auth.token;
+	@SubscribeMessage('sendMessage')
+	async sendMessage(socket: AuthenticatedSocket, data: any) {
+		// console.log("Sending Message", socket);
+		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
@@ -272,226 +321,226 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// 	this.server.to(p.conversation_id).emit("sendMessage",data);
 			// });
 			// this.server.to("mkaruvan").emit("sendMessage",data);
-			this.server.emit("sendMessage",data);
+			this.server.emit("sendMessage", data);
 			console.log("Sending Success");
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
-    // const { conversationID, message } = data;
+		// const { conversationID, message } = data;
 
-    // const messageSent = await this.messageService.create({
-    //   conversation_id: conversationID,
-    //   author_id: socket.user.id,
-    //   message,
-    // });
+		// const messageSent = await this.messageService.create({
+		//   conversation_id: conversationID,
+		//   author_id: socket.user.id,
+		//   message,
+		// });
 
-    // socket.to(conversationID).emit('messageReceived', messageSent);
-  }
+		// socket.to(conversationID).emit('messageReceived', messageSent);
+	}
 
-  handleDisconnect(socket: AuthenticatedSocket) {
-    // const userID = socket.handshake.query.userID as string;
-    // const conversationID = socket.handshake.query.conversationID as string;
+	handleDisconnect(socket: AuthenticatedSocket) {
+		// const userID = socket.handshake.query.userID as string;
+		// const conversationID = socket.handshake.query.conversationID as string;
 
-    // console.log('User disconnected: ', userID, conversationID);
+		// console.log('User disconnected: ', userID, conversationID);
 
-    // socket.to(conversationID).emit('userLeft', { userID });
-  }
+		// socket.to(conversationID).emit('userLeft', { userID });
+	}
 
-  @SubscribeMessage('createConversation')
-  async createConversation(socket: AuthenticatedSocket, data: any) {
-    const { title = "", channelID = "", password = "", privacy = "" } = { title: "default title", channelID: "default channelID", password: "default password", privacy: "default privacy" };
+	@SubscribeMessage('createConversation')
+	async createConversation(socket: AuthenticatedSocket, data: any) {
+		// const { title = "", channelID = "", password = "", privacy = "" } = { title: "default title", channelID: "default channelID", password: "default password", privacy: "default privacy" };
 
 
-    const conversation = await this.conversationService.create({
-      title: title,
-      creator_id: data,
-      channel_id: channelID,
-      password: password,
-      privacy: privacy,
-    });
-	console.log(conversation);
-    await this.participantService.create({
-      conversation_id: conversation.id,
-      user_id: data,
-    });
+		// const conversation = await this.conversationService.create({
+		//   title: title,
+		//   creator_id: data,
+		//   channel_id: channelID,
+		//   password: password,
+		//   privacy: privacy,
+		// });
+		// console.log(conversation);
+		// await this.participantService.create({
+		//   conversation_id: conversation.id,
+		//   user_id: data,
+		// });
 
-    socket.emit('conversationCreated', conversation);
-  }
+		// socket.emit('conversationCreated', conversation);
+	}
 
-  
 
-//   @SubscribeMessage('joinConversation')
-//   async joinConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID } = data;
 
-//     const participant = await this.participantService.getConversation(socket.user.id, conversationID);
+	//   @SubscribeMessage('joinConversation')
+	//   async joinConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID } = data;
 
-//     if (!participant) {
-//       await this.participantService.create({
-//         conversation_id: conversationID,
-//         user_id: socket.user.id,
-//       });
+	//     const participant = await this.participantService.getConversation(socket.user.id, conversationID);
 
-//       socket.join(conversationID);
+	//     if (!participant) {
+	//       await this.participantService.create({
+	//         conversation_id: conversationID,
+	//         user_id: socket.user.id,
+	//       });
 
-//       socket.to(conversationID).emit('userJoined', { userID: socket.user.id });
-//     }
-//   }
+	//       socket.join(conversationID);
 
-//   @SubscribeMessage('leaveConversation')
-//   async leaveConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID } = data;
+	//       socket.to(conversationID).emit('userJoined', { userID: socket.user.id });
+	//     }
+	//   }
 
-//     const participant = await this.participantService.getConversation(socket.user.id, conversationID);
+	//   @SubscribeMessage('leaveConversation')
+	//   async leaveConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID } = data;
 
-//     if (participant) {
-//       await this.participantService.remove(participant.id);
+	//     const participant = await this.participantService.getConversation(socket.user.id, conversationID);
 
-//       socket.leave(conversationID);
+	//     if (participant) {
+	//       await this.participantService.remove(participant.id);
 
-//       socket.to(conversationID).emit('userLeft', { userID: socket.user.id });
-//     }
-//   }
+	//       socket.leave(conversationID);
 
- 
+	//       socket.to(conversationID).emit('userLeft', { userID: socket.user.id });
+	//     }
+	//   }
 
-//   @SubscribeMessage('deleteMessage')
-//   async deleteMessage(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { messageID } = data;
 
-//     const message = await this.messageService.findOne(messageID);
 
-//     if (message && message.author_id === socket.user.id) {
-//       await this.messageService.remove(messageID);
+	//   @SubscribeMessage('deleteMessage')
+	//   async deleteMessage(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { messageID } = data;
 
-//       socket.to(message.conversation_id).emit('messageDeleted', messageID);
-//     }
-//   }
+	//     const message = await this.messageService.findOne(messageID);
 
-//   @SubscribeMessage('blockUser')
-//   async blockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { userID } = data;
+	//     if (message && message.author_id === socket.user.id) {
+	//       await this.messageService.remove(messageID);
 
-//     const participant = await this.participantService.getConversation(socket.user.id, userID);
+	//       socket.to(message.conversation_id).emit('messageDeleted', messageID);
+	//     }
+	//   }
 
-//     if (!participant) {
-//       await this.participantService.create({
-//         conversation_id: socket.user.id,
-//         user_id: userID,
-//       });
+	//   @SubscribeMessage('blockUser')
+	//   async blockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { userID } = data;
 
-//       socket.emit('userBlocked', { userID });
-//     }
-//   }
+	//     const participant = await this.participantService.getConversation(socket.user.id, userID);
 
-//   @SubscribeMessage('unblockUser')
-//   async unblockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { userID } = data;
+	//     if (!participant) {
+	//       await this.participantService.create({
+	//         conversation_id: socket.user.id,
+	//         user_id: userID,
+	//       });
 
-//     const participant = await this.participantService.getConversation(socket.user.id, userID);
+	//       socket.emit('userBlocked', { userID });
+	//     }
+	//   }
 
-//     if (participant) {
-//       await this.participantService.remove(participant.id);
+	//   @SubscribeMessage('unblockUser')
+	//   async unblockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { userID } = data;
 
-//       socket.emit('userUnblocked', { userID });
-//     }
-//   }
+	//     const participant = await this.participantService.getConversation(socket.user.id, userID);
 
-//   @SubscribeMessage('updateConversation')
-//   async updateConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID, title, privacy } = data;
+	//     if (participant) {
+	//       await this.participantService.remove(participant.id);
 
-//     const conversation = await this.conversationService.findOne(conversationID);
+	//       socket.emit('userUnblocked', { userID });
+	//     }
+	//   }
 
-//     if (conversation && conversation.creator_id === socket.user.id) {
-//       const updatedConversation = await this.conversationService.update(conversationID, {
-//         title,
-//         privacy,
-//       });
+	//   @SubscribeMessage('updateConversation')
+	//   async updateConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID, title, privacy } = data;
 
-//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-//     }
-//   }
+	//     const conversation = await this.conversationService.findOne(conversationID);
 
-//   @SubscribeMessage('setConversationPassword')
-//   async setConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID, password } = data;
+	//     if (conversation && conversation.creator_id === socket.user.id) {
+	//       const updatedConversation = await this.conversationService.update(conversationID, {
+	//         title,
+	//         privacy,
+	//       });
 
-//     const conversation = await this.conversationService.findOne(conversationID);
+	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
+	//     }
+	//   }
 
-//     if (conversation && conversation.creator_id === socket.user.id) {
-//       const updatedConversation = await this.conversationService.update(conversationID, {
-//         password,
-//       });
+	//   @SubscribeMessage('setConversationPassword')
+	//   async setConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID, password } = data;
 
-//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-//     }
-//   }
+	//     const conversation = await this.conversationService.findOne(conversationID);
 
-//   @SubscribeMessage('removeConversationPassword')
-//   async removeConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID } = data;
+	//     if (conversation && conversation.creator_id === socket.user.id) {
+	//       const updatedConversation = await this.conversationService.update(conversationID, {
+	//         password,
+	//       });
 
-//     const conversation = await this.conversationService.findOne(conversationID);
+	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
+	//     }
+	//   }
 
-//     if (conversation && conversation.creator_id === socket.user.id) {
-//       const updatedConversation = await this.conversationService.update(conversationID, {
-//         password: null,
-//       });
+	//   @SubscribeMessage('removeConversationPassword')
+	//   async removeConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID } = data;
 
-//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-//     }
-//   }
+	//     const conversation = await this.conversationService.findOne(conversationID);
 
-//   @SubscribeMessage('setConversationPrivacy')
-//   async setConversationPrivacy(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID, privacy } = data;
+	//     if (conversation && conversation.creator_id === socket.user.id) {
+	//       const updatedConversation = await this.conversationService.update(conversationID, {
+	//         password: null,
+	//       });
 
-//     const conversation = await this.conversationService.findOne(conversationID);
+	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
+	//     }
+	//   }
 
-//     if (conversation && conversation.creator_id === socket.user.id) {
-//       const updatedConversation = await this.conversationService.update(conversationID, {
-//         privacy,
-//       });
+	//   @SubscribeMessage('setConversationPrivacy')
+	//   async setConversationPrivacy(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID, privacy } = data;
 
-//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-//     }
-//   }
+	//     const conversation = await this.conversationService.findOne(conversationID);
 
-//   @SubscribeMessage('setConversationAdmin')
-//   async setConversationAdmin(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID, userID } = data;
+	//     if (conversation && conversation.creator_id === socket.user.id) {
+	//       const updatedConversation = await this.conversationService.update(conversationID, {
+	//         privacy,
+	//       });
 
-//     const conversation = await this.conversationService.findOne(conversationID);
+	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
+	//     }
+	//   }
 
-//     if (conversation && conversation.creator_id === socket.user.id) {
-//       const participant = await this.participantService.getConversation(userID, conversationID);
+	//   @SubscribeMessage('setConversationAdmin')
+	//   async setConversationAdmin(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID, userID } = data;
 
-//       if (participant) {
-//         await this.participantService.update(participant.id, {
-//           role: Role.ADMIN
-//         });
+	//     const conversation = await this.conversationService.findOne(conversationID);
 
-//         socket.to(conversationID).emit('userAdminSet', { userID });
-//       }
-//     }
-//   }
+	//     if (conversation && conversation.creator_id === socket.user.id) {
+	//       const participant = await this.participantService.getConversation(userID, conversationID);
 
-//   @SubscribeMessage('kickUser')
-//   async kickUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-//     const { conversationID, userID } = data;
+	//       if (participant) {
+	//         await this.participantService.update(participant.id, {
+	//           role: Role.ADMIN
+	//         });
 
-//     const conversation = await this.conversationService.findOne(conversationID);
+	//         socket.to(conversationID).emit('userAdminSet', { userID });
+	//       }
+	//     }
+	//   }
 
-//     if (conversation && conversation.creator_id === socket.user.id) {
-//       const participant = await this.participantService.getConversation(userID, conversationID);
+	//   @SubscribeMessage('kickUser')
+	//   async kickUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
+	//     const { conversationID, userID } = data;
 
-//       if (participant) {
-//         await this.participantService.remove(participant.id);
+	//     const conversation = await this.conversationService.findOne(conversationID);
 
-//         socket.to(conversationID).emit('userKicked', { userID });
-//       }
-//     }
-//   }
+	//     if (conversation && conversation.creator_id === socket.user.id) {
+	//       const participant = await this.participantService.getConversation(userID, conversationID);
+
+	//       if (participant) {
+	//         await this.participantService.remove(participant.id);
+
+	//         socket.to(conversationID).emit('userKicked', { userID });
+	//       }
+	//     }
+	//   }
 }

@@ -17,10 +17,10 @@ export class ConversationController {
     return this.conversationService.findAll();
   }
 
-  @Get(':id')
-  getParticipants(@Param('id') id: string) {
-	return this.conversationService.getParticipants(id);
-}
+//   @Get(':id')
+//   getParticipants(@Param('id') id: string) {
+// 	return this.conversationService.getParticipants(id);
+// }
 //   @Get(':id')
 //   findOne(@Param('id') id: string) {
 //     return this.conversationService.findOne(+id);

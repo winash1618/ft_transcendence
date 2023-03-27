@@ -23,7 +23,6 @@ model User {
   is_active             Boolean         @default(false)
   created_at            DateTime        @default(now())
   updated_at            DateTime        @default(now())
-  conversations         Conversation[]
   participant_in        Participant[]
   game                  Game[]
 }
@@ -39,7 +38,6 @@ model Conversation {
   created_at            DateTime        @default(now())
   updated_at            DateTime        @default(now())
   deleted_at            DateTime?
-  creator               User            @relation(fields: [creator_id], references: [id])
   messages              Message[]
   participants          Participant[]
 }
@@ -62,15 +60,11 @@ model Participant {
   user_id               String          @unique
   role                  Role            @default(USER)
   conversation_status   Status          @default(ACTIVE)
-  conversation_id       String
   created_at            DateTime        @default(now())
   updated_at            DateTime        @default(now())
-
   user                  User            @relation(fields: [user_id], references: [id])
-  conversation          Conversation    @relation(fields: [conversation_id], references: [id])
+  conversation          Conversation[]
   messages              Message[]
-
-  @@unique([conversation_id, user_id])
 }
 
 model Game {
