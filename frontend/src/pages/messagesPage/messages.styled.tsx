@@ -26,7 +26,7 @@ export const MessageBox = styled.div`
   align-items: center;
   border-radius: 15px;
   margin: auto;
-  width: 68%;
+  width: 50%;
   height: 100%;
 `;
 
@@ -219,5 +219,17 @@ padding-left: 10px;
   border-radius: 15px;
   width: 150px;
   height: 50px;
+`;
+
+export const UsersListContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 18%;
+  height: 100%;
+  background-color: #1A1D1F;
+  border-radius: 15px;
+  padding: 10px;
 `;
 

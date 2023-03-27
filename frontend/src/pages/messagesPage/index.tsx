@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav } from './messages.styled';
+import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav, UsersListContainer } from './messages.styled';
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
 import { UserProfilePicture } from '../../assets';
 import { io, Socket } from 'socket.io-client';
@@ -12,6 +12,7 @@ const MessagesPage = () => {
 	const [messages, setMessages] = useState([]);
 	const [user, setUser] = useState(null);
 	const [users, setUsers] = useState([]);
+	const [conversation, setConversation] = useState([]);
 	const [otherUser, setOtherUser] = useState(null);
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const messageEndRef = useRef(null);
@@ -19,7 +20,7 @@ const MessagesPage = () => {
 	useEffect(() => {
 		messageEndRef.current.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
-	
+
 	useEffect(() => {
 		const getToken = async () => {
 			try {
@@ -49,19 +50,21 @@ const MessagesPage = () => {
 			setSocket(socket);
 			socket?.on('message', (message) => {
 				console.log(message);
-			  setMessages((messages) => [...messages, message]);
+				setMessages((messages) => [...messages, message]);
 			});
-			socket?.on('availableUsers', (users) => {
-				setUsers(users);
+			socket?.on('availableUsers', (objectFull) => {
+				setUsers(objectFull.ListOfAllUsers);
+				setConversation(objectFull.ListOfConversations);
+				
 			});
 			socket?.on('sendMessage', (message) => {
 				console.log(message);
-			  setMessages((messages) => [...messages, message]);
+				setMessages((messages) => [...messages, message]);
 			});
 		};
 		getSocket();
 	}, [dispatch]);
-	
+
 	const handleSubmit = (event, side) => {
 		event.preventDefault();
 		console.log(message);
@@ -92,7 +95,7 @@ const MessagesPage = () => {
 		//   });
 	};
 
-	
+
 	return (
 		<>
 			<ParentContainer>
@@ -105,11 +108,9 @@ const MessagesPage = () => {
 							<HiOutlineUserGroup /> Groups
 						</MessageNavNotUsed>
 					</ParentMessageNav>
-
-					{
+					{/* {
 						users.map((u) => {
-							if (u.login !== user.login)
-							{
+							if (u.login !== user.login) {
 								return (
 									<ContactDiv key={u.login} onClick={(e) => handleSelectUser(e, user.id)} >
 										<ContactImage src={UserProfilePicture} alt="" />
@@ -117,9 +118,8 @@ const MessagesPage = () => {
 									</ContactDiv>
 								);
 							}
-					})
-					}
-
+						})
+					} */}
 				</ChatListContainer>
 				<MessageBox>
 					<MessageSendDiv>
@@ -159,6 +159,20 @@ const MessagesPage = () => {
 						<SendButton type="submit" onClick={(e) => handleSubmit(e, "right")} size={24} />
 					</MessageInputParent>
 				</MessageBox>
+				<UsersListContainer>
+					{
+						users.map((u) => {
+							if (u.login !== user.login) {
+								return (
+									<ContactDiv key={u.login} onClick={(e) => handleSelectUser(e, user.id)} >
+										<ContactImage src={UserProfilePicture} alt="" />
+										<ContactName>{u.login}</ContactName>
+									</ContactDiv>
+								);
+							}
+						})
+					}
+				</UsersListContainer>
 			</ParentContainer>
 		</>
 	)

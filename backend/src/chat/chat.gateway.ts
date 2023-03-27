@@ -98,7 +98,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 
 
-			// const users = await this.participantService.getParticipantsByUserID(user.id);
+			const ListOfAllUsers = await this.prisma.user.findMany();
+			console.log("List of all users: ", ListOfAllUsers);
+			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+			console.log("List of all users without me: ", ListOfAllUsersWithoutMe);
+			// get User object with user id and login status from ListOfAllUsersWithoutMe
+			const ListOfAllUsersObject = [];
+			ListOfAllUsersWithoutMe.forEach((u) => {
+				ListOfAllUsersObject.push({
+					login: u.login
+				});
+			});
+			console.log("List of all users object: ", ListOfAllUsersObject);
 			// console.log(users);
 			// const users = await this.prisma.user.findMany();
 			// console.log("Users: ", users);
@@ -124,12 +135,76 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// listOfSocketIDs.push(socket.id);
 			// console.log("Socket handshake query: ", socket.handshake.query);
 			// socket.emit('availableUsers', users);
-			const conversations = await this.prisma.user.findUnique({
+			const userObject = await this.prisma.user.findUnique({
 				where: { id: user.id },
-				include: { conversations: true },
-			  });
+				include: { conversations: true, participant_in: true },
+			});
 			console.log("successfully emitted");
+			// console.log("Conversations: ", conversations);
+			userObject.conversations.forEach((c) => {
+				socket.join(c.id);
+			});
+			const participantsList = userObject.participant_in;
+			console.log("Participants List: ", participantsList);
+
+			const conversations = [];
+			for (const c of userObject.conversations) {
+				const participants = [];
+				for (const p of userObject.participant_in) {
+				  if (p.conversation_id === c.id) {
+					const userObject = await this.prisma.user.findUnique({
+					  where: { id: p.user_id },
+					});
+					console.log("User Object mine: ", userObject);
+					participants.push({
+					  login: userObject.login,
+					  username: userObject.username,
+					});
+				  }
+				}
+				const conversation = {
+				  conversation_id: c.id,
+				  title: c.title,
+				  participants: participants,
+				};
+				conversations.push(conversation);
+			  }
+			  
 			console.log("Conversations: ", conversations);
+
+			// get users from conversations.participants
+			const users = [];
+			conversations.forEach((c) => {
+				c.participants.forEach((p) => {
+					if (p.user_id !== user.id) {
+						users.push(p);
+					}
+				})
+			});
+			console.log("Users: ", users);
+			
+
+
+			// create object to emit
+			const objectToEmit = {
+				conversations: conversations,
+				users: users,
+				ListOfAllUsers: ListOfAllUsersObject
+			}
+			// get the user object for each user
+			// const userObjects = [];
+			// for (const u of users) {
+			// const userObject = await this.prisma.user.findUnique({
+			// 	where: { id: u },
+			// });
+			// userObjects.push({
+			// 	username: userObject.login,
+				
+			// });
+			// }
+			// console.log("User Objects: ", userObjects);
+			
+			socket.emit('availableUsers', objectToEmit);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
