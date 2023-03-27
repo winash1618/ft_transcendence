@@ -22,3 +22,4 @@ export class CreateUserDto {
 	@ApiProperty()
 	refreshTokenExp?: number;
 }
+

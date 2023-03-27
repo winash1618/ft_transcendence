@@ -23,4 +23,4 @@ import { UsersModule } from 'src/users/users.module';
   ],
   providers: [GameGateway, GameService]
 })
-export class GameModule {}
+export class GameModule { }

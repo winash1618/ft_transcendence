@@ -6,7 +6,12 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuid4 } from 'uuid';
 
-@WebSocketGateway()
+@WebSocketGateway(8001, {
+	cors: {
+		origin: process.env.FRONTEND_BASE_URL,
+		credentials: true,
+	},
+})
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -15,17 +20,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private invitedUser: InvitationMap = new Map<string, SocketData[]>();
   private userSockets: UserMap = new Map<string, SocketData>();
 
-  constructor(
-    private readonly gameService: GameService,
-    private readonly jwtService: JwtService,
+	constructor(
+		private readonly gameService: GameService,
+		private readonly jwtService: JwtService,
 
-    ) {}
+	) { }
 
-  handleConnection(client: Socket) {
-    const token = client.handshake.auth.token;
-    const userid = this.jwtService.verify(token, {
-      secret: process.env.JWT_SECRET
-    });
+	handleConnection(client: Socket) {
+		const token = client.handshake.auth.token;
+		const userid = this.jwtService.verify(token, {
+			secret: process.env.JWT_SECRET
+		});
 
     console.log('User connected: ', userid);
     client.data.userID = userid;
@@ -33,15 +38,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.setUserStatus(client, GameStatus.WAITING);
   }
 
-  handleDisconnect(client: any) {
-    const token = client.handshake.auth.token;
-    const userid = this.jwtService.verify(token, {
-      secret: process.env.JWT_SECRET
-    });
-    console.log('User disconnected: ', userid);
-    this.users = this.users.filter(user => user.userID !== userid);
-    this.userSockets.delete(userid);
-  }
+	handleDisconnect(client: any) {
+		const token = client.handshake.auth.token;
+		const userid = this.jwtService.verify(token, {
+			secret: process.env.JWT_SECRET
+		});
+		console.log('User disconnected: ', userid);
+		this.users = this.users.filter(user => user.userID !== userid);
+		this.userSockets.delete(userid);
+	}
 
   createGameRoom(
     player1: SocketData,
@@ -79,6 +84,34 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return socketData;
   }
 
+	@SubscribeMessage('Register')
+	async registerUser(@ConnectedSocket() client: Socket) {
+		let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
+		console.log("in register");
+		if (this.users.length >= 1) {
+			this.users[0].playerNumber = 1;
+			this.users[0].status = GameStatus.READY;
+			socketData.playerNumber = 2;
+			socketData.status = GameStatus.READY;
+			const roomID = this.createGameRoom(this.users[0], socketData);
+			this.users[0].gameID = roomID;
+			socketData.gameID = roomID;
+			this.server.to(client.id).emit('start', {
+				playerNo: 2,
+				roomID,
+			});
+			this.server.to(this.users[0].client.id).emit('start', {
+				playerNo: 1,
+				roomID,
+			});
+      this.users.splice(0, 1);
+		}
+		else {
+			socketData.status = GameStatus.READY;
+			this.users.push(socketData);
+		}
+	}
+
   @SubscribeMessage('Invite')
   inviteUser(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
     const userID = client.data.userID;
@@ -112,78 +145,56 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('Register')
-  async registerUser(@ConnectedSocket() client: Socket) {
-    console.log('Register');
-    let socketData: SocketData = this.setUserStatus(client, GameStatus.QUEUED);
-
-    if (this.users.length >= 1) {
-      this.users[0].playerNumber = 1;
-      this.users[0].status = GameStatus.READY;
-      socketData.playerNumber = 2;
-      socketData.status = GameStatus.READY;
-      const roomID = this.createGameRoom(this.users[0], socketData);
-      this.users[0].gameID = roomID;
-      socketData.gameID = roomID;
-      this.server.to(client.id).emit('GameCreated', roomID);
-      this.server.to(this.users[0].client.id).emit('GameCreated', roomID);
-      this.users.splice(0, 1);
-    }
-    else {
-      socketData.status = GameStatus.QUEUED;
-      this.users.push(socketData);
-    }
-  }
-
   @SubscribeMessage('JoinGame')
   joinGame(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
     const roomID = data;
     const userID = client.data.userID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
 
-    if (!this.gameRooms[roomID]) {
-      client.disconnect();
-      return;
-    }
-    const gameRoom = this.gameRooms[roomID];
-    if (socketData.status === GameStatus.READY) {
-      if (socketData.gameID == roomID) {
-        client.join(roomID);
-      }
-    }
-    this.server.to(client.id).emit('GameJoined', {
-      playerNumber: socketData.playerNumber,
-      gameRoom: gameRoom.gameObj
-    });
-  }
+		if (!this.gameRooms[roomID]) {
+			console.log("disconnected");
+			client.disconnect();
+			return;
+		}
+		const gameRoom = this.gameRooms[roomID];
+		if (socketData.status === GameStatus.READY) {
+			if (socketData.gameID == roomID) {
+				client.join(roomID);
+			}
+		}
+		this.server.to(client.id).emit('GameJoined', {
+			playerNumber: socketData.playerNumber,
+			gameRoom: gameRoom.gameObj
+		});
+	}
 
 	@SubscribeMessage('move')
 	handleMove(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
 		const roomId = data;
 		const keyStatus: KeyPress = data.key;
+		const isPressed = data.isPressed;
 		if (roomId in this.gameRooms)
-		  this.gameRooms[roomId].barSelect(keyStatus, client);
+			this.gameRooms[roomId].barSelect(keyStatus, client, isPressed);
 	}
 
-  @SubscribeMessage('StartGame')
-  startGame(@MessageBody() data: any) {
-    const roomId = data;
-    if (this.gameRooms[roomId]) {
-      this.gameRooms[roomId].startGame();
-    }
-  }
-}
-/*
-server.on('GameJoined', (data) => {
-  get player number;
-  set the arena using game object sent from GameJoined
-  set player position using player number: playerNumber = 1 || 2
+	@SubscribeMessage('StartGame')
+	startGame(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+		const roomID = data;
+		const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
 
-  server.on('gameUpdate', (data: GameObject) => {
-    keep updating the arena using game object sent from gameUpdate
-    if (number of players are 2) {
-      if (key.upKey || key.downKey)
-        server.emit('move', { key: key pressed, id: roomId })
-    }
-  })
-  */
+		console.log("in join game");
+		if (!this.gameRooms[roomID]) {
+			console.log("disconnected");
+			client.disconnect();
+			return;
+		}
+		if (socketData.status === GameStatus.READY) {
+			if (socketData.gameID === roomID) {
+				client.join(roomID);
+			}
+		}
+		if (this.gameRooms[roomID]) {
+			this.gameRooms[roomID].startGame();
+		}
+	}
+}

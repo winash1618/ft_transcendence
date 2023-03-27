@@ -33,6 +33,15 @@ export class AuthService implements IAuthService {
 		return this.jwtService.sign(payload);
 	}
 
+	async getLongExpiryJwtToken(user): Promise<string> {
+		const payload = {
+			id: user.id,
+			email: user.email,
+			login: user.login,
+		}
+		return this.jwtService.sign(payload, { expiresIn: '3d' });
+	}
+
 	public async decodeToken(token: string): Promise<any> {
 		return this.jwtService.decode(token);
 	}
