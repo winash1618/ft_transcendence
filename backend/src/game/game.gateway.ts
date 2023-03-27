@@ -29,6 +29,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     console.log('User connected: ', userid);
     client.data.userID = userid;
+
+    this.setUserStatus(client, GameStatus.WAITING);
   }
 
   handleDisconnect(client: any) {
@@ -75,18 +77,45 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const socketData = this.userSockets.get(userID);
     socketData.status = status;
     return socketData;
-
   }
 
   @SubscribeMessage('Invite')
   inviteUser(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+    const userID = client.data.userID;
+    const invitedUserID = data;
+    const socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
+    if (this.userSockets.has(invitedUserID)) {
+      const invitedSocketData = this.userSockets.get(invitedUserID);
+      if (invitedSocketData.status === GameStatus.WAITING) {
+        this.invitedUser.set(invitedUserID, [socketData, invitedSocketData]);
+        this.server.to(client.id).emit('Invited', invitedUserID);
+        this.server.to(invitedSocketData.client.id).emit('Invited', userID);
+      }
+    }
+  }
 
+  @SubscribeMessage('Accept')
+  acceptInvitation(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+    const userID = client.data.userID;
+    const invitedUserID = data;
+    const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
+    if (this.invitedUser.has(invitedUserID)) {
+      const invitedSocketData = this.invitedUser.get(invitedUserID)[1];
+      if (invitedSocketData.userID === userID) {
+        const roomID = this.createGameRoom(socketData, invitedSocketData);
+        socketData.gameID = roomID;
+        invitedSocketData.gameID = roomID;
+        this.server.to(client.id).emit('GameCreated', roomID);
+        this.server.to(invitedSocketData.client.id).emit('GameCreated', roomID);
+        this.invitedUser.delete(invitedUserID);
+      }
+    }
   }
 
   @SubscribeMessage('Register')
   async registerUser(@ConnectedSocket() client: Socket) {
     console.log('Register');
-    let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
+    let socketData: SocketData = this.setUserStatus(client, GameStatus.QUEUED);
 
     if (this.users.length >= 1) {
       this.users[0].playerNumber = 1;
@@ -98,9 +127,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socketData.gameID = roomID;
       this.server.to(client.id).emit('GameCreated', roomID);
       this.server.to(this.users[0].client.id).emit('GameCreated', roomID);
+      this.users.splice(0, 1);
     }
     else {
-      socketData.status = GameStatus.READY;
+      socketData.status = GameStatus.QUEUED;
       this.users.push(socketData);
     }
   }

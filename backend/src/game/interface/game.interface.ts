@@ -54,7 +54,6 @@ export interface GameObject {
 export enum GameStatus {
   WAITING,
   PLAYING,
-  STARTED,
   ENDED,
   QUEUED,
   READY,
