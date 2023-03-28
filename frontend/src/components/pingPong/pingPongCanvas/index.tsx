@@ -141,7 +141,7 @@ const PingPongCanvas = ({
         }
       });
     };
-  }, [player]);
+  }, [player, roomID, socket]);
 
   useEffect(() => {
     socket?.on("gameUpdate", (data) => {

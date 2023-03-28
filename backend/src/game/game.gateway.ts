@@ -87,7 +87,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('Register')
 	async registerUser(@ConnectedSocket() client: Socket) {
 		let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
-		console.log("in register");
 		if (this.users.length >= 1) {
 			this.users[0].playerNumber = 1;
 			this.users[0].status = GameStatus.READY;
@@ -170,7 +169,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('move')
 	handleMove(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-		const roomId = data;
+		const roomId = data.roomID;
 		const keyStatus: KeyPress = data.key;
 		const isPressed = data.isPressed;
 		if (roomId in this.gameRooms)
@@ -182,7 +181,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const roomID = data;
 		const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
 
-		console.log("in join game");
 		if (!this.gameRooms[roomID]) {
 			console.log("disconnected");
 			client.disconnect();

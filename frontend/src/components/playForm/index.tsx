@@ -13,10 +13,7 @@ import {
 } from "./playForm.styled";
 import { PlaySchema } from "../../utils/schema";
 import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
-import { logOut, setUserInfo } from "../../store/authReducer";
-import axios from "../../api";
-import { useAppDispatch } from "../../hooks/reduxHooks";
+import { Socket } from "socket.io-client";
 import { Spin } from "antd";
 import { ErrorAlert } from "../toastify";
 
@@ -38,42 +35,11 @@ const PlayForm = ({
   setRoomID: any;
 }) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const dispatch = useAppDispatch();
   const {
     handleSubmit,
     formState: { errors },
     control,
   } = useForm<PlayType>({ resolver: yupResolver(PlaySchema) });
-
-//   useEffect(() => {
-//     const getToken = async () => {
-//       try {
-//         const response = await axios.get("/token", {
-//           withCredentials: true,
-//         });
-//         localStorage.setItem("auth", JSON.stringify(response.data));
-//         dispatch(setUserInfo(response.data.user));
-//         return response.data.token;
-//       } catch (err) {
-//         dispatch(logOut());
-//         window.location.reload();
-//         return null;
-//       }
-//     };
-//     const getSocket = async () => {
-//       const socket = io(process.env.REACT_APP_SOCKET_URL, {
-//         withCredentials: true,
-//         auth: async (cb) => {
-//           const token = await getToken();
-//           cb({
-//             token,
-//           });
-//         },
-//       });
-//       setSocket(socket);
-//     };
-//     getSocket();
-//   }, [dispatch]);
 
   useEffect(() => {
     socket?.on("start", (data) => {
@@ -94,7 +60,7 @@ const PlayForm = ({
         ErrorAlert("You are already in the queue", 5000);
       });
     };
-  }, [socket, setIsGameStarted, setPlayer]);
+  }, [socket, setIsGameStarted, setPlayer, setRoomID]);
 
   const onSubmit: SubmitHandler<PlayType> = (data) => {
     setIsSearching(true);

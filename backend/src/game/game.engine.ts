@@ -205,7 +205,6 @@ export class GameEngine {
 		if (this.users.get(client.data.userID).playerNumber === 1) {
 			this.barMove(keyStatus, this.gameObj.paddle1, isPressed);
 		} else if (this.users.get(client.data.userID).playerNumber === 2) {
-			console.log(" player 2");
 			this.barMove(keyStatus, this.gameObj.paddle2, isPressed);
 		}
 	}
