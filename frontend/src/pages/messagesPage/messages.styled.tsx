@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { BsSend } from 'react-icons/bs';
 
 export const ParentContainer = styled.div`
@@ -232,15 +232,69 @@ padding-left: 10px;
   height: 50px;
 `;
 
-export const UsersListContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 18%;
-  height: 100%;
-  background-color: #1A1D1F;
-  border-radius: 15px;
-  padding: 10px;
+
+export const ParentUserListDiv = styled.div`
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+align-items: flex-start;
+width: 18%;
+height: 100%;
+background-color: #1A1D1F;
+border-radius: 15px;
+padding: 10px;
 `;
 
+// export const UserFriendListDiv = styled.div`
+export const UserListInput = styled.input.attrs({ type: "checkbox" })``;
+
+export const UserListLabel = styled.label`
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+`
+type LabelTextProps = {
+	$mode: string;
+  };
+  
+export const UserListLabelText = styled.span<LabelTextProps>`
+ as ThemedStyledProps<DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>, any>;
+  ${(props) => {
+    switch (props.$mode) {
+      case "dark":
+        return css`
+          background-color: black;
+          color: white;
+          ${UserListInput}:checked + && {
+            color: blue;
+          }
+        `;
+      default:
+        return css`
+          background-color: white;
+          color: black;
+          ${UserListInput}:checked + && {
+            color: red;
+          }
+        `;
+    }
+  }}
+`;
+
+interface CreateConversationDivProps {
+	backgroundColor: string;
+}
+
+export const CreateConversationDiv = styled.div<CreateConversationDivProps>`
+  color: white;
+  font-size: 1em;
+  margin: 1em;
+  border: 0px;
+  padding-left: 30px;
+  padding-top: 10px;
+  border-radius: 15px;
+  width: 90%;
+  height: 50px;
+  background: ${({ backgroundColor }) => backgroundColor};
+`;

@@ -1,4 +1,4 @@
-import { ParentContainer } from "./homepage.styled";
+import { ParentContainer, Label, Input, LabelText } from "./homepage.styled";
 import { useState } from 'react';
 
   const HomePage = () => {
@@ -8,10 +8,25 @@ import { useState } from 'react';
 	  setParentContainerColor('#0af');
 	};
   
-	return (
-	  <ParentContainer onClick={handleParentContainerClick} backgroundColor={parentContainerColor}>
-		Home Page
-	  </ParentContainer>
+	return (<>
+	
+		<Label>
+		<Input defaultChecked />
+		<LabelText $mode="dark">Foo</LabelText>
+	  </Label>
+	  <Label>
+		<Input />
+		<LabelText $mode="dark">Foo</LabelText>
+	  </Label>
+	  <Label>
+		<Input defaultChecked />
+		<LabelText $mode="dark">Foo</LabelText>
+	  </Label>
+	  <Label>
+		<Input defaultChecked />
+		<LabelText $mode="dark">Foo</LabelText>
+	  </Label>
+	</>
 	);
   };
   

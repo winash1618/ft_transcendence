@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav, UsersListContainer } from './messages.styled';
+import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav, ParentUserListDiv, UserListLabel, UserListInput, UserListLabelText, CreateConversationDiv } from './messages.styled';
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
+import { BiCommentAdd } from 'react-icons/bi';
 import { UserProfilePicture } from '../../assets';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch } from '../../hooks/reduxHooks';
@@ -61,7 +62,6 @@ const MessagesPage = () => {
 				setConversations(objectFull.conversations);
 				setMyParticipantID(objectFull.participant_id);
 				handleSelectedConversation(objectFull.conversations[0]);
-				
 			});
 			socket?.on('getTwoPeopleConversation', (twoPeopleConversations) => {
 				setConversations(twoPeopleConversations);
@@ -72,7 +72,6 @@ const MessagesPage = () => {
 				setConversations(manyPeopleConversations);
 				console.log(conversations);
 				handleSelectedConversation(manyPeopleConversations[0]);
-				
 			});
 			socket?.on('reloadConversations', (conversation) => {
 				setConversations(conversation);
@@ -201,20 +200,28 @@ const MessagesPage = () => {
 						<SendButton type="submit" onClick={(e) => handleSubmit(e)} size={24} />
 					</MessageInputParent>
 				</MessageBox>
-				<UsersListContainer>
+				<ParentUserListDiv>
+					<CreateConversationDiv backgroundColor='#00A551'>
+							<BiCommentAdd size={24}/> Create Conversation
+					</CreateConversationDiv>
+							<h1>Owner</h1>
 					{
 						users.map((u) => {
 							if (u.login !== user.login) {
 								return (
-									<ContactDiv key={u.login} backgroundColor={contactDivColor}>
-										<ContactImage src={UserProfilePicture} alt="" />
-										<ContactName>{u.login}</ContactName>
-									</ContactDiv>
+									// <ContactDiv key={u.login} backgroundColor={contactDivColor}>
+									// 	<ContactImage src={UserProfilePicture} alt="" />
+									// 	<ContactName>{u.login}</ContactName>
+									// </ContactDiv>
+									<UserListLabel>
+										<UserListInput defaultChecked/>
+										<UserListLabelText $mode="dark">{u.login}</UserListLabelText>
+									</UserListLabel>
 								);
 							}
 						})
 					}
-				</UsersListContainer>
+				</ParentUserListDiv>
 			</ParentContainer>
 		</>
 	)

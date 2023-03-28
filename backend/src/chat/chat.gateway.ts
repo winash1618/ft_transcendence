@@ -144,9 +144,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				message: data.content,
 			});
 			console.log("Message Sent");
-			this.server.emit("sendMessage", data);
+			// this.server.emit("sendMessage", data);
 
-		// socket.to(conversationID).emit('messageReceived', messageSent);
+		this.server.to(data.conversation_id).emit('sendMessage', data);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
