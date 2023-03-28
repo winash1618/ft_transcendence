@@ -13,10 +13,10 @@ const MessagesPage = () => {
 	const [user, setUser] = useState(null);
 	const [users, setUsers] = useState([]);
 	const [conversations, setConversations] = useState([]);
-	const [otherUser, setOtherUser] = useState(null);
 	const [socket, setSocket] = useState<Socket | null>(null);
-	const [stateMessage, setStateMessage] = useState([]);
 	const [conversationID, setConversationID] = useState(null);
+	const [messageNavButtonColor, setMessageNavButtonColor] = useState("#00A551");
+	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -58,6 +58,7 @@ const MessagesPage = () => {
 				setUsers(objectFull.ListOfAllUsers);
 				setConversations(objectFull.conversations);
 				// setUsers(objectFull);
+				handleSelectedConversation(null, objectFull.conversations[0]);
 				
 			});
 			socket?.on('reloadConversations', (conversation) => {
@@ -90,22 +91,16 @@ const MessagesPage = () => {
 		}
 	};
 
-
-	const handleSelectUser = async (event, otheruser) => {
-		event.preventDefault();
-		console.log(otheruser);
-		setOtherUser(otheruser);
-		// socket?.emit('createConversation', otheruser);
-		// axios.get(`getParticipantsByUserID/${otheruser}`).then((response) => {
-		// 	console.log(response.data); // Handle the response data here
-		//   }).catch((error) => {
-		// 	console.error(error); // Handle errors here
-		//   });
+	const handleMessageNavClick = () => {
+			setMessageNavButtonColor("#00A551");
+			setMessageNavButtonColorNotUsed("#1A1D1F");
+	};
+	const handleMessageNavNotUsedClick = () => {
+			setMessageNavButtonColor("#1A1D1F");
+			setMessageNavButtonColorNotUsed("#00A551");
 	};
 
 	const handleSelectedConversation = async (event, conversation) => {
-		event.preventDefault();
-		// console.log(conversation);
 		socket?.emit('reloadConversations', conversations);
 		setMessages([]);
 		setConversationID(conversation.id);
@@ -122,15 +117,16 @@ const MessagesPage = () => {
 	};
 
 
+
 	return (
 		<>
 			<ParentContainer>
 				<ChatListContainer>
 					<ParentMessageNav>
-						<MessageNav>
+						<MessageNav onClick={handleMessageNavClick} backgroundColor={messageNavButtonColor}>
 							<HiOutlineUser /> Inbox
 						</MessageNav>
-						<MessageNavNotUsed>
+						<MessageNavNotUsed onClick={handleMessageNavNotUsedClick} backgroundColor={messageNavButtonColorNotUsed}>
 							<HiOutlineUserGroup /> Groups
 						</MessageNavNotUsed>
 					</ParentMessageNav>
@@ -195,7 +191,7 @@ const MessagesPage = () => {
 						users.map((u) => {
 							if (u.login !== user.login) {
 								return (
-									<ContactDiv key={u.login} onClick={(e) => handleSelectUser(e, user.id)} >
+									<ContactDiv key={u.login}>
 										<ContactImage src={UserProfilePicture} alt="" />
 										<ContactName>{u.login}</ContactName>
 									</ContactDiv>

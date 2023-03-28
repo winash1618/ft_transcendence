@@ -164,23 +164,31 @@ export const ParentMessageNav = styled.div`
   border-bottom: 2px solid black;
 `;
 
-export const MessageNav = styled.button`
+interface MessageNavProps {
+	backgroundColor: string;
+}
+
+export const MessageNav = styled.button<MessageNavProps>`
   color: white;
   font-size: 1em;
   margin: 1em;
-  background: #00A551;
+  background: ${({ backgroundColor }) => backgroundColor};
   border: 0px;
   border-radius: 15px;
   width: 150px;
   height: 50px;
 `;
 
+interface MessageNavNotUsedProps {
+	backgroundColor: string;
+}
+
 // A new component based on Button, but with some override styles
-export const MessageNavNotUsed = styled.button`
+export const MessageNavNotUsed = styled.button<MessageNavNotUsedProps>`
   color: white;
   font-size: 1em;
   margin: 1em;
-  background: #111315;
+  background: ${({ backgroundColor }) => backgroundColor};
   border-radius: 15px;
   border: 0px;
   width: 150px;

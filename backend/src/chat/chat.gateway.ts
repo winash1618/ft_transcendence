@@ -35,7 +35,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	) { }
 
 	async handleConnection(socket: AuthenticatedSocket) {
-		// console.log("Socket: ", socket);
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
@@ -43,66 +42,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				secret: process.env.JWT_SECRET,
 			});
 			console.log("User: ", user);
-			// what we need to when we are connnecting to the socket
-			// we need find all the conversations that the user is in
-			// then we need to get all the messages for each conversation
-			// then we need to list all the available users that the user can chat with
-			// So now let's plan how to do this
-			// first we are going to get all the available users with their id, name and profile picture
-			// second we are going to get all the conversations that the user is in
-			// the conversation object will have conversation id, title, participants
-			// then we are going to get all the messages for each conversation from the message table
-
-
-			// So how are we going to create the socket rooms
-			// we are going to create a room for each conversation with the conversation id as the room name
-			// and we are going to make everyone join the room with their respective conversation id
-			// so that when we send a message to a particular conversation we can send it to the room with the conversation id
-
-
-			// So now what we need is the conversation Id's at the front end
-			// and we need to list all the participants in the conversation other than the current user
-			// if it is a group conversation then we need to list the title of the conversation
-			/* 
-				object = [
-					{
-						conversation_id: conversation_id,
-						title: title,
-						participants: [participant1, participant2, participant3, ...], MyselfNotincluded
-					},
-					{
-						conversation_id: conversation_id,
-						title: title,
-						participants: [participant1, participant2, participant3, ...], MyselfNotincluded
-					},
-					...
-
-				]
-			*/
-
-
-
-			// const participantsList = [];
-			// conversations.forEach((p) => {
-			// 	participantsList.push({
-			// 		conversation_id: p.conversation_id,
-			// 	  });
-			// });
-			// console.log("Participants List: ", participantsList);
-
-			// // join the socket to the room with the conversation id
-			// participants.forEach((p) => {
-			// 	socket.join(p.conversation_id);
-			// });
-
-
-
-
 			const ListOfAllUsers = await this.prisma.user.findMany();
-			console.log("List of all users: ", ListOfAllUsers);
 			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
-			console.log("List of all users without me: ", ListOfAllUsersWithoutMe);
-			// get User object with user id and login status from ListOfAllUsersWithoutMe
 			const ListOfAllUsersObject = [];
 			ListOfAllUsersWithoutMe.forEach((u) => {
 				ListOfAllUsersObject.push({
@@ -121,7 +62,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				},
 			});
 			console.log("Participants: ", participants);
-			// const conversations = [];
 			const conversations = participants[0].conversation.map(conversation => ({
 				  ...conversation,
 				}));
@@ -131,10 +71,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				socket.join(c.id);
 			});
 			console.log("Rooms: ", socket.rooms);
-
-			// So now we have conversation list.
-			// Now we need to get the convesation object to the front end
-			// So we need to get the conversation object from the conversation table
 			const conversationObjects = [];
 			for (const c of conversations) {
 			 
@@ -151,102 +87,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
 
 			console.log("Conversation Object: ", flattenedConversationObjects);
-
-
-
-			// console.log(users);
-			// const users = await this.prisma.user.findMany();
-			// console.log("Users: ", users);
-			// const socketId = socket.id;
-			// const userObject = {	users: users,  socketId: socketId };
-			// const participant = await this.participantService.getParticipantsByUserID("f259dca5-fd72-4c34-97a4-c783f60f54b6");
-			// console.log(participant);
-			// participant.forEach(async (p) => {
-			// 	const conversationID = p.conversation_id;
-			// 	const messages = await this.prisma.message.findMany({
-			// 	  where: { conversation_id: conversationID },
-			// 	  include: { author: true },
-			// 	  orderBy: { created_at: 'asc' },
-			// 	});
-			// 	console.log("Messages: ", messages);
-			// });
-			// first we get the participants from the participant table
-			// then for each participant we check coversation id if there only 2 participants
-			// then we get the messages for that converation id for the personnel messages
-			// then check convesation id if there are more than 2 participants
-			// then we get the messages for that converation id for the group messages 
-			// add this to a dictionary with the conversation id as the key and number of participants as the value
-			// listOfSocketIDs.push(socket.id);
-			// console.log("Socket handshake query: ", socket.handshake.query);
-			// socket.emit('availableUsers', users);
-			// const userObject = await this.prisma.user.findUnique({
-			// 	where: { id: user.id },
-			// 	include: { conversations: true, participant_in: true },
-			// });
-			// console.log("successfully emitted");
-			// // console.log("Conversations: ", conversations);
-			// userObject.conversations.forEach((c) => {
-			// 	socket.join(c.id);
-			// });
-			// const participantsList = userObject.participant_in;
-			// console.log("Participants List: ", participantsList);
-
-			// const conversations = [];
-			// for (const c of userObject.conversations) {
-			// 	const participants = [];
-			// 	for (const p of userObject.participant_in) {
-			// 	  if (p.conversation_id === c.id) {
-			// 		const userObject = await this.prisma.user.findUnique({
-			// 		  where: { id: p.user_id },
-			// 		});
-			// 		console.log("User Object mine: ", userObject);
-			// 		participants.push({
-			// 		  login: userObject.login,
-			// 		  username: userObject.username,
-			// 		});
-			// 	  }
-			// 	}
-			// 	const conversation = {
-			// 	  conversation_id: c.id,
-			// 	  title: c.title,
-			// 	  participants: participants,
-			// 	};
-			// 	conversations.push(conversation);
-			//   }
-
-			// console.log("Conversations: ", conversations);
-
-			// // get users from conversations.participants
-			// const users = [];
-			// conversations.forEach((c) => {
-			// 	c.participants.forEach((p) => {
-			// 		if (p.user_id !== user.id) {
-			// 			users.push(p);
-			// 		}
-			// 	})
-			// });
-			// console.log("Users: ", users);
-
-
-
-			// // create object to emit
-			// const objectToEmit = {
-			// 	conversations: conversations,
-			// 	users: users,
-			// 	ListOfAllUsers: ListOfAllUsersObject
-			// }
-			// get the user object for each user
-			// const userObjects = [];
-			// for (const u of users) {
-			// const userObject = await this.prisma.user.findUnique({
-			// 	where: { id: u },
-			// });
-			// userObjects.push({
-			// 	username: userObject.login,
-
-			// });
-			// }
-			// console.log("User Objects: ", userObjects);
 
 			const objectToEmit = {
 				conversations: flattenedConversationObjects,
@@ -295,34 +135,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			// console.log("User: ", user);
-
-			// const userObject = data.user;
-			// const participant = await this.participantService.getParticipantsByUserID(userObject.id);
-			// console.log("participant: ", participant);
-			// const conversationID = participant[0].conversation_id;
-			// console.log("conversationID: ", conversationID);
-			// const messageSent = await this.messageService.create({
-			//   conversation_id: conversationID,
-			//   author_id: user.id,
-			//   message: data.message,
-			// });
-
-
-			// const userObject = await this.prisma.user.findUnique({
-			// 	where: {
-			// 		login: user.login,
-			// 	},
-			// });
-			// console.log("User Object: ", userObject);
-			// const participants = await this.participantService.getParticipantsByUserID(userObject.id);
-			// console.log("participants: ", participants);
-			// participants.forEach((p) => {
-			// 	this.server.to(p.conversation_id).emit("sendMessage",data);
-			// });
-			// this.server.to("mkaruvan").emit("sendMessage",data);
-			// console.log("Sending Success");
-			// console.log("Data: ", data);
 			const participant = await this.participantService.getParticipantsByUserID(user.id);
 			console.log("Participant: ", participant);
 			await this.messageService.create({
