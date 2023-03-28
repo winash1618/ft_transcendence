@@ -195,9 +195,11 @@ export const MessageNavNotUsed = styled.button<MessageNavNotUsedProps>`
   height: 50px;
 `;
 
-
+interface ContactDivProps {
+	backgroundColor: string;
+}
 // create a styled div component that'll render a contact div
-export const ContactDiv = styled.div`
+export const ContactDiv = styled.div<ContactDivProps>`
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -206,6 +208,7 @@ export const ContactDiv = styled.div`
   border-radius: 10px;
   margin-top: 10px;
   border: 2px solid #00A551;
+  background: ${({ backgroundColor }) => backgroundColor};
 `;
 
 export const ContactImage = styled.img`

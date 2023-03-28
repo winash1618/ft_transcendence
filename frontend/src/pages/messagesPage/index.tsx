@@ -17,6 +17,8 @@ const MessagesPage = () => {
 	const [conversationID, setConversationID] = useState(null);
 	const [messageNavButtonColor, setMessageNavButtonColor] = useState("#00A551");
 	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
+	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
+	const [myParticipntID, setMyParticipantID] = useState(null);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -57,8 +59,19 @@ const MessagesPage = () => {
 			socket?.on('availableUsers', (objectFull) => {
 				setUsers(objectFull.ListOfAllUsers);
 				setConversations(objectFull.conversations);
-				// setUsers(objectFull);
-				handleSelectedConversation(null, objectFull.conversations[0]);
+				setMyParticipantID(objectFull.participant_id);
+				handleSelectedConversation(objectFull.conversations[0]);
+				
+			});
+			socket?.on('getTwoPeopleConversation', (twoPeopleConversations) => {
+				setConversations(twoPeopleConversations);
+				handleSelectedConversation(twoPeopleConversations[0]);
+				
+			});
+			socket?.on('getManyPeopleConversation', (manyPeopleConversations) => {
+				setConversations(manyPeopleConversations);
+				console.log(conversations);
+				handleSelectedConversation(manyPeopleConversations[0]);
 				
 			});
 			socket?.on('reloadConversations', (conversation) => {
@@ -79,7 +92,7 @@ const MessagesPage = () => {
 		if (message.trim() !== "") {
 			const newMessage = {
 				id: Date.now(),
-				auther_id: user.id,
+				author_id: myParticipntID,
 				conversation_id: conversationID,
 				content: message,
 				type: "right",
@@ -92,22 +105,26 @@ const MessagesPage = () => {
 	};
 
 	const handleMessageNavClick = () => {
+			socket?.emit('getTwoPeopleConversation');
 			setMessageNavButtonColor("#00A551");
 			setMessageNavButtonColorNotUsed("#1A1D1F");
+			
 	};
 	const handleMessageNavNotUsedClick = () => {
+			socket?.emit('getManyPeopleConversation');
 			setMessageNavButtonColor("#1A1D1F");
 			setMessageNavButtonColorNotUsed("#00A551");
 	};
 
-	const handleSelectedConversation = async (event, conversation) => {
+	const handleSelectedConversation = async (conversation) => {
 		socket?.emit('reloadConversations', conversations);
 		setMessages([]);
 		setConversationID(conversation.id);
+		setContactDivColor("#00A551");
 		conversation.messages.map((m) => {
 			const newMessage = {
 				id: m.id,
-				auther_id: m.auther_id,
+				author_id: m.author_id,
 				content: m.message,
 				type: "right",
 			};
@@ -133,7 +150,7 @@ const MessagesPage = () => {
 					{
 						conversations.map((c) => {
 								return (
-									<ContactDiv key={c.id} onClick={(e) => handleSelectedConversation(e, c)}>
+									<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={conversationID === c.id ? contactDivColor : '#1A1D1F'}>
 										<ContactImage src={UserProfilePicture} alt="" />
 										<ContactName>{c.title}</ContactName>
 									</ContactDiv>
@@ -148,16 +165,14 @@ const MessagesPage = () => {
 						{
 						(
 							messages.map((message) => {
-								
-							if (message.type === "right") {
-								
+							if (message.author_id === myParticipntID) {
 								return (
 								<MessageRightContainer key={message.id}>
 									<MessageRight>{message.content}</MessageRight>
 									<MessageImage src={UserProfilePicture} alt="" />
 								</MessageRightContainer>
 								);
-							} else if (message.type === "left") {
+							} else {
 
 								return (
 								<MessageLeftContainer key={message.id}>
@@ -191,7 +206,7 @@ const MessagesPage = () => {
 						users.map((u) => {
 							if (u.login !== user.login) {
 								return (
-									<ContactDiv key={u.login}>
+									<ContactDiv key={u.login} backgroundColor={contactDivColor}>
 										<ContactImage src={UserProfilePicture} alt="" />
 										<ContactName>{u.login}</ContactName>
 									</ContactDiv>

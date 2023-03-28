@@ -85,12 +85,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			  }));
 			}
 			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-
-			console.log("Conversation Object: ", flattenedConversationObjects);
+			const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
+			console.log("Conversation Object: ", twoPeopleConversationObject);
 
 			const objectToEmit = {
-				conversations: flattenedConversationObjects,
-				ListOfAllUsers: ListOfAllUsersObject
+				conversations: twoPeopleConversationObject,
+				ListOfAllUsers: ListOfAllUsersObject,
+				participant_id: participants[0].id,
 			}
 
 			socket.emit('availableUsers', objectToEmit);
@@ -139,7 +140,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			console.log("Participant: ", participant);
 			await this.messageService.create({
 				conversation_id: data.conversation_id,
-				author_id: participant.id,
+				author_id: data.author_id,
 				message: data.content,
 			});
 			console.log("Message Sent");
@@ -194,6 +195,88 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
 			console.log("Flattened Conversation Objects: ", flattenedConversationObjects);
 			socket.emit('reloadConversations', flattenedConversationObjects);
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
+	}
+
+	@SubscribeMessage('getTwoPeopleConversation')
+	async getTwoPeopleConversation(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const participants = await this.prisma.participant.findMany({
+				where: {
+					user_id: user.id,
+				},
+				include: {
+					conversation: true,
+				},
+			});
+			const conversations = participants[0].conversation.map(conversation => ({
+				...conversation,
+			  }));
+			  const conversationObjects = [];
+			  for (const c of conversations) {
+			   
+				conversationObjects.push( await this.prisma.conversation.findMany({
+				  where: {
+					id: c.id,
+				  },
+				  include: {
+					participants: true,
+					messages: true,
+				  },
+				}));
+			  }
+			  const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+			  const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
+			  console.log("Two People Conversation Object: ", twoPeopleConversationObject);
+			  socket.emit('getTwoPeopleConversation', twoPeopleConversationObject);
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
+	}
+	@SubscribeMessage('getManyPeopleConversation')
+	async getManyPeopleConversation(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const participants = await this.prisma.participant.findMany({
+				where: {
+					user_id: user.id,
+				},
+				include: {
+					conversation: true,
+				},
+			});
+			const conversations = participants[0].conversation.map(conversation => ({
+				...conversation,
+			  }));
+			  const conversationObjects = [];
+			for (const c of conversations) {
+			 
+			  conversationObjects.push( await this.prisma.conversation.findMany({
+				where: {
+				  id: c.id,
+				},
+				include: {
+				  participants: true,
+				  messages: true,
+				},
+			  }));
+			}
+			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+			const manyPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length > 2);
+			socket.emit('getManyPeopleConversation', manyPeopleConversationObject);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
