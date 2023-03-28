@@ -44,7 +44,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			secret: process.env.JWT_SECRET
 		});
 		console.log('User disconnected: ', userid);
-		this.users = this.users.filter(user => user.userID !== userid);
+		this.users = this.users.filter(user => user.userID === userid);
 		this.userSockets.delete(userid);
 	}
 
@@ -170,7 +170,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('move')
 	handleMove(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-		const roomId = data;
+		const roomId = data.roomID;
 		const keyStatus: KeyPress = data.key;
 		const isPressed = data.isPressed;
 		if (roomId in this.gameRooms)
