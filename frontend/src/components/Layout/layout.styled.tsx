@@ -1,4 +1,7 @@
+import { Layout } from "antd";
 import styled from "styled-components";
+
+const { Sider } = Layout;
 
 export const LogoWrapper = styled.div`
   width: 100%;
@@ -14,9 +17,15 @@ export const LogoImg = styled.img`
 `;
 
 export const HeaderWrapper = styled.div`
-	display: flex;
-	gap: 20px;
-	justify-content: center;
-	align-items: center;
-	float: right;
-`
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  float: right;
+`;
+export const CustomSider = styled(Sider)`
+  position: absolute !important;
+  z-index: 99999;
+  height: 100vh;
+  background: #222222 !important;
+`;

@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./authReducer";
+import usersReducer from "./usersReducer";
 
 export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
@@ -8,6 +9,7 @@ export const store = configureStore({
     }),
   reducer: {
     auth: authReducer,
+	users: usersReducer,
   },
 });
 

@@ -3,6 +3,7 @@ import Navbar from "../components/Layout";
 import LeaderBoardPage from "../pages/leaderBoardPage";
 import MessagesPage from "../pages/messagesPage";
 import PingPongPage from "../pages/pingPongPage";
+import ProfilePage from "../pages/profilePage";
 import SettingsPage from "../pages/settingsPage";
 
 export const router = createBrowserRouter([
@@ -12,7 +13,8 @@ export const router = createBrowserRouter([
       { path: "/", element: <LeaderBoardPage /> },
       { path: "/messages", element: <MessagesPage /> },
       { path: "/pingpong", element: <PingPongPage /> },
-	  { path: "/settings", element: <SettingsPage />}
+      { path: "/settings", element: <SettingsPage /> },
+      { path: "/profile/:id", element: <ProfilePage /> },
     ],
   },
 ]);

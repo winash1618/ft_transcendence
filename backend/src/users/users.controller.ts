@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,11 +21,11 @@ export class UsersController {
 	// 	return this.usersService.users();
 	// }
 
-	@Get(':id')
-	async findOne(@Param('id') email: string) {
-		const user = await this.usersService.findOne(email);
+	@Get(':uuid')
+	async findOne(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
+		const user = await this.usersService.findById(uuid);
 		if (!user) {
-			throw new NotFoundException(`User #${email}: not found`);
+			throw new NotFoundException(`User #${uuid}: not found`);
 		}
 		return user;
 	}

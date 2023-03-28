@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import axios, { BASE_URL } from "../../api";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { logOut, setUserInfo } from "../../store/authReducer";
 import Loading from "../loading";
-import { HeaderWrapper, LogoImg, LogoWrapper } from "./layout.styled";
+import { CustomSider, HeaderWrapper, LogoImg, LogoWrapper } from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
 
-const { Content, Footer, Sider, Header } = Layout;
+const { Content, Footer, Header } = Layout;
 
 const navItems = [
   { icon: UserOutlined, path: "/", label: "Leaderboard" },
@@ -20,7 +20,9 @@ const navItems = [
 
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState(true);
+  const [selected, setSelected] = useState<string>("1");
   const dispatch = useAppDispatch();
+  const location = useLocation();
   const getToken = async () => {
     try {
       const response = await axios.get(`/token`);
@@ -35,7 +37,19 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     getToken();
+    if (location.pathname === "/") {
+    }
   });
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setSelected("1");
+    } else if (location.pathname === "/pingpong") {
+      setSelected("2");
+    } else if (location.pathname === "/messages") {
+      setSelected("3");
+    }
+  }, [location]);
 
   return (
     <>
@@ -43,10 +57,9 @@ const Navbar: React.FC = () => {
         <Loading />
       ) : (
         <Layout style={{ minHeight: "100%" }}>
-          <Sider
-            style={{ background: "#222222" }}
-            breakpoint="lg"
+          <CustomSider
             collapsedWidth="0"
+			collapsible={true}
             onBreakpoint={(broken) => {
               console.log(broken);
             }}
@@ -61,14 +74,14 @@ const Navbar: React.FC = () => {
               style={{ background: "var(--main-700)" }}
               theme="dark"
               mode="inline"
-              defaultSelectedKeys={["4"]}
+              selectedKeys={[selected]}
               items={navItems.map((item, index) => ({
                 key: String(index + 1),
                 icon: React.createElement(item.icon),
                 label: <Link to={item.path}>{item.label}</Link>,
               }))}
             />
-          </Sider>
+          </CustomSider>
           <Layout style={{ background: "var(--main-800)" }}>
             <Header
               style={{
