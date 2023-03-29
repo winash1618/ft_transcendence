@@ -54,6 +54,7 @@ CREATE TABLE "Participant" (
     "user_id" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'USER',
     "conversation_status" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "conversation_id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -89,12 +90,6 @@ CREATE TABLE "_blocked_users" (
 );
 
 -- CreateTable
-CREATE TABLE "_ConversationToParticipant" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
-);
-
--- CreateTable
 CREATE TABLE "_GameToUser" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
@@ -104,7 +99,7 @@ CREATE TABLE "_GameToUser" (
 CREATE UNIQUE INDEX "User_login_key" ON "User"("login");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Participant_user_id_key" ON "Participant"("user_id");
+CREATE UNIQUE INDEX "Participant_conversation_id_user_id_key" ON "Participant"("conversation_id", "user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_friends_AB_unique" ON "_friends"("A", "B");
@@ -117,12 +112,6 @@ CREATE UNIQUE INDEX "_blocked_users_AB_unique" ON "_blocked_users"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_blocked_users_B_index" ON "_blocked_users"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_ConversationToParticipant_AB_unique" ON "_ConversationToParticipant"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_ConversationToParticipant_B_index" ON "_ConversationToParticipant"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_GameToUser_AB_unique" ON "_GameToUser"("A", "B");
@@ -140,6 +129,9 @@ ALTER TABLE "Message" ADD CONSTRAINT "Message_author_id_fkey" FOREIGN KEY ("auth
 ALTER TABLE "Participant" ADD CONSTRAINT "Participant_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Participant" ADD CONSTRAINT "Participant_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "Conversation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "_friends" ADD CONSTRAINT "_friends_A_fkey" FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -150,12 +142,6 @@ ALTER TABLE "_blocked_users" ADD CONSTRAINT "_blocked_users_A_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "_blocked_users" ADD CONSTRAINT "_blocked_users_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_ConversationToParticipant" ADD CONSTRAINT "_ConversationToParticipant_A_fkey" FOREIGN KEY ("A") REFERENCES "Conversation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_ConversationToParticipant" ADD CONSTRAINT "_ConversationToParticipant_B_fkey" FOREIGN KEY ("B") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_GameToUser" ADD CONSTRAINT "_GameToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;

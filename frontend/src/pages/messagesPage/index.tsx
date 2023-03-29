@@ -19,8 +19,9 @@ const MessagesPage = () => {
 	const [messageNavButtonColor, setMessageNavButtonColor] = useState("#00A551");
 	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
 	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
-	const [myParticipntID, setMyParticipantID] = useState(null);
+	const [myParticipantID, setMyParticipantID] = useState(null);
 	const [isFormVisible, setIsFormVisible] = useState(false);
+	const [currentConversation, setCurrentConversation] = useState(null);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -54,29 +55,32 @@ const MessagesPage = () => {
 				},
 			});
 			setSocket(socket);
-			socket?.on('message', (message) => {
-				console.log(message);
-				setMessages((messages) => [...messages, message]);
-			});
 			socket?.on('availableUsers', (objectFull) => {
 				setUsers(objectFull.ListOfAllUsers);
 				setConversations(objectFull.conversations);
-				setMyParticipantID(objectFull.participant_id);
-				handleSelectedConversation(objectFull.conversations[0]);
+				if (objectFull.conversations.length > 0)
+				{
+					handleOnLoadConversation(objectFull.conversations[0]);
+				}
 			});
-			socket?.on('getTwoPeopleConversation', (twoPeopleConversations) => {
-				setConversations(twoPeopleConversations);
-				handleSelectedConversation(twoPeopleConversations[0]);
-				
+			socket?.on('getDirectConversations', (object) => {
+				setConversations(object.conversations);
+				if (object.conversations.length > 0)
+				{
+					handleOnLoadConversation(object.conversations[0]);
+				}
 			});
-			socket?.on('getManyPeopleConversation', (manyPeopleConversations) => {
-				setConversations(manyPeopleConversations);
-				console.log(conversations);
-				handleSelectedConversation(manyPeopleConversations[0]);
+			socket?.on('getGroupConversations', (object) => {
+				setConversations(object.conversations);
+				if (object.conversations.length > 0)
+				{
+					handleOnLoadConversation(object.conversations[0]);
+				}
 			});
-			socket?.on('reloadConversations', (conversation) => {
-				setConversations(conversation);
-				console.log("This is what is happending", conversation);
+			socket?.on('reloadConversations', (reloadObject) => {
+				setMyParticipantID(reloadObject.myParticipantID);
+				setConversations(reloadObject.conversations);
+				setCurrentConversation(reloadObject.currentConversation);
 			});
 			socket?.on('sendMessage', (message) => {
 				console.log(message);
@@ -92,13 +96,12 @@ const MessagesPage = () => {
 		if (message.trim() !== "") {
 			const newMessage = {
 				id: Date.now(),
-				author_id: myParticipntID,
+				author_id: "Set this to participant id",
 				conversation_id: conversationID,
 				content: message,
 				type: "right",
 			};
 			// setMessages([...messages, newMessage]);
-			// console.log(newMessage);
 			socket?.emit('sendMessage', newMessage);
 			setMessage("");
 		}
@@ -106,15 +109,14 @@ const MessagesPage = () => {
 	};
 
 	const handleMessageNavClick = () => {
-			socket?.emit('getTwoPeopleConversation');
+			socket?.emit('getDirectConversations');
 			setMessageNavButtonColor("#00A551");
 			setMessageNavButtonColorNotUsed("#1A1D1F");
 			setIsFormVisible(false);
-			
 	};
 
 	const handleMessageNavNotUsedClick = () => {
-			socket?.emit('getManyPeopleConversation');
+			socket?.emit('getGroupConversations');
 			setMessageNavButtonColor("#1A1D1F");
 			setMessageNavButtonColorNotUsed("#00A551");
 			setIsFormVisible(false);
@@ -125,7 +127,31 @@ const MessagesPage = () => {
 	};
 
 	const handleSelectedConversation = async (conversation) => {
-		socket?.emit('reloadConversations', conversations);
+		socket?.emit('reloadConversations', conversation);
+		setConversationID(conversation.id);
+		setContactDivColor("#00A551");
+		console.log("CurrentConversation ", currentConversation);
+		console.log("conversation Id ", conversationID);
+		if ((currentConversation !== null) && (conversationID !== currentConversation.id))
+		{
+			setMessages([]);
+			currentConversation.messages.map((m) => {
+				console.log("Message ", m.author_id, " ", myParticipantID)
+				const newMessage = {
+					id: m.id,
+					author_id: m.author_id,
+					content: m.message,
+					type: "right",
+				};
+				setMessages((messages) => [...messages, newMessage]);
+			});
+			setCurrentConversation(null);
+		}
+		setIsFormVisible(false);
+	};
+	const handleOnLoadConversation = async (conversation) => {
+		socket?.emit('reloadConversations', conversation);
+		console.log("ParticipantID ", myParticipantID)
 		setMessages([]);
 		setConversationID(conversation.id);
 		setContactDivColor("#00A551");
@@ -140,6 +166,22 @@ const MessagesPage = () => {
 		});
 		setIsFormVisible(false);
 	};
+	// const handleReOnLoadConversation = async (conversation) => {
+	// 	socket.emit('reloadConversations', conversation);
+	// 	setMessages([]);
+	// 	setConversationID(conversation.id);
+	// 	setContactDivColor("#00A551");
+	// 	conversation.messages.map((m) => {
+	// 		const newMessage = {
+	// 			id: m.id,
+	// 			author_id: m.author_id,
+	// 			content: m.message,
+	// 			type: "right",
+	// 		};
+	// 		setMessages((messages) => [...messages, newMessage]);
+	// 	});
+	// 	setIsFormVisible(false);
+	// };
 
 	return (
 		<>
@@ -174,7 +216,7 @@ const MessagesPage = () => {
 						{
 						(
 							messages.map((message) => {
-							if (message.author_id === myParticipntID) {
+							if (message.author_id === myParticipantID) {
 								return (
 								<MessageRightContainer key={message.id}>
 									<MessageRight>{message.content}</MessageRight>
@@ -227,7 +269,6 @@ const MessagesPage = () => {
 						{/* <CreateChannelButton type="submit" onClick={handleChannelCreateSubmit}>Submit</CreateChannelButton> */}
 						</CreateChannelFormContainer>
 					) : (
-						// <h1>hi</h1>
 						users.map((u) => {
 							console.log("hi i am here");
 						if (u.login !== user.login) {
@@ -241,35 +282,6 @@ const MessagesPage = () => {
 						return null; // always provide a fallback for conditional rendering
 						})
 					)}
-					
-
-							{/* <h1>Channel Details</h1>
-								return (
-									{/* <ContactDiv key={u.login} backgroundColor={contactDivColor}>
-										<ContactImage src={UserProfilePicture} alt="" />
-										<ContactName>{u.login}</ContactName>
-									</ContactDiv>
-									<UserListLabel>
-										<UserListInput defaultChecked/>
-										<UserListLabelText $mode="dark">{u.login}</UserListLabelText>
-									</UserListLabel> */}
-									{/* <>
-										  <CreateChannelFormContainer>
-											<CreateChannelLabel htmlFor="channel-name">Channel Name:</CreateChannelLabel>
-											<CreateChannelInput type="text" id="channel-name" name="channel-name" required />
-																		
-											<CreateChannelLabel htmlFor="channel-status">Channel Status:</CreateChannelLabel>
-											<CreateChannelSelect id="channel-status" name="channel-status" required>
-												<CreateChannelOption value="">Select status</CreateChannelOption>
-												<CreateChannelOption value="private">Private</CreateChannelOption>
-												<CreateChannelOption value="public">Public</CreateChannelOption>
-												<CreateChannelOption value="protected">Protected</CreateChannelOption>
-											</CreateChannelSelect>
-																		
-											<CreateChannelButton type="submit">Submit</CreateChannelButton>
-    									</CreateChannelFormContainer>
-									</> */}
-								{/* ); */}
 				</ParentUserListDiv>
 			</ParentContainer>
 		</>

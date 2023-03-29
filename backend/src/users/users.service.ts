@@ -17,29 +17,26 @@ export class UsersService {
 		return await this.prisma.user.create({ data: userDto });
 	}
 
-//   findAll() {
-// 	  return this.prisma.user.findMany();
-//   }
+	async findOne(login: string): Promise<User | null> {
+		return await this.prisma.user.findUnique({ where: { login } });
+	}
 
-  async findOne(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { login } });
-  }
+	updateRefreshToken(login: string, refreshUpdate: UpdateUserDto) {
+		return this.prisma.user.update({
+			where: { login },
+			data: refreshUpdate,
+		});
+	}
 
-  updateRefreshToken(login: string, refreshUpdate: UpdateUserDto) {
-    return this.prisma.user.update({
-      where: { login },
-      data: refreshUpdate,
-    });
-  }
-
-//   async getAllConversation(id: string): Promise<User> {
-// 	return await this.prisma.user.findUnique({
-// 	  where: { id },
-// 	  include: { conversations: true },
-// 	});
-//   }
-
-	// remove(id: number) {
-	// 	return `This action removes a #${id} user`;
+	// async getUserObjectWithParticipants(id: string) {
+	// 	return await this.prisma.user.findUnique({
+	// 		where: {
+	// 			id: id,
+	// 		},
+	// 		include: {
+	// 			participant_in: true,
+	// 		},
+	// 	});
 	// }
+
 }

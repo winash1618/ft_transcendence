@@ -15,7 +15,8 @@ import { PrismaService } from 'src/database/prisma.service';
 import { ConversationService } from 'src/conversation/conversation.service';
 import { ParticipantService } from 'src/participant/participant.service';
 import { MessageService } from 'src/message/message.service';
-import { Role } from '@prisma/client';
+import { Privacy, Role } from '@prisma/client';
+import { UsersService } from 'src/users/users.service';
 @WebSocketGateway(8001, {
 	cors: {
 		origin: process.env.FRONTEND_BASE_URL,
@@ -32,6 +33,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		private participantService: ParticipantService,
 		private messageService: MessageService,
 		private readonly jwtService: JwtService,
+		private usersService: UsersService
 	) { }
 
 	async handleConnection(socket: AuthenticatedSocket) {
@@ -52,46 +54,59 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			console.log("List of all users object: ", ListOfAllUsersObject);
 
-			// get the participnt object of the user
-			const participants = await this.prisma.participant.findMany({
-				where: {
-					user_id: user.id,
-				},
-				include: {
-					conversation: true,
-				},
-			});
-			console.log("Participants: ", participants);
-			const conversations = participants[0].conversation.map(conversation => ({
-				  ...conversation,
-				}));
-
-			console.log("Conversations: ", conversations);
-			conversations.forEach((c) => {
+			// const userObjectWithParticipants = await this.usersService.getUserObjectWithParticipants(user.id);
+			// const participants = userObjectWithParticipants.participant_in.map(participant => ({
+			// 	...participant,
+			// }));
+			// console.log(participants);
+			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
+			console.log("Conversations: ", DirectConversationObjectArray);
+			const ConversationObjectArray = await this.conversationService.getConversationByUserId(user.id);
+			console.log("Conversations: ", ConversationObjectArray);
+			ConversationObjectArray.forEach((c) => {
 				socket.join(c.id);
 			});
 			console.log("Rooms: ", socket.rooms);
-			const conversationObjects = [];
-			for (const c of conversations) {
-			 
-			  conversationObjects.push( await this.prisma.conversation.findMany({
-				where: {
-				  id: c.id,
-				},
-				include: {
-				  participants: true,
-				  messages: true,
-				},
-			  }));
-			}
-			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
-			console.log("Conversation Object: ", twoPeopleConversationObject);
+			// get the participnt object of the user
+			// const participants = await this.prisma.participant.findMany({
+			// 	where: {
+			// 		user_id: user.id,
+			// 	},
+			// 	include: {
+			// 		conversation: true,
+			// 	},
+			// });
+			// console.log("Participants: ", participants);
+			// const conversations = participants[0].conversation.map(conversation => ({
+			// 	  ...conversation,
+			// 	}));
 
+			// console.log("Conversations: ", conversations);
+			// conversations.forEach((c) => {
+			// 	socket.join(c.id);
+			// });
+			// console.log("Rooms: ", socket.rooms);
+			// const conversationObjects = [];
+			// for (const c of conversations) {
+			 
+			//   conversationObjects.push( await this.prisma.conversation.findMany({
+			// 	where: {
+			// 	  id: c.id,
+			// 	},
+			// 	include: {
+			// 	  participants: true,
+			// 	  messages: true,
+			// 	},
+			//   }));
+			// }
+			// const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+			// const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
+			// console.log("Conversation Object: ", twoPeopleConversationObject);
+			const participant = await this.participantService.getParticipant(DirectConversationObjectArray[0].id, user.id);
 			const objectToEmit = {
-				conversations: twoPeopleConversationObject,
+				conversations: DirectConversationObjectArray,
 				ListOfAllUsers: ListOfAllUsersObject,
-				participant_id: participants[0].id,
+				participant_id: participant[0].id,
 			}
 
 			socket.emit('availableUsers', objectToEmit);
@@ -136,17 +151,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			const participant = await this.participantService.getParticipantsByUserID(user.id);
-			console.log("Participant: ", participant);
-			await this.messageService.create({
-				conversation_id: data.conversation_id,
-				author_id: data.author_id,
-				message: data.content,
-			});
-			console.log("Message Sent");
-			// this.server.emit("sendMessage", data);
-
+		const participant = await this.participantService.getParticipant(data.conversation_id, user.id);
+		console.log("Participant: ", participant);
+		await this.messageService.create({
+			conversation_id: data.conversation_id,
+			author_id: participant[0].id,
+			message: data.content,
+		});
 		this.server.to(data.conversation_id).emit('sendMessage', data);
+
+		// 	const participant = await this.participantService.getParticipantsByUserID(user.id);
+		// 	console.log("Participant: ", participant);
+		// 	await this.messageService.create({
+		// 		conversation_id: data.conversation_id,
+		// 		author_id: data.author_id,
+		// 		message: data.content,
+		// 	});
+		// 	console.log("Message Sent");
+		// 	// this.server.emit("sendMessage", data);
+
+		// this.server.to(data.conversation_id).emit('sendMessage', data);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -173,110 +197,148 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('reloadConversations')
 	async reloadConversations(socket: AuthenticatedSocket, data: any) {
+		console.log("Reloading Conversations");
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			const conversationObjects = [];
-			for (const c of data) {
-			 
-			  conversationObjects.push( await this.prisma.conversation.findMany({
-				where: {
-				  id: c.id,
-				},
-				include: {
-				  participants: true,
-				  messages: true,
-				},
-			  }));
+			console.log("Data1: ", data);
+			console.log("Data2: conversation id: " , data.id);
+			const participant = await this.participantService.getParticipant(data.id, user.id);
+			console.log("Participant1: ", participant);
+			const ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
+			const currentConversation = ConversationObjectArray.filter((c) => c.id === data.id);
+			// if conversation object array is empty or more than 1, then return error
+			console.log("Current Conversation: ", currentConversation);
+			const reloadObject = {
+				conversations: ConversationObjectArray,
+				myParticipantID: participant[0].id,
+				currentConversation: currentConversation[0],
 			}
-			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			console.log("Flattened Conversation Objects: ", flattenedConversationObjects);
-			socket.emit('reloadConversations', flattenedConversationObjects);
+			console.log("Reload Object: ", reloadObject);
+			socket.emit('reloadConversations', reloadObject);
+
+
+
+			// const conversationObjects = [];
+			// for (const c of data) {
+			 
+			//   conversationObjects.push( await this.prisma.conversation.findMany({
+			// 	where: {
+			// 	  id: c.id,
+			// 	},
+			// 	include: {
+			// 	  participants: true,
+			// 	  messages: true,
+			// 	},
+			//   }));
+			// }
+			// const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+			// console.log("Flattened Conversation Objects: ", flattenedConversationObjects);
+			// socket.emit('reloadConversations', flattenedConversationObjects);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
 	}
 
-	@SubscribeMessage('getTwoPeopleConversation')
-	async getTwoPeopleConversation(socket: AuthenticatedSocket, data: any) {
+	@SubscribeMessage('getDirectConversations')
+	async getDirectConversations(socket: AuthenticatedSocket) {
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			const participants = await this.prisma.participant.findMany({
-				where: {
-					user_id: user.id,
-				},
-				include: {
-					conversation: true,
-				},
-			});
-			const conversations = participants[0].conversation.map(conversation => ({
-				...conversation,
-			  }));
-			  const conversationObjects = [];
-			  for (const c of conversations) {
+			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
+			console.log("Conversations This: ", DirectConversationObjectArray[0]);
+			const participant = await this.participantService.getParticipant(DirectConversationObjectArray[0].id, user.id);
+			console.log("Participant: ", participant);
+			const objectToEmit = {
+				conversations: DirectConversationObjectArray,
+				myParticipantID: participant[0].id,
+			}
+			socket.emit('getDirectConversations', objectToEmit);
+			// const participants = await this.prisma.participant.findMany({
+			// 	where: {
+			// 		user_id: user.id,
+			// 	},
+			// 	include: {
+			// 		conversation: true,
+			// 	},
+			// });
+			// const conversations = participants[0].conversation.map(conversation => ({
+			// 	...conversation,
+			//   }));
+			//   const conversationObjects = [];
+			//   for (const c of conversations) {
 			   
-				conversationObjects.push( await this.prisma.conversation.findMany({
-				  where: {
-					id: c.id,
-				  },
-				  include: {
-					participants: true,
-					messages: true,
-				  },
-				}));
-			  }
-			  const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			  const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
-			  console.log("Two People Conversation Object: ", twoPeopleConversationObject);
-			  socket.emit('getTwoPeopleConversation', twoPeopleConversationObject);
+			// 	conversationObjects.push( await this.prisma.conversation.findMany({
+			// 	  where: {
+			// 		id: c.id,
+			// 	  },
+			// 	  include: {
+			// 		participants: true,
+			// 		messages: true,
+			// 	  },
+			// 	}));
+			//   }
+			//   const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+			//   const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
+			//   console.log("Two People Conversation Object: ", twoPeopleConversationObject);
+			//   socket.emit('getTwoPeopleConversation', twoPeopleConversationObject);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
 	}
-	@SubscribeMessage('getManyPeopleConversation')
-	async getManyPeopleConversation(socket: AuthenticatedSocket, data: any) {
+	@SubscribeMessage('getGroupConversations')
+	async getGroupConversations(socket: AuthenticatedSocket) {
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			const participants = await this.prisma.participant.findMany({
-				where: {
-					user_id: user.id,
-				},
-				include: {
-					conversation: true,
-				},
-			});
-			const conversations = participants[0].conversation.map(conversation => ({
-				...conversation,
-			  }));
-			  const conversationObjects = [];
-			for (const c of conversations) {
-			 
-			  conversationObjects.push( await this.prisma.conversation.findMany({
-				where: {
-				  id: c.id,
-				},
-				include: {
-				  participants: true,
-				  messages: true,
-				},
-			  }));
+			const GroupConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.PUBLIC);
+			console.log("Conversations: ", GroupConversationObjectArray);
+			const participant = await this.participantService.getParticipant(GroupConversationObjectArray[0].id, user.id);
+			console.log("Participant1: ", participant);
+			const ObjectToEmit = {
+				conversations: GroupConversationObjectArray,
+				myParticipantID: participant[0].id,
 			}
-			const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			const manyPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length > 2);
-			socket.emit('getManyPeopleConversation', manyPeopleConversationObject);
+			socket.emit('getGroupConversations', ObjectToEmit);
+
+			// const participants = await this.prisma.participant.findMany({
+			// 	where: {
+			// 		user_id: user.id,
+			// 	},
+			// 	include: {
+			// 		conversation: true,
+			// 	},
+			// });
+			// const conversations = participants[0].conversation.map(conversation => ({
+			// 	...conversation,
+			//   }));
+			//   const conversationObjects = [];
+			// for (const c of conversations) {
+			 
+			//   conversationObjects.push( await this.prisma.conversation.findMany({
+			// 	where: {
+			// 	  id: c.id,
+			// 	},
+			// 	include: {
+			// 	  participants: true,
+			// 	  messages: true,
+			// 	},
+			//   }));
+			// }
+			// const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
+			// const manyPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length > 2);
+			// socket.emit('getManyPeopleConversation', manyPeopleConversationObject);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');

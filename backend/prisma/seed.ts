@@ -55,18 +55,21 @@ async function seed() {
   await prisma.participant.create({
     data: {
       user_id: user1.id,
+      conversation_id: conversation1.id,
     },
   });
 
   await prisma.participant.create({
     data: {
       user_id: user2.id,
+      conversation_id: conversation1.id,
     },
   });
 
   await prisma.participant.create({
     data: {
       user_id: user3.id,
+      conversation_id: conversation2.id,
     },
   });
 }
