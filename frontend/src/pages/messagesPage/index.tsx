@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav, ParentUserListDiv, UserListLabel, UserListInput, UserListLabelText, CreateConversationDiv } from './messages.styled';
+import { ChatListContainer, SendButton, ContactDiv, ContactImage, ContactName, MessageBox, MessageImage, MessageInput, MessageInputParent, MessageLeft, MessageLeftContainer, MessageNav, MessageNavNotUsed, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv, ParentContainer, ParentMessageNav, ParentUserListDiv, UserListLabel, UserListInput, UserListLabelText, CreateConversationDiv, CreateChannelFormContainer, CreateChannelLabel, CreateChannelInput, CreateChannelSelect, CreateChannelOption, CreateChannelButton } from './messages.styled';
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
 import { BiCommentAdd } from 'react-icons/bi';
 import { UserProfilePicture } from '../../assets';
@@ -20,6 +20,7 @@ const MessagesPage = () => {
 	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
 	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
 	const [myParticipntID, setMyParticipantID] = useState(null);
+	const [isFormVisible, setIsFormVisible] = useState(false);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -101,18 +102,26 @@ const MessagesPage = () => {
 			socket?.emit('sendMessage', newMessage);
 			setMessage("");
 		}
+		setIsFormVisible(false);
 	};
 
 	const handleMessageNavClick = () => {
 			socket?.emit('getTwoPeopleConversation');
 			setMessageNavButtonColor("#00A551");
 			setMessageNavButtonColorNotUsed("#1A1D1F");
+			setIsFormVisible(false);
 			
 	};
+
 	const handleMessageNavNotUsedClick = () => {
 			socket?.emit('getManyPeopleConversation');
 			setMessageNavButtonColor("#1A1D1F");
 			setMessageNavButtonColorNotUsed("#00A551");
+			setIsFormVisible(false);
+	};
+
+	const handleCreateConversationClick = () => {
+		setIsFormVisible(true);
 	};
 
 	const handleSelectedConversation = async (conversation) => {
@@ -129,10 +138,8 @@ const MessagesPage = () => {
 			};
 			setMessages((messages) => [...messages, newMessage]);
 		});
-
+		setIsFormVisible(false);
 	};
-
-
 
 	return (
 		<>
@@ -156,11 +163,14 @@ const MessagesPage = () => {
 								);
 						})
 					}
+					<CreateConversationDiv backgroundColor='#1A1D1F' onClick={handleCreateConversationClick}>
+							<BiCommentAdd size={24}/>
+							<ContactName>Create Conversation</ContactName>
+					</CreateConversationDiv>
 				</ChatListContainer>
 				<MessageBox>
 					<MessageSendDiv>
 						<MessageParent>
-							
 						{
 						(
 							messages.map((message) => {
@@ -201,26 +211,65 @@ const MessagesPage = () => {
 					</MessageInputParent>
 				</MessageBox>
 				<ParentUserListDiv>
-					<CreateConversationDiv backgroundColor='#00A551'>
-							<BiCommentAdd size={24}/> Create Conversation
-					</CreateConversationDiv>
-							<h1>Owner</h1>
-					{
+					
+				<h1>Channel Details</h1>
+					{isFormVisible ? (
+						<CreateChannelFormContainer>
+						<CreateChannelLabel htmlFor="channel-name">Channel Name:</CreateChannelLabel>
+						<CreateChannelInput type="text" id="channel-name" name="channel-name" required />
+						<CreateChannelLabel htmlFor="channel-status">Channel Status:</CreateChannelLabel>
+						<CreateChannelSelect id="channel-status" name="channel-status" required>
+							<CreateChannelOption value="">Select status</CreateChannelOption>
+							<CreateChannelOption value="private">Private</CreateChannelOption>
+							<CreateChannelOption value="public">Public</CreateChannelOption>
+							<CreateChannelOption value="protected">Protected</CreateChannelOption>
+						</CreateChannelSelect>
+						{/* <CreateChannelButton type="submit" onClick={handleChannelCreateSubmit}>Submit</CreateChannelButton> */}
+						</CreateChannelFormContainer>
+					) : (
+						// <h1>hi</h1>
 						users.map((u) => {
-							if (u.login !== user.login) {
+							console.log("hi i am here");
+						if (u.login !== user.login) {
+							return (
+							<ContactDiv key={u.login} backgroundColor={contactDivColor}>
+								<ContactImage src={UserProfilePicture} alt="" />
+								<ContactName>{u.login}</ContactName>
+							</ContactDiv>
+							);
+						}
+						return null; // always provide a fallback for conditional rendering
+						})
+					)}
+					
+
+							{/* <h1>Channel Details</h1>
 								return (
-									// <ContactDiv key={u.login} backgroundColor={contactDivColor}>
-									// 	<ContactImage src={UserProfilePicture} alt="" />
-									// 	<ContactName>{u.login}</ContactName>
-									// </ContactDiv>
+									{/* <ContactDiv key={u.login} backgroundColor={contactDivColor}>
+										<ContactImage src={UserProfilePicture} alt="" />
+										<ContactName>{u.login}</ContactName>
+									</ContactDiv>
 									<UserListLabel>
 										<UserListInput defaultChecked/>
 										<UserListLabelText $mode="dark">{u.login}</UserListLabelText>
-									</UserListLabel>
-								);
-							}
-						})
-					}
+									</UserListLabel> */}
+									{/* <>
+										  <CreateChannelFormContainer>
+											<CreateChannelLabel htmlFor="channel-name">Channel Name:</CreateChannelLabel>
+											<CreateChannelInput type="text" id="channel-name" name="channel-name" required />
+																		
+											<CreateChannelLabel htmlFor="channel-status">Channel Status:</CreateChannelLabel>
+											<CreateChannelSelect id="channel-status" name="channel-status" required>
+												<CreateChannelOption value="">Select status</CreateChannelOption>
+												<CreateChannelOption value="private">Private</CreateChannelOption>
+												<CreateChannelOption value="public">Public</CreateChannelOption>
+												<CreateChannelOption value="protected">Protected</CreateChannelOption>
+											</CreateChannelSelect>
+																		
+											<CreateChannelButton type="submit">Submit</CreateChannelButton>
+    									</CreateChannelFormContainer>
+									</> */}
+								{/* ); */}
 				</ParentUserListDiv>
 			</ParentContainer>
 		</>

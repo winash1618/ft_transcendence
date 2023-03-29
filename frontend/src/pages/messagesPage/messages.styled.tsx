@@ -14,7 +14,7 @@ export const ChatListContainer = styled.div`
   background-color: #1A1D1F;
   border-radius: 15px;
   margin: auto;
-  width: 28%;
+  width: 23%;
   height: 100%;
 `;
 
@@ -26,7 +26,7 @@ export const MessageBox = styled.div`
   align-items: center;
   border-radius: 15px;
   margin: auto;
-  width: 50%;
+  width: 55%;
   height: 100%;
 `;
 
@@ -287,14 +287,60 @@ interface CreateConversationDivProps {
 }
 
 export const CreateConversationDiv = styled.div<CreateConversationDivProps>`
-  color: white;
-  font-size: 1em;
-  margin: 1em;
-  border: 0px;
-  padding-left: 30px;
-  padding-top: 10px;
-  border-radius: 15px;
-  width: 90%;
-  height: 50px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 70px;
+  border-radius: 10px;
+  margin-top: 10px;
+  border: 2px solid #00A551;
+  color: #00A551;
+  padding-left: 10px;
   background: ${({ backgroundColor }) => backgroundColor};
 `;
+
+export const CreateChannelFormContainer = styled.form`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 50px;
+`;
+
+export const CreateChannelLabel = styled.label`
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+`;
+
+export const CreateChannelInput = styled.input`
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 20px;
+`;
+
+export const CreateChannelSelect = styled.select`
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 20px;
+`;
+
+export const CreateChannelOption = styled.option`
+  font-size: 1rem;
+`;
+
+export const CreateChannelButton = styled.button`
+  padding: 10px 20px;
+  background-color: #008CBA;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #00688B;
+  }
+`;
+
