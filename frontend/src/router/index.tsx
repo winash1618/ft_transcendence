@@ -1,7 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
 import Navbar from "../components/Layout";
+import PageNotFound404 from "../pages/errorPages/pageNotFound";
 import LeaderBoardPage from "../pages/leaderBoardPage";
 import MessagesPage from "../pages/messagesPage";
+import NickNamePage from "../pages/nickNamePage";
 import PingPongPage from "../pages/pingPongPage";
 import ProfilePage from "../pages/profilePage";
 import SettingsPage from "../pages/settingsPage";
@@ -14,7 +16,9 @@ export const router = createBrowserRouter([
       { path: "/messages", element: <MessagesPage /> },
       { path: "/pingpong", element: <PingPongPage /> },
       { path: "/settings", element: <SettingsPage /> },
-      { path: "/profile/:id", element: <ProfilePage /> },
+      { path: "/profile/:login", element: <ProfilePage /> },
+      { path: "/set-nickname", element: <NickNamePage /> },
     ],
   },
+  { path: "*", element: <PageNotFound404 /> },
 ]);

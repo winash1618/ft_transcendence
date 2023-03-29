@@ -21,11 +21,11 @@ export class UsersController {
 	// 	return this.usersService.users();
 	// }
 
-	@Get(':uuid')
-	async findOne(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
-		const user = await this.usersService.findById(uuid);
+	@Get(':login')
+	async findOne(@Param('login') login: string) {
+		const user = await this.usersService.findOne(login);
 		if (!user) {
-			throw new NotFoundException(`User #${uuid}: not found`);
+			throw new NotFoundException(`User #${login}: not found`);
 		}
 		return user;
 	}

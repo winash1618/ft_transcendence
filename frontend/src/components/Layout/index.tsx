@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import axios, { BASE_URL } from "../../api";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { logOut, setUserInfo } from "../../store/authReducer";
 import Loading from "../loading";
-import { CustomSider, HeaderWrapper, LogoImg, LogoWrapper } from "./layout.styled";
+import {
+  CustomSider,
+  HeaderWrapper,
+  LogoImg,
+  LogoWrapper,
+} from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
 
@@ -21,12 +26,16 @@ const navItems = [
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState(true);
   const [selected, setSelected] = useState<string>("1");
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
   const getToken = async () => {
     try {
       const response = await axios.get(`/token`);
       localStorage.setItem("auth", JSON.stringify(response.data));
+      if (!response.data.user.username) {
+        navigate("/set-nickname");
+      }
       dispatch(setUserInfo(response.data.user));
       setIsLoadingPage(false);
     } catch (err) {
@@ -59,7 +68,7 @@ const Navbar: React.FC = () => {
         <Layout style={{ minHeight: "100%" }}>
           <CustomSider
             collapsedWidth="0"
-			collapsible={true}
+            collapsible={true}
             onBreakpoint={(broken) => {
               console.log(broken);
             }}

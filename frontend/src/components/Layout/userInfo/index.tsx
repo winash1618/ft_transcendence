@@ -24,7 +24,7 @@ const UserInfo = () => {
     },
     {
       key: "2",
-      label: <Link to={`/profile/${userInfo.id}`}>Profile</Link>,
+      label: <Link to={`/profile/${userInfo.login}`}>Profile</Link>,
       icon: <IoLogOut />,
     },
   ];

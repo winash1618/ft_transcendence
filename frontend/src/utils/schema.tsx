@@ -7,3 +7,11 @@ export const PlaySchema = yup
       .required("Map field is required"),
   })
   .required();
+
+  export const NickNameSchema = yup
+  .object({
+    nickName: yup
+      .string()
+      .required("Nick name field is required"),
+  })
+  .required();

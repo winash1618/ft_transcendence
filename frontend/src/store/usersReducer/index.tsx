@@ -40,6 +40,18 @@ export const fetchAllUsers = createAsyncThunk(
   }
 );
 
+export const changeNickName = createAsyncThunk(
+	"users/changeNickName",
+	async (data, thunkApi) => {
+	  try {
+		const result = await axiosPrivate.post("/users");
+		return result.data;
+	  } catch (error) {
+		return thunkApi.rejectWithValue(error);
+	  }
+	}
+  );
+
 const usersSlide = createSlice({
   name: "Auth",
   initialState,

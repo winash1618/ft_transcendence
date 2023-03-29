@@ -29,14 +29,6 @@ export class UsersService {
 		return await this.prisma.user.findUnique({ where: { login } });
 	}
 
-	async findById(uuid: string): Promise<User | null> {
-		return await this.prisma.user.findUnique({
-			where: {
-				id: uuid,
-			},
-		})
-	}
-
 	remove(id: number) {
 		return `This action removes a #${id} user`;
 	}
