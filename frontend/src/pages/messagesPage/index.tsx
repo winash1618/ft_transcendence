@@ -19,9 +19,7 @@ const MessagesPage = () => {
 	const [messageNavButtonColor, setMessageNavButtonColor] = useState("#00A551");
 	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
 	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
-	const [myParticipantID, setMyParticipantID] = useState(null);
 	const [isFormVisible, setIsFormVisible] = useState(false);
-	const [currentConversation, setCurrentConversation] = useState(null);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -55,32 +53,30 @@ const MessagesPage = () => {
 				},
 			});
 			setSocket(socket);
-			socket?.on('availableUsers', (objectFull) => {
-				setUsers(objectFull.ListOfAllUsers);
-				setConversations(objectFull.conversations);
-				setMyParticipantID(objectFull.myParticipantID);
-				if (objectFull.conversations.length > 0) {
-					handleOnLoadConversation(objectFull.conversations[0]);
+			socket?.on('availableUsers', (object) => {
+				setUsers(object.ListOfAllUsers);
+				setConversations(object.conversations);
+				if (object.conversations.length > 0) {
+					handleOnLoadConversation(object.conversations[0]);
+					setConversationID(object.conversations[0].id);
 				}
 			});
 			socket?.on('getDirectConversations', (object) => {
 				setConversations(object.conversations);
-				setMyParticipantID(object.myParticipantID);
 				if (object.conversations.length > 0) {
 					handleOnLoadConversation(object.conversations[0]);
+					setConversationID(object.conversations[0].id);
 				}
 			});
 			socket?.on('getGroupConversations', (object) => {
 				setConversations(object.conversations);
-				setMyParticipantID(object.myParticipantID);
 				if (object.conversations.length > 0) {
 					handleOnLoadConversation(object.conversations[0]);
+					setConversationID(object.conversations[0].id);
 				}
 			});
-			socket?.on('reloadConversations', (reloadObject) => {
-				setMyParticipantID(reloadObject.myParticipantID);
-				setConversations(reloadObject.conversations);
-				setCurrentConversation(reloadObject.currentConversation);
+			socket?.on('reloadConversations', (object) => {
+				setConversations(object.conversations);
 			});
 			socket?.on('sendMessage', (message) => {
 				setMessages((messages) => [...messages, message]);
@@ -94,12 +90,13 @@ const MessagesPage = () => {
 		if (message.trim() !== "") {
 			const newMessage = {
 				id: Date.now(),
-				author_id: "Set this to participant id",
-				myParticipantID: myParticipantID,
+				author_id: "",
+				myParticipantID: "",
 				conversation_id: conversationID,
 				content: message,
 				type: "right",
 			};
+			console.log("newMessage: ", newMessage);
 			// setMessages([...messages, newMessage]);
 			socket?.emit('sendMessage', newMessage);
 			setMessage("");
@@ -126,23 +123,25 @@ const MessagesPage = () => {
 	};
 	
 	const handleSelectedConversation = async (conversation) => {
-		socket?.emit('reloadConversations', conversation);
-		console.log("conversation1111: ", conversation)
-		setMessages([]);
-		setMyParticipantID(conversation.participant_id);
-		setConversationID(conversation.id);
-		setContactDivColor("#00A551");
-		conversation.messages.map((m) => {
-			console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
-			const newMessage = {
-				id: m.id,
-				author_id: m.author_id,
-				myParticipantID: conversation.participant_id,
-				content: m.message,
-				type: "right",
-			};
-			setMessages((messages) => [...messages, newMessage]);
-		});
+		if (conversation.id !== conversationID)
+		{
+			socket?.emit('reloadConversations', conversation);
+			console.log("conversation1111: ", conversation)
+			setMessages([]);
+			setConversationID(conversation.id);
+			setContactDivColor("#00A551");
+			conversation.messages.map((m) => {
+				console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
+				const newMessage = {
+					id: m.id,
+					author_id: m.author_id,
+					myParticipantID: conversation.participant_id,
+					content: m.message,
+					type: "right",
+				};
+				setMessages((messages) => [...messages, newMessage]);
+			});
+		}
 		setIsFormVisible(false);
 	};
 
@@ -163,43 +162,6 @@ const MessagesPage = () => {
 		});
 		setIsFormVisible(false);
 	};
-
-	// const handleSelectedConversation = async (conversation) => {
-	// 	socket?.emit('reloadConversations', conversation);
-	// 	setConversationID(conversation.id);
-	// 	setContactDivColor("#00A551");
-	// 	if ((currentConversation !== null) && (conversationID !== currentConversation.id)) {
-	// 		setMessages([]);
-	// 		currentConversation.messages.map((m) => {
-	// 			const newMessage = {
-	// 				id: m.id,
-	// 				author_id: m.author_id,
-	// 				content: m.message,
-	// 				type: "right",
-	// 			};
-	// 			setMessages((messages) => [...messages, newMessage]);
-	// 		});
-	// 		setCurrentConversation(null);
-	// 	}
-	// 	setIsFormVisible(false);
-	// };
-
-	// const handleOnLoadConversation = async (conversation) => {
-	// 	socket?.emit('reloadConversations', conversation);
-	// 	setMessages([]);
-	// 	setConversationID(conversation.id);
-	// 	setContactDivColor("#00A551");
-	// 	conversation.messages.map((m) => {
-	// 		const newMessage = {
-	// 			id: m.id,
-	// 			author_id: m.author_id,
-	// 			content: m.message,
-	// 			type: "right",
-	// 		};
-	// 		setMessages((messages) => [...messages, newMessage]);
-	// 	});
-	// 	setIsFormVisible(false);
-	// };
 
 	return (
 		<>
