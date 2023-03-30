@@ -7,6 +7,7 @@ import { io, Socket } from 'socket.io-client';
 import { useAppDispatch } from '../../hooks/reduxHooks';
 import { logOut, setUserInfo } from '../../store/authReducer';
 import axios from '../../api';
+import { setgroups } from 'process';
 
 const MessagesPage = () => {
 	const [message, setMessage] = useState("");
@@ -20,6 +21,9 @@ const MessagesPage = () => {
 	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
 	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
 	const [isFormVisible, setIsFormVisible] = useState(false);
+	const [isInGroup, setIsInGroup] = useState(false);
+	const [groupMembers, setGroupMembers] = useState([]);
+	const [otherUsers, setOtherUsers] = useState([]);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -70,6 +74,8 @@ const MessagesPage = () => {
 			});
 			socket?.on('getGroupConversations', (object) => {
 				setConversations(object.conversations);
+				setGroupMembers(object.groupMembers);
+				setOtherUsers(object.otherUsers);
 				if (object.conversations.length > 0) {
 					handleOnLoadConversation(object.conversations[0]);
 					setConversationID(object.conversations[0].id);
@@ -77,9 +83,14 @@ const MessagesPage = () => {
 			});
 			socket?.on('reloadConversations', (object) => {
 				setConversations(object.conversations);
+				setGroupMembers(object.groupMembers);
+				setOtherUsers(object.otherUsers);
 			});
 			socket?.on('sendMessage', (message) => {
 				setMessages((messages) => [...messages, message]);
+			});
+			socket?.on('conversationCreated', (object) => {
+				conversations.push(object.conversation);
 			});
 		};
 		getSocket();
@@ -109,6 +120,7 @@ const MessagesPage = () => {
 		setMessageNavButtonColor("#00A551");
 		setMessageNavButtonColorNotUsed("#1A1D1F");
 		setIsFormVisible(false);
+		setIsInGroup(false);
 	};
 
 	const handleMessageNavNotUsedClick = () => {
@@ -116,9 +128,11 @@ const MessagesPage = () => {
 		setMessageNavButtonColor("#1A1D1F");
 		setMessageNavButtonColorNotUsed("#00A551");
 		setIsFormVisible(false);
+		setIsInGroup(true);
 	};
 	
 	const handleCreateConversationClick = () => {
+		setIsInGroup(false);
 		setIsFormVisible(true);
 	};
 	
@@ -126,7 +140,6 @@ const MessagesPage = () => {
 		if (conversation.id !== conversationID)
 		{
 			socket?.emit('reloadConversations', conversation);
-			console.log("conversation1111: ", conversation)
 			setMessages([]);
 			setConversationID(conversation.id);
 			setContactDivColor("#00A551");
@@ -161,6 +174,35 @@ const MessagesPage = () => {
 			setMessages((messages) => [...messages, newMessage]);
 		});
 		setIsFormVisible(false);
+	};
+	
+	const handleChannelCreation = async (event) => {
+		event.preventDefault();
+		const formData = new FormData(event.target.form);
+		// console.log("formData: ", event);
+
+		const channelName = formData.get('channel-name');
+		const selectedUser = formData.get('channel-status');
+		// const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/conversations`, {
+		// 	title: channelName,
+		// 	participant_id: selectedUser,
+		// });
+		// console.log("response: ", response);
+		// socket?.emit('getGroupConversations');
+		socket?.emit('createConversation', {title: channelName, privacy: selectedUser});
+		setIsFormVisible(false);
+	};
+
+	const handleAddUserToGroup = async (event) => {
+		event.preventDefault();
+		// const formData = new FormData(event.target);
+		console.log(event.target.outerText);
+		const selectedUser = event.target.outerText;
+		// const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/conversations/${conversationID}/addUser`, {
+		// 	user_id: selectedUser,
+		// });
+		// console.log("response: ", response);
+		socket?.emit('addUserToGroup', {conversation_id: conversationID, user_id: selectedUser});
 	};
 
 	return (
@@ -234,8 +276,6 @@ const MessagesPage = () => {
 					</MessageInputParent>
 				</MessageBox>
 				<ParentUserListDiv>
-
-					<h1>Channel Details</h1>
 					{isFormVisible ? (
 						<CreateChannelFormContainer>
 							<CreateChannelLabel htmlFor="channel-name">Channel Name:</CreateChannelLabel>
@@ -247,8 +287,42 @@ const MessagesPage = () => {
 								<CreateChannelOption value="public">Public</CreateChannelOption>
 								<CreateChannelOption value="protected">Protected</CreateChannelOption>
 							</CreateChannelSelect>
-							{/* <CreateChannelButton type="submit" onClick={handleChannelCreateSubmit}>Submit</CreateChannelButton> */}
+							<CreateChannelButton type="submit" onClick={(e) => handleChannelCreation(e)}>Submit</CreateChannelButton>
 						</CreateChannelFormContainer>
+					) : (isInGroup ? (
+						<>
+							<h1>Group Chat</h1>
+							<h2> Group Owner </h2>
+									<ContactDiv key={user.login} backgroundColor={contactDivColor}>
+										<ContactImage src={UserProfilePicture} alt="" />
+										<ContactName>{user.login}</ContactName>
+									</ContactDiv>
+							<h2> Group Members </h2>
+								{groupMembers.map((u) => {
+									if (u.login !== user.login) {
+										return (
+											<ContactDiv key={u.login} backgroundColor={contactDivColor}>
+												<ContactImage src={UserProfilePicture} alt="" />
+												<ContactName>{u.login}</ContactName>
+											</ContactDiv>
+										);
+									}
+									return null; // always provide a fallback for conditional rendering
+								})}
+							<h2> Other Users</h2>
+							{otherUsers.map((u) => {
+									if (u.login !== user.login) {
+										return (
+											<ContactDiv key={u.login} backgroundColor={contactDivColor} onClick={(e) => handleAddUserToGroup(e)}>
+												<ContactImage src={UserProfilePicture} alt="" />
+												<ContactName>{u.login}</ContactName>
+											</ContactDiv>
+										);
+									}
+									return null; // always provide a fallback for conditional rendering
+								})}
+						</>
+						
 					) : (
 						users.map((u) => {
 							if (u.login !== user.login) {
@@ -261,7 +335,9 @@ const MessagesPage = () => {
 							}
 							return null; // always provide a fallback for conditional rendering
 						})
-					)}
+					))
+
+				}
 				</ParentUserListDiv>
 			</ParentContainer>
 		</>

@@ -111,6 +111,17 @@ export class ConversationService {
     });
   }
 
+  async getConversationWithParticipants(id: string) {
+	return await this.prisma.conversation.findUnique({
+	  where: {
+		id: id,
+	  },
+	  include: {
+		participants: true,
+	  },
+	});
+  }
+
   async getConversationByCreatorId(creator_id: string) {
     return await this.prisma.conversation.findMany({
       where: {
@@ -175,6 +186,7 @@ export class ConversationService {
       },
 	  include: {
 		messages: true,
+		participants: true,
 	  },
     });
   }

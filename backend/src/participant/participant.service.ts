@@ -17,6 +17,20 @@ export class ParticipantService {
     });
   }
 
+  async getConversationParticipants(conversationID: string) {
+	return await this.prisma.participant.findMany({
+		where: {
+			conversation_id: conversationID,
+		},
+		include: {
+			user: true,
+		},
+	});
+
+  }
+
+
+ 
   async findAll() {
     return await this.prisma.participant.findMany();
   }

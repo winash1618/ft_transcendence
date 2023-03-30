@@ -77,6 +77,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
+			
 			const objectToEmit = {
 				conversations: ConversationObjectArrayWithParticipantId,
 				ListOfAllUsers: ListOfAllUsersObject,
@@ -130,7 +131,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				secret: process.env.JWT_SECRET,
 			});
 			const ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
-			const currentConversation = ConversationObjectArray.filter((c) => c.id === data.id);
 			const participants = [];
 			for (const object of ConversationObjectArray) {
 				const participant = await this.participantService.getParticipant(object.id, user.id);
@@ -153,9 +153,44 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
+			const groupMembers = [];
+			const otherUsers = [];
+			// ConversationObjectArrayWithParticipantId[0].participants.forEach((p) => {
+				// 	const user = this.usersService.getUserById(p.user_id);
+				// 	groupMembers.push(user);
+				// });
+				const conversation = await this.conversationService.getConversationWithParticipants(data.id);
+				const ListOfAllUsers = await this.prisma.user.findMany();
+				const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+				const ListOfAllUsersObject = [];
+				ListOfAllUsersWithoutMe.forEach((u) => {
+					ListOfAllUsersObject.push({
+						login: u.login
+					});
+				});
+				for (const p of conversation.participants) {
+					const user = await this.usersService.getUserById(p.user_id);
+					groupMembers.push(user);
+				}
+			ListOfAllUsersWithoutMe.forEach((u) => {
+				let found = false;
+				groupMembers.forEach((u2) => {
+					if (u.id === u2.id) {
+						found = true;
+					}
+				});
+				if (!found) {
+					otherUsers.push(u);
+				}
+			});
+			console.log("--------------------");
+			console.log('groupMembers', groupMembers);
+			console.log('otherUsers', otherUsers);
+			console.log("--------------------");
 			const reloadObject = {
 				conversations: ConversationObjectArrayWithParticipantId,
-				currentConversation: currentConversation[0],
+				groupMembers: groupMembers,
+				otherUsers: otherUsers,
 			}
 			socket.emit('reloadConversations', reloadObject);
 		}
@@ -235,8 +270,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
+			// get all users in the database then select all the users in the ConversationObjectArrayWithParticipantId[0]
+			const groupMembers = [];
+			const otherUsers = [];
+			// ConversationObjectArrayWithParticipantId[0].participants.forEach((p) => {
+			// 	const user = this.usersService.getUserById(p.user_id);
+			// 	groupMembers.push(user);
+			// });
+			const ListOfAllUsers = await this.prisma.user.findMany();
+			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+			const ListOfAllUsersObject = [];
+			ListOfAllUsersWithoutMe.forEach((u) => {
+				ListOfAllUsersObject.push({
+					login: u.login
+				});
+			});
+			for (const p of GroupConversationObjectArray[0].participants) {
+				const user = await this.usersService.getUserById(p.user_id);
+				console.log("participants", p, "user", user);
+				groupMembers.push(user);
+			}
+			ListOfAllUsersWithoutMe.forEach((u) => {
+				let found = false;
+				groupMembers.forEach((u2) => {
+					if (u.id === u2.id) {
+						found = true;
+					}
+				});
+				if (!found) {
+					otherUsers.push(u);
+				}
+			});
 			const ObjectToEmit = {
 				conversations: ConversationObjectArrayWithParticipantId,
+				groupMembers: groupMembers,
+				otherUsers: otherUsers,
 			}
 			socket.emit('getGroupConversations', ObjectToEmit);
 		}
@@ -248,6 +316,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('createConversation')
 	async createConversation(socket: AuthenticatedSocket, data: any) {
 		// const { title = "", channelID = "", password = "", privacy = "" } = { title: "default title", channelID: "default channelID", password: "default password", privacy: "default privacy" };
+		
+		const token = socket.handshake.auth.token;
+		let user = null;
+
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const conversation = await this.conversationService.create({
+				title: data.title,
+				creator_id: user.id,
+				channel_id: "channelID",
+				password: "password",
+				privacy: (data.privacy === "public") ? Privacy.PUBLIC : ((data.privacy === "private") ? Privacy.PRIVATE : Privacy.PROTECTED),
+			});
+			await this.participantService.create({
+				conversation_id: conversation.id,
+				user_id: user.id,
+			});
+			socket.emit('conversationCreated', conversation);
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
 
 
 		// const conversation = await this.conversationService.create({
