@@ -53,16 +53,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 			});
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
-			console.log("Conversations: ", DirectConversationObjectArray);
+			// console.log("Conversations: ", DirectConversationObjectArray);
 			const ConversationObjectArray = await this.conversationService.getConversationByUserId(user.id);
-			console.log("Conversations: ", ConversationObjectArray);
-			ConversationObjectArray.forEach((c) => {
-				socket.join(c.id);
-			});
+			// console.log("Conversations: ", ConversationObjectArray);
+			// Create a new conversation object with the participant id of the user.
 			console.log("Rooms: ", socket.rooms);
 			const participant = await this.participantService.getParticipant(DirectConversationObjectArray[0].id, user.id);
+			console.log("Participant: ", participant);
+			const ConversationObjectArrayWithParticipantId = [];
+			DirectConversationObjectArray.forEach((c) => {
+				socket.join(c.id);
+				ConversationObjectArrayWithParticipantId.push({
+					id: c.id,
+					title: c.title,
+					privacy: c.privacy,
+					participant_id: participant[0].id,
+					creator_id: c.creator_id,
+					channel_id: c.channel_id,
+					created_at: c.created_at,
+					updated_at: c.updated_at,
+					messages: c.messages,
+				});
+			});
+			console.log("Conversations with participant id: ", ConversationObjectArrayWithParticipantId);
 			const objectToEmit = {
-				conversations: DirectConversationObjectArray,
+				conversations: ConversationObjectArrayWithParticipantId,
 				ListOfAllUsers: ListOfAllUsersObject,
 				participant_id: participant[0].id,
 			}
@@ -83,7 +98,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				secret: process.env.JWT_SECRET,
 			});
 		const participant = await this.participantService.getParticipant(data.conversation_id, user.id);
-		console.log("Participant: ", participant);
+		console.log("Data1234: ", data);
 		await this.messageService.create({
 			conversation_id: data.conversation_id,
 			author_id: participant[0].id,
@@ -107,23 +122,42 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('reloadConversations')
 	async reloadConversations(socket: AuthenticatedSocket, data: any) {
+		console.log("------------------------------------------------------------------------");
 		console.log("Reloading Conversations");
+		console.log("Data3455555555: ", data);
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			console.log("Data1: ", data);
-			console.log("Data2: conversation id: " , data.id);
 			const participant = await this.participantService.getParticipant(data.id, user.id);
-			console.log("Participant1: ", participant);
+			console.log("Participant: ", participant);
 			const ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
 			const currentConversation = ConversationObjectArray.filter((c) => c.id === data.id);
+			console.log("Current Conversation2124324: ", currentConversation);
 			// if conversation object array is empty or more than 1, then return error
-			console.log("Current Conversation: ", currentConversation);
+			const ConversationObjectArrayWithParticipantId = [];
+			ConversationObjectArray.forEach((c) => {
+				socket.join(c.id);
+				ConversationObjectArrayWithParticipantId.push({
+					id: c.id,
+					title: c.title,
+					privacy: c.privacy,
+					participant_id: participant[0].id,
+					creator_id: c.creator_id,
+					channel_id: c.channel_id,
+					created_at: c.created_at,
+					updated_at: c.updated_at,
+					messages: c.messages,
+				});
+			});
+			console.log("--------------------------------------------------------------------------------")
+			console.log("Conversations with participant id: ", ConversationObjectArrayWithParticipantId);
+			console.log("conversations: ", ConversationObjectArray[0].messages);
+			console.log("--------------------------------------------------------------------------------")
 			const reloadObject = {
-				conversations: ConversationObjectArray,
+				conversations: ConversationObjectArrayWithParticipantId,
 				myParticipantID: participant[0].id,
 				currentConversation: currentConversation[0],
 			}
@@ -147,8 +181,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			console.log("Conversations This: ", DirectConversationObjectArray[0]);
 			const participant = await this.participantService.getParticipant(DirectConversationObjectArray[0].id, user.id);
 			console.log("Participant: ", participant);
+			const ConversationObjectArrayWithParticipantId = [];
+			DirectConversationObjectArray.forEach((c) => {
+				socket.join(c.id);
+				ConversationObjectArrayWithParticipantId.push({
+					id: c.id,
+					title: c.title,
+					privacy: c.privacy,
+					participant_id: participant[0].id,
+					creator_id: c.creator_id,
+					channel_id: c.channel_id,
+					created_at: c.created_at,
+					updated_at: c.updated_at,
+					messages: c.messages,
+				});
+			});
 			const objectToEmit = {
-				conversations: DirectConversationObjectArray,
+				conversations: ConversationObjectArrayWithParticipantId,
 				myParticipantID: participant[0].id,
 			}
 			socket.emit('getDirectConversations', objectToEmit);
@@ -169,8 +218,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			console.log("Conversations: ", GroupConversationObjectArray);
 			const participant = await this.participantService.getParticipant(GroupConversationObjectArray[0].id, user.id);
 			console.log("Participant1: ", participant);
+			const ConversationObjectArrayWithParticipantId = [];
+			GroupConversationObjectArray.forEach((c) => {
+				socket.join(c.id);
+				ConversationObjectArrayWithParticipantId.push({
+					id: c.id,
+					title: c.title,
+					privacy: c.privacy,
+					participant_id: participant[0].id,
+					creator_id: c.creator_id,
+					channel_id: c.channel_id,
+					created_at: c.created_at,
+					updated_at: c.updated_at,
+					messages: c.messages,
+				});
+			});
 			const ObjectToEmit = {
-				conversations: GroupConversationObjectArray,
+				conversations: ConversationObjectArrayWithParticipantId,
 				myParticipantID: participant[0].id,
 			}
 			socket.emit('getGroupConversations', ObjectToEmit);

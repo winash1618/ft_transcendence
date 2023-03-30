@@ -179,6 +179,24 @@ export class ConversationService {
     });
   }
 
+  async getConversationByUserIdAndPrivacyConversationID(user_id: string, privacy: Privacy, conversation_id: string) {
+    return await this.prisma.conversation.findMany({
+      where: {
+		participants: {
+			some: {
+				user_id: user_id,
+				conversation_id: conversation_id,
+			},
+		},
+          privacy: privacy,
+      },
+	  include: {
+		messages: true,
+		participants: true,
+	  },
+    });
+  }
+
   async getConversationByUserIdAndTitle(user_id: string, title: string) {
     return await this.prisma.conversation.findMany({
       where: {

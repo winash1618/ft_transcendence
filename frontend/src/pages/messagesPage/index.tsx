@@ -83,7 +83,6 @@ const MessagesPage = () => {
 				setCurrentConversation(reloadObject.currentConversation);
 			});
 			socket?.on('sendMessage', (message) => {
-				console.log(message);
 				setMessages((messages) => [...messages, message]);
 			});
 		};
@@ -92,18 +91,17 @@ const MessagesPage = () => {
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
-		console.log(message);
 		if (message.trim() !== "") {
 			const newMessage = {
 				id: Date.now(),
 				author_id: "Set this to participant id",
+				myParticipantID: myParticipantID,
 				conversation_id: conversationID,
 				content: message,
 				type: "right",
 			};
 			// setMessages([...messages, newMessage]);
 			socket?.emit('sendMessage', newMessage);
-			socket?.emit('reloadConversations1', conversationID);
 			setMessage("");
 		}
 		setIsFormVisible(false);
@@ -129,33 +127,17 @@ const MessagesPage = () => {
 	
 	const handleSelectedConversation = async (conversation) => {
 		socket?.emit('reloadConversations', conversation);
-		setConversationID(conversation.id);
-		setContactDivColor("#00A551");
-		if ((currentConversation !== null) && (conversationID !== currentConversation.id)) {
-			setMessages([]);
-			currentConversation.messages.map((m) => {
-				const newMessage = {
-					id: m.id,
-					author_id: m.author_id,
-					content: m.message,
-					type: "right",
-				};
-				setMessages((messages) => [...messages, newMessage]);
-			});
-			setCurrentConversation(null);
-		}
-		setIsFormVisible(false);
-	};
-
-	const handleOnLoadConversation = async (conversation) => {
-		socket?.emit('reloadConversations', conversation);
+		console.log("conversation1111: ", conversation)
 		setMessages([]);
+		setMyParticipantID(conversation.participant_id);
 		setConversationID(conversation.id);
 		setContactDivColor("#00A551");
 		conversation.messages.map((m) => {
+			console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
 			const newMessage = {
 				id: m.id,
 				author_id: m.author_id,
+				myParticipantID: conversation.participant_id,
 				content: m.message,
 				type: "right",
 			};
@@ -163,6 +145,61 @@ const MessagesPage = () => {
 		});
 		setIsFormVisible(false);
 	};
+
+	const handleOnLoadConversation = async (conversation) => {
+		setMessages([]);
+		setConversationID(conversation.id);
+		setContactDivColor("#00A551");
+		conversation.messages.map((m) => {
+			console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
+			const newMessage = {
+				id: m.id,
+				author_id: m.author_id,
+				myParticipantID: conversation.participant_id,
+				content: m.message,
+				type: "right",
+			};
+			setMessages((messages) => [...messages, newMessage]);
+		});
+		setIsFormVisible(false);
+	};
+
+	// const handleSelectedConversation = async (conversation) => {
+	// 	socket?.emit('reloadConversations', conversation);
+	// 	setConversationID(conversation.id);
+	// 	setContactDivColor("#00A551");
+	// 	if ((currentConversation !== null) && (conversationID !== currentConversation.id)) {
+	// 		setMessages([]);
+	// 		currentConversation.messages.map((m) => {
+	// 			const newMessage = {
+	// 				id: m.id,
+	// 				author_id: m.author_id,
+	// 				content: m.message,
+	// 				type: "right",
+	// 			};
+	// 			setMessages((messages) => [...messages, newMessage]);
+	// 		});
+	// 		setCurrentConversation(null);
+	// 	}
+	// 	setIsFormVisible(false);
+	// };
+
+	// const handleOnLoadConversation = async (conversation) => {
+	// 	socket?.emit('reloadConversations', conversation);
+	// 	setMessages([]);
+	// 	setConversationID(conversation.id);
+	// 	setContactDivColor("#00A551");
+	// 	conversation.messages.map((m) => {
+	// 		const newMessage = {
+	// 			id: m.id,
+	// 			author_id: m.author_id,
+	// 			content: m.message,
+	// 			type: "right",
+	// 		};
+	// 		setMessages((messages) => [...messages, newMessage]);
+	// 	});
+	// 	setIsFormVisible(false);
+	// };
 
 	return (
 		<>
@@ -197,7 +234,8 @@ const MessagesPage = () => {
 							{
 								(
 									messages.map((message) => {
-										if (message.author_id === myParticipantID) {
+										console.log("participant Id ", message.myParticipantID, "auther Id ", message.author_id,"   ", message.author_id === message.myParticipantID);
+										if (message.author_id === message.myParticipantID) {
 											return (
 												<MessageRightContainer key={message.id}>
 													<MessageRight>{message.content}</MessageRight>
