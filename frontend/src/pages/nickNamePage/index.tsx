@@ -26,7 +26,6 @@ const NickNamePage = () => {
   const onSubmit: SubmitHandler<NickNameType> = (data) => {
 	console.log(data);
   };
-  console.log(errors);
   return (
     <FormContainer onSubmit={handleSubmit(onSubmit)}>
       <FormTitle>Choose a nick name</FormTitle>

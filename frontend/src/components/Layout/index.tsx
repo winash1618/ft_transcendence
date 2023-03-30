@@ -25,7 +25,7 @@ const navItems = [
 
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState(true);
-  const [selected, setSelected] = useState<string>("1");
+  const [selected, setSelected] = useState<string>("0");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -33,9 +33,9 @@ const Navbar: React.FC = () => {
     try {
       const response = await axios.get(`/token`);
       localStorage.setItem("auth", JSON.stringify(response.data));
-      if (!response.data.user.username) {
-        navigate("/set-nickname");
-      }
+    //   if (!response.data.user.username) {
+    //     navigate("/set-nickname");
+    //   }
       dispatch(setUserInfo(response.data.user));
       setIsLoadingPage(false);
     } catch (err) {
@@ -57,6 +57,8 @@ const Navbar: React.FC = () => {
       setSelected("2");
     } else if (location.pathname === "/messages") {
       setSelected("3");
+    } else {
+      setSelected("0");
     }
   }, [location]);
 

@@ -9,4 +9,7 @@ export const ProfileContainer = styled.div`
 
 export const ProfileInfoContainer = styled.div`
 	display: flex;
+	width: 100%;
+	align-items: center;
+	justify-content: center;
 `
