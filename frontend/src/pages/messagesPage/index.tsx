@@ -7,6 +7,7 @@ import { io, Socket } from 'socket.io-client';
 import { useAppDispatch } from '../../hooks/reduxHooks';
 import { logOut, setUserInfo } from '../../store/authReducer';
 import axios from '../../api';
+import RightSideDivForDirectConversation from '../../chat/RightSideDiv/RightSideDivForDirectConversation';
 import { setgroups } from 'process';
 
 const MessagesPage = () => {
@@ -91,6 +92,10 @@ const MessagesPage = () => {
 			});
 			socket?.on('conversationCreated', (object) => {
 				conversations.push(object.conversation);
+			});
+			socket?.on('userAddedToGroup', (object) => {
+				setGroupMembers(object.groupMembers);
+				setOtherUsers(object.otherUsers);
 			});
 		};
 		getSocket();
@@ -202,8 +207,9 @@ const MessagesPage = () => {
 		// 	user_id: selectedUser,
 		// });
 		// console.log("response: ", response);
-		socket?.emit('addUserToGroup', {conversation_id: conversationID, user_id: selectedUser});
+		socket?.emit('addUserToGroup', {conversationId: conversationID, userLogin: selectedUser});
 	};
+	
 
 	return (
 		<>
@@ -324,17 +330,7 @@ const MessagesPage = () => {
 						</>
 						
 					) : (
-						users.map((u) => {
-							if (u.login !== user.login) {
-								return (
-									<ContactDiv key={u.login} backgroundColor={contactDivColor}>
-										<ContactImage src={UserProfilePicture} alt="" />
-										<ContactName>{u.login}</ContactName>
-									</ContactDiv>
-								);
-							}
-							return null; // always provide a fallback for conditional rendering
-						})
+						<RightSideDivForDirectConversation users={users} user={user} contactDivColor={contactDivColor} UserProfilePicture={UserProfilePicture}/>
 					))
 
 				}
