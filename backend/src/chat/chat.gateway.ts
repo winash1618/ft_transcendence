@@ -52,13 +52,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					login: u.login
 				});
 			});
-			console.log("List of all users object: ", ListOfAllUsersObject);
-
-			// const userObjectWithParticipants = await this.usersService.getUserObjectWithParticipants(user.id);
-			// const participants = userObjectWithParticipants.participant_in.map(participant => ({
-			// 	...participant,
-			// }));
-			// console.log(participants);
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
 			console.log("Conversations: ", DirectConversationObjectArray);
 			const ConversationObjectArray = await this.conversationService.getConversationByUserId(user.id);
@@ -67,41 +60,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				socket.join(c.id);
 			});
 			console.log("Rooms: ", socket.rooms);
-			// get the participnt object of the user
-			// const participants = await this.prisma.participant.findMany({
-			// 	where: {
-			// 		user_id: user.id,
-			// 	},
-			// 	include: {
-			// 		conversation: true,
-			// 	},
-			// });
-			// console.log("Participants: ", participants);
-			// const conversations = participants[0].conversation.map(conversation => ({
-			// 	  ...conversation,
-			// 	}));
-
-			// console.log("Conversations: ", conversations);
-			// conversations.forEach((c) => {
-			// 	socket.join(c.id);
-			// });
-			// console.log("Rooms: ", socket.rooms);
-			// const conversationObjects = [];
-			// for (const c of conversations) {
-			 
-			//   conversationObjects.push( await this.prisma.conversation.findMany({
-			// 	where: {
-			// 	  id: c.id,
-			// 	},
-			// 	include: {
-			// 	  participants: true,
-			// 	  messages: true,
-			// 	},
-			//   }));
-			// }
-			// const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			// const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
-			// console.log("Conversation Object: ", twoPeopleConversationObject);
 			const participant = await this.participantService.getParticipant(DirectConversationObjectArray[0].id, user.id);
 			const objectToEmit = {
 				conversations: DirectConversationObjectArray,
@@ -114,37 +72,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
-
-		// const userID = socket.handshake.query.userID as string;
-		// const conversationID = socket.handshake.query.conversationID as string;
-
-		// console.log('User connected: ', userID, conversationID);
-
-		// const participant = await this.participantService.getConversation(userID, conversationID);
-
-		// console.log('Participant: ', participant);
-
-		// if (!participant) {
-		//   socket.disconnect();
-		//   return;
-		// }
-
-		// socket.join(conversationID);
-
-		// socket.to(conversationID).emit('userJoined', { userID });
-
-		// const messages = await this.prisma.message.findMany({
-		//   where: { conversation_id: conversationID },
-		//   include: { author: true },
-		//   orderBy: { created_at: 'asc' },
-		// });
-
-		// socket.emit('conversationHistory', messages);
 	}
 
 	@SubscribeMessage('sendMessage')
 	async sendMessage(socket: AuthenticatedSocket, data: any) {
-		// console.log("Sending Message", socket);
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
@@ -159,31 +90,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			message: data.content,
 		});
 		this.server.to(data.conversation_id).emit('sendMessage', data);
-
-		// 	const participant = await this.participantService.getParticipantsByUserID(user.id);
-		// 	console.log("Participant: ", participant);
-		// 	await this.messageService.create({
-		// 		conversation_id: data.conversation_id,
-		// 		author_id: data.author_id,
-		// 		message: data.content,
-		// 	});
-		// 	console.log("Message Sent");
-		// 	// this.server.emit("sendMessage", data);
-
-		// this.server.to(data.conversation_id).emit('sendMessage', data);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
-		// const { conversationID, message } = data;
-
-		// const messageSent = await this.messageService.create({
-		//   conversation_id: conversationID,
-		//   author_id: socket.user.id,
-		//   message,
-		// });
-
-		// socket.to(conversationID).emit('messageReceived', messageSent);
 	}
 
 	handleDisconnect(socket: AuthenticatedSocket) {
@@ -219,25 +129,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			}
 			console.log("Reload Object: ", reloadObject);
 			socket.emit('reloadConversations', reloadObject);
-
-
-
-			// const conversationObjects = [];
-			// for (const c of data) {
-			 
-			//   conversationObjects.push( await this.prisma.conversation.findMany({
-			// 	where: {
-			// 	  id: c.id,
-			// 	},
-			// 	include: {
-			// 	  participants: true,
-			// 	  messages: true,
-			// 	},
-			//   }));
-			// }
-			// const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			// console.log("Flattened Conversation Objects: ", flattenedConversationObjects);
-			// socket.emit('reloadConversations', flattenedConversationObjects);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -261,34 +152,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				myParticipantID: participant[0].id,
 			}
 			socket.emit('getDirectConversations', objectToEmit);
-			// const participants = await this.prisma.participant.findMany({
-			// 	where: {
-			// 		user_id: user.id,
-			// 	},
-			// 	include: {
-			// 		conversation: true,
-			// 	},
-			// });
-			// const conversations = participants[0].conversation.map(conversation => ({
-			// 	...conversation,
-			//   }));
-			//   const conversationObjects = [];
-			//   for (const c of conversations) {
-			   
-			// 	conversationObjects.push( await this.prisma.conversation.findMany({
-			// 	  where: {
-			// 		id: c.id,
-			// 	  },
-			// 	  include: {
-			// 		participants: true,
-			// 		messages: true,
-			// 	  },
-			// 	}));
-			//   }
-			//   const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			//   const twoPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length === 2);
-			//   console.log("Two People Conversation Object: ", twoPeopleConversationObject);
-			//   socket.emit('getTwoPeopleConversation', twoPeopleConversationObject);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -311,34 +174,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				myParticipantID: participant[0].id,
 			}
 			socket.emit('getGroupConversations', ObjectToEmit);
-
-			// const participants = await this.prisma.participant.findMany({
-			// 	where: {
-			// 		user_id: user.id,
-			// 	},
-			// 	include: {
-			// 		conversation: true,
-			// 	},
-			// });
-			// const conversations = participants[0].conversation.map(conversation => ({
-			// 	...conversation,
-			//   }));
-			//   const conversationObjects = [];
-			// for (const c of conversations) {
-			 
-			//   conversationObjects.push( await this.prisma.conversation.findMany({
-			// 	where: {
-			// 	  id: c.id,
-			// 	},
-			// 	include: {
-			// 	  participants: true,
-			// 	  messages: true,
-			// 	},
-			//   }));
-			// }
-			// const flattenedConversationObjects = conversationObjects.concat.apply([], conversationObjects);
-			// const manyPeopleConversationObject = flattenedConversationObjects.filter(conversation => conversation.participants.length > 2);
-			// socket.emit('getManyPeopleConversation', manyPeopleConversationObject);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
