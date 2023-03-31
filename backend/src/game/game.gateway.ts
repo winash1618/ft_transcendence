@@ -201,14 +201,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (this.gameRooms[roomID]) {
 			this.gameRooms[roomID].startGame();
 		}
-    const gameDTO: CreateGameDto = {
-      player_one: this.gameRooms[roomID].gameObj.player1.name,
-      player_two: this.gameRooms[roomID].gameObj.player2.name,
-      player_score: this.gameRooms[roomID].gameObj.player1.points,
-      opponent_score: this.gameRooms[roomID].gameObj.player2.points,
-      winner: '',
-      looser: '',
-    }
-    await this.gameService.storeGameHistory(gameDTO);
+    // const gameDTO: CreateGameDto = {
+    //   player_one: this.gameRooms[roomID].gameObj.player1.name,
+    //   player_two: this.gameRooms[roomID].gameObj.player2.name,
+    //   player_score: this.gameRooms[roomID].gameObj.player1.points,
+    //   opponent_score: this.gameRooms[roomID].gameObj.player2.points,
+    //   winner: '',
+    //   looser: '',
+    // }
+    // console.log(gameDTO);
+    // await this.gameService.storeGameHistory(gameDTO);
 	}
 }
