@@ -90,7 +90,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
 
     if (this.users.find(user => user.userID === socketData.userID)) {
-      this.server.to(client.id).emit('alreadyInQueue');
+      this.server.to(client.id).emit('error');
       return;
     }
 
