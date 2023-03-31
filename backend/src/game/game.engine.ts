@@ -268,6 +268,10 @@ export class GameEngine {
         this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
       }
     }, GAME_TIME);
+    const winner: string = this.gameObj.player1.points >= GAME_POINTS ? this.player1 : this.player2;
+    const looser: string = this.gameObj.player1.points >= GAME_POINTS ? this.player2 : this.player1;
+    this.server.to(this.gameID).emit('winner', winner);
+    this.server.to(this.gameID).emit('looser', looser);
   }
 
 	stopGame() {
