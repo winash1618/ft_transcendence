@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
+import { PartialType } from '@nestjs/swagger';
 
 export class CreateConversationDto {
   @IsString()
@@ -18,3 +19,5 @@ export class CreateConversationDto {
   @ApiProperty()
   privacy?: string;
 }
+
+export class UpdateConversationDto extends PartialType(CreateConversationDto) {}

@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Privacy } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateConversationDto } from './dto/create-conversation.dto';
-import { UpdateConversationDto } from './dto/update-conversation.dto';
+import { CreateConversationDto, UpdateConversationDto } from '../dto/conversation.dto';
 
 @Injectable()
 export class ConversationService {

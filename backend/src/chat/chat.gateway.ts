@@ -10,9 +10,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from 'src/database/prisma.service';
-import { ConversationService } from 'src/conversation/conversation.service';
-import { ParticipantService } from 'src/participant/participant.service';
-import { MessageService } from 'src/message/message.service';
+import { ConversationService } from 'src/chat/Queries/conversation.service';
+import { ParticipantService } from 'src/chat/Queries/participant.service';
+import { MessageService } from 'src/chat/Queries/message.service';
 import { Role } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';

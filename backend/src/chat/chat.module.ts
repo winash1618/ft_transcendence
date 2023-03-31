@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
-// import { ChatGateway } from './chat.gateway';
+import { ChatGateway } from './chat.gateway';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';
@@ -8,12 +8,9 @@ import { PrismaService } from 'src/database/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewaySessionManager } from './gateway.session';
-import { ConversationModule } from 'src/conversation/conversation.module';
-import { MessageModule } from 'src/message/message.module';
-import { ParticipantModule } from 'src/participant/participant.module';
-import { ConversationService } from 'src/conversation/conversation.service';
-import { MessageService } from 'src/message/message.service';
-import { ParticipantService } from 'src/participant/participant.service';
+import { ConversationService } from 'src/chat/Queries/conversation.service';
+import { MessageService } from 'src/chat/Queries/message.service';
+import { ParticipantService } from 'src/chat/Queries/participant.service';
 
 @Module({
   imports: [
@@ -29,13 +26,10 @@ import { ParticipantService } from 'src/participant/participant.service';
     }),
     AuthModule,
     UsersModule,
-    ConversationModule,
-    MessageModule,
-    ParticipantModule
   ],
   providers: [
     GatewaySessionManager,
-    // ChatGateway,
+    ChatGateway,
     ChatService,
     UsersService,
     ConversationService,

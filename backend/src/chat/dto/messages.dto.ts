@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { IsString } from "class-validator";
 
 export class CreateMessageDto {
@@ -14,3 +14,5 @@ export class CreateMessageDto {
   @ApiProperty()
   conversation_id: string;
 }
+
+export class UpdateMessageDto extends PartialType(CreateMessageDto) {}
