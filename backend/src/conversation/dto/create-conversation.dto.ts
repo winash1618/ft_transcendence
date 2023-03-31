@@ -12,10 +12,6 @@ export class CreateConversationDto {
 
   @IsString()
   @ApiProperty()
-  channel_id: string;
-
-  @IsString()
-  @ApiProperty()
   password?: string;
 
   @IsString()

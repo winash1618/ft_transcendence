@@ -8,264 +8,272 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
-import { AuthenticatedSocket } from 'src/utils/AuthenticatedScoket.interface';
+import { Server, Socket } from 'socket.io';
 import { PrismaService } from 'src/database/prisma.service';
 import { ConversationService } from 'src/conversation/conversation.service';
 import { ParticipantService } from 'src/participant/participant.service';
 import { MessageService } from 'src/message/message.service';
 import { Role } from '@prisma/client';
+import { JwtService } from '@nestjs/jwt';
+import { GatewaySessionManager } from './gateway.session';
+
+@WebSocketGateway()
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer() server: Server;
+
+  constructor(
+    private prisma: PrismaService,
+    private gatewaySession: GatewaySessionManager,
+    private conversationService: ConversationService,
+    private participantService: ParticipantService,
+    private messageService: MessageService,
+    private jwtService: JwtService,
+    ) {}
+
+  async handleConnection(client: Socket) {
+		const token = client.handshake.auth.token;
+		const userID = this.jwtService.verify(token, {
+			secret: process.env.JWT_SECRET
+		});
+
+    client.data.userID = userID;
+
+    this.gatewaySession.setUserSocket(userID, client);
+
+    console.log('User connected: ', userID);
+
+    const conversations = await this.conversationService.getConversationByUserId(userID);
+    conversations.forEach(conversation => {
+      client.join(conversation.id);
+    });
+    const sendConversation = await this.conversationService.getChatsByUserId(userID);
+    client.emit('conversations', sendConversation);
+  }
+
+  handleDisconnect(client: Socket) {
+    console.log('User disconnected: ', client.data.userID);
+  }
+
+  @SubscribeMessage('createConversation')
+  async createConversation(client: Socket, @MessageBody() data: any) {
+    const { title, password, privacy } = data;
+
+    const conversation = await this.conversationService.createConversation({
+      title,
+      creator_id: client.data.userID,
+      password,
+      privacy,
+    });
+
+    await this.participantService.create({
+      conversation_id: conversation.id,
+      user_id: client.data.userID,
+    });
+
+    client.join(conversation.id);
+
+    const connectedUsers = this.gatewaySession.getSockets().keys();
+    if (!connectedUsers) return;
+    const sendConversation = await this.conversationService.getChatsByUserId(client.data.userID);
+    for (const user of connectedUsers) {
+      this.server.to(user).emit('conversation_lists', sendConversation);
+      this.server.to(user).emit('created_conversation', conversation);
+    }
+
+    client.emit('conversationCreated', conversation);
+  }
+
+  @SubscribeMessage('joinConversation')
+  async joinConversation(client: Socket, @MessageBody() data: any) {
+    const { conversationID } = data;
+
+    const conversation = await this.conversationService.findOne(conversationID);
+    if (!conversation) return;
+    if (conversation.privacy === 'PRIVATE') {
+      const participant = await this.participantService.getConversation(client.data.userID, conversationID);
+      if (!participant) return;
+    }
+    const participant = this.participantService.getParticipantByUserIdAndConversationId(client.data.userID, conversationID);
+    if (participant) {
+      await this.participantService.updateRole(client.data.userID, conversationID, 'USER');
+    }
+    await this.participantService.create({
+      conversation_id: conversationID,
+      user_id: client.data.userID,
+    });
+
+    const connectedUsers = this.gatewaySession.getSockets().values();
+    if (!connectedUsers) return;
+    for (const user of connectedUsers) {
+      user.join(conversationID);
+      this.server.to(user.data.userID).emit('joined_conversation', conversationID);
+    }
+  }
+
+  @SubscribeMessage('leaveConversation')
+  async leaveConversation(client: Socket, @MessageBody() data: any) {
+    const { conversationID } = data;
+
+    const participant = await this.participantService.getConversation(client.data.userID, conversationID);
 
-// @WebSocketGateway()
-// export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  // @WebSocketServer() server: Server;
+    if (participant) {
+      await this.participantService.remove(participant.id);
 
-  // constructor(
-  //   private prisma: PrismaService,
-  //   private conversationService: ConversationService,
-  //   private participantService: ParticipantService,
-  //   private messageService: MessageService,
-  //   ) {}
+      client.leave(conversationID);
 
-  // async handleConnection(socket: AuthenticatedSocket) {
-  //   const userID = socket.handshake.query.userID as string;
-  //   const conversationID = socket.handshake.query.conversationID as string;
+      client.to(conversationID).emit('userLeft', { userID: client.data.userID });
+    }
+  }
 
-  //   console.log('User connected: ', userID, conversationID);
+  @SubscribeMessage('sendMessage')
+  async sendMessage(client: Socket, @MessageBody() data: any) {
+    const { conversationID, message } = data;
 
-  //   const participant = await this.participantService.getConversation(userID, conversationID);
+    const messageSent = await this.messageService.create({
+      conversation_id: conversationID,
+      author_id: client.data.userID,
+      message,
+    });
 
-  //   console.log('Participant: ', participant);
+    client.to(conversationID).emit('messageReceived', messageSent);
+  }
 
-  //   if (!participant) {
-  //     socket.disconnect();
-  //     return;
-  //   }
+  @SubscribeMessage('deleteMessage')
+  async deleteMessage(client: Socket, @MessageBody() data: any) {
+    const { messageID } = data;
 
-  //   socket.join(conversationID);
+    const message = await this.messageService.findOne(messageID);
 
-  //   socket.to(conversationID).emit('userJoined', { userID });
+    if (message && message.author_id === client.data.userID) {
+      await this.messageService.remove(messageID);
 
-  //   const messages = await this.prisma.message.findMany({
-  //     where: { conversation_id: conversationID },
-  //     include: { author: true },
-  //     orderBy: { created_at: 'asc' },
-  //   });
+      client.to(message.conversation_id).emit('messageDeleted', messageID);
+    }
+  }
 
-  //   socket.emit('conversationHistory', messages);
-  // }
+  @SubscribeMessage('blockUser')
+  async blockUser(client: Socket, @MessageBody() data: any) {
+    const { userID } = data;
 
-  // handleDisconnect(socket: AuthenticatedSocket) {
-  //   const userID = socket.handshake.query.userID as string;
-  //   const conversationID = socket.handshake.query.conversationID as string;
+    const participant = await this.participantService.getConversation(client.data.userID, userID);
 
-  //   console.log('User disconnected: ', userID, conversationID);
+    if (!participant) {
+      await this.participantService.create({
+        conversation_id: client.data.userID,
+        user_id: userID,
+      });
 
-  //   socket.to(conversationID).emit('userLeft', { userID });
-  // }
+      client.emit('userBlocked', { userID });
+    }
+  }
 
-  // @SubscribeMessage('createConversation')
-  // async createConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { title, channelID, password, privacy } = data;
+  @SubscribeMessage('unblockUser')
+  async unblockUser(client: Socket, @MessageBody() data: any) {
+    const { userID } = data;
 
-  //   const conversation = await this.conversationService.create({
-  //     title,
-  //     creator_id: socket.user.id,
-  //     channel_id: channelID,
-  //     password,
-  //     privacy,
-  //   });
+    const participant = await this.participantService.getConversation(client.data.userID, userID);
 
-  //   await this.participantService.create({
-  //     conversation_id: conversation.id,
-  //     user_id: socket.user.id,
-  //   });
+    if (participant) {
+      await this.participantService.remove(participant.id);
 
-  //   socket.emit('conversationCreated', conversation);
-  // }
+      client.emit('userUnblocked', { userID });
+    }
+  }
 
-  // @SubscribeMessage('joinConversation')
-  // async joinConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID } = data;
+  @SubscribeMessage('updateConversation')
+  async updateConversation(client: Socket, @MessageBody() data: any) {
+    const { conversationID, title, privacy } = data;
 
-  //   const participant = await this.participantService.getConversation(socket.user.id, conversationID);
+    const conversation = await this.conversationService.findOne(conversationID);
 
-  //   if (!participant) {
-  //     await this.participantService.create({
-  //       conversation_id: conversationID,
-  //       user_id: socket.user.id,
-  //     });
+    if (conversation && conversation.creator_id === client.data.userID) {
+      const updatedConversation = await this.conversationService.update(conversationID, {
+        title,
+        privacy,
+      });
 
-  //     socket.join(conversationID);
+      client.to(conversationID).emit('conversationUpdated', updatedConversation);
+    }
+  }
 
-  //     socket.to(conversationID).emit('userJoined', { userID: socket.user.id });
-  //   }
-  // }
+  @SubscribeMessage('setConversationPassword')
+  async setConversationPassword(client: Socket, @MessageBody() data: any) {
+    const { conversationID, password } = data;
 
-  // @SubscribeMessage('leaveConversation')
-  // async leaveConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID } = data;
+    const conversation = await this.conversationService.findOne(conversationID);
 
-  //   const participant = await this.participantService.getConversation(socket.user.id, conversationID);
+    if (conversation && conversation.creator_id === client.data.userID) {
+      const updatedConversation = await this.conversationService.update(conversationID, {
+        password,
+      });
 
-  //   if (participant) {
-  //     await this.participantService.remove(participant.id);
+      client.to(conversationID).emit('conversationUpdated', updatedConversation);
+    }
+  }
 
-  //     socket.leave(conversationID);
+  @SubscribeMessage('removeConversationPassword')
+  async removeConversationPassword(client: Socket, @MessageBody() data: any) {
+    const { conversationID } = data;
 
-  //     socket.to(conversationID).emit('userLeft', { userID: socket.user.id });
-  //   }
-  // }
+    const conversation = await this.conversationService.findOne(conversationID);
 
-  // @SubscribeMessage('sendMessage')
-  // async sendMessage(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID, message } = data;
+    if (conversation && conversation.creator_id === client.data.userID) {
+      const updatedConversation = await this.conversationService.update(conversationID, {
+        password: null,
+      });
 
-  //   const messageSent = await this.messageService.create({
-  //     conversation_id: conversationID,
-  //     author_id: socket.user.id,
-  //     message,
-  //   });
+      client.to(conversationID).emit('conversationUpdated', updatedConversation);
+    }
+  }
 
-  //   socket.to(conversationID).emit('messageReceived', messageSent);
-  // }
+  @SubscribeMessage('setConversationPrivacy')
+  async setConversationPrivacy(client: Socket, @MessageBody() data: any) {
+    const { conversationID, privacy } = data;
 
-  // @SubscribeMessage('deleteMessage')
-  // async deleteMessage(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { messageID } = data;
+    const conversation = await this.conversationService.findOne(conversationID);
 
-  //   const message = await this.messageService.findOne(messageID);
+    if (conversation && conversation.creator_id === client.data.userID) {
+      const updatedConversation = await this.conversationService.update(conversationID, {
+        privacy,
+      });
 
-  //   if (message && message.author_id === socket.user.id) {
-  //     await this.messageService.remove(messageID);
+      client.to(conversationID).emit('conversationUpdated', updatedConversation);
+    }
+  }
 
-  //     socket.to(message.conversation_id).emit('messageDeleted', messageID);
-  //   }
-  // }
+  @SubscribeMessage('setConversationAdmin')
+  async setConversationAdmin(client: Socket, @MessageBody() data: any) {
+    const { conversationID, userID } = data;
 
-  // @SubscribeMessage('blockUser')
-  // async blockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { userID } = data;
+    const conversation = await this.conversationService.findOne(conversationID);
 
-  //   const participant = await this.participantService.getConversation(socket.user.id, userID);
+    if (conversation && conversation.creator_id === client.data.userID) {
+      const participant = await this.participantService.getConversation(userID, conversationID);
 
-  //   if (!participant) {
-  //     await this.participantService.create({
-  //       conversation_id: socket.user.id,
-  //       user_id: userID,
-  //     });
+      if (participant) {
+        await this.participantService.update(participant.id, {
+          role: Role.ADMIN
+        });
 
-  //     socket.emit('userBlocked', { userID });
-  //   }
-  // }
+        client.to(conversationID).emit('userAdminSet', { userID });
+      }
+    }
+  }
 
-  // @SubscribeMessage('unblockUser')
-  // async unblockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { userID } = data;
+  @SubscribeMessage('kickUser')
+  async kickUser(client: Socket, @MessageBody() data: any) {
+    const { conversationID, userID } = data;
 
-  //   const participant = await this.participantService.getConversation(socket.user.id, userID);
+    const conversation = await this.conversationService.findOne(conversationID);
 
-  //   if (participant) {
-  //     await this.participantService.remove(participant.id);
+    if (conversation && conversation.creator_id === client.data.userID) {
+      const participant = await this.participantService.getConversation(userID, conversationID);
 
-  //     socket.emit('userUnblocked', { userID });
-  //   }
-  // }
+      if (participant) {
+        await this.participantService.remove(participant.id);
 
-  // @SubscribeMessage('updateConversation')
-  // async updateConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID, title, privacy } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === socket.user.id) {
-  //     const updatedConversation = await this.conversationService.update(conversationID, {
-  //       title,
-  //       privacy,
-  //     });
-
-  //     socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-  //   }
-  // }
-
-  // @SubscribeMessage('setConversationPassword')
-  // async setConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID, password } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === socket.user.id) {
-  //     const updatedConversation = await this.conversationService.update(conversationID, {
-  //       password,
-  //     });
-
-  //     socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-  //   }
-  // }
-
-  // @SubscribeMessage('removeConversationPassword')
-  // async removeConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === socket.user.id) {
-  //     const updatedConversation = await this.conversationService.update(conversationID, {
-  //       password: null,
-  //     });
-
-  //     socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-  //   }
-  // }
-
-  // @SubscribeMessage('setConversationPrivacy')
-  // async setConversationPrivacy(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID, privacy } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === socket.user.id) {
-  //     const updatedConversation = await this.conversationService.update(conversationID, {
-  //       privacy,
-  //     });
-
-  //     socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-  //   }
-  // }
-
-  // @SubscribeMessage('setConversationAdmin')
-  // async setConversationAdmin(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID, userID } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === socket.user.id) {
-  //     const participant = await this.participantService.getConversation(userID, conversationID);
-
-  //     if (participant) {
-  //       await this.participantService.update(participant.id, {
-  //         role: Role.ADMIN
-  //       });
-
-  //       socket.to(conversationID).emit('userAdminSet', { userID });
-  //     }
-  //   }
-  // }
-
-  // @SubscribeMessage('kickUser')
-  // async kickUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-  //   const { conversationID, userID } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === socket.user.id) {
-  //     const participant = await this.participantService.getConversation(userID, conversationID);
-
-  //     if (participant) {
-  //       await this.participantService.remove(participant.id);
-
-  //       socket.to(conversationID).emit('userKicked', { userID });
-  //     }
-  //   }
-  // }
-// }
+        client.to(conversationID).emit('userKicked', { userID });
+      }
+    }
+  }
+}

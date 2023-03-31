@@ -41,6 +41,24 @@ export class ParticipantService {
     });
   }
 
+  async updateRole(
+    userID: string,
+    conversationID: string,
+    role: string,
+  ) {
+    return await this.prisma.participant.update({
+      where: {
+        conversation_id_user_id: {
+          user_id: userID,
+          conversation_id: conversationID,
+        },
+      },
+      data: {
+        role: Role[role],
+      },
+    });
+  }
+
   async remove(id: string) {
     return await this.prisma.participant.delete({
       where: {
@@ -110,24 +128,6 @@ export class ParticipantService {
       },
       data: {
         conversation_status: Status.ACTIVE,
-      },
-    });
-  }
-
-  async updateRole(
-    userID: string,
-    conversationID: string,
-    role: string,
-  ) {
-    return await this.prisma.participant.update({
-      where: {
-        conversation_id_user_id: {
-          user_id: userID,
-          conversation_id: conversationID,
-        },
-      },
-      data: {
-        role: Role.USER,
       },
     });
   }
@@ -207,6 +207,20 @@ export class ParticipantService {
       },
       select: {
         conversation_id: true,
+      },
+    });
+  }
+
+  async getParticipantByUserIdAndConversationId(
+    userID: string,
+    conversationID: string,
+  ) {
+    return await this.prisma.participant.findUnique({
+      where: {
+        conversation_id_user_id: {
+          user_id: userID,
+          conversation_id: conversationID,
+        },
       },
     });
   }

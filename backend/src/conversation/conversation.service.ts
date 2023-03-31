@@ -13,7 +13,43 @@ export class ConversationService {
       data: {
         title: createConversationDto.title,
         creator_id: createConversationDto.creator_id,
-        channel_id: createConversationDto.channel_id,
+      },
+    });
+  }
+
+  async createConversation(createConversation: CreateConversationDto) {
+    return await this.prisma.conversation.create({
+      data: {
+        title: createConversation.title,
+        creator_id: createConversation.creator_id,
+        password: createConversation.password,
+        privacy: 'PRIVATE',
+      },
+    });
+  }
+
+  async getChatsByUserId(userId: string) {
+    return await this.prisma.participant.findMany({
+      where: {
+        user_id: userId,
+        conversation: {
+          privacy: 'PUBLIC', // Assuming true corresponds to public chats in the original function
+        },
+      },
+      include: {
+        conversation: {
+          select: {
+            id: true,
+            title: true,
+            created_at: true,
+            updated_at: true,
+          },
+        },
+      },
+      orderBy: {
+        conversation: {
+          updated_at: 'desc',
+        },
       },
     });
   }
@@ -38,7 +74,6 @@ export class ConversationService {
       data: {
         title: updateConversationDto.title,
         creator_id: updateConversationDto.creator_id,
-        channel_id: updateConversationDto.channel_id,
       },
     });
   }
