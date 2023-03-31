@@ -124,7 +124,7 @@ export class ConversationService {
   async getConversationByUserId(user_id: string) {
     return await this.prisma.participant.findMany({
       where: {
-        user_id: user_id,
+        id: user_id,
       },
     });
   }

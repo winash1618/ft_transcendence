@@ -31,10 +31,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ) {}
 
   async handleConnection(client: Socket) {
-		const token = client.handshake.auth.token;
-		const userID = this.jwtService.verify(token, {
-			secret: process.env.JWT_SECRET
-		});
+    const token = client.handshake.headers.token as string;
+    const userID = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET
+    });
 
     client.data.userID = userID;
 
@@ -42,11 +42,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     console.log('User connected: ', userID);
 
-    const conversations = await this.conversationService.getConversationByUserId(userID);
+    const conversations = await this.conversationService.getConversationByUserId(userID.id);
+    console.log('conversation by userid',conversations);
     conversations.forEach(conversation => {
       client.join(conversation.id);
     });
-    const sendConversation = await this.conversationService.getChatsByUserId(userID);
+    const sendConversation = await this.conversationService.getChatsByUserId(userID.id);
+    console.log('sending conversation',sendConversation);
     client.emit('conversations', sendConversation);
   }
 
