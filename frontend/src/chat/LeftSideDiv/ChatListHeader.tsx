@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
 import { MessageNav, MessageNavNotUsed, ParentMessageNav } from "./styles/TopNavForChat.styled";
 interface ChatListHeaderProps {
@@ -23,4 +23,4 @@ function ChatListHeader({ handleMessageNavClick, handleMessageNavNotUsedClick, m
 	);
 }
 
-export default ChatListHeader;
+export default memo(ChatListHeader);

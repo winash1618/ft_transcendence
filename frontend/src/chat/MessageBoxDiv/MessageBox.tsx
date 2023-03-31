@@ -1,13 +1,14 @@
-import React from "react";
+
 import { MessageImage, MessageLeft, MessageLeftContainer, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv } from "./styles/MessageBox.styled";
 
 interface MessageBoxProps {
 	messages: any;
 	messageEndRef: any;
 	UserProfilePicture: any;
+	participantID: any;
 }
 
-function MessageBox({ messages, messageEndRef, UserProfilePicture }: MessageBoxProps) {
+function MessageBox({ messages, messageEndRef, UserProfilePicture, participantID }: MessageBoxProps) {
 	return (
 		<>
 			<MessageSendDiv>
@@ -15,8 +16,8 @@ function MessageBox({ messages, messageEndRef, UserProfilePicture }: MessageBoxP
 					{
 						(
 							messages.map((message) => {
-								console.log("participant Id ", message.myParticipantID, "auther Id ", message.author_id, "   ", message.author_id === message.myParticipantID);
-								if (message.author_id === message.myParticipantID) {
+								console.log("participant Id ", participantID, "auther Id ", message.author_id, "   ", message.author_id === message.myParticipantID);
+								if (message.author_id === participantID) {
 									return (
 										<MessageRightContainer key={message.id}>
 											<MessageRight>{message.content}</MessageRight>

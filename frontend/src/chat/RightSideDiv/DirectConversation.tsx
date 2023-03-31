@@ -1,5 +1,6 @@
-import React from 'react';
+
 import { ContactDiv, ContactImage, ContactName } from './styles/DirectConversation.styled';
+
 
 interface DirectConversationProps {
 	users: any;

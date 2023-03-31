@@ -1,6 +1,5 @@
-import React from "react";
-import { CreateChannelButton, CreateChannelFormContainer, CreateChannelInput, CreateChannelLabel, CreateChannelOption, CreateChannelSelect } from "./styles/CreateChannelFormDiv.styled";
 
+import { CreateChannelButton, CreateChannelFormContainer, CreateChannelInput, CreateChannelLabel, CreateChannelOption, CreateChannelSelect } from "./styles/CreateChannelFormDiv.styled";
 interface CreateChannelFormDivProps {
 	handleChannelCreation: any;
 }

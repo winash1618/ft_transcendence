@@ -53,7 +53,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 			});
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
-			console.log("Rooms: ", socket.rooms);
 			
 			const ConversationObjectArrayWithParticipantId = [];
 			const participants = [];
@@ -73,10 +72,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
+					participants: c.participants,
 					messages: c.messages,
 				});
 				i++;
 			});
+			
+			console.log("Rooms: ", socket.rooms);
 			
 			const objectToEmit = {
 				conversations: ConversationObjectArrayWithParticipantId,
@@ -105,7 +107,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			message: data.content,
 		});
 		data.author_id = participant[0].id;
-		data.myParticipantID = participant[0].id;
+		// data.myParticipantID = participant[0].id;
 		this.server.to(data.conversation_id).emit('sendMessage', data);
 		}
 		catch (e) {
@@ -149,6 +151,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
+					participants: c.participants,
 					messages: c.messages,
 				});
 				i++;
@@ -212,6 +215,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
+					participants: c.participants,
 					messages: c.messages,
 				});
 				i++;
@@ -252,6 +256,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
+					participants: c.participants,
 					messages: c.messages,
 				});
 				i++;

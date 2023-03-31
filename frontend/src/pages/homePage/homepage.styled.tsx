@@ -1,4 +1,4 @@
-import styled, { css, ThemedStyledProps } from 'styled-components';
+import styled from 'styled-components';
 
 // interface ParentContainerProps {
 // 	backgroundColor: string;
@@ -48,47 +48,47 @@ import styled, { css, ThemedStyledProps } from 'styled-components';
 //   }}
 // `;
 
-export const FormContainer = styled.form`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 50px;
-`;
+// export const FormContainer = styled.form`
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   margin: 50px;
+// `;
 
-export const Label = styled.label`
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-`;
+// export const Label = styled.label`
+//   font-size: 1.2rem;
+//   margin-bottom: 10px;
+// `;
 
-export const Input = styled.input`
-  padding: 10px;
-  border-radius: 5px;
-  border: none;
-  margin-bottom: 20px;
-`;
+// export const Input = styled.input`
+//   padding: 10px;
+//   border-radius: 5px;
+//   border: none;
+//   margin-bottom: 20px;
+// `;
 
-export const Select = styled.select`
-  padding: 10px;
-  border-radius: 5px;
-  border: none;
-  margin-bottom: 20px;
-`;
+// export const Select = styled.select`
+//   padding: 10px;
+//   border-radius: 5px;
+//   border: none;
+//   margin-bottom: 20px;
+// `;
 
-export const Option = styled.option`
-  font-size: 1rem;
-`;
+// export const Option = styled.option`
+//   font-size: 1rem;
+// `;
 
-export const Button = styled.button`
-  padding: 10px 20px;
-  background-color: #008CBA;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+// export const Button = styled.button`
+//   padding: 10px 20px;
+//   background-color: #008CBA;
+//   color: #fff;
+//   border: none;
+//   border-radius: 5px;
+//   cursor: pointer;
+//   transition: background-color 0.3s ease;
 
-  &:hover {
-    background-color: #00688B;
-  }
-`;
+//   &:hover {
+//     background-color: #00688B;
+//   }
+// `;
 

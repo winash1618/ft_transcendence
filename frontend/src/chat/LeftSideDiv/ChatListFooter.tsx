@@ -1,4 +1,3 @@
-import React from "react";
 import { BiCommentAdd } from 'react-icons/bi';
 import { ContactName, CreateConversationDiv } from "./styles/ChatListFooter.styled";
 

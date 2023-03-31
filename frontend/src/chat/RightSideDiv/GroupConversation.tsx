@@ -1,4 +1,4 @@
-import React from "react";
+
 import { ContactDiv, ContactImage, ContactName } from "./styles/GroupConversation.styled";
 
 interface GroupConversationProps {

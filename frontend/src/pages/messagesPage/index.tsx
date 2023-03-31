@@ -38,6 +38,7 @@ const MessagesPage = () => {
 	const [isInGroup, setIsInGroup] = useState(false);
 	const [groupMembers, setGroupMembers] = useState([]);
 	const [otherUsers, setOtherUsers] = useState([]);
+	const [participantID, setParticipantID] = useState(null);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -71,48 +72,157 @@ const MessagesPage = () => {
 				},
 			});
 			setSocket(socket);
-			socket?.on('availableUsers', (object) => {
-				setUsers(object.ListOfAllUsers);
-				setConversations(object.conversations);
-				if (object.conversations.length > 0) {
-					handleOnLoadConversation(object.conversations[0]);
-					setConversationID(object.conversations[0].id);
-				}
-			});
-			socket?.on('getDirectConversations', (object) => {
-				setConversations(object.conversations);
-				if (object.conversations.length > 0) {
-					handleOnLoadConversation(object.conversations[0]);
-					setConversationID(object.conversations[0].id);
-				}
-			});
-			socket?.on('getGroupConversations', (object) => {
-				setConversations(object.conversations);
-				setGroupMembers(object.groupMembers);
-				setOtherUsers(object.otherUsers);
-				if (object.conversations.length > 0) {
-					handleOnLoadConversation(object.conversations[0]);
-					setConversationID(object.conversations[0].id);
-				}
-			});
-			socket?.on('reloadConversations', (object) => {
-				setConversations(object.conversations);
-				setGroupMembers(object.groupMembers);
-				setOtherUsers(object.otherUsers);
-			});
-			socket?.on('sendMessage', (message) => {
-				setMessages((messages) => [...messages, message]);
-			});
-			socket?.on('conversationCreated', (object) => {
-				conversations.push(object.conversation);
-			});
-			socket?.on('userAddedToGroup', (object) => {
-				setGroupMembers(object.groupMembers);
-				setOtherUsers(object.otherUsers);
-			});
 		};
 		getSocket();
-	}, [dispatch]);
+	}, [dispatch, setUser]);
+
+	useEffect(() => {
+		const handleAvailableUsers = (object) => {
+		  setUsers(object.ListOfAllUsers);
+		  setConversations(object.conversations);
+		  if (object.conversations.length > 0) {
+			handleOnLoadConversation(object.conversations[0]);
+			setConversationID(object.conversations[0].id);
+			for (const p of object.conversations[0].participants) {
+				if (p.user_id === user.id) {
+				  setParticipantID(p.id);
+				}
+			  }
+		  }
+		};
+	
+		const handleDirectConversations = (object) => {
+		  setConversations(object.conversations);
+		  if (object.conversations.length > 0) {
+			handleOnLoadConversation(object.conversations[0]);
+			setConversationID(object.conversations[0].id);
+			
+		  }
+		};
+	
+		const handleGroupConversations = (object) => {
+		  setConversations(object.conversations);
+		  setGroupMembers(object.groupMembers);
+		  setOtherUsers(object.otherUsers);
+		  if (object.conversations.length > 0) {
+			handleOnLoadConversation(object.conversations[0]);
+			setConversationID(object.conversations[0].id);
+			for (const p of object.conversations[0].participants) {
+				if (user && p.user_id === user.id) {
+				  setParticipantID(p.id);
+				}
+			  }
+		  }
+		};
+	
+		const handleReloadConversations = (object) => {
+		  setConversations(object.conversations);
+		  setGroupMembers(object.groupMembers);
+		  setOtherUsers(object.otherUsers);
+		};
+	
+		const handleMessageReceived = (message) => {
+		  setMessages((messages) => [...messages, message]);
+		};
+	
+		const handleConversationCreated = (object) => {
+		  setConversations((conversations) => [...conversations,object.conversation,]);
+		};
+	
+		const handleUserAddedToGroup = (object) => {
+		  setGroupMembers(object.groupMembers);
+		  setOtherUsers(object.otherUsers);
+		};
+	
+		socket?.on('availableUsers', handleAvailableUsers);
+		socket?.on('getDirectConversations', handleDirectConversations);
+		socket?.on('getGroupConversations', handleGroupConversations);
+		socket?.on('reloadConversations', handleReloadConversations);
+		socket?.on('sendMessage', handleMessageReceived);
+		socket?.on('conversationCreated', handleConversationCreated);
+		socket?.on('userAddedToGroup', handleUserAddedToGroup);
+	
+		return () => {
+		  socket?.off('availableUsers', handleAvailableUsers);
+		  socket?.off('getDirectConversations', handleDirectConversations);
+		  socket?.off('getGroupConversations', handleGroupConversations);
+		  socket?.off('reloadConversations', handleReloadConversations);
+		  socket?.off('sendMessage', handleMessageReceived);
+		  socket?.off('conversationCreated', handleConversationCreated);
+		  socket?.off('userAddedToGroup', handleUserAddedToGroup);
+		};
+	}, [socket, user, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
+
+
+	// useEffect(() => {
+	// 	const getToken = async () => {
+	// 		try {
+	// 			const response = await axios.get("/token", {
+	// 				withCredentials: true,
+	// 			});
+	// 			localStorage.setItem("auth", JSON.stringify(response.data));
+	// 			setUser(response.data.user);
+	// 			dispatch(setUserInfo(response.data.user));
+	// 			return response.data.token;
+	// 		} catch (err) {
+	// 			dispatch(logOut());
+	// 			window.location.reload();
+	// 			return null;
+	// 		}
+	// 	};
+	// 	const getSocket = async () => {
+	// 		const socket = io(process.env.REACT_APP_SOCKET_URL, {
+	// 			withCredentials: true,
+	// 			auth: async (cb) => {
+	// 				const token = await getToken();
+	// 				cb({
+	// 					token,
+	// 				});
+	// 			},
+	// 		});
+	// 		setSocket(socket);
+	// 		socket?.on('availableUsers', (object) => {
+	// 			setUsers(object.ListOfAllUsers);
+	// 			setConversations(object.conversations);
+	// 			if (object.conversations.length > 0) {
+	// 				handleOnLoadConversation(object.conversations[0]);
+	// 				setConversationID(object.conversations[0].id);
+	// 			}
+	// 		});
+	// 	};
+	// 	socket?.on('getDirectConversations', (object) => {
+	// 		setConversations(object.conversations);
+	// 		if (object.conversations.length > 0) {
+	// 			handleOnLoadConversation(object.conversations[0]);
+	// 			setConversationID(object.conversations[0].id);
+	// 		}
+	// 	});
+	// 	socket?.on('getGroupConversations', (object) => {
+	// 		setConversations(object.conversations);
+	// 		setGroupMembers(object.groupMembers);
+	// 		setOtherUsers(object.otherUsers);
+	// 		if (object.conversations.length > 0) {
+	// 			handleOnLoadConversation(object.conversations[0]);
+	// 			setConversationID(object.conversations[0].id);
+	// 		}
+	// 	});
+	// 	socket?.on('reloadConversations', (object) => {
+	// 		setConversations(object.conversations);
+	// 		setGroupMembers(object.groupMembers);
+	// 		setOtherUsers(object.otherUsers);
+	// 	});
+	// 	socket?.on('sendMessage', (message) => {
+	// 		setMessages((messages) => [...messages, message]);
+	// 	});
+	// 	socket?.on('conversationCreated', (object) => {
+	// 		conversations.push(object.conversation);
+	// 	});
+	// 	socket?.on('userAddedToGroup', (object) => {
+	// 		setGroupMembers(object.groupMembers);
+	// 		setOtherUsers(object.otherUsers);
+	// 	});
+	// 	getSocket();
+	// }, [dispatch]);
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
@@ -120,7 +230,7 @@ const MessagesPage = () => {
 			const newMessage = {
 				id: Date.now(),
 				author_id: "",
-				myParticipantID: "",
+				myParticipantID: participantID,
 				conversation_id: conversationID,
 				content: message,
 				type: "right",
@@ -160,6 +270,7 @@ const MessagesPage = () => {
 			setMessages([]);
 			setConversationID(conversation.id);
 			setContactDivColor("#00A551");
+			setParticipantID(conversation.participant_id);
 			conversation.messages.map((m) => {
 				console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
 				const newMessage = {
@@ -179,6 +290,7 @@ const MessagesPage = () => {
 		setMessages([]);
 		setConversationID(conversation.id);
 		setContactDivColor("#00A551");
+		setParticipantID(conversation.participant_id);
 		conversation.messages.map((m) => {
 			console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
 			const newMessage = {
@@ -199,6 +311,12 @@ const MessagesPage = () => {
 		const channelName = formData.get('channel-name');
 		const selectedUser = formData.get('channel-status');
 		socket?.emit('createConversation', { title: channelName, privacy: selectedUser });
+		// axios post request to create conversation
+		// axios.post('http://localhost:3001/conversations', { title: channelName, privacy: selectedUser })
+		// 	.then((response) => {
+		// 		console.log("response: ", response);
+		// 		socket?.emit('createConversation', { title: channelName, privacy: selectedUser });
+		// 	})
 		setIsFormVisible(false);
 	};
 
@@ -207,6 +325,20 @@ const MessagesPage = () => {
 		const selectedUser = event.target.outerText;
 		socket?.emit('addUserToGroup', { conversationId: conversationID, userLogin: selectedUser });
 	};
+
+	const setParticipantIdInInput = () => {
+		conversations.map((c) => {
+			if (c.id === conversationID) {
+				c.participants.map((p) => {
+					if (p.user_id === user.id) {
+						setParticipantID(p.id);
+						console.log("participantID: ", participantID);
+					}
+				});
+			}
+		}
+		);
+	}
 
 	return (
 		<>
@@ -217,8 +349,8 @@ const MessagesPage = () => {
 					<ChatListFooter handleCreateConversationClick={handleCreateConversationClick} />
 				</ChatListContainer>
 				<MessageBoxContainer>
-					<MessageBox messages={messages} messageEndRef={messageEndRef} UserProfilePicture={UserProfilePicture} />
-					<InputBoxDiv message={message} setMessage={setMessage} handleSubmit={handleSubmit} />
+					<MessageBox messages={messages} messageEndRef={messageEndRef} UserProfilePicture={UserProfilePicture} participantID={participantID} />
+					<InputBoxDiv message={message} setMessage={setMessage} handleSubmit={handleSubmit} setParticipantIdInInput={setParticipantIdInInput}/>
 				</MessageBoxContainer>
 				<RightSideDiv>
 					{isFormVisible ? (
