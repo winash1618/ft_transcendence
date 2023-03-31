@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
+import { PrismaModule } from 'src/database/prisma.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UsersModule } from 'src/users/users.module';
         }
       })
     }),
+    PrismaModule,
     AuthModule,
     UsersModule,
   ],

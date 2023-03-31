@@ -1,4 +1,4 @@
-import {
+import{
 	Game,
 	Position,
 	PlayerStats,
@@ -22,6 +22,7 @@ const BALL_SIZE = 12.5;
 const BALL_SPEED = 5;
 const PADDLE_SPEED = 15;
 const GAME_TIME = 30;
+const GAME_POINTS = 10;
 
 export class GameEngine {
 	gameID: string;
@@ -70,7 +71,7 @@ export class GameEngine {
 	constructor(game: Game, server: Server, player1: SocketData, player2: SocketData) {
 		this.gameID = game.gameID;
 		this.server = server;
-		this.gameObj = this.initGameObj(0, game.player1, game.player2);
+		this.gameObj = this.initGameObj(7, game.player1, game.player2);
 		this.ballMovement = {
 			x: 0,
 			y: 0,
@@ -250,17 +251,24 @@ export class GameEngine {
 		}, 1000);
 	}
 
-	startGame() {
-		clearInterval(this.interval);
-		this.initGameObj(0, this.player1, this.player2);
-		this.gameObj.gameStatus = GameStatus.PLAYING;
-		this.resetBall();
-		this.interval = setInterval(() => {
-			this.ballMove();
-			this.playerMove();
-			this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-		}, GAME_TIME);
-	}
+  startGame() {
+    clearInterval(this.interval);
+    this.initGameObj(0, this.player1, this.player2);
+    this.gameObj.gameStatus = GameStatus.PLAYING;
+    this.resetBall();
+
+    this.interval = setInterval(() => {
+      this.ballMove();
+      this.playerMove();
+      this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+
+      if (this.gameObj.player1.points >= GAME_POINTS || this.gameObj.player2.points >= GAME_POINTS) {
+        clearInterval(this.interval);
+        this.gameObj.gameStatus = GameStatus.WAITING;
+        this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+      }
+    }, GAME_TIME);
+  }
 
 	stopGame() {
 	}
