@@ -1,4 +1,4 @@
-import {
+import{
 	Game,
 	Position,
 	PlayerStats,
@@ -22,6 +22,7 @@ const BALL_SIZE = 12.5;
 const BALL_SPEED = 5;
 const PADDLE_SPEED = 15;
 const GAME_TIME = 30;
+const GAME_POINTS = 10;
 
 export class GameEngine {
 	gameID: string;
@@ -59,7 +60,7 @@ export class GameEngine {
 			player1: { points: 0, name: player1 },
 			player2: { points: 0, name: player2 },
 			gameSetting: {
-				speed: 1,
+				speed: 3,
 				points: points,
 			},
 			remainingTime: GAME_TIME,
@@ -70,7 +71,7 @@ export class GameEngine {
 	constructor(game: Game, server: Server, player1: SocketData, player2: SocketData) {
 		this.gameID = game.gameID;
 		this.server = server;
-		this.gameObj = this.initGameObj(0, game.player1, game.player2);
+		this.gameObj = this.initGameObj(7, game.player1, game.player2);
 		this.ballMovement = {
 			x: 0,
 			y: 0,
@@ -124,12 +125,9 @@ export class GameEngine {
 			radianRatio = 1 - (conflictPosition / paddleHeight) * 2;
 		}
 
-		const bounceAngle = (radianRatio * Math.PI) / 4;
-		const speedX = Math.cos(bounceAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
-		const speedY = Math.sin(bounceAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
-
-		this.ballMovement.x = (isBallMovingRight ? -1 : 1) * speedX;
-		this.ballMovement.y = yDirection * speedY;
+    this.ballMovement.radian = (radianRatio * Math.PI) / 4;
+    this.ballMovement.x = isBallMovingRight * Math.cos(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
+    this.ballMovement.y = yDirection * Math.sin(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
 	}
 
 	ballMove() {
@@ -150,25 +148,39 @@ export class GameEngine {
 			this.gameObj.player2.points++;
 			this.server.to(this.gameID).emit('player2Score', this.gameObj.player2.points);
 			this.resetBall();
+      return ;
 		} else if (ball.x >= GAME_WIDTH - BALL_SIZE) {
 			// Player 1 scores
 			this.gameObj.player1.points++;
 			this.server.to(this.gameID).emit('player1Score', this.gameObj.player1.points);
 			this.resetBall();
-		} else if (ball.y <= 0 || ball.y >= GAME_HEIGHT - BALL_SIZE) {
-			// Ball bounces off ceiling or floor
-			this.ballMovement.y = -this.ballMovement.y;
-		} else if (ball.x <= PADDLE_WIDTH && ball.y >= paddle1.y && ball.y <= paddle1.y + PADDLE_HEIGHT) {
-			// Ball collides with player 1's paddle
-			this.ballBounce(paddle1.y);
-		} else if (ball.x >= GAME_WIDTH - PADDLE_WIDTH - BALL_SIZE && ball.y >= paddle2.y && ball.y <= paddle2.y + PADDLE_HEIGHT) {
-			// Ball collides with player 2's paddle
-			this.ballBounce(paddle2.y);
+      return ;
 		}
-
-		// Move ball according to current movement speed
-		this.gameObj.ball.x += this.ballMovement.x;
-		this.gameObj.ball.y += this.ballMovement.y;
+    if (ball.x == 0) {
+      this.ballMovement.y *= -1;
+    }
+    if (ball.y == ballBottomMax) {
+      this.ballMovement.y *= -1;
+    }
+    if (ball.y <= 0) {
+      this.ballMovement.y *= -1;
+    }
+    if (
+      paddle1.y <= ball.y + BALL_SIZE &&
+      ball.y <= paddle1.y + PADDLE_HEIGHT &&
+      paddle1.x <= ball.x &&
+      ball.x <= paddle1.x + PADDLE_WIDTH &&
+      this.ballMovement.x < 0) {
+        this.ballBounce(paddle1.y);
+    }
+    if (
+      paddle2.y <= ball.y + BALL_SIZE &&
+      ball.y <= paddle2.y + PADDLE_HEIGHT &&
+      paddle2.x <= ball.x + BALL_SIZE &&
+      ball.x + BALL_SIZE <= paddle2.x + PADDLE_WIDTH &&
+      this.ballMovement.x > 0) {
+        this.ballBounce(paddle2.y);
+    }
 	}
 
 	resetBall() {
@@ -208,6 +220,7 @@ export class GameEngine {
 			this.barMove(keyStatus, this.gameObj.paddle2, isPressed);
 		}
 	}
+
 	playerMove() {
 		if (this.gameObj.paddle1.movingUp) {
 			if (this.gameObj.paddle1.y >= PADDLE_SPEED)
@@ -226,6 +239,7 @@ export class GameEngine {
 				this.gameObj.paddle1.y = this.gameObj.paddle1.y + PADDLE_SPEED;
 		}
 	}
+
 	startSettings() {
 		this.gameObj.time = GAME_TIME;
 		this.interval = setInterval(() => {
@@ -237,17 +251,24 @@ export class GameEngine {
 		}, 1000);
 	}
 
-	startGame() {
-		clearInterval(this.interval);
-		this.initGameObj(0, this.player1, this.player2);
-		this.gameObj.gameStatus = GameStatus.PLAYING;
-		this.resetBall();
-		this.interval = setInterval(() => {
-			this.ballMove();
-			this.playerMove();
-			this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-		}, GAME_TIME);
-	}
+  startGame() {
+    clearInterval(this.interval);
+    this.initGameObj(0, this.player1, this.player2);
+    this.gameObj.gameStatus = GameStatus.PLAYING;
+    this.resetBall();
+
+    this.interval = setInterval(() => {
+      this.ballMove();
+      this.playerMove();
+      this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+
+      if (this.gameObj.player1.points >= GAME_POINTS || this.gameObj.player2.points >= GAME_POINTS) {
+        clearInterval(this.interval);
+        this.gameObj.gameStatus = GameStatus.WAITING;
+        this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+      }
+    }, GAME_TIME);
+  }
 
 	stopGame() {
 	}

@@ -44,7 +44,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			secret: process.env.JWT_SECRET
 		});
 		console.log('User disconnected: ', userid);
-		this.users = this.users.filter(user => user.userID !== userid);
+		this.users = this.users.filter(user => user.userID === userid);
 		this.userSockets.delete(userid);
 	}
 
