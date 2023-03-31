@@ -20,12 +20,13 @@ model User {
   friends_of            User[]          @relation("friends")
   blocked_users         User[]          @relation("blocked_users")
   blocked_by            User[]          @relation("blocked_users")
-  is_active             Boolean         @default(false)
+  user_status           UserStatus      @default(OFFLINE)
   created_at            DateTime        @default(now())
   updated_at            DateTime        @default(now())
 
   participant_in        Participant[]
-  game_history          GameHistory[]
+  playerOneHistories GameHistory[] @relation("PlayerOne")
+  playerTwoHistories GameHistory[] @relation("PlayerTwo")
 }
 
 // Conversation table
@@ -74,15 +75,16 @@ model Participant {
 }
 
 model GameHistory {
-    id                  String          @id @default(uuid())
-    player_one          String
-    player_two          String
-    player_score        Int
-    opponent_score      Int
-    winner              String
-    looser              String
-    users               User[]
-    createdAt           DateTime        @default(now())
+  id            String   @id @default(uuid())
+  player_one    String
+  player_two    String
+  player_score  Int
+  opponent_score Int
+  winner        String
+  looser        String
+  playerOne     User     @relation("PlayerOne", fields: [player_one], references: [id])
+  playerTwo     User     @relation("PlayerTwo", fields: [player_two], references: [id])
+  createdAt     DateTime @default(now())
 }
 
 enum Role {
@@ -101,4 +103,10 @@ enum Status {
   ACTIVE
   BLOCKED
   DELETED
+}
+
+enum UserStatus {
+  ONLINE
+  OFFLINE
+  IN_GAME
 }

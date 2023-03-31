@@ -36,3 +36,7 @@ lerna-debug.log*
 
 # env files
 .env
+test.ts
+
+# Prisma migration
+prisma/migrations

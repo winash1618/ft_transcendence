@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { User, Prisma } from '@prisma/client';
+import { User, Prisma, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
@@ -32,4 +32,18 @@ export class UsersService {
 	remove(id: number) {
 		return `This action removes a #${id} user`;
 	}
+
+  async userStatusUpdate(id: string, status: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { user_status: UserStatus[status] },
+    });
+  }
+
+  async updateUserName(id: string, name: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { username: name },
+    });
+  }
 }

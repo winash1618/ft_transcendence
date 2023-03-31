@@ -34,4 +34,14 @@ export class UsersController {
 	remove(@Param('id') id: number) {
 		return this.usersService.remove(+id);
 	}
+
+  @Patch(':id')
+  async userStatusUpdate(@Param('id') id: string, @Body() status: string) {
+    return await this.usersService.userStatusUpdate(id, status);
+  }
+
+  @Patch(':id')
+  async updateUserName(@Param('id') id: string, @Body() name: string) {
+    return await this.usersService.updateUserName(id, name);
+  }
 }
