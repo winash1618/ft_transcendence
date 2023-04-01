@@ -1,8 +1,10 @@
+import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { PingPongContainer } from "../pingPong.styled";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, draw } from "./pingPongCanvas.functions";
-import { ScoreText, StyledCanvas } from "./pingPongCanvas.styled";
+import { ScoreText, StatusText, StyledCanvas } from "./pingPongCanvas.styled";
 
 export type GameType = {
   pause: boolean;
@@ -64,9 +66,18 @@ const PingPongCanvas = ({
   socket: Socket | null;
 }) => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
+  const [gameStatus, setGameStatus] = useState<number>(0);
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (gameStatus !== 0) {
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    }
+  }, [gameStatus]);
 
   useEffect(() => {
     if (canvaRef.current) {
@@ -144,6 +155,12 @@ const PingPongCanvas = ({
   }, [player, roomID, socket]);
 
   useEffect(() => {
+    socket?.on("win", (data) => {
+      setGameStatus(1);
+    });
+    socket?.on("lose", (data) => {
+      setGameStatus(2);
+    });
     socket?.on("gameUpdate", (data) => {
       game.ball.x = data.ball.x;
       game.ball.y = data.ball.y;
@@ -161,7 +178,10 @@ const PingPongCanvas = ({
     }
     return () => {
       socket?.off("gameUpdate", (data) => {
-        console.log(data);
+        game.ball.x = data.ball.x;
+        game.ball.y = data.ball.y;
+        game.paddle1.y = data.paddle1.y;
+        game.paddle2.y = data.paddle2.y;
       });
       socket?.off("player1Score", (data) => {
         setPlayer1Score(data);
@@ -169,16 +189,34 @@ const PingPongCanvas = ({
       socket?.off("player2Score", (data) => {
         setPlayer2Score(data);
       });
+      socket?.off("win", (data) => {
+        setGameStatus(1);
+      });
+      socket?.off("lose", (data) => {
+        setGameStatus(2);
+      });
       socket?.disconnect();
     };
   }, [socket, player, dispatch, roomID]);
   return (
-    <>
+    <PingPongContainer>
       <StyledCanvas ref={canvaRef} />
       <ScoreText>
         {player1Score} : {player2Score}
       </ScoreText>
-    </>
+      <AnimatePresence>
+        {gameStatus === 1 && (
+          <StatusText initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            You win
+          </StatusText>
+        )}
+        {gameStatus === 2 && (
+          <StatusText initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            You lose
+          </StatusText>
+        )}
+      </AnimatePresence>
+    </PingPongContainer>
   );
 };
 

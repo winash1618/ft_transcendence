@@ -35,13 +35,13 @@ export class UsersController {
 		return this.usersService.remove(+id);
 	}
 
-  @Patch(':id')
-  async userStatusUpdate(@Param('id') id: string, @Body() status: string) {
-    return await this.usersService.userStatusUpdate(id, status);
-  }
+//   @Patch(':id')
+//   async userStatusUpdate(@Param('id') id: string, @Body() data: { status: string; }) {
+//     return await this.usersService.userStatusUpdate(id, data.status);
+//   }
 
-  @Patch(':id')
-  async updateUserName(@Param('id') id: string, @Body() name: string) {
-    return await this.usersService.updateUserName(id, name);
+  @Patch(':uuid')
+  async updateUserName(@Param('uuid', new ParseUUIDPipe()) uuid: string, @Body() data: { name: string; }) {
+    return await this.usersService.updateUserName(uuid, data.name);
   }
 }

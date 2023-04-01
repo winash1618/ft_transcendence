@@ -29,26 +29,24 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const getToken = async () => {
-    try {
-      const response = await axios.get(`/token`);
-      localStorage.setItem("auth", JSON.stringify(response.data));
-    //   if (!response.data.user.username) {
-    //     navigate("/set-nickname");
-    //   }
-      dispatch(setUserInfo(response.data.user));
-      setIsLoadingPage(false);
-    } catch (err) {
-      dispatch(logOut());
-      window.location.replace(`${BASE_URL}/42/login`);
-    }
-  };
 
   useEffect(() => {
+    const getToken = async () => {
+      try {
+        const response = await axios.get(`/token`);
+        localStorage.setItem("auth", JSON.stringify(response.data));
+        if (!response.data.user.username) {
+          navigate("/set-nickname");
+        }
+        dispatch(setUserInfo(response.data.user));
+        setIsLoadingPage(false);
+      } catch (err) {
+        dispatch(logOut());
+        window.location.replace(`${BASE_URL}/42/login`);
+      }
+    };
     getToken();
-    if (location.pathname === "/") {
-    }
-  });
+  }, [dispatch, setIsLoadingPage, navigate]);
 
   useEffect(() => {
     if (location.pathname === "/") {

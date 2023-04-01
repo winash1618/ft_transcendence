@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import styled from "styled-components";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "./pingPongCanvas.functions";
 
@@ -12,4 +13,10 @@ export const ScoreText = styled.div`
   font-size: 50px;
   padding: 20px;
   font-family: Consolas, monaco, monospace;
+`;
+
+export const StatusText = styled(motion.h1)`
+  font-size: 3rem;
+  position: absolute;
+  -webkit-text-stroke: 2px black;
 `;

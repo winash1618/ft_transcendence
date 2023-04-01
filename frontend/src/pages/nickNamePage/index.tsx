@@ -11,9 +11,13 @@ import {
 } from "./nickNamePage.styled";
 import { NickNameSchema } from "../../utils/schema";
 import ButtonComponent from "../../components/ButtonComponent";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
+import { changeNickName } from "../../store/usersReducer";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export type NickNameType = {
-  nickName: number;
+  nickName: string;
 };
 
 const NickNamePage = () => {
@@ -23,8 +27,19 @@ const NickNamePage = () => {
     control,
   } = useForm<NickNameType>({ resolver: yupResolver(NickNameSchema) });
 
+  const { userInfo } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (!!userInfo.username) {
+      navigate("/");
+    }
+  }, [userInfo]);
+
   const onSubmit: SubmitHandler<NickNameType> = (data) => {
-	console.log(data);
+    dispatch(changeNickName({ id: userInfo.id, name: data.nickName }));
   };
   return (
     <FormContainer onSubmit={handleSubmit(onSubmit)}>

@@ -19,7 +19,7 @@ export const fetchUserById = createAsyncThunk(
   "users/fetchById",
   async (id: string, thunkApi) => {
     try {
-		console.log(id);
+      console.log(id);
       const result = await axiosPrivate.get(`/users/${id}`);
       return result.data;
     } catch (error) {
@@ -41,16 +41,16 @@ export const fetchAllUsers = createAsyncThunk(
 );
 
 export const changeNickName = createAsyncThunk(
-	"users/changeNickName",
-	async (data, thunkApi) => {
-	  try {
-		const result = await axiosPrivate.post("/users");
-		return result.data;
-	  } catch (error) {
-		return thunkApi.rejectWithValue(error);
-	  }
-	}
-  );
+  "users/changeNickName",
+  async (data: { id: string; name: string }, thunkApi) => {
+    try {
+      const result = await axiosPrivate.patch(`/users/${data.id}`, { name: data.name });
+      return result.data;
+    } catch (error) {
+      return thunkApi.rejectWithValue(error);
+    }
+  }
+);
 
 const usersSlide = createSlice({
   name: "Auth",
@@ -95,6 +95,26 @@ const usersSlide = createSlice({
       };
     });
     builder.addCase(fetchAllUsers.rejected, (state, action) => {
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
+      };
+    });
+    builder.addCase(changeNickName.pending, (state) => {
+      return {
+        ...state,
+        isLoading: true,
+        error: null,
+      };
+    });
+    builder.addCase(changeNickName.fulfilled, (state) => {
+      return {
+        ...state,
+        isLoading: false,
+      };
+    });
+    builder.addCase(changeNickName.rejected, (state, action) => {
       return {
         ...state,
         isLoading: false,

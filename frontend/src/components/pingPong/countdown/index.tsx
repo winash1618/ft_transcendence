@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Countdown from "react-countdown";
 import {
   CountDownCircle,
@@ -8,6 +8,9 @@ import {
 } from "./countdown.styled";
 
 const CountDown = React.memo<any>(({ element }: { element: JSX.Element }) => {
+	useEffect(() => {
+		console.log("countdown");
+	}, [element])
   const renderer = ({ seconds, completed }: any) => {
     if (completed) {
       return element;

@@ -10,8 +10,3 @@ export const PingPongContainer = styled.div`
   width: 100%;
   height: 100%;
 `;
-
-export const StatusText = styled(motion.h1)`
-	font-size: 2rem;
-	position: absolute;
-`
