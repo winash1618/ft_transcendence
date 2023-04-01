@@ -78,62 +78,61 @@ const MessagesPage = () => {
 
 	useEffect(() => {
 		const handleAvailableUsers = (object) => {
-		  setUsers(object.ListOfAllUsers);
-		  setConversations(object.conversations);
-		  if (object.conversations.length > 0) {
-			handleOnLoadConversation(object.conversations[0]);
-			setConversationID(object.conversations[0].id);
-			for (const p of object.conversations[0].participants) {
-				if (p.user_id === user.id) {
-				  setParticipantID(p.id);
+			setUsers(object.ListOfAllUsers);
+			setConversations(object.conversations);
+			if (object.conversations.length > 0) {
+				handleOnLoadConversation(object.conversations[0]);
+				setConversationID(object.conversations[0].id);
+				for (const p of object.conversations[0].participants) {
+					if (p.user_id === user.id) {
+						setParticipantID(p.id);
+					}
 				}
-			  }
-		  }
+			}
 		};
-	
+
 		const handleDirectConversations = (object) => {
-		  setConversations(object.conversations);
-		  if (object.conversations.length > 0) {
-			handleOnLoadConversation(object.conversations[0]);
-			setConversationID(object.conversations[0].id);
-			
-		  }
+			setConversations(object.conversations);
+			if (object.conversations.length > 0) {
+				handleOnLoadConversation(object.conversations[0]);
+				setConversationID(object.conversations[0].id);
+			}
 		};
-	
+
 		const handleGroupConversations = (object) => {
-		  setConversations(object.conversations);
-		  setGroupMembers(object.groupMembers);
-		  setOtherUsers(object.otherUsers);
-		  if (object.conversations.length > 0) {
-			handleOnLoadConversation(object.conversations[0]);
-			setConversationID(object.conversations[0].id);
-			for (const p of object.conversations[0].participants) {
-				if (user && p.user_id === user.id) {
-				  setParticipantID(p.id);
+			setConversations(object.conversations);
+			setGroupMembers(object.groupMembers);
+			setOtherUsers(object.otherUsers);
+			if (object.conversations.length > 0) {
+				handleOnLoadConversation(object.conversations[0]);
+				setConversationID(object.conversations[0].id);
+				for (const p of object.conversations[0].participants) {
+					if (user && p.user_id === user.id) {
+						setParticipantID(p.id);
+					}
 				}
-			  }
-		  }
+			}
 		};
-	
+
 		const handleReloadConversations = (object) => {
-		  setConversations(object.conversations);
-		  setGroupMembers(object.groupMembers);
-		  setOtherUsers(object.otherUsers);
+			setConversations(object.conversations);
+			setGroupMembers(object.groupMembers);
+			setOtherUsers(object.otherUsers);
 		};
-	
+
 		const handleMessageReceived = (message) => {
-		  setMessages((messages) => [...messages, message]);
+			setMessages((messages) => [...messages, message]);
 		};
-	
+
 		const handleConversationCreated = (object) => {
-		  setConversations((conversations) => [...conversations,object.conversation,]);
+			setConversations((conversations) => [...conversations, object.conversation,]);
 		};
-	
+
 		const handleUserAddedToGroup = (object) => {
-		  setGroupMembers(object.groupMembers);
-		  setOtherUsers(object.otherUsers);
+			setGroupMembers(object.groupMembers);
+			setOtherUsers(object.otherUsers);
 		};
-	
+
 		socket?.on('availableUsers', handleAvailableUsers);
 		socket?.on('getDirectConversations', handleDirectConversations);
 		socket?.on('getGroupConversations', handleGroupConversations);
@@ -141,88 +140,17 @@ const MessagesPage = () => {
 		socket?.on('sendMessage', handleMessageReceived);
 		socket?.on('conversationCreated', handleConversationCreated);
 		socket?.on('userAddedToGroup', handleUserAddedToGroup);
-	
+
 		return () => {
-		  socket?.off('availableUsers', handleAvailableUsers);
-		  socket?.off('getDirectConversations', handleDirectConversations);
-		  socket?.off('getGroupConversations', handleGroupConversations);
-		  socket?.off('reloadConversations', handleReloadConversations);
-		  socket?.off('sendMessage', handleMessageReceived);
-		  socket?.off('conversationCreated', handleConversationCreated);
-		  socket?.off('userAddedToGroup', handleUserAddedToGroup);
+			socket?.off('availableUsers', handleAvailableUsers);
+			socket?.off('getDirectConversations', handleDirectConversations);
+			socket?.off('getGroupConversations', handleGroupConversations);
+			socket?.off('reloadConversations', handleReloadConversations);
+			socket?.off('sendMessage', handleMessageReceived);
+			socket?.off('conversationCreated', handleConversationCreated);
+			socket?.off('userAddedToGroup', handleUserAddedToGroup);
 		};
 	}, [socket, user, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
-
-
-	// useEffect(() => {
-	// 	const getToken = async () => {
-	// 		try {
-	// 			const response = await axios.get("/token", {
-	// 				withCredentials: true,
-	// 			});
-	// 			localStorage.setItem("auth", JSON.stringify(response.data));
-	// 			setUser(response.data.user);
-	// 			dispatch(setUserInfo(response.data.user));
-	// 			return response.data.token;
-	// 		} catch (err) {
-	// 			dispatch(logOut());
-	// 			window.location.reload();
-	// 			return null;
-	// 		}
-	// 	};
-	// 	const getSocket = async () => {
-	// 		const socket = io(process.env.REACT_APP_SOCKET_URL, {
-	// 			withCredentials: true,
-	// 			auth: async (cb) => {
-	// 				const token = await getToken();
-	// 				cb({
-	// 					token,
-	// 				});
-	// 			},
-	// 		});
-	// 		setSocket(socket);
-	// 		socket?.on('availableUsers', (object) => {
-	// 			setUsers(object.ListOfAllUsers);
-	// 			setConversations(object.conversations);
-	// 			if (object.conversations.length > 0) {
-	// 				handleOnLoadConversation(object.conversations[0]);
-	// 				setConversationID(object.conversations[0].id);
-	// 			}
-	// 		});
-	// 	};
-	// 	socket?.on('getDirectConversations', (object) => {
-	// 		setConversations(object.conversations);
-	// 		if (object.conversations.length > 0) {
-	// 			handleOnLoadConversation(object.conversations[0]);
-	// 			setConversationID(object.conversations[0].id);
-	// 		}
-	// 	});
-	// 	socket?.on('getGroupConversations', (object) => {
-	// 		setConversations(object.conversations);
-	// 		setGroupMembers(object.groupMembers);
-	// 		setOtherUsers(object.otherUsers);
-	// 		if (object.conversations.length > 0) {
-	// 			handleOnLoadConversation(object.conversations[0]);
-	// 			setConversationID(object.conversations[0].id);
-	// 		}
-	// 	});
-	// 	socket?.on('reloadConversations', (object) => {
-	// 		setConversations(object.conversations);
-	// 		setGroupMembers(object.groupMembers);
-	// 		setOtherUsers(object.otherUsers);
-	// 	});
-	// 	socket?.on('sendMessage', (message) => {
-	// 		setMessages((messages) => [...messages, message]);
-	// 	});
-	// 	socket?.on('conversationCreated', (object) => {
-	// 		conversations.push(object.conversation);
-	// 	});
-	// 	socket?.on('userAddedToGroup', (object) => {
-	// 		setGroupMembers(object.groupMembers);
-	// 		setOtherUsers(object.otherUsers);
-	// 	});
-	// 	getSocket();
-	// }, [dispatch]);
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
@@ -311,12 +239,6 @@ const MessagesPage = () => {
 		const channelName = formData.get('channel-name');
 		const selectedUser = formData.get('channel-status');
 		socket?.emit('createConversation', { title: channelName, privacy: selectedUser });
-		// axios post request to create conversation
-		// axios.post('http://localhost:3001/conversations', { title: channelName, privacy: selectedUser })
-		// 	.then((response) => {
-		// 		console.log("response: ", response);
-		// 		socket?.emit('createConversation', { title: channelName, privacy: selectedUser });
-		// 	})
 		setIsFormVisible(false);
 	};
 
@@ -344,25 +266,59 @@ const MessagesPage = () => {
 		<>
 			<ParentContainer>
 				<ChatListContainer>
-					<ChatListHeader handleMessageNavClick={handleMessageNavClick} handleMessageNavNotUsedClick={handleMessageNavNotUsedClick} messageNavButtonColor={messageNavButtonColor} messageNavButtonColorNotUsed={messageNavButtonColorNotUsed} />
-					<ChatListDiv conversations={conversations} conversationID={conversationID} contactDivColor={contactDivColor} UserProfilePicture={UserProfilePicture} handleSelectedConversation={handleSelectedConversation} />
-					<ChatListFooter handleCreateConversationClick={handleCreateConversationClick} />
+					<ChatListHeader
+						handleMessageNavClick={handleMessageNavClick}
+						handleMessageNavNotUsedClick={handleMessageNavNotUsedClick}
+						messageNavButtonColor={messageNavButtonColor}
+						messageNavButtonColorNotUsed={messageNavButtonColorNotUsed}
+					/>
+					<ChatListDiv
+						conversations={conversations}
+						conversationID={conversationID}
+						contactDivColor={contactDivColor}
+						UserProfilePicture={UserProfilePicture}
+						handleSelectedConversation={handleSelectedConversation}
+					/>
+					<ChatListFooter
+						handleCreateConversationClick={handleCreateConversationClick}
+					/>
 				</ChatListContainer>
 				<MessageBoxContainer>
-					<MessageBox messages={messages} messageEndRef={messageEndRef} UserProfilePicture={UserProfilePicture} participantID={participantID} />
-					<InputBoxDiv message={message} setMessage={setMessage} handleSubmit={handleSubmit} setParticipantIdInInput={setParticipantIdInInput}/>
+					<MessageBox
+						messages={messages}
+						messageEndRef={messageEndRef}
+						UserProfilePicture={UserProfilePicture}
+						participantID={participantID}
+					/>
+					<InputBoxDiv
+						message={message}
+						setMessage={setMessage}
+						handleSubmit={handleSubmit}
+						setParticipantIdInInput={setParticipantIdInInput}
+					/>
 				</MessageBoxContainer>
 				<RightSideDiv>
 					{isFormVisible ? (
-						<CreateChannelFormDiv handleChannelCreation={handleChannelCreation} />
+						<CreateChannelFormDiv
+							handleChannelCreation={handleChannelCreation}
+						/>
 					) : (isInGroup ? (
-						<GroupConversation groupMembers={groupMembers} otherUsers={otherUsers} user={user} contactDivColor={contactDivColor} UserProfilePicture={UserProfilePicture} handleAddUserToGroup={handleAddUserToGroup} />
-
+						<GroupConversation
+							groupMembers={groupMembers}
+							otherUsers={otherUsers}
+							user={user}
+							contactDivColor={contactDivColor}
+							UserProfilePicture={UserProfilePicture}
+							handleAddUserToGroup={handleAddUserToGroup}
+						/>
 					) : (
-						<DirectConversation users={users} user={user} contactDivColor={contactDivColor} UserProfilePicture={UserProfilePicture} />
-					))
-
-					}
+						<DirectConversation
+							users={users}
+							user={user}
+							contactDivColor={contactDivColor}
+							UserProfilePicture={UserProfilePicture}
+						/>
+					))}
 				</RightSideDiv>
 			</ParentContainer>
 		</>

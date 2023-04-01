@@ -53,7 +53,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 			});
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
-			
+
 			const ConversationObjectArrayWithParticipantId = [];
 			const participants = [];
 			for (const object of DirectConversationObjectArray) {
@@ -77,14 +77,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
-			
 			console.log("Rooms: ", socket.rooms);
-			
 			const objectToEmit = {
 				conversations: ConversationObjectArrayWithParticipantId,
 				ListOfAllUsers: ListOfAllUsersObject,
-			}
-
+			};
 			socket.emit('availableUsers', objectToEmit);
 		}
 		catch (e) {
@@ -100,15 +97,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-		const participant = await this.participantService.getParticipant(data.conversation_id, user.id);
-		await this.messageService.create({
-			conversation_id: data.conversation_id,
-			author_id: participant[0].id,
-			message: data.content,
-		});
-		data.author_id = participant[0].id;
-		// data.myParticipantID = participant[0].id;
-		this.server.to(data.conversation_id).emit('sendMessage', data);
+			const participant = await this.participantService.getParticipant(data.conversation_id, user.id);
+			await this.messageService.create({
+				conversation_id: data.conversation_id,
+				author_id: participant[0].id,
+				message: data.content,
+			});
+			data.author_id = participant[0].id;
+			// data.myParticipantID = participant[0].id;
+			this.server.to(data.conversation_id).emit('sendMessage', data);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -158,13 +155,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			const groupMembers = [];
 			const otherUsers = [];
-				const conversation = await this.conversationService.getConversationWithParticipants(data.id);
-				const ListOfAllUsers = await this.prisma.user.findMany();
-				const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
-				for (const p of conversation.participants) {
-					const user = await this.usersService.getUserById(p.user_id);
-					groupMembers.push(user);
-				}
+			const conversation = await this.conversationService.getConversationWithParticipants(data.id);
+			const ListOfAllUsers = await this.prisma.user.findMany();
+			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+			for (const p of conversation.participants) {
+				const user = await this.usersService.getUserById(p.user_id);
+				groupMembers.push(user);
+			}
 			ListOfAllUsersWithoutMe.forEach((u) => {
 				let found = false;
 				groupMembers.forEach((u2) => {
@@ -296,7 +293,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('createConversation')
 	async createConversation(socket: AuthenticatedSocket, data: any) {
 		// const { title = "", channelID = "", password = "", privacy = "" } = { title: "default title", channelID: "default channelID", password: "default password", privacy: "default privacy" };
-		
+
 		const token = socket.handshake.auth.token;
 		let user = null;
 
