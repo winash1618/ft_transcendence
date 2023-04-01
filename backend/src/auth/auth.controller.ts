@@ -39,6 +39,15 @@ export class AuthController {
 		return;
 	}
 
+  @Get('guest')
+  async guestLogin(@Res() res: Response) {
+    const user = await this.userService.findOne('user1')
+    const token = await this.authService.getLongExpiryJwtToken(user);
+
+    res.cookie('auth', token, { httpOnly: true });
+    return res.redirect(process.env.FRONTEND_BASE_URL);
+  }
+
 	@Get('token')
 	async GetAuth(
 		@Req() req,
