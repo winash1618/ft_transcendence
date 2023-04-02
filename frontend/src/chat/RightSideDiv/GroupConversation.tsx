@@ -17,7 +17,6 @@ interface GroupConversationProps {
 
 function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, UserProfilePicture, handleAddUserToGroup }: GroupConversationProps) {
 	const [openMenuId, setOpenMenuId] = useState(null);
-	const [isOpen, setIsOpen] = useState(false);
 
 
 	return (
@@ -27,29 +26,27 @@ function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, Us
 			{
 				groupMembers.map((u) => {
 					if (u.login !== user.login) {
-						console.log("key ", u.login);
 						return (
 							<React.Fragment key={u.id}>
-								<ContactDiv key={u.login} backgroundColor={contactDivColor} isOpen={isOpen}>
+								<ContactDiv key={u.login} backgroundColor={contactDivColor}>
 									<ContactImage src={UserProfilePicture} alt="" />
 									<ContactName>{u.login}</ContactName>
-									<DropdownButtonDiv user={u} openMenuId={openMenuId} setIsOpen={setIsOpen} setOpenMenuId={setOpenMenuId} />
+									<DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} />
 								</ContactDiv>
-								<DropDownDiv openMenuId={openMenuId} user={u} />
+								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Not yet", "help"]} />
 							</React.Fragment>
 						);
 					}
 					else if (u.login === user.login) {
-						console.log("key ", u.login);
 						return (
 							<React.Fragment key={u.id}>
-								<ContactDiv key={u.login} backgroundColor={contactDivColor} isOpen={isOpen}>
+								<ContactDiv key={u.login} backgroundColor={contactDivColor}>
 									<ContactImage src={UserProfilePicture} alt="" />
 									<ContactName>{u.login}</ContactName>
 									<GiDwarfKing size={24} />
-									<DropdownButtonDiv user={u} openMenuId={openMenuId} setIsOpen={setIsOpen} setOpenMenuId={setOpenMenuId} />
+									<DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} />
 								</ContactDiv>
-								<DropDownDiv openMenuId={openMenuId} user={u} />
+								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Not yet", "help"]} />
 							</React.Fragment>
 						)
 					}
@@ -60,15 +57,14 @@ function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, Us
 			{
 				otherUsers.map((u) => {
 					if (u.login !== user.login) {
-						console.log("key ", u.login);
 						return (
 							<React.Fragment key={u.id}>
-								<ContactDiv key={u.login} backgroundColor={contactDivColor} onClick={(e) => handleAddUserToGroup(e)} isOpen={isOpen}>
+								<ContactDiv key={u.login} backgroundColor={contactDivColor} onClick={(e) => handleAddUserToGroup(e)}>
 									<ContactImage src={UserProfilePicture} alt="" />
 									<ContactName>{u.login}</ContactName>
-									<DropdownButtonDiv user={u} openMenuId={openMenuId} setIsOpen={setIsOpen} setOpenMenuId={setOpenMenuId} />
+									<DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} />
 								</ContactDiv>
-								<DropDownDiv openMenuId={openMenuId} user={u} />
+								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Not yet", "help"]} />
 							</React.Fragment>
 						);
 					}

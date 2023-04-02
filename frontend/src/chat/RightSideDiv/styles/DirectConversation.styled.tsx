@@ -5,6 +5,7 @@ interface ContactDivProps {
 }
 // create a styled div component that'll render a contact div
 export const ContactDiv = styled.div<ContactDivProps>`
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -15,6 +16,7 @@ export const ContactDiv = styled.div<ContactDivProps>`
   border: 2px solid #00A551;
   background: ${({ backgroundColor }) => backgroundColor};
 `;
+
 
 export const ContactImage = styled.img`
   width: 50px;

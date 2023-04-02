@@ -1,8 +1,7 @@
-import styled, { css }  from "styled-components";
+import styled from "styled-components";
 
 interface ContactDivProps {
 	backgroundColor: string;
-	isOpen: boolean;
 }
 // create a styled div component that'll render a contact div
 export const ContactDiv = styled.div<ContactDivProps>`
@@ -16,12 +15,6 @@ export const ContactDiv = styled.div<ContactDivProps>`
   margin-top: 10px;
   border: 2px solid #00A551;
   background: ${({ backgroundColor }) => backgroundColor};
-  ${({ isOpen }) =>
-  isOpen &&
-  css`
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
-  `}
 `;
 
 export const ContactImage = styled.img`

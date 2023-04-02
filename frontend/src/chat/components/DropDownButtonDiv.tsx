@@ -4,15 +4,13 @@ import { DropdownButton } from "./styles/DropDownButton.styled";
 interface DropdownButtonDivProps {
 	user: any;
 	openMenuId: any;
-	setIsOpen: any;
 	setOpenMenuId: any;
 }
 
-function DropdownButtonDiv({ user, openMenuId, setIsOpen, setOpenMenuId }: DropdownButtonDivProps) {
+function DropdownButtonDiv({ user, openMenuId, setOpenMenuId }: DropdownButtonDivProps) {
 
 	const toggleMenu = (id) => {
 		setOpenMenuId(openMenuId === id ? null : id);
-		setIsOpen(openMenuId === id ? false : true);
 	};
 	return (
 		<>

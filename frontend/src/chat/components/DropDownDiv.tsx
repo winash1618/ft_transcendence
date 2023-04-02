@@ -3,16 +3,17 @@ import { DropdownContent, DropdownItem, DropdownMenu } from "./styles/DropDownDi
 interface DropDownDivProps {
 	openMenuId: any;
 	user: any;
+	dropDownContent: any;
 }
 
-function DropDownDiv({ openMenuId, user }: DropDownDivProps) {
+function DropDownDiv({ openMenuId, user, dropDownContent }: DropDownDivProps) {
 	return (
 		<>
 			<DropdownMenu>
 				<DropdownContent open={openMenuId === user.login}>
-					<DropdownItem href="#">Option 1</DropdownItem>
-					<DropdownItem href="#">Option 2</DropdownItem>
-					<DropdownItem href="#">Option 3</DropdownItem>
+					{dropDownContent.map((item) => (
+						<DropdownItem key={item}>{item}</DropdownItem>
+					))}
 				</DropdownContent>
 			</DropdownMenu>
 		</>

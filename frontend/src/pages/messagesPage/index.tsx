@@ -278,10 +278,12 @@ const MessagesPage = () => {
 						UserProfilePicture={UserProfilePicture}
 						handleSelectedConversation={handleSelectedConversation}
 					/>
-					{isInGroup ? (
-						<ChatListFooter
-							handleCreateConversationClick={handleCreateConversationClick}
-						/>) : (null)}
+					{
+						isInGroup ? (
+							<ChatListFooter
+								handleCreateConversationClick={handleCreateConversationClick}
+							/>) : (null)
+					}
 				</ChatListContainer>
 				<MessageBoxContainer>
 					<MessageBox
@@ -298,27 +300,29 @@ const MessagesPage = () => {
 					/>
 				</MessageBoxContainer>
 				<RightSideDiv>
-					{isFormVisible ? (
-						<CreateChannelFormDiv
-							handleChannelCreation={handleChannelCreation}
-						/>
-					) : (isInGroup ? (
-						<GroupConversation
-							groupMembers={groupMembers}
-							otherUsers={otherUsers}
-							user={user}
-							contactDivColor={contactDivColor}
-							UserProfilePicture={UserProfilePicture}
-							handleAddUserToGroup={handleAddUserToGroup}
-						/>
-					) : (
-						<DirectConversation
-							users={users}
-							user={user}
-							contactDivColor={contactDivColor}
-							UserProfilePicture={UserProfilePicture}
-						/>
-					))}
+					{
+						isFormVisible ? (
+							<CreateChannelFormDiv
+								handleChannelCreation={handleChannelCreation}
+							/>
+						) : (isInGroup ? (
+							<GroupConversation
+								groupMembers={groupMembers}
+								otherUsers={otherUsers}
+								user={user}
+								contactDivColor={contactDivColor}
+								UserProfilePicture={UserProfilePicture}
+								handleAddUserToGroup={handleAddUserToGroup}
+							/>
+						) : (
+							<DirectConversation
+								users={users}
+								user={user}
+								contactDivColor={contactDivColor}
+								UserProfilePicture={UserProfilePicture}
+							/>
+						))
+					}
 				</RightSideDiv>
 			</ParentContainer>
 		</>
