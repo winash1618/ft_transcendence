@@ -51,10 +51,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				ListOfAllUsersObject.push({
 					login: u.login,
 					id: u.id,
+					username: u.username,
 				});
 			});
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
-
 			const ConversationObjectArrayWithParticipantId = [];
 			const participants = [];
 			for (const object of DirectConversationObjectArray) {
@@ -62,6 +62,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				participants.push(participant[0]);
 			}
 			let i = 0;
+			const ListOfDirectConversationUsers = [];
+			DirectConversationObjectArray.forEach((c) => {
+				c.participants.forEach((p) => {
+					if (p.id !== participants[i].id) {
+						const user = ListOfAllUsersObject.find((u) => u.id === p.user_id);
+						ListOfDirectConversationUsers.push({
+							login: user.login,
+							username: user.username,
+						});
+					}
+				});
+				i++;
+			});
+			i = 0;
 			DirectConversationObjectArray.forEach((c) => {
 				socket.join(c.id);
 				ConversationObjectArrayWithParticipantId.push({
@@ -69,6 +83,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					title: c.title,
 					privacy: c.privacy,
 					participant_id: participants[i].id,
+					user: ListOfDirectConversationUsers[i],
 					creator_id: c.creator_id,
 					channel_id: c.channel_id,
 					created_at: c.created_at,
@@ -194,6 +209,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
+			const ListOfAllUsers = await this.prisma.user.findMany();
+			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+			const ListOfAllUsersObject = [];
+			ListOfAllUsersWithoutMe.forEach((u) => {
+				ListOfAllUsersObject.push({
+					login: u.login,
+					id: u.id,
+					username: u.username,
+				});
+			});
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
 			const ConversationObjectArrayWithParticipantId = [];
 			const participants = [];
@@ -202,6 +227,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				participants.push(participant[0]);
 			}
 			let i = 0;
+			const ListOfDirectConversationUsers = [];
+			DirectConversationObjectArray.forEach((c) => {
+				c.participants.forEach((p) => {
+					if (p.id !== participants[i].id) {
+						const user = ListOfAllUsersObject.find((u) => u.id === p.user_id);
+						ListOfDirectConversationUsers.push({
+							login: user.login,
+							username: user.username,
+						});
+					}
+				});
+				i++;
+			});
+			console.log(ListOfDirectConversationUsers);
+
+			i = 0;
 			DirectConversationObjectArray.forEach((c) => {
 				socket.join(c.id);
 				ConversationObjectArrayWithParticipantId.push({
@@ -209,6 +250,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					title: c.title,
 					privacy: c.privacy,
 					participant_id: participants[i].id,
+					user: ListOfDirectConversationUsers[i],
 					creator_id: c.creator_id,
 					channel_id: c.channel_id,
 					created_at: c.created_at,

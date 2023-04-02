@@ -15,6 +15,7 @@ export const ChatListContainer = styled.div`
   margin: auto;
   width: 23%;
   height: 100%;
+  overflow: auto;
 `;
 
 export const MessageBoxContainer = styled.div`
@@ -39,4 +40,6 @@ height: 100%;
 background-color: #1A1D1F;
 border-radius: 15px;
 padding: 10px;
+overscroll-behavior: contain;
+overflow: auto;
 `;

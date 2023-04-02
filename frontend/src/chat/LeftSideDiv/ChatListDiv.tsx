@@ -6,17 +6,19 @@ interface ChatListDivProps {
 	contactDivColor: any;
 	UserProfilePicture: any;
 	handleSelectedConversation: any;
+	isInGroup: boolean;
 }
-function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfilePicture, handleSelectedConversation }: ChatListDivProps) {
+function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfilePicture, handleSelectedConversation, isInGroup }: ChatListDivProps) {
 	return (
 		<>
 			{
 				conversations.map((c) => {
+					console.log("Is in group: ", isInGroup);
 					if (c) {
 						return (
 							<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={conversationID === c.id ? contactDivColor : '#1A1D1F'}>
 								<ContactImage src={UserProfilePicture} alt="" />
-								<ContactName>{c.title}</ContactName>
+								<ContactName>{(isInGroup) ? c.title : c.user.login}</ContactName>
 							</ContactDiv>
 						);
 					}

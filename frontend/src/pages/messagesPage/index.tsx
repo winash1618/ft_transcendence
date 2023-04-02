@@ -78,14 +78,16 @@ const MessagesPage = () => {
 
 	useEffect(() => {
 		const handleAvailableUsers = (object) => {
-			setUsers(object.ListOfAllUsers);
-			setConversations(object.conversations);
-			if (object.conversations.length > 0) {
-				handleOnLoadConversation(object.conversations[0]);
-				setConversationID(object.conversations[0].id);
-				for (const p of object.conversations[0].participants) {
-					if (p.user_id === user.id) {
-						setParticipantID(p.id);
+			if (!isInGroup) {
+				setUsers(object.ListOfAllUsers);
+				setConversations(object.conversations);
+				if (object.conversations.length > 0) {
+					handleOnLoadConversation(object.conversations[0]);
+					setConversationID(object.conversations[0].id);
+					for (const p of object.conversations[0].participants) {
+						if (p.user_id === user.id) {
+							setParticipantID(p.id);
+						}
 					}
 				}
 			}
@@ -97,6 +99,8 @@ const MessagesPage = () => {
 				handleOnLoadConversation(object.conversations[0]);
 				setConversationID(object.conversations[0].id);
 			}
+			setIsFormVisible(false);
+			setIsInGroup(false);
 		};
 
 		const handleGroupConversations = (object) => {
@@ -175,16 +179,15 @@ const MessagesPage = () => {
 		socket?.emit('getDirectConversations');
 		setMessageNavButtonColor("#00A551");
 		setMessageNavButtonColorNotUsed("#1A1D1F");
-		setIsFormVisible(false);
-		setIsInGroup(false);
 	};
 
 	const handleMessageNavNotUsedClick = () => {
+		setIsFormVisible(false);
+		setIsInGroup(true);
+
 		socket?.emit('getGroupConversations');
 		setMessageNavButtonColor("#1A1D1F");
 		setMessageNavButtonColorNotUsed("#00A551");
-		setIsFormVisible(false);
-		setIsInGroup(true);
 	};
 
 	const handleCreateConversationClick = () => {
@@ -236,8 +239,10 @@ const MessagesPage = () => {
 		event.preventDefault();
 		const formData = new FormData(event.target.form);
 		const channelName = formData.get('channel-name');
-		const selectedUser = formData.get('channel-status');
-		socket?.emit('createConversation', { title: channelName, privacy: selectedUser });
+		const channelPrivacy = formData.get('channel-status');
+		Boolean(String(channelName).trim())
+			? socket?.emit('createConversation', { title: channelName, privacy: channelPrivacy })
+			: alert("Please enter a channel name");
 		setIsFormVisible(false);
 	};
 
@@ -253,7 +258,6 @@ const MessagesPage = () => {
 				c.participants.map((p) => {
 					if (p.user_id === user.id) {
 						setParticipantID(p.id);
-						console.log("participantID: ", participantID);
 					}
 				});
 			}
@@ -277,6 +281,7 @@ const MessagesPage = () => {
 						contactDivColor={contactDivColor}
 						UserProfilePicture={UserProfilePicture}
 						handleSelectedConversation={handleSelectedConversation}
+						isInGroup={isInGroup}
 					/>
 					{
 						isInGroup ? (

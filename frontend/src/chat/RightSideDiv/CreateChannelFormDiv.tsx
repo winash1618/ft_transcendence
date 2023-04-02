@@ -12,7 +12,6 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 				<CreateChannelInput type="text" id="channel-name" name="channel-name" required />
 				<CreateChannelLabel htmlFor="channel-status">Channel Status:</CreateChannelLabel>
 				<CreateChannelSelect id="channel-status" name="channel-status" required>
-					<CreateChannelOption value="">Select status</CreateChannelOption>
 					<CreateChannelOption value="private">Private</CreateChannelOption>
 					<CreateChannelOption value="public">Public</CreateChannelOption>
 					<CreateChannelOption value="protected">Protected</CreateChannelOption>
