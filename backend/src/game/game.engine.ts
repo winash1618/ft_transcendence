@@ -22,7 +22,7 @@ const BALL_SIZE = 12.5;
 const BALL_SPEED = 5;
 const PADDLE_SPEED = 15;
 const GAME_TIME = 30;
-const GAME_POINTS = 2;
+const GAME_POINTS = 11;
 
 export class GameEngine {
   gameID: string;

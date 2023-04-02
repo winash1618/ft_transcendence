@@ -42,6 +42,12 @@ const PingPongPage = () => {
     };
     getSocket();
   }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      socket?.disconnect();
+    };
+  }, [socket]);
   return (
     <>
       {isGameStarted ? (

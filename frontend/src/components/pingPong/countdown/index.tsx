@@ -7,10 +7,7 @@ import {
   CountDownSvg,
 } from "./countdown.styled";
 
-const CountDown = React.memo<any>(({ element }: { element: JSX.Element }) => {
-	useEffect(() => {
-		console.log("countdown");
-	}, [element])
+const CountDown = (({ element }: { element: JSX.Element }) => {
   const renderer = ({ seconds, completed }: any) => {
     if (completed) {
       return element;
