@@ -4,6 +4,7 @@ import axios, { axiosPrivate } from "../../api";
 interface UsersState {
   users: [];
   user: any;
+  nickNameIsChanged: boolean;
   isLoading: boolean;
   error: any;
 }
@@ -11,6 +12,7 @@ interface UsersState {
 const initialState: UsersState = {
   users: [],
   user: {},
+  nickNameIsChanged: false,
   isLoading: false,
   error: {},
 };
@@ -106,12 +108,14 @@ const usersSlide = createSlice({
         ...state,
         isLoading: true,
         error: null,
+		nickNameIsChanged: false,
       };
     });
     builder.addCase(changeNickName.fulfilled, (state) => {
       return {
         ...state,
         isLoading: false,
+		nickNameIsChanged: true,
       };
     });
     builder.addCase(changeNickName.rejected, (state, action) => {

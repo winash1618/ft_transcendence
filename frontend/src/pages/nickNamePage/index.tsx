@@ -28,6 +28,7 @@ const NickNamePage = () => {
   } = useForm<NickNameType>({ resolver: yupResolver(NickNameSchema) });
 
   const { userInfo } = useAppSelector((state) => state.auth);
+  const { nickNameIsChanged } = useAppSelector((state) => state.users);
   const navigate = useNavigate();
 
   const dispatch = useAppDispatch();
@@ -41,6 +42,12 @@ const NickNamePage = () => {
   const onSubmit: SubmitHandler<NickNameType> = (data) => {
     dispatch(changeNickName({ id: userInfo.id, name: data.nickName }));
   };
+
+  useEffect(() => {
+    if (nickNameIsChanged) {
+      navigate("/");
+    }
+  }, [nickNameIsChanged]);
   return (
     <FormContainer onSubmit={handleSubmit(onSubmit)}>
       <FormTitle>Choose a nick name</FormTitle>
