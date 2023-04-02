@@ -39,6 +39,18 @@ export const ContactName = styled.div`
   padding-left: 10px;
   color: white;
   font-size: 1em;
-  width: 45%;
+  width: 70%;
   height: 50px;
+`;
+
+export const Heading1 = styled.h1`
+  font-size: 2rem;
+  color: #444;
+  margin: 1rem 0;
+`;
+
+export const Heading2 = styled.h2`
+  font-size: 1.5rem;
+  color: #333;
+  margin: 1rem 0;
 `;

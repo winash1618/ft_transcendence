@@ -16,6 +16,10 @@ export const CreateConversationDiv = styled.div<CreateConversationDivProps>`
   color: #00A551;
   padding-left: 10px;
   background: ${({ backgroundColor }) => backgroundColor};
+  :hover & {
+	cursor: pointer;
+	background: #00A551  !important;
+	}
 `;
 
 export const ContactName = styled.div`

@@ -188,7 +188,6 @@ const MessagesPage = () => {
 	};
 
 	const handleCreateConversationClick = () => {
-		setIsInGroup(false);
 		setIsFormVisible(true);
 	};
 
@@ -279,9 +278,10 @@ const MessagesPage = () => {
 						UserProfilePicture={UserProfilePicture}
 						handleSelectedConversation={handleSelectedConversation}
 					/>
-					<ChatListFooter
-						handleCreateConversationClick={handleCreateConversationClick}
-					/>
+					{isInGroup ? (
+						<ChatListFooter
+							handleCreateConversationClick={handleCreateConversationClick}
+						/>) : (null)}
 				</ChatListContainer>
 				<MessageBoxContainer>
 					<MessageBox

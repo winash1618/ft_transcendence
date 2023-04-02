@@ -49,7 +49,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const ListOfAllUsersObject = [];
 			ListOfAllUsersWithoutMe.forEach((u) => {
 				ListOfAllUsersObject.push({
-					login: u.login
+					login: u.login,
+					id: u.id,
 				});
 			});
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
