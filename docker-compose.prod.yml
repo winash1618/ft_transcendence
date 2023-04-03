@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - inception
+      - transcendence
     volumes:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
   reactjs:
@@ -27,7 +27,7 @@ services:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
     networks:
-      - inception
+      - transcendence
     depends_on:
       - nestjs
   nginx:
@@ -42,7 +42,7 @@ services:
     depends_on:
       - reactjs
     networks:
-      - inception
+      - transcendence
   nestjs:
     image: node:19
     container_name: nestjs
@@ -53,7 +53,7 @@ services:
       && npm run start:prod
       && npm i -g @nestjs/cli"
     networks:
-      - inception
+      - transcendence
     env_file:
       - .env
     ports:
@@ -68,6 +68,6 @@ services:
 volumes:
   postgres_data:
 networks:
-  inception:
+  transcendence:
     driver: bridge
-    name: inception
+    name: transcendence

@@ -24,7 +24,8 @@ restart:
 
 stop:
 		@printf "\033[0;31mStop containers (main process receive SIGTERM) \033[0m\n"
-		$(DOCKER-COMPOSE) -f docker-compose.prod.yml stop
+		$(DOCKER-COMPOSE) stop
+		# $(DOCKER-COMPOSE) -f docker-compose.prod.yml stop
 
 down:
 		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
