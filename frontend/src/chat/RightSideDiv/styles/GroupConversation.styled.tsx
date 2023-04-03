@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { RiMailSettingsFill } from "react-icons/ri";
 
 interface ContactDivProps {
 	backgroundColor: string;
@@ -46,4 +47,11 @@ export const Heading2 = styled.h2`
   font-size: 1.5rem;
   color: #333;
   margin: 1rem 0;
+`;
+
+export const StyledRiMailSettingsFill = styled(RiMailSettingsFill)`
+  color: #00A551;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
 `;

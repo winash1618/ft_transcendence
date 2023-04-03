@@ -13,7 +13,7 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 		<>
 			{
 				conversations.map((c) => {
-					console.log("Is in group: ", isInGroup);
+					// console.log("Is in group: ", isInGroup, " c: ", c);
 					if (c) {
 						return (
 							<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={conversationID === c.id ? contactDivColor : '#1A1D1F'}>

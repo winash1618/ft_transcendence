@@ -10,9 +10,10 @@ interface DirectConversationProps {
 	user: any;
 	contactDivColor: any;
 	UserProfilePicture: any;
+	createDirectChat: any;
 }
 
-function DirectConversation({ users, user, contactDivColor, UserProfilePicture }: DirectConversationProps) {
+function DirectConversation({ users, user, contactDivColor, UserProfilePicture, createDirectChat }: DirectConversationProps) {
 	const [openMenuId, setOpenMenuId] = useState(null);
 	return (
 		<>
@@ -30,7 +31,7 @@ function DirectConversation({ users, user, contactDivColor, UserProfilePicture }
 										setOpenMenuId={setOpenMenuId}
 									/>
 								</ContactDiv>
-								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["invite", "view profile", "chat"]}/>
+								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["invite", "view profile", "chat"]} createDirectChat={createDirectChat} />
 							</React.Fragment>
 						);
 					}

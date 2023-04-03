@@ -82,6 +82,7 @@ const MessagesPage = () => {
 				setUsers(object.ListOfAllUsers);
 				setConversations(object.conversations);
 				if (object.conversations.length > 0) {
+					console.log("object.conversations: ", object.conversations);
 					handleOnLoadConversation(object.conversations[0]);
 					setConversationID(object.conversations[0].id);
 					for (const p of object.conversations[0].participants) {
@@ -95,6 +96,7 @@ const MessagesPage = () => {
 
 		const handleDirectConversations = (object) => {
 			setConversations(object.conversations);
+			console.log("object.conversations123: ", object.conversations);
 			if (object.conversations.length > 0) {
 				handleOnLoadConversation(object.conversations[0]);
 				setConversationID(object.conversations[0].id);
@@ -129,7 +131,7 @@ const MessagesPage = () => {
 		};
 
 		const handleConversationCreated = (object) => {
-			setConversations((conversations) => [...conversations, object.conversation,]);
+				setConversations((conversations) => [...conversations, object]);
 		};
 
 		const handleUserAddedToGroup = (object) => {
@@ -174,6 +176,7 @@ const MessagesPage = () => {
 		}
 		setIsFormVisible(false);
 	};
+	
 
 	const handleMessageNavClick = () => {
 		socket?.emit('getDirectConversations');
@@ -249,6 +252,12 @@ const MessagesPage = () => {
 	const handleAddUserToGroup = async (event) => {
 		event.preventDefault();
 		const selectedUser = event.target.outerText;
+		otherUsers.forEach((user) => {
+			if (user.login === selectedUser) {
+				setGroupMembers((groupMembers) => [...groupMembers, user]);
+			}
+			setOtherUsers((otherUsers) => otherUsers.filter((u) => u.login !== selectedUser));
+		});
 		socket?.emit('addUserToGroup', { conversationId: conversationID, userLogin: selectedUser });
 	};
 
@@ -264,6 +273,11 @@ const MessagesPage = () => {
 		}
 		);
 	}
+
+	const createDirectChat =  (user) => {
+		socket?.emit('createDirectConversation', user);
+	};
+
 
 	return (
 		<>
@@ -318,6 +332,7 @@ const MessagesPage = () => {
 								contactDivColor={contactDivColor}
 								UserProfilePicture={UserProfilePicture}
 								handleAddUserToGroup={handleAddUserToGroup}
+								createDirectChat={createDirectChat}
 							/>
 						) : (
 							<DirectConversation
@@ -325,6 +340,7 @@ const MessagesPage = () => {
 								user={user}
 								contactDivColor={contactDivColor}
 								UserProfilePicture={UserProfilePicture}
+								createDirectChat={createDirectChat}
 							/>
 						))
 					}

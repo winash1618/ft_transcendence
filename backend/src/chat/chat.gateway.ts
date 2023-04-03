@@ -145,35 +145,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			const ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
-			const participants = [];
-			for (const object of ConversationObjectArray) {
-				const participant = await this.participantService.getParticipant(object.id, user.id);
-				participants.push(participant[0]);
-			}
-			const ConversationObjectArrayWithParticipantId = [];
-			let i = 0;
-			ConversationObjectArray.forEach((c) => {
-				socket.join(c.id);
-				ConversationObjectArrayWithParticipantId.push({
-					id: c.id,
-					title: c.title,
-					privacy: c.privacy,
-					participant_id: participants[i].id,
-					creator_id: c.creator_id,
-					channel_id: c.channel_id,
-					created_at: c.created_at,
-					updated_at: c.updated_at,
-					participants: c.participants,
-					messages: c.messages,
-				});
-				i++;
-			});
 			const groupMembers = [];
 			const otherUsers = [];
 			const conversation = await this.conversationService.getConversationWithParticipants(data.id);
 			const ListOfAllUsers = await this.prisma.user.findMany();
 			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+			const ListOfAllUsersObject = [];
+			ListOfAllUsersWithoutMe.forEach((u) => {
+				ListOfAllUsersObject.push({
+					login: u.login,
+					id: u.id,
+					username: u.username,
+				});
+			});
 			for (const p of conversation.participants) {
 				const user = await this.usersService.getUserById(p.user_id);
 				groupMembers.push(user);
@@ -189,6 +173,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					otherUsers.push(u);
 				}
 			});
+			const ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
+			const participants = [];
+			for (const object of ConversationObjectArray) {
+				const participant = await this.participantService.getParticipant(object.id, user.id);
+				participants.push(participant[0]);
+			}
+			const ConversationObjectArrayWithParticipantId = [];
+			let i = 0;
+			const ListOfConversationUsers = [];
+			ConversationObjectArray.forEach((c) => {
+				c.participants.forEach((p) => {
+					if (p.id !== participants[i].id) {
+						const user = ListOfAllUsersObject.find((u) => u.id === p.user_id);
+						ListOfConversationUsers.push({
+							login: user.login,
+							username: user.username,
+						});
+					}
+				});
+				i++;
+			});
+			i = 0;
+			ConversationObjectArray.forEach((c) => {
+				socket.join(c.id);
+				ConversationObjectArrayWithParticipantId.push({
+					id: c.id,
+					title: c.title,
+					privacy: c.privacy,
+					participant_id: participants[i].id,
+					user: ListOfConversationUsers[i],
+					creator_id: c.creator_id,
+					channel_id: c.channel_id,
+					created_at: c.created_at,
+					updated_at: c.updated_at,
+					participants: c.participants,
+					messages: c.messages,
+				});
+				i++;
+			});
+			
 			const reloadObject = {
 				conversations: ConversationObjectArrayWithParticipantId,
 				groupMembers: groupMembers,
@@ -335,8 +359,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('createConversation')
 	async createConversation(socket: AuthenticatedSocket, data: any) {
-		// const { title = "", channelID = "", password = "", privacy = "" } = { title: "default title", channelID: "default channelID", password: "default password", privacy: "default privacy" };
-
 		const token = socket.handshake.auth.token;
 		let user = null;
 
@@ -356,11 +378,100 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				user_id: user.id,
 			});
 			socket.emit('conversationCreated', conversation);
+
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
 	}
+
+	// @SubscribeMessage('createDirectConversation')
+	// async createDirectConversation(socket: AuthenticatedSocket, data: any) {
+	// 	const token = socket.handshake.auth.token;
+	// 	let user = null;
+	// 	try {
+	// 		user = this.jwtService.verify(token, {
+	// 			secret: process.env.JWT_SECRET,
+	// 		});
+	// 		const conversation = await this.conversationService.create({
+	// 			title: "direct",
+	// 			creator_id: user.id,
+	// 			channel_id: "channelID",
+	// 			password: "password",
+	// 			privacy: Privacy.DIRECT,
+	// 		});
+
+	// 		await this.participantService.create({
+	// 			conversation_id: conversation.id,
+	// 			user_id: user.id,
+	// 		});
+	// 		await this.participantService.create({
+	// 			conversation_id: conversation.id,
+	// 			user_id: data.id,
+	// 		});
+	// 		console.log("Conversation created",	conversation);
+
+	// 		const ListOfAllUsers = await this.prisma.user.findMany();
+	// 		const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+	// 		const ListOfAllUsersObject = [];
+	// 		ListOfAllUsersWithoutMe.forEach((u) => {
+	// 			ListOfAllUsersObject.push({
+	// 				login: u.login,
+	// 				id: u.id,
+	// 				username: u.username,
+	// 			});
+	// 		});
+	// 		const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
+	// 		const ConversationObjectArrayWithParticipantId = [];
+	// 		const participants = [];
+	// 		for (const object of DirectConversationObjectArray) {
+	// 			const participant = await this.participantService.getParticipant(object.id, user.id);
+	// 			participants.push(participant[0]);
+	// 		}
+	// 		let i = 0;
+	// 		const ListOfDirectConversationUsers = [];
+	// 		DirectConversationObjectArray.forEach((c) => {
+	// 			c.participants.forEach((p) => {
+	// 				if (p.id !== participants[i].id) {
+	// 					const user = ListOfAllUsersObject.find((u) => u.id === p.user_id);
+	// 					ListOfDirectConversationUsers.push({
+	// 						login: user.login,
+	// 						username: user.username,
+	// 					});
+	// 				}
+	// 			});
+	// 			i++;
+	// 		});
+	// 		// console.log(ListOfDirectConversationUsers);
+
+	// 		i = 0;
+	// 		DirectConversationObjectArray.forEach((c) => {
+	// 			ConversationObjectArrayWithParticipantId.push({
+	// 				id: c.id,
+	// 				title: c.title,
+	// 				privacy: c.privacy,
+	// 				participant_id: participants[i].id,
+	// 				user: ListOfDirectConversationUsers[i],
+	// 				creator_id: c.creator_id,
+	// 				channel_id: c.channel_id,
+	// 				created_at: c.created_at,
+	// 				updated_at: c.updated_at,
+	// 				participants: c.participants,
+	// 				messages: c.messages,
+	// 			});
+	// 			i++;
+	// 		});
+	// 		console.log(ConversationObjectArrayWithParticipantId);
+	// 		const objectToEmit = {
+	// 			conversations: ConversationObjectArrayWithParticipantId,
+	// 		}
+	// 		socket.emit('getDirectConversations', objectToEmit);
+	// 	}
+	// 	catch (e) {
+	// 		socket.emit('error', 'Unauthorized access');
+	// 	}
+	// }
+
 
 	@SubscribeMessage('addUserToGroup')
 	async addUserToGroup(socket: AuthenticatedSocket, data: any) {
@@ -376,30 +487,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversation_id: conversation.id,
 				user_id: userToAdd.id,
 			});
-			const groupMembers = [];
-			const otherUsers = [];
-			const ListOfAllUsers = await this.prisma.user.findMany();
-			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
-			for (const p of conversation.participants) {
-				const user = await this.usersService.getUserById(p.user_id);
-				groupMembers.push(user);
-			}
-			ListOfAllUsersWithoutMe.forEach((u) => {
-				let found = false;
-				groupMembers.forEach((u2) => {
-					if (u.id === u2.id) {
-						found = true;
-					}
-				});
-				if (!found) {
-					otherUsers.push(u);
-				}
-			});
-			const ObjectToEmit = {
-				groupMembers: groupMembers,
-				otherUsers: otherUsers,
-			}
-			socket.emit('userAddedToGroup', ObjectToEmit);
+			// const groupMembers = [];
+			// const otherUsers = [];
+			// const ListOfAllUsers = await this.prisma.user.findMany();
+			// const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+			// for (const p of conversation.participants) {
+			// 	const user = await this.usersService.getUserById(p.user_id);
+			// 	groupMembers.push(user);
+			// }
+			// ListOfAllUsersWithoutMe.forEach((u) => {
+			// 	let found = false;
+			// 	groupMembers.forEach((u2) => {
+			// 		if (u.id === u2.id) {
+			// 			found = true;
+			// 		}
+			// 	});
+			// 	if (!found) {
+			// 		otherUsers.push(u);
+			// 	}
+			// });
+			// const ObjectToEmit = {
+			// 	groupMembers: groupMembers,
+			// 	otherUsers: otherUsers,
+			// }
+			// socket.emit('userAddedToGroup', ObjectToEmit);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
