@@ -94,17 +94,6 @@ export class ConversationService {
     });
   }
 
-  async removeParticipant(conversation_id: string, user_id: string) {
-    return await this.prisma.participant.delete({
-      where: {
-        conversation_id_user_id: {
-          user_id: user_id,
-          conversation_id: conversation_id,
-        },
-      },
-    });
-  }
-
   async getParticipants(conversation_id: string) {
     return await this.prisma.participant.findMany({
       where: {

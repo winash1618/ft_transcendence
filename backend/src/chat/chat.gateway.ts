@@ -85,47 +85,47 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('conversationCreated', conversation);
   }
 
-  @SubscribeMessage('joinConversation')
-  async joinConversation(client: Socket, @MessageBody() data: any) {
-    const { conversationID } = data;
+  // @SubscribeMessage('joinConversation')
+  // async joinConversation(client: Socket, @MessageBody() data: any) {
+  //   const { conversationID } = data;
 
-    const conversation = await this.conversationService.findOne(conversationID);
-    if (!conversation) return;
-    if (conversation.privacy === 'PRIVATE') {
-      const participant = await this.participantService.getConversation(client.data.userID, conversationID);
-      if (!participant) return;
-    }
-    const participant = this.participantService.getParticipantByUserIdAndConversationId(client.data.userID, conversationID);
-    if (participant) {
-      await this.participantService.updateRole(client.data.userID, conversationID, 'USER');
-    }
-    await this.participantService.create({
-      conversation_id: conversationID,
-      user_id: client.data.userID,
-    });
+  //   const conversation = await this.conversationService.findOne(conversationID);
+  //   if (!conversation) return;
+  //   if (conversation.privacy === 'PRIVATE') {
+  //     const participant = await this.participantService.getConversation(client.data.userID, conversationID);
+  //     if (!participant) return;
+  //   }
+  //   const participant = this.participantService.getParticipantByUserIdAndConversationId(client.data.userID, conversationID);
+  //   if (participant) {
+  //     await this.participantService.updateRole(client.data.userID, conversationID, 'USER');
+  //   }
+  //   await this.participantService.create({
+  //     conversation_id: conversationID,
+  //     user_id: client.data.userID,
+  //   });
 
-    const connectedUsers = this.gatewaySession.getSockets().values();
-    if (!connectedUsers) return;
-    for (const user of connectedUsers) {
-      user.join(conversationID);
-      this.server.to(user.data.userID).emit('joined_conversation', conversationID);
-    }
-  }
+  //   const connectedUsers = this.gatewaySession.getSockets().values();
+  //   if (!connectedUsers) return;
+  //   for (const user of connectedUsers) {
+  //     user.join(conversationID);
+  //     this.server.to(user.data.userID).emit('joined_conversation', conversationID);
+  //   }
+  // }
 
-  @SubscribeMessage('leaveConversation')
-  async leaveConversation(client: Socket, @MessageBody() data: any) {
-    const { conversationID } = data;
+  // @SubscribeMessage('leaveConversation')
+  // async leaveConversation(client: Socket, @MessageBody() data: any) {
+  //   const { conversationID } = data;
 
-    const participant = await this.participantService.getConversation(client.data.userID, conversationID);
+  //   const participant = await this.participantService.getConversation(client.data.userID, conversationID);
 
-    if (participant) {
-      await this.participantService.remove(participant.id);
+  //   if (participant) {
+  //     await this.participantService.remove(participant.id);
 
-      client.leave(conversationID);
+  //     client.leave(conversationID);
 
-      client.to(conversationID).emit('userLeft', { userID: client.data.userID });
-    }
-  }
+  //     client.to(conversationID).emit('userLeft', { userID: client.data.userID });
+  //   }
+  // }
 
   @SubscribeMessage('sendMessage')
   async sendMessage(client: Socket, @MessageBody() data: any) {
@@ -153,34 +153,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('blockUser')
-  async blockUser(client: Socket, @MessageBody() data: any) {
-    const { userID } = data;
+  // @SubscribeMessage('blockUser')
+  // async blockUser(client: Socket, @MessageBody() data: any) {
+  //   const { userID } = data;
 
-    const participant = await this.participantService.getConversation(client.data.userID, userID);
+  //   const participant = await this.participantService.getConversation(client.data.userID, userID);
 
-    if (!participant) {
-      await this.participantService.create({
-        conversation_id: client.data.userID,
-        user_id: userID,
-      });
+  //   if (!participant) {
+  //     await this.participantService.create({
+  //       conversation_id: client.data.userID,
+  //       user_id: userID,
+  //     });
 
-      client.emit('userBlocked', { userID });
-    }
-  }
+  //     client.emit('userBlocked', { userID });
+  //   }
+  // }
 
-  @SubscribeMessage('unblockUser')
-  async unblockUser(client: Socket, @MessageBody() data: any) {
-    const { userID } = data;
+  // @SubscribeMessage('unblockUser')
+  // async unblockUser(client: Socket, @MessageBody() data: any) {
+  //   const { userID } = data;
 
-    const participant = await this.participantService.getConversation(client.data.userID, userID);
+  //   const participant = await this.participantService.getConversation(client.data.userID, userID);
 
-    if (participant) {
-      await this.participantService.remove(participant.id);
+  //   if (participant) {
+  //     await this.participantService.remove(participant.id);
 
-      client.emit('userUnblocked', { userID });
-    }
-  }
+  //     client.emit('userUnblocked', { userID });
+  //   }
+  // }
 
   @SubscribeMessage('updateConversation')
   async updateConversation(client: Socket, @MessageBody() data: any) {
@@ -243,39 +243,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('setConversationAdmin')
-  async setConversationAdmin(client: Socket, @MessageBody() data: any) {
-    const { conversationID, userID } = data;
+  // @SubscribeMessage('setConversationAdmin')
+  // async setConversationAdmin(client: Socket, @MessageBody() data: any) {
+  //   const { conversationID, userID } = data;
 
-    const conversation = await this.conversationService.findOne(conversationID);
+  //   const conversation = await this.conversationService.findOne(conversationID);
 
-    if (conversation && conversation.creator_id === client.data.userID) {
-      const participant = await this.participantService.getConversation(userID, conversationID);
+  //   if (conversation && conversation.creator_id === client.data.userID) {
+  //     const participant = await this.participantService.getConversation(userID, conversationID);
 
-      if (participant) {
-        await this.participantService.update(participant.id, {
-          role: Role.ADMIN
-        });
+  //     if (participant) {
+  //       await this.participantService.update(participant.id, {
+  //         role: Role.ADMIN
+  //       });
 
-        client.to(conversationID).emit('userAdminSet', { userID });
-      }
-    }
-  }
+  //       client.to(conversationID).emit('userAdminSet', { userID });
+  //     }
+  //   }
+  // }
 
-  @SubscribeMessage('kickUser')
-  async kickUser(client: Socket, @MessageBody() data: any) {
-    const { conversationID, userID } = data;
+  // @SubscribeMessage('kickUser')
+  // async kickUser(client: Socket, @MessageBody() data: any) {
+  //   const { conversationID, userID } = data;
 
-    const conversation = await this.conversationService.findOne(conversationID);
+  //   const conversation = await this.conversationService.findOne(conversationID);
 
-    if (conversation && conversation.creator_id === client.data.userID) {
-      const participant = await this.participantService.getConversation(userID, conversationID);
+  //   if (conversation && conversation.creator_id === client.data.userID) {
+  //     const participant = await this.participantService.getConversation(userID, conversationID);
 
-      if (participant) {
-        await this.participantService.remove(participant.id);
+  //     if (participant) {
+  //       await this.participantService.remove(participant.id);
 
-        client.to(conversationID).emit('userKicked', { userID });
-      }
-    }
-  }
+  //       client.to(conversationID).emit('userKicked', { userID });
+  //     }
+  //   }
+  // }
 }
