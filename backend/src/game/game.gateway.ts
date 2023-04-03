@@ -89,7 +89,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async registerUser(@ConnectedSocket() client: Socket) {
 		let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
 
-    if (this.users.find(user => user.userID === socketData.userID)) {
+    if (this.users.find(user => user.userID['id'] === socketData.userID['id'])) {
       this.server.to(client.id).emit('error');
       return;
     }

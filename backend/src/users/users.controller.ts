@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
+import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 
 @Controller('users')
 @ApiTags('users')
@@ -40,6 +41,7 @@ export class UsersController {
 //     return await this.usersService.userStatusUpdate(id, data.status);
 //   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':uuid')
   async updateUserName(@Param('uuid', new ParseUUIDPipe()) uuid: string, @Body() data: { name: string; }) {
     return await this.usersService.updateUserName(uuid, data.name);
