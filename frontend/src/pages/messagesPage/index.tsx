@@ -275,7 +275,19 @@ const MessagesPage = () => {
 	}
 
 	const createDirectChat =  (user) => {
-		socket?.emit('createDirectConversation', user);
+		let i = 0;
+		conversations.map((c) => {
+			c.participants.map((p) => {
+				if (p.user_id === user.id) {
+					i = 1;
+				}
+			});
+		}
+		);
+		if (i === 0)
+			socket?.emit('createDirectConversation', user);
+		else
+			alert("Conversation already exists");
 	};
 
 

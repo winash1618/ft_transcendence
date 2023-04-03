@@ -35,7 +35,7 @@ model Conversation {
   creator_id            String
   channel_id            String          @default(uuid())
   password              String?
-  privacy               Privacy         @default(PUBLIC)
+  privacy               Privacy
   created_at            DateTime        @default(now())
   updated_at            DateTime        @default(now())
   deleted_at            DateTime?

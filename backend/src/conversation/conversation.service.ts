@@ -14,6 +14,7 @@ export class ConversationService {
         title: createConversationDto.title,
         creator_id: createConversationDto.creator_id,
         channel_id: createConversationDto.channel_id,
+		privacy: createConversationDto.privacy,
       },
     });
   }

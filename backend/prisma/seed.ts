@@ -31,6 +31,7 @@ async function seed() {
       title: 'Conversation One',
       creator_id: user1.id,
       channel_id: 'channel1',
+	  privacy: 'PUBLIC',
     },
   });
 
@@ -39,7 +40,7 @@ async function seed() {
       title: 'Conversation Two',
       creator_id: user2.id,
       channel_id: 'channel2',
-      privacy: 'PRIVATE',
+      privacy: 'PUBLIC',
     },
   });
 
@@ -48,6 +49,7 @@ async function seed() {
       title: 'Conversation Three',
       creator_id: user3.id,
       channel_id: 'channel3',
+	  privacy: 'PRIVATE',
     },
   });
 

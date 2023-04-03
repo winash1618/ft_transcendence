@@ -385,92 +385,92 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// @SubscribeMessage('createDirectConversation')
-	// async createDirectConversation(socket: AuthenticatedSocket, data: any) {
-	// 	const token = socket.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		const conversation = await this.conversationService.create({
-	// 			title: "direct",
-	// 			creator_id: user.id,
-	// 			channel_id: "channelID",
-	// 			password: "password",
-	// 			privacy: Privacy.DIRECT,
-	// 		});
+	@SubscribeMessage('createDirectConversation')
+	async createDirectConversation(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const conversation = await this.conversationService.create({
+				title: "direct",
+				creator_id: user.id,
+				channel_id: "channelID",
+				password: "password",
+				privacy: Privacy.DIRECT,
+			});
 
-	// 		await this.participantService.create({
-	// 			conversation_id: conversation.id,
-	// 			user_id: user.id,
-	// 		});
-	// 		await this.participantService.create({
-	// 			conversation_id: conversation.id,
-	// 			user_id: data.id,
-	// 		});
-	// 		console.log("Conversation created",	conversation);
+			await this.participantService.create({
+				conversation_id: conversation.id,
+				user_id: user.id,
+			});
+			await this.participantService.create({
+				conversation_id: conversation.id,
+				user_id: data.id,
+			});
+			console.log("Conversation created",	conversation);
 
-	// 		const ListOfAllUsers = await this.prisma.user.findMany();
-	// 		const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
-	// 		const ListOfAllUsersObject = [];
-	// 		ListOfAllUsersWithoutMe.forEach((u) => {
-	// 			ListOfAllUsersObject.push({
-	// 				login: u.login,
-	// 				id: u.id,
-	// 				username: u.username,
-	// 			});
-	// 		});
-	// 		const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
-	// 		const ConversationObjectArrayWithParticipantId = [];
-	// 		const participants = [];
-	// 		for (const object of DirectConversationObjectArray) {
-	// 			const participant = await this.participantService.getParticipant(object.id, user.id);
-	// 			participants.push(participant[0]);
-	// 		}
-	// 		let i = 0;
-	// 		const ListOfDirectConversationUsers = [];
-	// 		DirectConversationObjectArray.forEach((c) => {
-	// 			c.participants.forEach((p) => {
-	// 				if (p.id !== participants[i].id) {
-	// 					const user = ListOfAllUsersObject.find((u) => u.id === p.user_id);
-	// 					ListOfDirectConversationUsers.push({
-	// 						login: user.login,
-	// 						username: user.username,
-	// 					});
-	// 				}
-	// 			});
-	// 			i++;
-	// 		});
-	// 		// console.log(ListOfDirectConversationUsers);
+			const ListOfAllUsers = await this.prisma.user.findMany();
+			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
+			const ListOfAllUsersObject = [];
+			ListOfAllUsersWithoutMe.forEach((u) => {
+				ListOfAllUsersObject.push({
+					login: u.login,
+					id: u.id,
+					username: u.username,
+				});
+			});
+			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
+			const ConversationObjectArrayWithParticipantId = [];
+			const participants = [];
+			for (const object of DirectConversationObjectArray) {
+				const participant = await this.participantService.getParticipant(object.id, user.id);
+				participants.push(participant[0]);
+			}
+			let i = 0;
+			const ListOfDirectConversationUsers = [];
+			DirectConversationObjectArray.forEach((c) => {
+				c.participants.forEach((p) => {
+					if (p.id !== participants[i].id) {
+						const user = ListOfAllUsersObject.find((u) => u.id === p.user_id);
+						ListOfDirectConversationUsers.push({
+							login: user.login,
+							username: user.username,
+						});
+					}
+				});
+				i++;
+			});
+			// console.log(ListOfDirectConversationUsers);
 
-	// 		i = 0;
-	// 		DirectConversationObjectArray.forEach((c) => {
-	// 			ConversationObjectArrayWithParticipantId.push({
-	// 				id: c.id,
-	// 				title: c.title,
-	// 				privacy: c.privacy,
-	// 				participant_id: participants[i].id,
-	// 				user: ListOfDirectConversationUsers[i],
-	// 				creator_id: c.creator_id,
-	// 				channel_id: c.channel_id,
-	// 				created_at: c.created_at,
-	// 				updated_at: c.updated_at,
-	// 				participants: c.participants,
-	// 				messages: c.messages,
-	// 			});
-	// 			i++;
-	// 		});
-	// 		console.log(ConversationObjectArrayWithParticipantId);
-	// 		const objectToEmit = {
-	// 			conversations: ConversationObjectArrayWithParticipantId,
-	// 		}
-	// 		socket.emit('getDirectConversations', objectToEmit);
-	// 	}
-	// 	catch (e) {
-	// 		socket.emit('error', 'Unauthorized access');
-	// 	}
-	// }
+			i = 0;
+			DirectConversationObjectArray.forEach((c) => {
+				ConversationObjectArrayWithParticipantId.push({
+					id: c.id,
+					title: c.title,
+					privacy: c.privacy,
+					participant_id: participants[i].id,
+					user: ListOfDirectConversationUsers[i],
+					creator_id: c.creator_id,
+					channel_id: c.channel_id,
+					created_at: c.created_at,
+					updated_at: c.updated_at,
+					participants: c.participants,
+					messages: c.messages,
+				});
+				i++;
+			});
+			console.log(ConversationObjectArrayWithParticipantId);
+			const objectToEmit = {
+				conversations: ConversationObjectArrayWithParticipantId,
+			}
+			socket.emit('getDirectConversations', objectToEmit);
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
+	}
 
 
 	@SubscribeMessage('addUserToGroup')
