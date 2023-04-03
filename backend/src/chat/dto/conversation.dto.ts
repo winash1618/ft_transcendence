@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
+import { PartialType } from '@nestjs/swagger';
 
 export class CreateConversationDto {
   @IsString()
@@ -12,13 +13,11 @@ export class CreateConversationDto {
 
   @IsString()
   @ApiProperty()
-  channel_id: string;
-
-  @IsString()
-  @ApiProperty()
   password?: string;
 
   @IsString()
   @ApiProperty()
   privacy?: string;
 }
+
+export class UpdateConversationDto extends PartialType(CreateConversationDto) {}

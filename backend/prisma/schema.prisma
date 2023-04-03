@@ -70,8 +70,6 @@ model Participant {
   user                  User            @relation(fields: [user_id], references: [id])
   conversation          Conversation    @relation(fields: [conversation_id], references: [id])
   messages              Message[]
-
-  @@unique([conversation_id, user_id])
 }
 
 model GameHistory {

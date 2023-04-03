@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Status, Role } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateParticipantDto } from './dto/create-participant.dto';
-import { UpdateParticipantDto } from './dto/update-participant.dto';
+import { CreateParticipantDto, UpdateParticipantDto } from '../dto/participants.dto';
 
 @Injectable()
 export class ParticipantService {
@@ -37,6 +36,24 @@ export class ParticipantService {
       data: {
         user_id: updateParticipantDto.user_id,
         conversation_id: updateParticipantDto.conversation_id,
+      },
+    });
+  }
+
+  async updateRole(
+    userID: string,
+    conversationID: string,
+    role: string,
+  ) {
+    return await this.prisma.participant.update({
+      where: {
+        conversation_id_user_id: {
+          user_id: userID,
+          conversation_id: conversationID,
+        },
+      },
+      data: {
+        role: Role[role],
       },
     });
   }
@@ -110,24 +127,6 @@ export class ParticipantService {
       },
       data: {
         conversation_status: Status.ACTIVE,
-      },
-    });
-  }
-
-  async updateRole(
-    userID: string,
-    conversationID: string,
-    role: string,
-  ) {
-    return await this.prisma.participant.update({
-      where: {
-        conversation_id_user_id: {
-          user_id: userID,
-          conversation_id: conversationID,
-        },
-      },
-      data: {
-        role: Role.USER,
       },
     });
   }
@@ -207,6 +206,20 @@ export class ParticipantService {
       },
       select: {
         conversation_id: true,
+      },
+    });
+  }
+
+  async getParticipantByUserIdAndConversationId(
+    userID: string,
+    conversationID: string,
+  ) {
+    return await this.prisma.participant.findUnique({
+      where: {
+        conversation_id_user_id: {
+          user_id: userID,
+          conversation_id: conversationID,
+        },
       },
     });
   }
