@@ -9,10 +9,17 @@ interface DropDownDivProps {
 
 function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat }: DropDownDivProps) {
 	const handleDropdown = (e, user) => {
-		console.log("e.target.innerText: ", e.target.innerText);
-		console.log("key ", e);
 		if (e.target.innerText === "chat") {
 			createDirectChat(user);
+		}
+		else if (e.target.innerText === "block") {
+			console.log("block");
+		}
+		else if (e.target.innerText === "invite") {
+			console.log("invite");
+		}
+		else if (e.target.innerText === "view profile") {
+			console.log("view profile");
 		}
 	}
 	return (
