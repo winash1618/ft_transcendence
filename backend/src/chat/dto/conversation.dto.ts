@@ -5,11 +5,7 @@ import { PartialType } from '@nestjs/swagger';
 export class CreateConversationDto {
   @IsString()
   @ApiProperty()
-  title: string;
-
-  @IsString()
-  @ApiProperty()
-  creator_id: string;
+  title?: string;
 
   @IsString()
   @ApiProperty()

@@ -1,5 +1,6 @@
 import { UseGuards } from '@nestjs/common';
 import {
+  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -38,18 +39,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     client.data.userID = userID;
 
-    this.gatewaySession.setUserSocket(userID, client);
+    this.gatewaySession.setUserSocket(userID.id, client);
 
     console.log('User connected: ', userID);
 
-    const conversations = await this.conversationService.getConversationByUserId(userID.id);
-    console.log('conversation by userid',conversations);
-    conversations.forEach(conversation => {
+    const conversations = await this.conversationService.getConversationByUserID(userID.id);
+
+    for (const conversation of conversations) {
       client.join(conversation.id);
-    });
-    const sendConversation = await this.conversationService.getChatsByUserId(userID.id);
-    console.log('sending conversation',sendConversation);
-    client.emit('conversations', sendConversation);
+    }
+
+    const messages = await Promise.all(conversations.map(async (conversation) => {
+      const messages = await this.messageService.getMessagesByConversationID(conversation.id);
+      return {
+        conversationID: conversation.id,
+        messages,
+      }
+    }));
+
+    console.log(messages);
+
+    client.emit('User_conversations', messages);
+
   }
 
   handleDisconnect(client: Socket) {
@@ -57,225 +68,44 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('createConversation')
-  async createConversation(client: Socket, @MessageBody() data: any) {
-    const { title, password, privacy } = data;
-
+  async createConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     const conversation = await this.conversationService.createConversation({
-      title,
-      creator_id: client.data.userID,
-      password,
-      privacy,
+      title: data.title,
     });
 
-    await this.participantService.create({
+    // add only one participant
+    const participant = await this.participantService.addParticipantToConversation({
       conversation_id: conversation.id,
-      user_id: client.data.userID,
+      user_id: client.data.userID.id,
+      role: Role.ADMIN,
+      conversation_status: 'ACTIVE',
     });
 
-    client.join(conversation.id);
+    const messages = await this.messageService.getMessagesByConversationID(conversation.id);
 
-    const connectedUsers = this.gatewaySession.getSockets().keys();
-    if (!connectedUsers) return;
-    const sendConversation = await this.conversationService.getChatsByUserId(client.data.userID);
-    for (const user of connectedUsers) {
-      this.server.to(user).emit('conversation_lists', sendConversation);
-      this.server.to(user).emit('created_conversation', conversation);
-    }
-
-    client.emit('conversationCreated', conversation);
+    this.server.to(conversation.id).emit('conversation_created', {
+      conversation,
+      participant,
+      messages,
+    });
   }
 
-  // @SubscribeMessage('joinConversation')
-  // async joinConversation(client: Socket, @MessageBody() data: any) {
-  //   const { conversationID } = data;
+  @SubscribeMessage('joinConversation')
+  async joinConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
 
-  //   const conversation = await this.conversationService.findOne(conversationID);
-  //   if (!conversation) return;
-  //   if (conversation.privacy === 'PRIVATE') {
-  //     const participant = await this.participantService.getConversation(client.data.userID, conversationID);
-  //     if (!participant) return;
-  //   }
-  //   const participant = this.participantService.getParticipantByUserIdAndConversationId(client.data.userID, conversationID);
-  //   if (participant) {
-  //     await this.participantService.updateRole(client.data.userID, conversationID, 'USER');
-  //   }
-  //   await this.participantService.create({
-  //     conversation_id: conversationID,
-  //     user_id: client.data.userID,
-  //   });
-
-  //   const connectedUsers = this.gatewaySession.getSockets().values();
-  //   if (!connectedUsers) return;
-  //   for (const user of connectedUsers) {
-  //     user.join(conversationID);
-  //     this.server.to(user.data.userID).emit('joined_conversation', conversationID);
-  //   }
-  // }
-
-  // @SubscribeMessage('leaveConversation')
-  // async leaveConversation(client: Socket, @MessageBody() data: any) {
-  //   const { conversationID } = data;
-
-  //   const participant = await this.participantService.getConversation(client.data.userID, conversationID);
-
-  //   if (participant) {
-  //     await this.participantService.remove(participant.id);
-
-  //     client.leave(conversationID);
-
-  //     client.to(conversationID).emit('userLeft', { userID: client.data.userID });
-  //   }
-  // }
+  }
 
   @SubscribeMessage('sendMessage')
-  async sendMessage(client: Socket, @MessageBody() data: any) {
-    const { conversationID, message } = data;
-
-    const messageSent = await this.messageService.create({
-      conversation_id: conversationID,
-      author_id: client.data.userID,
-      message,
+  async sendMessage(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    console.log(data, data.conversationID);
+    const message = await this.messageService.createMessage({
+      message: data.message,
+      author_id: client.data.userID.id,
+      conversation_id: data.conversationID,
     });
 
-    client.to(conversationID).emit('messageReceived', messageSent);
+    console.log(message);
+
+    this.server.to(data.conversationID).emit('message_created', message);
   }
-
-  @SubscribeMessage('deleteMessage')
-  async deleteMessage(client: Socket, @MessageBody() data: any) {
-    const { messageID } = data;
-
-    const message = await this.messageService.findOne(messageID);
-
-    if (message && message.author_id === client.data.userID) {
-      await this.messageService.remove(messageID);
-
-      client.to(message.conversation_id).emit('messageDeleted', messageID);
-    }
-  }
-
-  // @SubscribeMessage('blockUser')
-  // async blockUser(client: Socket, @MessageBody() data: any) {
-  //   const { userID } = data;
-
-  //   const participant = await this.participantService.getConversation(client.data.userID, userID);
-
-  //   if (!participant) {
-  //     await this.participantService.create({
-  //       conversation_id: client.data.userID,
-  //       user_id: userID,
-  //     });
-
-  //     client.emit('userBlocked', { userID });
-  //   }
-  // }
-
-  // @SubscribeMessage('unblockUser')
-  // async unblockUser(client: Socket, @MessageBody() data: any) {
-  //   const { userID } = data;
-
-  //   const participant = await this.participantService.getConversation(client.data.userID, userID);
-
-  //   if (participant) {
-  //     await this.participantService.remove(participant.id);
-
-  //     client.emit('userUnblocked', { userID });
-  //   }
-  // }
-
-  @SubscribeMessage('updateConversation')
-  async updateConversation(client: Socket, @MessageBody() data: any) {
-    const { conversationID, title, privacy } = data;
-
-    const conversation = await this.conversationService.findOne(conversationID);
-
-    if (conversation && conversation.creator_id === client.data.userID) {
-      const updatedConversation = await this.conversationService.update(conversationID, {
-        title,
-        privacy,
-      });
-
-      client.to(conversationID).emit('conversationUpdated', updatedConversation);
-    }
-  }
-
-  @SubscribeMessage('setConversationPassword')
-  async setConversationPassword(client: Socket, @MessageBody() data: any) {
-    const { conversationID, password } = data;
-
-    const conversation = await this.conversationService.findOne(conversationID);
-
-    if (conversation && conversation.creator_id === client.data.userID) {
-      const updatedConversation = await this.conversationService.update(conversationID, {
-        password,
-      });
-
-      client.to(conversationID).emit('conversationUpdated', updatedConversation);
-    }
-  }
-
-  @SubscribeMessage('removeConversationPassword')
-  async removeConversationPassword(client: Socket, @MessageBody() data: any) {
-    const { conversationID } = data;
-
-    const conversation = await this.conversationService.findOne(conversationID);
-
-    if (conversation && conversation.creator_id === client.data.userID) {
-      const updatedConversation = await this.conversationService.update(conversationID, {
-        password: null,
-      });
-
-      client.to(conversationID).emit('conversationUpdated', updatedConversation);
-    }
-  }
-
-  @SubscribeMessage('setConversationPrivacy')
-  async setConversationPrivacy(client: Socket, @MessageBody() data: any) {
-    const { conversationID, privacy } = data;
-
-    const conversation = await this.conversationService.findOne(conversationID);
-
-    if (conversation && conversation.creator_id === client.data.userID) {
-      const updatedConversation = await this.conversationService.update(conversationID, {
-        privacy,
-      });
-
-      client.to(conversationID).emit('conversationUpdated', updatedConversation);
-    }
-  }
-
-  // @SubscribeMessage('setConversationAdmin')
-  // async setConversationAdmin(client: Socket, @MessageBody() data: any) {
-  //   const { conversationID, userID } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === client.data.userID) {
-  //     const participant = await this.participantService.getConversation(userID, conversationID);
-
-  //     if (participant) {
-  //       await this.participantService.update(participant.id, {
-  //         role: Role.ADMIN
-  //       });
-
-  //       client.to(conversationID).emit('userAdminSet', { userID });
-  //     }
-  //   }
-  // }
-
-  // @SubscribeMessage('kickUser')
-  // async kickUser(client: Socket, @MessageBody() data: any) {
-  //   const { conversationID, userID } = data;
-
-  //   const conversation = await this.conversationService.findOne(conversationID);
-
-  //   if (conversation && conversation.creator_id === client.data.userID) {
-  //     const participant = await this.participantService.getConversation(userID, conversationID);
-
-  //     if (participant) {
-  //       await this.participantService.remove(participant.id);
-
-  //       client.to(conversationID).emit('userKicked', { userID });
-  //     }
-  //   }
-  // }
 }

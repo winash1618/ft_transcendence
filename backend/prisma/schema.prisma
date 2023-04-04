@@ -32,14 +32,11 @@ model User {
 // Conversation table
 model Conversation {
   id                    String          @id @default(uuid())
-  title                 String?
-  creator_id            String
-  channel_id            String          @default(uuid())
+  title                 String?         @unique
   password              String?
   privacy               Privacy         @default(PUBLIC)
   created_at            DateTime        @default(now())
   updated_at            DateTime        @default(now())
-  deleted_at            DateTime?
 
   messages              Message[]
   participants          Participant[]
@@ -60,7 +57,7 @@ model Message {
 // Participant table
 model Participant {
   id                    String          @id @default(uuid())
-  user_id               String          @unique
+  user_id               String
   role                  Role            @default(USER)
   conversation_status   Status          @default(ACTIVE)
   conversation_id       String

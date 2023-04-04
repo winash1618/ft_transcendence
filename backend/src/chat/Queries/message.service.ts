@@ -1,153 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateMessageDto, UpdateMessageDto } from '../dto/messages.dto';
+import { ConversationService } from './conversation.service';
 
 @Injectable()
 export class MessageService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private conversationService: ConversationService,
+    ) {}
 
-  async create(createMessageDto: CreateMessageDto) {
+  async createMessage(createMessage: CreateMessageDto) {
+    const conversation = await this.conversationService.checkConversationExists(createMessage.conversation_id);
+
+    console.log(conversation);
+
+    if (!conversation) {
+      throw new Error('Conversation does not exist');
+    }
+
     return await this.prisma.message.create({
       data: {
-        message: createMessageDto.message,
-        author_id: createMessageDto.author_id,
-        conversation_id: createMessageDto.conversation_id,
+        message: createMessage.message,
+        author_id: createMessage.author_id,
+        conversation_id: createMessage.conversation_id,
+      },
+      include: {
+        author: {
+          include: {
+            user: true,
+          },
         },
-      });
-  }
-
-  async findAll() {
-    return await this.prisma.message.findMany();
-  }
-
-  async findOne(id: string) {
-    return await this.prisma.message.findUnique({
-      where: {
-        id: id,
+        conversation: true,
       },
     });
   }
 
-  async update(id: string, updateMessageDto: UpdateMessageDto) {
-    return await this.prisma.message.update({
+  async getMessagesByConversationID(conversationID: string) {
+    return this.prisma.message.findMany({
       where: {
-        id: id,
+        conversation_id: conversationID,
       },
-      data: {
-        message: updateMessageDto.message,
-        author_id: updateMessageDto.author_id,
-        conversation_id: updateMessageDto.conversation_id,
-      },
-    });
-  }
-
-  async remove(id: string) {
-    return await this.prisma.message.delete({
-      where: {
-        id: id,
-      },
-    });
-  }
-
-  async getConversation(conversation_id: string) {
-    return await this.prisma.message.findMany({
-      where: {
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async addMessage(conversation_id: string, author_id: string, message: string) {
-    return await this.prisma.message.create({
-      data: {
-        message: message,
-        author_id: author_id,
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async deleteMessage(id: string) {
-    return await this.prisma.message.delete({
-      where: {
-        id: id,
-      },
-    });
-  }
-
-  async updateMessage(id: string, message: string) {
-    return await this.prisma.message.update({
-      where: {
-        id: id,
-      },
-      data: {
-        message: message,
-      },
-    });
-  }
-
-  async getMessages(conversation_id: string) {
-    return await this.prisma.message.findMany({
-      where: {
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async getMessagesByUser(user_id: string) {
-    return await this.prisma.message.findMany({
-      where: {
-        author_id: user_id,
-      },
-    });
-  }
-
-  async getMessagesByConversation(conversation_id: string) {
-    return await this.prisma.message.findMany({
-      where: {
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async getMessagesByUserAndConversation(
-    user_id: string,
-    conversation_id: string,
-  ) {
-    return await this.prisma.message.findMany({
-      where: {
-        author_id: user_id,
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async getMessagesByUserAndConversationAndMessage(
-    user_id: string,
-    conversation_id: string,
-    message: string,
-  ) {
-    return await this.prisma.message.findMany({
-      where: {
-        author_id: user_id,
-        conversation_id: conversation_id,
-        message: message,
-      },
-    });
-  }
-
-  async getMessagesByUserAndConversationAndMessageAndId(
-    user_id: string,
-    conversation_id: string,
-    message: string,
-    id: string,
-  ) {
-    return await this.prisma.message.findMany({
-      where: {
-        author_id: user_id,
-        conversation_id: conversation_id,
-        message: message,
-        id: id,
+      include: {
+        author: true,
       },
     });
   }

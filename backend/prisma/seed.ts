@@ -3,11 +3,13 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function seed() {
-  // create some users
   const user1 = await prisma.user.create({
     data: {
       login: 'user1',
       username: 'User One',
+      first_name: 'John',
+      last_name: 'Doe',
+      user_status: 'OFFLINE',
     },
   });
 
@@ -15,61 +17,21 @@ async function seed() {
     data: {
       login: 'user2',
       username: 'User Two',
+      first_name: 'Jane',
+      last_name: 'Doe',
+      user_status: 'OFFLINE',
     },
   });
 
-  const user3 = await prisma.user.create({
+  // Create sample game history
+  const gameHistory = await prisma.gameHistory.create({
     data: {
-      login: 'user3',
-      username: 'User Three',
-    },
-  });
-
-  // create some conversations
-  const conversation1 = await prisma.conversation.create({
-    data: {
-      title: 'Conversation One',
-      creator_id: user1.id,
-      channel_id: 'channel1',
-    },
-  });
-
-  const conversation2 = await prisma.conversation.create({
-    data: {
-      title: 'Conversation Two',
-      creator_id: user2.id,
-      channel_id: 'channel2',
-      privacy: 'PRIVATE',
-    },
-  });
-
-  const conversation3 = await prisma.conversation.create({
-    data: {
-      title: 'Conversation Three',
-      creator_id: user3.id,
-      channel_id: 'channel3',
-    },
-  });
-
-  // add participants to conversations
-  await prisma.participant.create({
-    data: {
-      user_id: user1.id,
-      conversation_id: conversation1.id,
-    },
-  });
-
-  await prisma.participant.create({
-    data: {
-      user_id: user2.id,
-      conversation_id: conversation1.id,
-    },
-  });
-
-  await prisma.participant.create({
-    data: {
-      user_id: user3.id,
-      conversation_id: conversation2.id,
+      player_one: user1.id,
+      player_two: user2.id,
+      player_score: 5,
+      opponent_score: 3,
+      winner: user1.id,
+      looser: user2.id,
     },
   });
 }

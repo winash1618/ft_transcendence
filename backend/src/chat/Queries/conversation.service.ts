@@ -2,206 +2,75 @@ import { Injectable } from '@nestjs/common';
 import { Privacy } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateConversationDto, UpdateConversationDto } from '../dto/conversation.dto';
+import * as brypt from 'bcrypt';
 
 @Injectable()
 export class ConversationService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createConversationDto: CreateConversationDto) {
-    return await this.prisma.conversation.create({
-      data: {
-        title: createConversationDto.title,
-        creator_id: createConversationDto.creator_id,
-      },
-    });
+  private async hashPassword(password: string) {
+    return await brypt.hash(password, 10);
+  }
+
+  private async validatePassword(password: string, hash: string) {
+    return await brypt.compare(password, hash);
   }
 
   async createConversation(createConversation: CreateConversationDto) {
+    if (createConversation.privacy === 'PRIVATE' &&
+      (createConversation.password === '' || createConversation.password === undefined)
+    ) {
+      throw new Error('Password is required for private conversation');
+    }
+
+    if (createConversation.privacy === 'PROTECTED') {
+      createConversation.password = await this.hashPassword(createConversation.password);
+    }
+
+
     return await this.prisma.conversation.create({
       data: {
         title: createConversation.title,
-        creator_id: createConversation.creator_id,
         password: createConversation.password,
-        privacy: 'PRIVATE',
+        privacy: Privacy[createConversation.privacy],
       },
     });
   }
 
-  async getChatsByUserId(userId: string) {
-    return await this.prisma.participant.findMany({
+  async checkConversationExists(conversationID: string) {
+    return await this.prisma.conversation.findUnique({
       where: {
-        user_id: userId,
-        conversation: {
-          privacy: 'PUBLIC', // Assuming true corresponds to public chats in the original function
+        id: conversationID,
+      },
+    });
+  }
+
+  // async checkConversationTitleExists(title: string) {
+  //   return this.prisma.conversation.findUnique({
+  //     where: {
+  //       title,
+  //     },
+  //   });
+  // }
+
+  async getConversationByUserID(userID: string) {
+    return this.prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: {
+            user_id: userID,
+            conversation_status: {
+              not: 'BLOCKED',
+            }
+          },
         },
       },
       include: {
-        conversation: {
-          select: {
-            id: true,
-            title: true,
-            created_at: true,
-            updated_at: true,
-          },
-        },
-      },
-      orderBy: {
-        conversation: {
-          updated_at: 'desc',
-        },
-      },
-    });
-  }
-
-  async findAll() {
-    return await this.prisma.conversation.findMany();
-  }
-
-  async findOne(id: string) {
-    return await this.prisma.conversation.findUnique({
-      where: {
-        id: id,
-      },
-    });
-  }
-
-  async update(id: string, updateConversationDto: UpdateConversationDto) {
-    return await this.prisma.conversation.update({
-      where: {
-        id: id,
-      },
-      data: {
-        title: updateConversationDto.title,
-        creator_id: updateConversationDto.creator_id,
-      },
-    });
-  }
-
-  async remove(id: string) {
-    return await this.prisma.conversation.delete({
-      where: {
-        id: id,
-      },
-    });
-  }
-
-  async addParticipant(conversation_id: string, user_id: string) {
-    return await this.prisma.participant.create({
-      data: {
-        user_id: user_id,
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async getParticipants(conversation_id: string) {
-    return await this.prisma.participant.findMany({
-      where: {
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async getMessages(conversation_id: string) {
-    return await this.prisma.message.findMany({
-      where: {
-        conversation_id: conversation_id,
-      },
-    });
-  }
-
-  async getConversationByUserId(user_id: string) {
-    return await this.prisma.participant.findMany({
-      where: {
-        id: user_id,
-      },
-    });
-  }
-
-  async getConversationByCreatorId(creator_id: string) {
-    return await this.prisma.conversation.findMany({
-      where: {
-        creator_id: creator_id,
-      },
-    });
-  }
-
-  async getConversationByTitle(title: string) {
-    return await this.prisma.conversation.findMany({
-      where: {
-        title: title,
-      },
-    });
-  }
-
-  async getConversationByPrivacy(privacy: string) {
-    return await this.prisma.conversation.findMany({
-      where: {
-        privacy: Privacy.PUBLIC
-      },
-    });
-  }
-
-  async getConversationByCreatorIdAndPrivacy(creator_id: string, privacy: string) {
-    return await this.prisma.conversation.findMany({
-      where: {
-        creator_id: creator_id,
-        privacy: Privacy.PUBLIC,
-      },
-    });
-  }
-
-  async getConversationByCreatorIdAndTitle(creator_id: string, title: string) {
-    return await this.prisma.conversation.findMany({
-      where: {
-        creator_id: creator_id,
-        title: title,
-      },
-    });
-  }
-
-  async getConversationByCreatorIdAndTitleAndPrivacy(creator_id: string, title: string, privacy: string) {
-    return await this.prisma.conversation.findMany({
-      where: {
-        creator_id: creator_id,
-        title: title,
-        privacy: Privacy.PUBLIC,
-      },
-    });
-  }
-
-  async getConversationByUserIdAndPrivacy(user_id: string, privacy: string) {
-    return await this.prisma.participant.findMany({
-      where: {
-        user_id: user_id,
-        conversation: {
-          privacy: Privacy.PUBLIC,
-        },
-      },
-    });
-  }
-
-  async getConversationByUserIdAndTitle(user_id: string, title: string) {
-    return await this.prisma.participant.findMany({
-      where: {
-        user_id: user_id,
-        conversation: {
-          title: title,
-        },
-      },
-    });
-  }
-
-  async getDirectConversation(user_id: string, creator_id: string) {
-    return await this.prisma.conversation.findMany({
-      where: {
-        creator_id: creator_id,
-        privacy: Privacy.DIRECT,
         participants: {
-          every: {
-            user_id: user_id,
+          include: {
+            user: true,
           },
-        },
+        }
       },
     });
   }
