@@ -110,6 +110,7 @@ export const ErrorMessage = styled.p`
 `;
 
 export const ShowPasswordLabel = styled.label`
+  margin-bottom: 10px;
 `;
 
 export const ShowPasswordCheckbox = styled.input`

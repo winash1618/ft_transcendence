@@ -128,22 +128,11 @@ export const Heading2 = styled.h2`
 
 export const StyledRiMailSettingsFill = styled(RiMailSettingsFill)`
   color: #00A551;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-
-  @media screen and (max-width: 767px) { /* Mobile styles */
-    width: 25px;
-    height: 25px;
+  font-size: 1.5em;
+  margin-left: 5px;
+  cursor: pointer;
+  &: active {
+    transform: scale(0.9); /* Example of click effect: scale down to 90% */
   }
-
-  @media screen and (min-width: 768px) and (max-width: 1023px) { /* Tablet styles */
-    width: 30px;
-    height: 30px;
-  }
-
-  @media screen and (min-width: 1024px) { /* Desktop styles */
-    width: 35px;
-    height: 35px;
-  }
+	  
 `;

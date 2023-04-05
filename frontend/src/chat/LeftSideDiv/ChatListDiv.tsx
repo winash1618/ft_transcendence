@@ -1,7 +1,5 @@
 
 import React, { useState } from "react";
-import ConversationDropdownButtonDiv from "../components/ConversationDropDownButtonDiv";
-import ConversaionDropDownDiv from "../components/ConversationDropDownDiv";
 import { ContactDiv, ContactImage, ContactName, StyledTiLockClosed, StyledTiLockOpen } from "./styles/ChatListDiv.styled";
 interface ChatListDivProps {
 	conversations: any;
@@ -20,7 +18,6 @@ const Privacy = {
 };
 
 function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfilePicture, handleSelectedConversation, isInGroup }: ChatListDivProps) {
-	const [openMenuId, setOpenMenuId] = useState(null);
 	return (
 		<>
 			{
@@ -32,25 +29,16 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 									<ContactImage src={UserProfilePicture} alt="" />
 									{(isInGroup) ? (c.privacy === Privacy.PUBLIC) ?
 										<>
-											<ContactName>{c.title} <StyledTiLockOpen /> </ContactName><ConversationDropdownButtonDiv
-												conversation={c}
-												openMenuId={openMenuId}
-												setOpenMenuId={setOpenMenuId}
-											/>
+											<ContactName>{c.title} <StyledTiLockOpen /> </ContactName>
 										</>
 										:
 										<>
-											<ContactName>{c.title} <StyledTiLockClosed /> </ContactName><ConversationDropdownButtonDiv
-												conversation={c}
-												openMenuId={openMenuId}
-												setOpenMenuId={setOpenMenuId}
-											/>
+											<ContactName>{c.title} <StyledTiLockClosed /> </ContactName>
 										</>
 										:
 										<ContactName>{c.user.login}</ContactName>}
 
 								</ContactDiv>
-								<ConversaionDropDownDiv openMenuId={openMenuId} conversation={c} dropDownContent={["invite", "view profile", "chat"]} />
 							</React.Fragment>
 						);
 					}

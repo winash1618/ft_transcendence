@@ -340,6 +340,9 @@ const MessagesPage = () => {
 								UserProfilePicture={UserProfilePicture}
 								handleAddUserToGroup={handleAddUserToGroup}
 								createDirectChat={createDirectChat}
+								Conversation={
+									conversations.filter((c) => c.id === conversationID)[0]
+								}
 							/>
 						) : (
 							<DirectConversation
