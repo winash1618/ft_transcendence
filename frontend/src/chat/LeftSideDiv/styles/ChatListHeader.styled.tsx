@@ -1,3 +1,4 @@
+import { BiCommentAdd } from 'react-icons/bi';
 import styled from 'styled-components';
 
 
@@ -41,4 +42,16 @@ export const MessageNavNotUsed = styled.button<MessageNavNotUsedProps>`
   border: 0px;
   width: 150px;
   height: 50px;
+`;
+
+export const StyledBiCommentAdd = styled(BiCommentAdd)`
+  color: #00A551;
+  font-size: 2em;
+  margin-left: 1em;
+  &: hover {
+    cursor: pointer;
+  }
+  &: active {
+    transform: scale(0.9); /* Example of click effect: scale down to 90% */
+  }
 `;

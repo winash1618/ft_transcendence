@@ -106,4 +106,12 @@ export const CreateChannelInputContainer = styled.div`
 export const ErrorMessage = styled.p`
   color: red;
   margin-top: 10px;
+  margin-bottom: 20px;
+`;
+
+export const ShowPasswordLabel = styled.label`
+`;
+
+export const ShowPasswordCheckbox = styled.input`
+  margin-right: 8px;
 `;

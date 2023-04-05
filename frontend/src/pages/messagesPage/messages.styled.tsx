@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const ParentContainer = styled.div`
   display: flex;
   flex-direction: row;
-  height: 100vh;
+  height: 80vh;
 `;
 
 export const ChatListContainer = styled.div`

@@ -18,7 +18,6 @@ import DirectConversation from '../../chat/RightSideDiv/DirectConversation';
 import GroupConversation from '../../chat/RightSideDiv/GroupConversation';
 import ChatListHeader from '../../chat/LeftSideDiv/ChatListHeader';
 import ChatListDiv from '../../chat/LeftSideDiv/ChatListDiv';
-import ChatListFooter from '../../chat/LeftSideDiv/ChatListFooter';
 import MessageBox from '../../chat/MessageBoxDiv/MessageBox';
 import InputBoxDiv from '../../chat/MessageBoxDiv/InputBoxDiv';
 import CreateChannelFormDiv from '../../chat/RightSideDiv/CreateChannelFormDiv';
@@ -131,7 +130,10 @@ const MessagesPage = () => {
 		};
 
 		const handleConversationCreated = (object) => {
+			if (isInGroup) {
+				console.log("I am here: ", object);
 				setConversations((conversations) => [...conversations, object]);
+			}
 		};
 
 		const handleUserAddedToGroup = (object) => {
@@ -169,8 +171,6 @@ const MessagesPage = () => {
 				content: message,
 				type: "right",
 			};
-			console.log("newMessage: ", newMessage);
-			// setMessages([...messages, newMessage]);
 			socket?.emit('sendMessage', newMessage);
 			setMessage("");
 		}
@@ -238,13 +238,13 @@ const MessagesPage = () => {
 		setIsFormVisible(false);
 	};
 
-	const handleChannelCreation = async (event) => {
+	const handleChannelCreation = async (event, password) => {
 		event.preventDefault();
 		const formData = new FormData(event.target.form);
 		const channelName = formData.get('channel-name');
 		const channelPrivacy = formData.get('channel-status');
 		Boolean(String(channelName).trim())
-			? socket?.emit('createConversation', { title: channelName, privacy: channelPrivacy })
+			? socket?.emit('createConversation', { title: channelName, privacy: channelPrivacy, password: password })
 			: alert("Please enter a channel name");
 		setIsFormVisible(false);
 	};
@@ -300,6 +300,7 @@ const MessagesPage = () => {
 						handleMessageNavNotUsedClick={handleMessageNavNotUsedClick}
 						messageNavButtonColor={messageNavButtonColor}
 						messageNavButtonColorNotUsed={messageNavButtonColorNotUsed}
+						handleCreateConversationClick={handleCreateConversationClick}
 					/>
 					<ChatListDiv
 						conversations={conversations}
@@ -309,12 +310,6 @@ const MessagesPage = () => {
 						handleSelectedConversation={handleSelectedConversation}
 						isInGroup={isInGroup}
 					/>
-					{
-						isInGroup ? (
-							<ChatListFooter
-								handleCreateConversationClick={handleCreateConversationClick}
-							/>) : (null)
-					}
 				</ChatListContainer>
 				<MessageBoxContainer>
 					<MessageBox

@@ -1,12 +1,13 @@
 
 import { useState } from "react";
-import { CreateChannelButton, CreateChannelFormContainer, CreateChannelInput, CreateChannelInputContainer, CreateChannelLabel, CreateChannelOption, CreateChannelSelect } from "./styles/CreateChannelFormDiv.styled";
+import { CreateChannelButton, CreateChannelFormContainer, CreateChannelInput, CreateChannelInputContainer, CreateChannelLabel, CreateChannelOption, CreateChannelSelect, ErrorMessage, ShowPasswordCheckbox, ShowPasswordLabel } from "./styles/CreateChannelFormDiv.styled";
 import { Heading2 } from "./styles/Conversation.styled";
 interface CreateChannelFormDivProps {
 	handleChannelCreation: any;
 }
 
 function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivProps) {
+	const [showPassword, setShowPassword] = useState(false);
 	const [showProtected, setShowProtected] = useState(false);
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
@@ -37,12 +38,12 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 		}
 	};
 
-	const handleSubmit = (event) => {
+	const handleSubmit = (event, password) => {
 		event.preventDefault();
 		if (error.length > 0) {
 			return;
 		}
-		handleChannelCreation(event);
+		handleChannelCreation(event, password);
 		setShowProtected(false);
 	};
 	return (
@@ -61,24 +62,32 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 						<CreateChannelOption value="protected">Protected</CreateChannelOption>
 					</CreateChannelSelect>
 				</CreateChannelInputContainer>
-				<CreateChannelInputContainer>
-					{
-						showProtected ? (
-							<>
+				{
+					showProtected ? (
+						<>
+							<CreateChannelInputContainer>
 								<CreateChannelLabel htmlFor="channel-password">password:</CreateChannelLabel>
 								<CreateChannelInput
-									type="password"
+									type={showPassword ? "text" : "password"}
 									id="password"
 									value={password}
 									onChange={handlePasswordChange}
 									required
 								/>
-								{error && <p className="error">{error}</p>}
-							</>
-						) : null
-					}
-				</CreateChannelInputContainer>
-				<CreateChannelButton type="submit" onClick={(e) => handleSubmit(e)}>Submit</CreateChannelButton>
+							</CreateChannelInputContainer>
+							<ShowPasswordLabel htmlFor="show-password">
+								<ShowPasswordCheckbox
+									type="checkbox"
+									id="show-password"
+									onChange={() => setShowPassword(!showPassword)}
+								/>
+								<CreateChannelLabel htmlFor="show-password">Show Password</CreateChannelLabel>
+							</ShowPasswordLabel>
+							{error && <ErrorMessage>{error}</ErrorMessage>}
+						</>
+					) : null
+				}
+				<CreateChannelButton type="submit" onClick={(e) => handleSubmit(e, password)}>Submit</CreateChannelButton>
 			</CreateChannelFormContainer>
 		</>
 	);

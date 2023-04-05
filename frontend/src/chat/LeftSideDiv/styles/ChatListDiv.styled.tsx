@@ -1,3 +1,4 @@
+import { TiLockClosed, TiLockOpen } from "react-icons/ti";
 import styled, { css } from "styled-components";
 
 interface ContactDivProps {
@@ -26,8 +27,9 @@ export const ContactImage = styled.img`
 
 export const ContactName = styled.div`
 display: flex;
-flex-direction: column;
-justify-content: center;
+flex-direction: row;
+justify-content: flex-start;
+padding-top: 10px;
 padding-left: 10px;
   color: white;
   font-size: 1em;
@@ -35,4 +37,12 @@ padding-left: 10px;
   border-radius: 15px;
   width: 150px;
   height: 50px;
+`;
+
+export const StyledTiLockOpen = styled(TiLockOpen)`
+  margin-left: 10px;
+`;
+
+export const StyledTiLockClosed = styled(TiLockClosed)`
+  margin-left: 10px;
 `;
