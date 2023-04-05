@@ -9,14 +9,17 @@ export const DropdownMenu = styled.div`
 `;
 
 interface DropdownContentProps {
-	open: boolean;
+  open: boolean;
 }
 
 export const DropdownContent = styled.div<DropdownContentProps>`
   display: ${({ open }) => (open ? "block" : "none")};
   padding: 10px;
-`;
 
+  @media screen and (max-width: 768px) {
+    padding: 5px;
+  }
+`;
 
 export const DropdownItem = styled.a`
   padding: 12px 16px;
@@ -27,5 +30,15 @@ export const DropdownItem = styled.a`
 
   &:hover {
     background-color: #212427;
+  }
+
+  @media screen and (max-width: 768px) {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  @media screen and (max-width: 480px) {
+    padding: 8px;
+    font-size: 12px;
   }
 `;

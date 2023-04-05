@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import DropdownButtonDiv from '../components/DropDownButtonDiv';
 import DropDownDiv from '../components/DropDownDiv';
-import { ContactDiv, ContactImage, ContactName } from './styles/DirectConversation.styled';
+import { ContactDiv, ContactImage, ContactName } from './styles/Conversation.styled';
 
 
 interface DirectConversationProps {

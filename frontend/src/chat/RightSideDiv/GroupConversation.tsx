@@ -3,7 +3,7 @@ import React from "react";
 import { useState } from "react";
 import DropdownButtonDiv from "../components/DropDownButtonDiv";
 import DropDownDiv from "../components/DropDownDiv";
-import { ContactDiv, ContactImage, ContactName, Heading1, Heading2, StyledRiMailSettingsFill } from "./styles/GroupConversation.styled";
+import { ContactDiv, ContactImage, ContactName, Heading1, Heading2, StyledRiMailSettingsFill } from "./styles/Conversation.styled";
 import { GiDwarfKing } from "react-icons/gi";
 interface GroupConversationProps {
 	groupMembers: any;
