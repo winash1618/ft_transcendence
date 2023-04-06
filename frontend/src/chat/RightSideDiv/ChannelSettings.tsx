@@ -1,12 +1,13 @@
+import React from "react";
 
 import { useState } from "react";
 import { CreateChannelButton, CreateChannelFormContainer, CreateChannelInput, CreateChannelInputContainer, CreateChannelLabel, CreateChannelOption, CreateChannelSelect, ErrorMessage, ShowPasswordCheckbox, ShowPasswordLabel } from "./styles/CreateChannelFormDiv.styled";
 import { Heading2 } from "./styles/Conversation.styled";
-interface CreateChannelFormDivProps {
-	handleChannelCreation: any;
+interface ChannelSettingsProps {
+	handleChannelPasswordUpdate: any;
 }
 
-function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivProps) {
+function ChannelSettings({ handleChannelPasswordUpdate }: ChannelSettingsProps) {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showProtected, setShowProtected] = useState(false);
 	const [password, setPassword] = useState('');
@@ -43,7 +44,7 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 		if (error.length > 0) {
 			return;
 		}
-		handleChannelCreation(event, password);
+		handleChannelPasswordUpdate(event, password);
 		setShowProtected(false);
 	};
 	return (
@@ -93,4 +94,4 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 	);
 }
 
-export default CreateChannelFormDiv;
+export default ChannelSettings;

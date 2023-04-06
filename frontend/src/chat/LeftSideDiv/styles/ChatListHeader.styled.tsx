@@ -1,3 +1,5 @@
+import { BiCommentAdd } from 'react-icons/bi';
+import { MdOutlineTravelExplore } from 'react-icons/md';
 import styled from 'styled-components';
 
 
@@ -41,4 +43,30 @@ export const MessageNavNotUsed = styled.button<MessageNavNotUsedProps>`
   border: 0px;
   width: 150px;
   height: 50px;
+`;
+
+export const StyledBiCommentAdd = styled(BiCommentAdd)`
+  color: #00A551;
+  font-size: 2em;
+  margin-left: 0.5em;
+  &: hover {
+    cursor: pointer;
+  }
+  &: active {
+    transform: scale(0.9); /* Example of click effect: scale down to 90% */
+  }
+`;
+
+
+export const StyledMdOutlineTravelExplore = styled(MdOutlineTravelExplore)`
+  color: #00A551;
+  font-size: 2em;
+  margin-left: 0.5em;
+  margin-right: 1em;
+  &: hover {
+    cursor: pointer;
+  }
+  &: active {
+    transform: scale(0.9); /* Example of click effect: scale down to 90% */
+  }
 `;

@@ -18,7 +18,6 @@ import DirectConversation from '../../chat/RightSideDiv/DirectConversation';
 import GroupConversation from '../../chat/RightSideDiv/GroupConversation';
 import ChatListHeader from '../../chat/LeftSideDiv/ChatListHeader';
 import ChatListDiv from '../../chat/LeftSideDiv/ChatListDiv';
-import ChatListFooter from '../../chat/LeftSideDiv/ChatListFooter';
 import MessageBox from '../../chat/MessageBoxDiv/MessageBox';
 import InputBoxDiv from '../../chat/MessageBoxDiv/InputBoxDiv';
 import CreateChannelFormDiv from '../../chat/RightSideDiv/CreateChannelFormDiv';
@@ -39,6 +38,8 @@ const MessagesPage = () => {
 	const [groupMembers, setGroupMembers] = useState([]);
 	const [otherUsers, setOtherUsers] = useState([]);
 	const [participantID, setParticipantID] = useState(null);
+	const [publicConversations, setPublicConversations] = useState([]);
+	const [isInPublic, setIsInPublic] = useState(false);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -131,12 +132,19 @@ const MessagesPage = () => {
 		};
 
 		const handleConversationCreated = (object) => {
+			if (isInGroup) {
+				console.log("I am here: ", object);
 				setConversations((conversations) => [...conversations, object]);
+			}
 		};
 
 		const handleUserAddedToGroup = (object) => {
 			setGroupMembers(object.groupMembers);
 			setOtherUsers(object.otherUsers);
+		};
+		const handlepublicConversationsListed = (object) => {
+			setPublicConversations(object);
+			setIsInPublic(true);
 		};
 
 		socket?.on('availableUsers', handleAvailableUsers);
@@ -146,6 +154,7 @@ const MessagesPage = () => {
 		socket?.on('sendMessage', handleMessageReceived);
 		socket?.on('conversationCreated', handleConversationCreated);
 		socket?.on('userAddedToGroup', handleUserAddedToGroup);
+		socket?.on('publicConversationsListed', handlepublicConversationsListed);
 
 		return () => {
 			socket?.off('availableUsers', handleAvailableUsers);
@@ -155,6 +164,8 @@ const MessagesPage = () => {
 			socket?.off('sendMessage', handleMessageReceived);
 			socket?.off('conversationCreated', handleConversationCreated);
 			socket?.off('userAddedToGroup', handleUserAddedToGroup);
+			socket?.off('publicConversationsListed', handlepublicConversationsListed);
+
 		};
 	}, [socket, user, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
 
@@ -169,8 +180,6 @@ const MessagesPage = () => {
 				content: message,
 				type: "right",
 			};
-			console.log("newMessage: ", newMessage);
-			// setMessages([...messages, newMessage]);
 			socket?.emit('sendMessage', newMessage);
 			setMessage("");
 		}
@@ -179,12 +188,14 @@ const MessagesPage = () => {
 	
 
 	const handleMessageNavClick = () => {
+		setIsInPublic(false);
 		socket?.emit('getDirectConversations');
 		setMessageNavButtonColor("#00A551");
 		setMessageNavButtonColorNotUsed("#1A1D1F");
 	};
 
 	const handleMessageNavNotUsedClick = () => {
+		setIsInPublic(false);
 		setIsFormVisible(false);
 		setIsInGroup(true);
 
@@ -238,13 +249,13 @@ const MessagesPage = () => {
 		setIsFormVisible(false);
 	};
 
-	const handleChannelCreation = async (event) => {
+	const handleChannelCreation = async (event, password) => {
 		event.preventDefault();
 		const formData = new FormData(event.target.form);
 		const channelName = formData.get('channel-name');
 		const channelPrivacy = formData.get('channel-status');
 		Boolean(String(channelName).trim())
-			? socket?.emit('createConversation', { title: channelName, privacy: channelPrivacy })
+			? socket?.emit('createConversation', { title: channelName, privacy: channelPrivacy, password: password })
 			: alert("Please enter a channel name");
 		setIsFormVisible(false);
 	};
@@ -290,6 +301,28 @@ const MessagesPage = () => {
 			alert("Conversation already exists");
 	};
 
+	const handleLeaveChannel = () => {
+		socket?.emit('leaveConversation', conversationID);
+		// setMessages([]);
+		// setConversationID("");
+		// setContactDivColor("#1A1D1F");
+		// setParticipantID("");
+		// setIsFormVisible(false);
+		console.log("leave channel");
+	};
+	const handleExplorePublicChannelsClick = () => {
+		console.log("explore public channels");
+		setPublicConversations([]);
+		socket?.emit('ListPublicConversations');
+		setIsFormVisible(false);
+	};
+
+	const joinPublicConversation = (conversation) => {
+		socket?.emit('joinConversation', conversation.id);
+		setPublicConversations(publicConversations.filter((c) => c.id !== conversation.id));
+
+	};
+
 
 	return (
 		<>
@@ -300,6 +333,8 @@ const MessagesPage = () => {
 						handleMessageNavNotUsedClick={handleMessageNavNotUsedClick}
 						messageNavButtonColor={messageNavButtonColor}
 						messageNavButtonColorNotUsed={messageNavButtonColorNotUsed}
+						handleCreateConversationClick={handleCreateConversationClick}
+						handleExplorePublicChannelsClick={handleExplorePublicChannelsClick}
 					/>
 					<ChatListDiv
 						conversations={conversations}
@@ -308,13 +343,10 @@ const MessagesPage = () => {
 						UserProfilePicture={UserProfilePicture}
 						handleSelectedConversation={handleSelectedConversation}
 						isInGroup={isInGroup}
+						publicConversations={publicConversations}
+						isInPublic={isInPublic}
+						joinPublicConversation={joinPublicConversation}
 					/>
-					{
-						isInGroup ? (
-							<ChatListFooter
-								handleCreateConversationClick={handleCreateConversationClick}
-							/>) : (null)
-					}
 				</ChatListContainer>
 				<MessageBoxContainer>
 					<MessageBox
@@ -345,6 +377,10 @@ const MessagesPage = () => {
 								UserProfilePicture={UserProfilePicture}
 								handleAddUserToGroup={handleAddUserToGroup}
 								createDirectChat={createDirectChat}
+								Conversation={
+									conversations.filter((c) => c.id === conversationID)[0]
+								}
+								handleLeaveChannel={handleLeaveChannel}
 							/>
 						) : (
 							<DirectConversation

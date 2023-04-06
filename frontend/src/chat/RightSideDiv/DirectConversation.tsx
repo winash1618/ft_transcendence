@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import DropdownButtonDiv from '../components/DropDownButtonDiv';
 import DropDownDiv from '../components/DropDownDiv';
-import { ContactDiv, ContactImage, ContactName } from './styles/DirectConversation.styled';
+import { ContactDiv, ContactImage, ContactName } from './styles/Conversation.styled';
 
 
 interface DirectConversationProps {
@@ -31,7 +31,7 @@ function DirectConversation({ users, user, contactDivColor, UserProfilePicture, 
 										setOpenMenuId={setOpenMenuId}
 									/>
 								</ContactDiv>
-								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["invite", "view profile", "chat"]} createDirectChat={createDirectChat} />
+								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["invite", "view profile", "chat", "block"]} createDirectChat={createDirectChat} handleLeaveChannel={null}/>
 							</React.Fragment>
 						);
 					}
