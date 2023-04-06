@@ -15,6 +15,9 @@ export const ContactDiv = styled.div<ContactDivProps>`
   margin-top: 10px;
   border: 2px solid #00A551;
   background: ${({ backgroundColor }) => backgroundColor};
+  &: active {
+    transform: scale(0.9); /* Example of click effect: scale down to 90% */
+  }
 `;
 
 export const ContactImage = styled.img`

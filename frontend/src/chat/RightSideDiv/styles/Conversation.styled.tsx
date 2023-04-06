@@ -33,6 +33,9 @@ export const ContactDiv = styled.div<ContactDivProps>`
     margin-top: 10px;
     font-size: 14px;
   }
+  &: active {
+    transform: scale(0.9); /* Example of click effect: scale down to 90% */
+  }
 `;
 
 export const ContactImage = styled.img`
@@ -110,10 +113,10 @@ export const Heading1 = styled.h1`
 export const Heading2 = styled.h2`
   color: #333;
   margin: 1rem 0;
+  margin-left: 5px;
 
   @media screen and (max-width: 767px) { /* Mobile styles */
     font-size: 1.0rem;
-    margin-left: 5px;
   }
 
   @media screen and (min-width: 768px) and (max-width: 1023px) { /* Tablet styles */

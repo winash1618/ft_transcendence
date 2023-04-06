@@ -31,7 +31,7 @@ function DirectConversation({ users, user, contactDivColor, UserProfilePicture, 
 										setOpenMenuId={setOpenMenuId}
 									/>
 								</ContactDiv>
-								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["invite", "view profile", "chat", "block"]} createDirectChat={createDirectChat} />
+								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["invite", "view profile", "chat", "block"]} createDirectChat={createDirectChat} handleLeaveChannel={null}/>
 							</React.Fragment>
 						);
 					}

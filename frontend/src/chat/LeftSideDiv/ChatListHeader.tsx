@@ -1,15 +1,15 @@
-import React, { memo } from "react";
 import { HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
-import { MessageNav, MessageNavNotUsed, ParentMessageNav, StyledBiCommentAdd } from "./styles/ChatListHeader.styled";
+import { MessageNav, MessageNavNotUsed, ParentMessageNav, StyledBiCommentAdd, StyledMdOutlineTravelExplore } from "./styles/ChatListHeader.styled";
 interface ChatListHeaderProps {
 	handleMessageNavClick: any;
 	handleMessageNavNotUsedClick: any;
 	messageNavButtonColor: any;
 	messageNavButtonColorNotUsed: any;
 	handleCreateConversationClick: any;
+	handleExplorePublicChannelsClick: any;
 }
 
-function ChatListHeader({ handleMessageNavClick, handleMessageNavNotUsedClick, messageNavButtonColor, messageNavButtonColorNotUsed, handleCreateConversationClick }: ChatListHeaderProps) {
+function ChatListHeader({ handleMessageNavClick, handleMessageNavNotUsedClick, messageNavButtonColor, messageNavButtonColorNotUsed, handleCreateConversationClick, handleExplorePublicChannelsClick }: ChatListHeaderProps) {
 	return (
 		<>
 			<ParentMessageNav>
@@ -20,9 +20,10 @@ function ChatListHeader({ handleMessageNavClick, handleMessageNavNotUsedClick, m
 					<HiOutlineUserGroup /> Groups
 				</MessageNavNotUsed>
 				<StyledBiCommentAdd onClick={handleCreateConversationClick}/>
+				<StyledMdOutlineTravelExplore onClick={handleExplorePublicChannelsClick}/>
 			</ParentMessageNav>
 		</>
 	);
 }
 
-export default memo(ChatListHeader);
+export default ChatListHeader;
