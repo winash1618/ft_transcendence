@@ -17,6 +17,7 @@ export const ContactDiv = styled.div<ContactDivProps>`
   background: ${({ backgroundColor }) => backgroundColor};
   &: active {
     transform: scale(0.9); /* Example of click effect: scale down to 90% */
+	background: #00A551;
   }
 `;
 

@@ -198,7 +198,7 @@ const MessagesPage = () => {
 		setIsInPublic(false);
 		setIsFormVisible(false);
 		setIsInGroup(true);
-
+		setConversations([]);
 		socket?.emit('getGroupConversations');
 		setMessageNavButtonColor("#1A1D1F");
 		setMessageNavButtonColorNotUsed("#00A551");
@@ -302,7 +302,18 @@ const MessagesPage = () => {
 	};
 
 	const handleLeaveChannel = () => {
-		socket?.emit('leaveConversation', conversationID);
+		const conversation = conversations.filter((c) => c.id === conversationID);
+		socket?.emit('leaveConversation', {conversation_id: conversationID, participant_id: conversation[0].participant_id});
+		
+		if (conversations.length > 1)
+		{
+			setConversationID(conversations.filter((c) => c.id !== conversationID)[0].id);
+
+			console.log("conversationID: ", conversationID);
+		}
+
+		setConversations(conversations.filter((c) => c.id !== conversationID));
+		// console.log("conversationID: ", conversations);
 		// setMessages([]);
 		// setConversationID("");
 		// setContactDivColor("#1A1D1F");
@@ -320,9 +331,7 @@ const MessagesPage = () => {
 	const joinPublicConversation = (conversation) => {
 		socket?.emit('joinConversation', conversation.id);
 		setPublicConversations(publicConversations.filter((c) => c.id !== conversation.id));
-
 	};
-
 
 	return (
 		<>
