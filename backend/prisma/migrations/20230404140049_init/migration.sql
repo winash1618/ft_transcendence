@@ -28,7 +28,7 @@ CREATE TABLE "Conversation" (
     "creator_id" TEXT NOT NULL,
     "channel_id" TEXT NOT NULL,
     "password" TEXT,
-    "privacy" "Privacy" NOT NULL DEFAULT 'PUBLIC',
+    "privacy" "Privacy" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3),
