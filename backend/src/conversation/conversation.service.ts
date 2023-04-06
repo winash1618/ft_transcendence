@@ -31,6 +31,20 @@ export class ConversationService {
     });
   }
 
+//   async findAllPublicConversation(idGiven: string) {
+// 	return await this.prisma.conversation.findMany({
+// 	  where: {
+// 		NOT: {
+// 		  id: idGiven,
+// 		},
+// 		AND: {
+// 		  privacy: Privacy.PUBLIC,
+// 		},
+// 	  },
+// 	});
+//   }
+
+
   async update(id: string, updateConversationDto: UpdateConversationDto) {
     return await this.prisma.conversation.update({
       where: {
@@ -144,6 +158,10 @@ export class ConversationService {
       where: {
         privacy: Privacy.PUBLIC
       },
+	  include: {
+		messages: true,
+		participants: true,
+	  },
     });
   }
 
