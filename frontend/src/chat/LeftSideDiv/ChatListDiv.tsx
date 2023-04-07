@@ -34,7 +34,7 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 			joinPublicConversation(conversation);
 		else if (conversation.privacy === Privacy.PROTECTED) {
 			setSelectedConversationId(conversation.id);
-			setIsProtected(true);
+			setIsProtected((isProtected === false) ? true : false);
 		}
 	}
 	const handlePasswordChange = (event) => {

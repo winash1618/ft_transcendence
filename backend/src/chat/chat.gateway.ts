@@ -17,6 +17,7 @@ import { ParticipantService } from 'src/participant/participant.service';
 import { MessageService } from 'src/message/message.service';
 import { Privacy, Role } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
+import { randomUUID } from 'crypto';
 @WebSocketGateway(8001, {
 	cors: {
 		origin: process.env.FRONTEND_BASE_URL,
@@ -378,16 +379,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async createConversation(socket: AuthenticatedSocket, data: any) {
 		const token = socket.handshake.auth.token;
 		let user = null;
-
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			const conversation = await this.conversationService.create({
+			const conversation = await this.conversationService.createWithPassword({
 				title: data.title,
 				creator_id: user.id,
-				channel_id: "channelID",
-				password: "password",
+				channel_id:randomUUID(),
+				password: data.password,
 				privacy: (data.privacy === "public") ? Privacy.PUBLIC : ((data.privacy === "private") ? Privacy.PRIVATE : Privacy.PROTECTED),
 			});
 			await this.participantService.create({
@@ -502,30 +502,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversation_id: conversation.id,
 				user_id: userToAdd.id,
 			});
-			// const groupMembers = [];
-			// const otherUsers = [];
-			// const ListOfAllUsers = await this.prisma.user.findMany();
-			// const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
-			// for (const p of conversation.participants) {
-			// 	const user = await this.usersService.getUserById(p.user_id);
-			// 	groupMembers.push(user);
-			// }
-			// ListOfAllUsersWithoutMe.forEach((u) => {
-			// 	let found = false;
-			// 	groupMembers.forEach((u2) => {
-			// 		if (u.id === u2.id) {
-			// 			found = true;
-			// 		}
-			// 	});
-			// 	if (!found) {
-			// 		otherUsers.push(u);
-			// 	}
-			// });
-			// const ObjectToEmit = {
-			// 	groupMembers: groupMembers,
-			// 	otherUsers: otherUsers,
-			// }
-			// socket.emit('userAddedToGroup', ObjectToEmit);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -574,8 +550,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			await this.participantService.create({user_id: user.id, conversation_id: data});
-			// Role should be given here if he is the first user to join the conversation becomes the admin
+			const conversation = await this.conversationService.getConversationWithParticipants(data);
+			const participant = await this.participantService.create({user_id: user.id, conversation_id: data});
+			if (conversation.participants.length === 0) {
+				await this.prisma.participant.update({where: {id: participant.id}, data: {role: Role.ADMIN}});
+			}
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -590,6 +569,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
+			const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
+			if (conversation.password === data.password) {
+				const participant = await this.participantService.create({user_id: user.id, conversation_id: data.conversation_id});
+				if (conversation.participants.length === 0) {
+					await this.prisma.participant.update({where: {id: participant.id}, data: {role: Role.ADMIN}});
+				}
+				socket.emit('protectedConversationJoined', conversation);
+			}
+			else {
+				socket.emit('error', 'Wrong password');
+			}
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -624,6 +614,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			socket.emit('error', 'Unauthorized access');
 		}
 	}
+
+	@SubscribeMessage('changePassword')
+	async changePassword(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			await this.prisma.conversation.update({
+				where: {
+					id: data.conversation_id,
+				},
+				data: {
+					password: data.password,
+				}
+			});
+			socket.emit('alert', 'Password changed');
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
+	}
+
+
 
 
 	//   @SubscribeMessage('joinConversation')

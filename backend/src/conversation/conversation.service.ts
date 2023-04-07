@@ -18,6 +18,17 @@ export class ConversationService {
       },
     });
   }
+  async createWithPassword(createConversationDto: CreateConversationDto) {
+    return await this.prisma.conversation.create({
+      data: {
+        title: createConversationDto.title,
+        creator_id: createConversationDto.creator_id,
+        channel_id: createConversationDto.channel_id,
+		password: createConversationDto.password,
+		privacy: createConversationDto.privacy,
+      },
+    });
+  }
 
   async findAll() {
     return await this.prisma.conversation.findMany();

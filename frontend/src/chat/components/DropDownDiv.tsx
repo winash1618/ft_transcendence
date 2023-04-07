@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { DropdownField } from "../LeftSideDiv/styles/ChatListDiv.styled";
 import { DropdownContent, DropdownItem, DropdownMenu } from "./styles/DropDownDiv.styled";
 
 interface DropDownDivProps {
@@ -6,10 +8,21 @@ interface DropDownDivProps {
 	dropDownContent: any;
 	createDirectChat: any;
 	handleLeaveChannel: any;
+	handleNewPasswordSubmit: any;
 }
 
-function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, handleLeaveChannel }: DropDownDivProps) {
+function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, handleLeaveChannel, handleNewPasswordSubmit }: DropDownDivProps) {
+	const [password, setPassword] = useState('');
+	const [selectedUserLogin, setSelectedUserLogin] = useState(null);
+	const [isPasswordChange, setIsPasswordChange] = useState(false);
+
+	const handlePasswordChange = (event) => {
+		const value = event.target.value;
+		setPassword(value);
+	};
+
 	const handleDropdown = (e, user) => {
+		setSelectedUserLogin(user.id);
 		if (e.target.innerText === "chat") {
 			createDirectChat(user);
 		}
@@ -27,6 +40,7 @@ function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, hand
 			handleLeaveChannel();
 		}
 		else if (e.target.innerText === "change password") {
+			setIsPasswordChange((isPasswordChange === false) ? true : false);
 			console.log("change password");
 		}
 		else if (e.target.innerText === "remove password") {
@@ -46,10 +60,26 @@ function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, hand
 		<>
 			<DropdownMenu>
 				<DropdownContent open={openMenuId === user.login}>
-					{dropDownContent.map((item) => (
-						<DropdownItem key={item} onClick={(e) => handleDropdown(e, user)} >{item}</DropdownItem>
-					))}
+					{
+						dropDownContent.map((item) => (
+							<DropdownItem key={item} onClick={(e) => handleDropdown(e, user)} >{item}</DropdownItem>
+						))
+					}
 				</DropdownContent>
+				{
+					(selectedUserLogin === user.login && isPasswordChange) ?
+						<DropdownField>
+							<input
+								type="password"
+								placeholder="Password"
+								value={password}
+								onChange={handlePasswordChange}
+								required
+							/>
+							<button onClick={() => handleNewPasswordSubmit(password)}>Join</button>
+						</DropdownField>
+						: null
+				}
 			</DropdownMenu>
 		</>
 	);

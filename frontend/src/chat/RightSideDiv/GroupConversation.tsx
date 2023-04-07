@@ -14,13 +14,14 @@ interface GroupConversationProps {
 	createDirectChat: any;
 	Conversation: any;
 	handleLeaveChannel: any;
+	handleNewPasswordSubmit: any;
 }
 
 const Role = {
 	ADMIN: 'ADMIN',
 	USER: 'USER'
 };
-function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, UserProfilePicture, handleAddUserToGroup, createDirectChat, Conversation, handleLeaveChannel }: GroupConversationProps) {
+function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, UserProfilePicture, handleAddUserToGroup, createDirectChat, Conversation, handleLeaveChannel, handleNewPasswordSubmit }: GroupConversationProps) {
 	const [openMenuId, setOpenMenuId] = useState(null);
 	const handleChannelSettings = () => {
 
@@ -36,16 +37,32 @@ function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, Us
 					groupMembers.map((u) => {
 						console.log("Conversation.participant.role: ", Conversation);
 						if (u.login !== undefined && u.login !== user.login) {
-							return (
-								<React.Fragment key={u.id}>
-									<ContactDiv key={u.login} backgroundColor={contactDivColor}>
-										<ContactImage src={UserProfilePicture} alt="" />
-										<ContactName>{u.login}</ContactName>
-										{(Conversation !== undefined && Conversation.participant.role === Role.ADMIN) ? <DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} /> : null}
-									</ContactDiv>
-									<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Kick", "Ban", "Mute"]} createDirectChat={createDirectChat} handleLeaveChannel={handleLeaveChannel} />
-								</React.Fragment>
-							);
+							if (Conversation !== undefined && Conversation.participant.role === Role.ADMIN)
+							{
+								return (
+									<React.Fragment key={u.id}>
+										<ContactDiv key={u.login} backgroundColor={contactDivColor}>
+											<ContactImage src={UserProfilePicture} alt="" />
+											<ContactName>{u.login}</ContactName>
+											{(Conversation !== undefined && Conversation.participant.role === Role.ADMIN) ? <DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} /> : null}
+										</ContactDiv>
+										<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={[ "Make Admin", "Kick", "Ban", "Mute" ]} createDirectChat={createDirectChat} handleLeaveChannel={handleLeaveChannel} handleNewPasswordSubmit={handleNewPasswordSubmit}/>
+									</React.Fragment>
+								);
+							}
+							else
+							{
+								return (
+									<React.Fragment key={u.id}>
+										<ContactDiv key={u.login} backgroundColor={contactDivColor}>
+											<ContactImage src={UserProfilePicture} alt="" />
+											<ContactName>{u.login}</ContactName>
+											{(Conversation !== undefined && Conversation.participant.role === Role.ADMIN) ? <DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} /> : null}
+										</ContactDiv>
+										<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Kick", "Ban", "Mute"]} createDirectChat={createDirectChat} handleLeaveChannel={handleLeaveChannel} handleNewPasswordSubmit={handleNewPasswordSubmit}/>
+									</React.Fragment>
+								);
+							}
 						}
 						else if (u.login === user.login && Conversation !== undefined && Conversation.participant.role === Role.ADMIN) {
 							return (
@@ -55,7 +72,7 @@ function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, Us
 										<ContactName>{u.login}</ContactName>
 										<DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} />
 									</ContactDiv>
-									<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Leave Channel", "Change Password", "Remove Password"]} createDirectChat={createDirectChat} handleLeaveChannel={handleLeaveChannel} />
+									<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Leave Channel", "Change Password", "Remove Password"]} createDirectChat={createDirectChat} handleLeaveChannel={handleLeaveChannel} handleNewPasswordSubmit={handleNewPasswordSubmit} />
 								</React.Fragment>
 							)
 						}
@@ -67,7 +84,7 @@ function GroupConversation({ groupMembers, otherUsers, user, contactDivColor, Us
 										<ContactName>{u.login}</ContactName>
 										<DropdownButtonDiv user={u} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} />
 									</ContactDiv>
-									<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Leave Channel"]} createDirectChat={createDirectChat} handleLeaveChannel={handleLeaveChannel} />
+									<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["Leave Channel"]} createDirectChat={createDirectChat} handleLeaveChannel={handleLeaveChannel} handleNewPasswordSubmit={handleNewPasswordSubmit} />
 								</React.Fragment>
 							)
 						}

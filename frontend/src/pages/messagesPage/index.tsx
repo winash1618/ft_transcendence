@@ -147,6 +147,20 @@ const MessagesPage = () => {
 			setIsInPublic(true);
 		};
 
+		const handleError = (error) => {
+			console.log("error: ", error);
+		};
+
+		const handleProtectedConversationJoined = (object) => {
+			const conversation = publicConversations.filter((c) => c.id === object.id);
+			console.log ("this is the conversation: ", conversation);
+			setPublicConversations(publicConversations.filter((c) => c.id !== conversation[0].id));
+		};
+
+		const handleAlert = (alert) => {
+			console.log("alert: ", alert);
+		};
+
 		socket?.on('availableUsers', handleAvailableUsers);
 		socket?.on('getDirectConversations', handleDirectConversations);
 		socket?.on('getGroupConversations', handleGroupConversations);
@@ -155,6 +169,9 @@ const MessagesPage = () => {
 		socket?.on('conversationCreated', handleConversationCreated);
 		socket?.on('userAddedToGroup', handleUserAddedToGroup);
 		socket?.on('ConversationsListed', handleConversationsListed);
+		socket?.on('error', handleError);
+		socket?.on('alert', handleAlert);
+		socket?.on('protectedConversationJoined', handleProtectedConversationJoined);
 
 		return () => {
 			socket?.off('availableUsers', handleAvailableUsers);
@@ -165,7 +182,9 @@ const MessagesPage = () => {
 			socket?.off('conversationCreated', handleConversationCreated);
 			socket?.off('userAddedToGroup', handleUserAddedToGroup);
 			socket?.off('ConversationsListed', handleConversationsListed);
-
+			socket?.off('error', handleError);
+			socket?.off('alert', handleAlert);
+			socket?.off('protectedConversationJoined', handleProtectedConversationJoined);
 		};
 	}, [socket, user, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
 
@@ -326,7 +345,11 @@ const MessagesPage = () => {
 
 	const joinProtectedConversation = (conversation, password) => {
 		socket?.emit('joinProtectedConversation', {conversation_id: conversation.id, password: password});
-		setPublicConversations(publicConversations.filter((c) => c.id !== conversation.id));
+		
+	};
+
+	const handleNewPasswordSubmit = (password) => {
+		socket?.emit('changePassword', {conversation_id: conversationID, password: password});
 	};
 
 	return (
@@ -387,6 +410,7 @@ const MessagesPage = () => {
 									conversations.filter((c) => c.id === conversationID)[0]
 								}
 								handleLeaveChannel={handleLeaveChannel}
+								handleNewPasswordSubmit={handleNewPasswordSubmit}
 							/>
 						) : (
 							<DirectConversation
