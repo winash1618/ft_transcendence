@@ -20,3 +20,20 @@ export const StatusText = styled(motion.h1)`
   position: absolute;
   -webkit-text-stroke: 2px black;
 `;
+
+export const ScoreWrapper = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+export const ScoreUserInfoWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 1.5rem;
+  gap: 20px;
+`;
+
+export const GameProfileImg = styled.img`
+  width: 70px;
+  border-radius: 50%;
+`;

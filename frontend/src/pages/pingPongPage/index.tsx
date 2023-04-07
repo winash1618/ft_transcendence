@@ -9,6 +9,7 @@ import { io, Socket } from "socket.io-client";
 const PingPongPage = () => {
   const [isGameStarted, setIsGameStarted] = useState<boolean>(false);
   const [player, setPlayer] = useState<number>(1);
+  const [players, setPlayers] = useState<any>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [roomID, setRoomID] = useState<string>("");
   const dispatch = useAppDispatch();
@@ -51,11 +52,12 @@ const PingPongPage = () => {
   return (
     <>
       {isGameStarted ? (
-        <PingPong player={player} roomID={roomID} socket={socket} />
+        <PingPong player={player} roomID={roomID} socket={socket} players={players} />
       ) : (
         <PlayForm
           setIsGameStarted={setIsGameStarted}
           setPlayer={setPlayer}
+		  setPlayers={setPlayers}
           setRoomID={setRoomID}
           socket={socket}
         />

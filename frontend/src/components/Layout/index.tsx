@@ -35,10 +35,10 @@ const Navbar: React.FC = () => {
       try {
         const response = await axios.get(`/token`);
         localStorage.setItem("auth", JSON.stringify(response.data));
+        dispatch(setUserInfo(response.data.user));
         if (!response.data.user.username) {
           navigate("/set-nickname");
         }
-        dispatch(setUserInfo(response.data.user));
         setIsLoadingPage(false);
       } catch (err) {
         dispatch(logOut());

@@ -26,11 +26,13 @@ export type PlayType = {
 const PlayForm = ({
   setIsGameStarted,
   setPlayer,
+  setPlayers,
   socket,
   setRoomID,
 }: {
   setIsGameStarted: any;
   setPlayer: any;
+  setPlayers: any;
   socket: Socket | null;
   setRoomID: any;
 }) => {
@@ -45,6 +47,7 @@ const PlayForm = ({
     socket?.on("start", (data) => {
       setIsGameStarted(true);
       setPlayer(data.playerNo);
+	  setPlayers(data.players);
       setRoomID(data.roomID);
     });
     socket?.on("error", (data) => {
@@ -54,6 +57,7 @@ const PlayForm = ({
       socket?.off("start", (data) => {
         setIsGameStarted(true);
         setPlayer(data.playerNo);
+		setPlayers(data.players);
         setRoomID(data.roomID);
       });
       socket?.off("error", (data) => {
@@ -75,14 +79,14 @@ const PlayForm = ({
           <FormInputTitle htmlFor="map">Choose a map</FormInputTitle>
           <Controller
             control={control}
+			defaultValue={1}
             name="map"
             render={({ field: { onChange, value } }) => (
               <FormSelect
                 onChange={onChange}
                 options={[
-                  { value: 1, label: "Rocky blue" },
-                  { value: 2, label: "Icy lakes" },
-                  { value: 3, label: "Red sands" },
+                  { value: 1, label: "Default" },
+                  { value: 2, label: "Power up" },
                 ]}
                 value={value}
                 placeholder="Choose a map to play with"

@@ -1,10 +1,18 @@
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
+import { UserProfilePicture } from "../../../assets";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { PingPongContainer } from "../pingPong.styled";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, draw } from "./pingPongCanvas.functions";
-import { ScoreText, StatusText, StyledCanvas } from "./pingPongCanvas.styled";
+import {
+	GameProfileImg,
+  ScoreText,
+  ScoreUserInfoWrapper,
+  ScoreWrapper,
+  StatusText,
+  StyledCanvas,
+} from "./pingPongCanvas.styled";
 
 export type GameType = {
   pause: boolean;
@@ -58,10 +66,12 @@ let game: GameType = {
 
 const PingPongCanvas = ({
   player,
+  players,
   roomID,
   socket,
 }: {
   player: number;
+  players: any;
   roomID: string;
   socket: Socket | null;
 }) => {
@@ -201,9 +211,25 @@ const PingPongCanvas = ({
   return (
     <PingPongContainer>
       <StyledCanvas ref={canvaRef} />
-      <ScoreText>
-        {player1Score} : {player2Score}
-      </ScoreText>
+      <ScoreWrapper>
+        <ScoreUserInfoWrapper style={{marginRight: "30px"}}>
+          <GameProfileImg
+            src={UserProfilePicture}
+            alt="A profile photo of the current user"
+          />
+          {players.player1.login}
+        </ScoreUserInfoWrapper>
+        <ScoreText>
+          {player1Score} : {player2Score}{" "}
+        </ScoreText>
+        <ScoreUserInfoWrapper style={{marginLeft: "30px"}}>
+          {players.player2.login}
+          <GameProfileImg
+            src={UserProfilePicture}
+            alt="A profile photo of the current user"
+          />
+        </ScoreUserInfoWrapper>
+      </ScoreWrapper>
       <AnimatePresence>
         {gameStatus === 1 && (
           <StatusText initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

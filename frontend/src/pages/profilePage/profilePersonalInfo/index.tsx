@@ -1,6 +1,6 @@
 import { useAppSelector } from "../../../hooks/reduxHooks";
 import {
-	OnlineStatusWrapper,
+  OnlineStatusWrapper,
   PersonalInfo,
   PersonalInfoFlex,
   PersonalInfoTitle,
@@ -10,10 +10,10 @@ import {
 } from "./profilePersonalInfo.styled";
 
 import { HiOutlineStatusOffline, HiOutlineStatusOnline } from "react-icons/hi";
+import { FaGamepad } from "react-icons/fa";
 
 const ProfilePersonalInfo = () => {
   const { user } = useAppSelector((state) => state.users);
-  const { userInfo } = useAppSelector((state) => state.auth);
   console.log(user);
   return (
     <ProfilePersonalInfoContainer>
@@ -35,25 +35,26 @@ const ProfilePersonalInfo = () => {
         </PersonalInfoWrapper>
         <PersonalInfoWrapper>
           <PersonalTitle>Nick name</PersonalTitle>
-          <PersonalInfo>{user.user_name}</PersonalInfo>
+          <PersonalInfo>{user.username}</PersonalInfo>
         </PersonalInfoWrapper>
       </PersonalInfoFlex>
       <PersonalInfoFlex>
-        {user.is_active ? (
+        {user.user_status === "ONLINE" ? (
           <OnlineStatusWrapper>
             <PersonalTitle>Online</PersonalTitle>
             <HiOutlineStatusOnline />
           </OnlineStatusWrapper>
-        ) : (
+        ) : user.user_status === "OFFLINE" ? (
           <OnlineStatusWrapper>
             <PersonalTitle>Offline</PersonalTitle>
             <HiOutlineStatusOffline />
           </OnlineStatusWrapper>
+        ) : (
+          <OnlineStatusWrapper>
+            <PersonalTitle>In game</PersonalTitle>
+            <FaGamepad />
+          </OnlineStatusWrapper>
         )}
-        {/* <PersonalInfoWrapper>
-          <PersonalTitle>Nick name</PersonalTitle>
-          <PersonalInfo>{user.user_name}</PersonalInfo>
-        </PersonalInfoWrapper> */}
       </PersonalInfoFlex>
     </ProfilePersonalInfoContainer>
   );
