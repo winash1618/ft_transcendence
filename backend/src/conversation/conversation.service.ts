@@ -153,10 +153,10 @@ export class ConversationService {
     });
   }
 
-  async getConversationByPrivacy(privacy: string) {
+  async getConversationByPrivacy(privacy: Privacy) {
     return await this.prisma.conversation.findMany({
       where: {
-        privacy: Privacy.PUBLIC
+        privacy: privacy,
       },
 	  include: {
 		messages: true,

@@ -142,7 +142,7 @@ const MessagesPage = () => {
 			setGroupMembers(object.groupMembers);
 			setOtherUsers(object.otherUsers);
 		};
-		const handlepublicConversationsListed = (object) => {
+		const handleConversationsListed = (object) => {
 			setPublicConversations(object);
 			setIsInPublic(true);
 		};
@@ -154,7 +154,7 @@ const MessagesPage = () => {
 		socket?.on('sendMessage', handleMessageReceived);
 		socket?.on('conversationCreated', handleConversationCreated);
 		socket?.on('userAddedToGroup', handleUserAddedToGroup);
-		socket?.on('publicConversationsListed', handlepublicConversationsListed);
+		socket?.on('ConversationsListed', handleConversationsListed);
 
 		return () => {
 			socket?.off('availableUsers', handleAvailableUsers);
@@ -164,7 +164,7 @@ const MessagesPage = () => {
 			socket?.off('sendMessage', handleMessageReceived);
 			socket?.off('conversationCreated', handleConversationCreated);
 			socket?.off('userAddedToGroup', handleUserAddedToGroup);
-			socket?.off('publicConversationsListed', handlepublicConversationsListed);
+			socket?.off('ConversationsListed', handleConversationsListed);
 
 		};
 	}, [socket, user, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
@@ -304,32 +304,28 @@ const MessagesPage = () => {
 	const handleLeaveChannel = () => {
 		const conversation = conversations.filter((c) => c.id === conversationID);
 		socket?.emit('leaveConversation', {conversation_id: conversationID, participant_id: conversation[0].participant_id});
-		
 		if (conversations.length > 1)
 		{
 			setConversationID(conversations.filter((c) => c.id !== conversationID)[0].id);
-
 			console.log("conversationID: ", conversationID);
 		}
-
 		setConversations(conversations.filter((c) => c.id !== conversationID));
-		// console.log("conversationID: ", conversations);
-		// setMessages([]);
-		// setConversationID("");
-		// setContactDivColor("#1A1D1F");
-		// setParticipantID("");
-		// setIsFormVisible(false);
 		console.log("leave channel");
 	};
-	const handleExplorePublicChannelsClick = () => {
+	const handleExploreChannelsClick = () => {
 		console.log("explore public channels");
 		setPublicConversations([]);
-		socket?.emit('ListPublicConversations');
+		socket?.emit('ListConversations');
 		setIsFormVisible(false);
 	};
 
 	const joinPublicConversation = (conversation) => {
-		socket?.emit('joinConversation', conversation.id);
+		socket?.emit('joinPublicConversation', conversation.id);
+		setPublicConversations(publicConversations.filter((c) => c.id !== conversation.id));
+	};
+
+	const joinProtectedConversation = (conversation, password) => {
+		socket?.emit('joinProtectedConversation', {conversation_id: conversation.id, password: password});
 		setPublicConversations(publicConversations.filter((c) => c.id !== conversation.id));
 	};
 
@@ -343,7 +339,7 @@ const MessagesPage = () => {
 						messageNavButtonColor={messageNavButtonColor}
 						messageNavButtonColorNotUsed={messageNavButtonColorNotUsed}
 						handleCreateConversationClick={handleCreateConversationClick}
-						handleExplorePublicChannelsClick={handleExplorePublicChannelsClick}
+						handleExploreChannelsClick={handleExploreChannelsClick}
 					/>
 					<ChatListDiv
 						conversations={conversations}
@@ -355,6 +351,7 @@ const MessagesPage = () => {
 						publicConversations={publicConversations}
 						isInPublic={isInPublic}
 						joinPublicConversation={joinPublicConversation}
+						joinProtectedConversation={joinProtectedConversation}
 					/>
 				</ChatListContainer>
 				<MessageBoxContainer>

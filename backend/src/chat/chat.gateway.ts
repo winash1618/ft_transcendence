@@ -532,39 +532,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	@SubscribeMessage('ListPublicConversations')
-	async ListPublicConversations(socket: AuthenticatedSocket) {
+	@SubscribeMessage('ListConversations')
+	async ListConversations(socket: AuthenticatedSocket) {
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
-			const publicConversationList = await this.conversationService.getConversationByPrivacy(Privacy.PUBLIC);
-			const publicConversationUserIsParticipantList = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.PUBLIC);
-			const publicConversationUserIsNotParticipantList = [];
-			publicConversationList.forEach((c) => {
+			const ConversationListPublic = await this.conversationService.getConversationByPrivacy(Privacy.PUBLIC);
+			const ConversationListProtected = await this.conversationService.getConversationByPrivacy(Privacy.PROTECTED);
+			const ConversationList = ConversationListPublic.concat(ConversationListProtected);
+			const ConversationUserIsParticipantListPublic = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.PUBLIC);
+			const ConversationUserIsParticipantListProtected = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.PROTECTED);
+			const ConversationUserIsParticipantList = ConversationUserIsParticipantListPublic.concat(ConversationUserIsParticipantListProtected);
+			const ConversationUserIsNotParticipantList = [];
+			ConversationList.forEach((c) => {
 				let found = false;
-				publicConversationUserIsParticipantList.forEach((c2) => {
+				ConversationUserIsParticipantList.forEach((c2) => {
 					if (c.id === c2.id) {
 						found = true;
 					}
 				});
 				if (!found) {
-					publicConversationUserIsNotParticipantList.push(c);
+					ConversationUserIsNotParticipantList.push(c);
 				}
 			});
-			console.log("----------------------------------------------------------");
-			console.log(publicConversationUserIsNotParticipantList);
-			console.log("----------------------------------------------------------");
-			socket.emit('publicConversationsListed', publicConversationUserIsNotParticipantList);
+
+			socket.emit('ConversationsListed', ConversationUserIsNotParticipantList);
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
 	}
 
-	@SubscribeMessage('joinConversation')
+	@SubscribeMessage('joinPublicConversation')
 	async joinConversation(socket: AuthenticatedSocket, data: any) {
 		const token = socket.handshake.auth.token;
 		let user = null;
@@ -573,12 +575,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				secret: process.env.JWT_SECRET,
 			});
 			await this.participantService.create({user_id: user.id, conversation_id: data});
+			// Role should be given here if he is the first user to join the conversation becomes the admin
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
 		}
 	}
 
+	@SubscribeMessage('joinProtectedConversation')
+	async joinProtectedConversation(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
+	}
+	
 	@SubscribeMessage('leaveConversation')
 	async leaveConversation(socket: AuthenticatedSocket, data: any) {
 		const token = socket.handshake.auth.token;
