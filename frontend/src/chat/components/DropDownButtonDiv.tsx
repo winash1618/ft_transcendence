@@ -18,7 +18,8 @@ function DropdownButtonDiv({ user, openMenuId, setOpenMenuId }: DropdownButtonDi
 				<IoIosArrowDropdown size={24} />
 			) : (
 				<IoIosArrowDropdownCircle size={24} />
-			)}</DropdownButton>
+			)}
+			</DropdownButton>
 		</>
 	);
 }

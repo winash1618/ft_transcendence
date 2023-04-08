@@ -1,5 +1,5 @@
 import { TiLockClosed, TiLockOpen } from "react-icons/ti";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 
 interface ContactDivProps {
 	backgroundColor: string;
@@ -12,7 +12,7 @@ export const ContactDiv = styled.div<ContactDivProps>`
   width: 100%;
   height: 70px;
   border-radius: 10px;
-  margin-top: 10px;
+  margin-bottom: 10px;
   border: 2px solid #00A551;
   background: ${({ backgroundColor }) => backgroundColor};
   &: active {
@@ -49,4 +49,36 @@ export const StyledTiLockOpen = styled(TiLockOpen)`
 
 export const StyledTiLockClosed = styled(TiLockClosed)`
   margin-left: 10px;
+`;
+
+export const DropdownField = styled.div`
+position: relative;
+display: inline-block;
+
+input[type='password'] {
+	padding: 10px;
+	border-radius: 5px;
+	background-color: #555;
+	border: none;
+	margin-bottom: 20px;
+	margin-right: 10px;
+	flex: 2;
+}
+
+button {
+	padding: 10px 20px;
+	background-color: #008CBA;
+	color: #fff;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	margin-left: auto;
+	margin-right: auto;
+  
+	&:hover {
+	  background-color: #00688B;
+	}
+}
+}
 `;

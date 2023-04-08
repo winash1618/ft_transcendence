@@ -13,7 +13,7 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 	const [error, setError] = useState('');
 
 	const handleStatusChange = (event) => {
-		setShowProtected(event.target.value === "protected");
+		setShowProtected(event.target.value === "protected" || event.target.value === "private");
 	};
 
 	const handlePasswordChange = (event) => {
@@ -40,7 +40,8 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 
 	const handleSubmit = (event, password) => {
 		event.preventDefault();
-		if (error.length > 0) {
+		console.log(event.target.value);
+		if (error.length > 0 || (password.length === 0 && showProtected === true)) {
 			return;
 		}
 		handleChannelCreation(event, password);
@@ -57,8 +58,8 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 				<CreateChannelInputContainer>
 					<CreateChannelLabel htmlFor="channel-status">status:</CreateChannelLabel>
 					<CreateChannelSelect id="channel-status" name="channel-status" onChange={handleStatusChange} required>
-						<CreateChannelOption value="private">Private</CreateChannelOption>
 						<CreateChannelOption value="public">Public</CreateChannelOption>
+						<CreateChannelOption value="private">Private</CreateChannelOption>
 						<CreateChannelOption value="protected">Protected</CreateChannelOption>
 					</CreateChannelSelect>
 				</CreateChannelInputContainer>

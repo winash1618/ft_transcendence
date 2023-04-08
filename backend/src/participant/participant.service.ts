@@ -16,6 +16,15 @@ export class ParticipantService {
       },
     });
   }
+  async createParticipantWithRole(createParticipantDto: CreateParticipantDto) {
+    return await this.prisma.participant.create({
+      data: {
+        user_id: createParticipantDto.user_id,
+        conversation_id: createParticipantDto.conversation_id,
+		role: createParticipantDto.role,
+      },
+    });
+  }
 
   async getConversationParticipants(conversationID: string) {
 	return await this.prisma.participant.findMany({
