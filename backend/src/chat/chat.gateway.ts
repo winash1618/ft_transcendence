@@ -177,7 +177,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			let ConversationObjectArray = [];
 			if (conversation.privacy === Privacy.DIRECT) {
-			ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
+				ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
 
 			}
 			else {
@@ -225,7 +225,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
-			
+
 			const reloadObject = {
 				conversations: ConversationObjectArrayWithParticipantId,
 				groupMembers: groupMembers,
@@ -385,17 +385,40 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			const conversation = await this.conversationService.createWithPassword({
 				title: data.title,
-				creator_id: user.id,
-				channel_id:randomUUID(),
+				creator_id: user.login,
+				channel_id: randomUUID(),
 				password: data.password,
 				privacy: (data.privacy === "public") ? Privacy.PUBLIC : ((data.privacy === "private") ? Privacy.PRIVATE : Privacy.PROTECTED),
 			});
-			await this.participantService.create({
+			if (conversation.privacy === Privacy.PUBLIC) {
+				socket.emit('alert', 'public conversation created');
+			}
+			if (conversation.privacy === Privacy.PRIVATE) {
+				socket.emit('alert', 'private conversation created');
+			}
+			if (conversation.privacy === Privacy.PROTECTED) {
+				socket.emit('alert', 'protected conversation created');
+			}
+			const participant = await this.participantService.createParticipantWithRole({
 				conversation_id: conversation.id,
 				user_id: user.id,
 				role: Role.ADMIN,
 			});
-			socket.emit('conversationCreated', conversation);
+			const conversationObject = {
+				id: conversation.id,
+				title: conversation.title,
+				privacy: conversation.privacy,
+				participant_id: participant.id,
+				participant: participant,
+				creator_id: conversation.creator_id,
+				channel_id: conversation.channel_id,
+				created_at: conversation.created_at,
+				updated_at: conversation.updated_at,
+				participants: conversation.participants,
+				messages: conversation.messages,
+			}
+
+			socket.emit('conversationCreated', conversationObject);
 
 		}
 		catch (e) {
@@ -551,9 +574,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				secret: process.env.JWT_SECRET,
 			});
 			const conversation = await this.conversationService.getConversationWithParticipants(data);
-			const participant = await this.participantService.create({user_id: user.id, conversation_id: data});
+			const participant = await this.participantService.create({ user_id: user.id, conversation_id: data });
 			if (conversation.participants.length === 0) {
-				await this.prisma.participant.update({where: {id: participant.id}, data: {role: Role.ADMIN}});
+				await this.prisma.participant.update({ where: { id: participant.id }, data: { role: Role.ADMIN } });
 			}
 		}
 		catch (e) {
@@ -571,9 +594,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
 			if (conversation.password === data.password) {
-				const participant = await this.participantService.create({user_id: user.id, conversation_id: data.conversation_id});
+				const participant = await this.participantService.create({ user_id: user.id, conversation_id: data.conversation_id });
 				if (conversation.participants.length === 0) {
-					await this.prisma.participant.update({where: {id: participant.id}, data: {role: Role.ADMIN}});
+					await this.prisma.participant.update({ where: { id: participant.id }, data: { role: Role.ADMIN } });
 				}
 				socket.emit('protectedConversationJoined', conversation);
 			}
@@ -585,7 +608,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			socket.emit('error', 'Unauthorized access');
 		}
 	}
-	
+
 	@SubscribeMessage('leaveConversation')
 	async leaveConversation(socket: AuthenticatedSocket, data: any) {
 		const token = socket.handshake.auth.token;
@@ -608,7 +631,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					}
 				}
 			});
-			
+
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -623,15 +646,60 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			user = this.jwtService.verify(token, {
 				secret: process.env.JWT_SECRET,
 			});
+			const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
+			if (conversation.privacy === Privacy.PUBLIC) {
+				await this.prisma.conversation.update({
+					where: {
+						id: data.conversation_id,
+					},
+					data: {
+						password: data.password,
+						privacy: Privacy.PROTECTED,
+					}
+				});
+				socket.emit('alert', 'Password changed, conversation is now protected');
+			}
+			else {
+				if (conversation.password === data.password) {
+					socket.emit('alert', 'Enter new password');
+				}
+				else {
+					await this.prisma.conversation.update({
+						where: {
+							id: data.conversation_id,
+						},
+						data: {
+							password: data.password,
+						}
+					});
+					socket.emit('alert', 'Password changed');
+				}
+			}
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access');
+		}
+	}
+
+
+	@SubscribeMessage('removePassword')
+	async removePassword(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
 			await this.prisma.conversation.update({
 				where: {
 					id: data.conversation_id,
 				},
 				data: {
-					password: data.password,
+					password: null,
+					privacy: Privacy.PUBLIC,
 				}
 			});
-			socket.emit('alert', 'Password changed');
+			socket.emit('alert', 'Password removed');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access');
@@ -641,177 +709,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 
 
-	//   @SubscribeMessage('joinConversation')
-	//   async joinConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID } = data;
 
-	//     const participant = await this.participantService.getConversation(socket.user.id, conversationID);
-
-	//     if (!participant) {
-	//       await this.participantService.create({
-	//         conversation_id: conversationID,
-	//         user_id: socket.user.id,
-	//       });
-
-	//       socket.join(conversationID);
-
-	//       socket.to(conversationID).emit('userJoined', { userID: socket.user.id });
-	//     }
-	//   }
-
-	//   @SubscribeMessage('leaveConversation')
-	//   async leaveConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID } = data;
-
-	//     const participant = await this.participantService.getConversation(socket.user.id, conversationID);
-
-	//     if (participant) {
-	//       await this.participantService.remove(participant.id);
-
-	//       socket.leave(conversationID);
-
-	//       socket.to(conversationID).emit('userLeft', { userID: socket.user.id });
-	//     }
-	//   }
-
-
-
-	//   @SubscribeMessage('deleteMessage')
-	//   async deleteMessage(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { messageID } = data;
-
-	//     const message = await this.messageService.findOne(messageID);
-
-	//     if (message && message.author_id === socket.user.id) {
-	//       await this.messageService.remove(messageID);
-
-	//       socket.to(message.conversation_id).emit('messageDeleted', messageID);
-	//     }
-	//   }
-
-	//   @SubscribeMessage('blockUser')
-	//   async blockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { userID } = data;
-
-	//     const participant = await this.participantService.getConversation(socket.user.id, userID);
-
-	//     if (!participant) {
-	//       await this.participantService.create({
-	//         conversation_id: socket.user.id,
-	//         user_id: userID,
-	//       });
-
-	//       socket.emit('userBlocked', { userID });
-	//     }
-	//   }
-
-	//   @SubscribeMessage('unblockUser')
-	//   async unblockUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { userID } = data;
-
-	//     const participant = await this.participantService.getConversation(socket.user.id, userID);
-
-	//     if (participant) {
-	//       await this.participantService.remove(participant.id);
-
-	//       socket.emit('userUnblocked', { userID });
-	//     }
-	//   }
-
-	//   @SubscribeMessage('updateConversation')
-	//   async updateConversation(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID, title, privacy } = data;
-
-	//     const conversation = await this.conversationService.findOne(conversationID);
-
-	//     if (conversation && conversation.creator_id === socket.user.id) {
-	//       const updatedConversation = await this.conversationService.update(conversationID, {
-	//         title,
-	//         privacy,
-	//       });
-
-	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-	//     }
-	//   }
-
-	//   @SubscribeMessage('setConversationPassword')
-	//   async setConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID, password } = data;
-
-	//     const conversation = await this.conversationService.findOne(conversationID);
-
-	//     if (conversation && conversation.creator_id === socket.user.id) {
-	//       const updatedConversation = await this.conversationService.update(conversationID, {
-	//         password,
-	//       });
-
-	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-	//     }
-	//   }
-
-	//   @SubscribeMessage('removeConversationPassword')
-	//   async removeConversationPassword(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID } = data;
-
-	//     const conversation = await this.conversationService.findOne(conversationID);
-
-	//     if (conversation && conversation.creator_id === socket.user.id) {
-	//       const updatedConversation = await this.conversationService.update(conversationID, {
-	//         password: null,
-	//       });
-
-	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-	//     }
-	//   }
-
-	//   @SubscribeMessage('setConversationPrivacy')
-	//   async setConversationPrivacy(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID, privacy } = data;
-
-	//     const conversation = await this.conversationService.findOne(conversationID);
-
-	//     if (conversation && conversation.creator_id === socket.user.id) {
-	//       const updatedConversation = await this.conversationService.update(conversationID, {
-	//         privacy,
-	//       });
-
-	//       socket.to(conversationID).emit('conversationUpdated', updatedConversation);
-	//     }
-	//   }
-
-	//   @SubscribeMessage('setConversationAdmin')
-	//   async setConversationAdmin(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID, userID } = data;
-
-	//     const conversation = await this.conversationService.findOne(conversationID);
-
-	//     if (conversation && conversation.creator_id === socket.user.id) {
-	//       const participant = await this.participantService.getConversation(userID, conversationID);
-
-	//       if (participant) {
-	//         await this.participantService.update(participant.id, {
-	//           role: Role.ADMIN
-	//         });
-
-	//         socket.to(conversationID).emit('userAdminSet', { userID });
-	//       }
-	//     }
-	//   }
-
-	//   @SubscribeMessage('kickUser')
-	//   async kickUser(socket: AuthenticatedSocket, @MessageBody() data: any) {
-	//     const { conversationID, userID } = data;
-
-	//     const conversation = await this.conversationService.findOne(conversationID);
-
-	//     if (conversation && conversation.creator_id === socket.user.id) {
-	//       const participant = await this.participantService.getConversation(userID, conversationID);
-
-	//       if (participant) {
-	//         await this.participantService.remove(participant.id);
-
-	//         socket.to(conversationID).emit('userKicked', { userID });
-	//       }
-	//     }
-	//   }
-}

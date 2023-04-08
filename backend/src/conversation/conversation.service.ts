@@ -27,6 +27,10 @@ export class ConversationService {
 		password: createConversationDto.password,
 		privacy: createConversationDto.privacy,
       },
+	  include: {
+		participants: true,
+		messages: true,
+	  },
     });
   }
 
