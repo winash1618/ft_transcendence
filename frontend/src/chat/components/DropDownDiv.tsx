@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DropdownField } from "../LeftSideDiv/styles/ChatListDiv.styled";
+import { ErrorMessage } from "../RightSideDiv/styles/CreateChannelFormDiv.styled";
 import { DropdownContent, DropdownItem, DropdownMenu } from "./styles/DropDownDiv.styled";
 
 interface DropDownDivProps {
@@ -9,20 +10,50 @@ interface DropDownDivProps {
 	createDirectChat: any;
 	handleLeaveChannel: any;
 	handleNewPasswordSubmit: any;
+	handleRemovePassword: any;
 }
 
-function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, handleLeaveChannel, handleNewPasswordSubmit }: DropDownDivProps) {
+function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, handleLeaveChannel, handleNewPasswordSubmit, handleRemovePassword }: DropDownDivProps) {
 	const [password, setPassword] = useState('');
 	const [selectedUserLogin, setSelectedUserLogin] = useState(null);
 	const [isPasswordChange, setIsPasswordChange] = useState(false);
+	const [error, setError] = useState('');
+
+	useEffect(() => {
+		setSelectedUserLogin(null);
+		setPassword('');
+		setIsPasswordChange(false);
+		setError('');
+	}, [openMenuId]);
 
 	const handlePasswordChange = (event) => {
 		const value = event.target.value;
 		setPassword(value);
+		validatePassword(value);
+	};
+	const validatePassword = (value) => {
+		if (value.length < 8) {
+			setError('Password must be at least 8 characters long');
+		} else if (!/\d/.test(value)) {
+			setError('Password must contain at least one digit');
+		} else if (!/[a-z]/.test(value)) {
+			setError('Password must contain at least one lowercase letter');
+		} else if (!/[A-Z]/.test(value)) {
+			setError('Password must contain at least one uppercase letter');
+		} else if (!/[!@#$%^&*]/.test(value)) {
+			setError('Password must contain at least one special character');
+		} else {
+			setError('');
+		}
 	};
 
+	const handleNewPassword = (password) => {
+		handleNewPasswordSubmit(password);
+		setIsPasswordChange((isPasswordChange === false) ? true : false);
+	}
+	
 	const handleDropdown = (e, user) => {
-		setSelectedUserLogin(user.id);
+		setSelectedUserLogin(user.login);
 		if (e.target.innerText === "chat") {
 			createDirectChat(user);
 		}
@@ -39,12 +70,22 @@ function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, hand
 			console.log("leave channel");
 			handleLeaveChannel();
 		}
-		else if (e.target.innerText === "change password") {
+		else if (e.target.innerText === "Change Password") {
 			setIsPasswordChange((isPasswordChange === false) ? true : false);
 			console.log("change password");
 		}
-		else if (e.target.innerText === "remove password") {
+		else if (e.target.innerText === "Remove Password") {
 			console.log("remove password");
+			if (window.confirm("Are you sure you want to remove the password this will make the channel Public?")) {
+				console.log("removing password");
+				handleRemovePassword();
+			  } else {
+				console.log("not removing password");
+			  }
+		}
+		else if (e.target.innerText === "Add Password")	{
+			setIsPasswordChange((isPasswordChange === false) ? true : false);
+			console.log("add password");
 		}
 		else if (e.target.innerText === "kick") {
 			console.log("kick");
@@ -76,10 +117,11 @@ function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, hand
 								onChange={handlePasswordChange}
 								required
 							/>
-							<button onClick={() => handleNewPasswordSubmit(password)}>Join</button>
+							<button onClick={() => handleNewPassword(password)}>Submit</button>
 						</DropdownField>
 						: null
 				}
+						{error && <ErrorMessage>{error}</ErrorMessage>}
 			</DropdownMenu>
 		</>
 	);

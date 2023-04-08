@@ -40,6 +40,7 @@ const MessagesPage = () => {
 	const [participantID, setParticipantID] = useState(null);
 	const [publicConversations, setPublicConversations] = useState([]);
 	const [isInPublic, setIsInPublic] = useState(false);
+	const [isOnMute, setIsOnMute] = useState(false);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -148,7 +149,7 @@ const MessagesPage = () => {
 		};
 
 		const handleError = (error) => {
-			console.log("error: ", error);
+			handleAlertMessage(error);
 		};
 
 		const handleProtectedConversationJoined = (object) => {
@@ -158,7 +159,7 @@ const MessagesPage = () => {
 		};
 
 		const handleAlert = (alert) => {
-			console.log("alert: ", alert);
+			handleAlertMessage(alert);
 		};
 
 		socket?.on('availableUsers', handleAvailableUsers);
@@ -205,6 +206,9 @@ const MessagesPage = () => {
 		setIsFormVisible(false);
 	};
 	
+	const handleAlertMessage = (message) => {
+		alert(message);
+	}
 
 	const handleMessageNavClick = () => {
 		setIsInPublic(false);
@@ -352,6 +356,10 @@ const MessagesPage = () => {
 		socket?.emit('changePassword', {conversation_id: conversationID, password: password});
 	};
 
+
+	const handleRemovePassword = () => {
+		socket?.emit('removePassword', conversationID);
+	};
 	return (
 		<>
 			<ParentContainer>
@@ -411,9 +419,11 @@ const MessagesPage = () => {
 								}
 								handleLeaveChannel={handleLeaveChannel}
 								handleNewPasswordSubmit={handleNewPasswordSubmit}
+								handleRemovePassword={handleRemovePassword}
 							/>
 						) : (
 							<DirectConversation
+								conversationID={conversationID}
 								users={users}
 								user={user}
 								contactDivColor={contactDivColor}

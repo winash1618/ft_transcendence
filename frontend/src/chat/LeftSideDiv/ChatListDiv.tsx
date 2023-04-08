@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Heading2 } from "../RightSideDiv/styles/Conversation.styled";
 import { ContactDiv, ContactImage, ContactName, DropdownField, StyledTiLockClosed, StyledTiLockOpen } from "./styles/ChatListDiv.styled";
 
@@ -28,7 +28,10 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 	const [isProtected, setIsProtected] = useState(false);
 	const [selectedConversationId, setSelectedConversationId] = useState(null);
 	const [password, setPassword] = useState('');
-
+	useEffect(() => {
+		setIsProtected(false);
+		// setPassword(''); not sure if this is needed
+	}, [isInPublic]);
 	function handlePublicConversationsClick(conversation: any) {
 		if (conversation.privacy === Privacy.PUBLIC)
 			joinPublicConversation(conversation);
@@ -37,10 +40,17 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 			setIsProtected((isProtected === false) ? true : false);
 		}
 	}
+
+	function handleJoinProtectedConversation(conversation: any, password: string) {
+		joinProtectedConversation(conversation, password);
+		setIsProtected((isProtected === false) ? true : false);
+	}
+
 	const handlePasswordChange = (event) => {
 		const value = event.target.value;
 		setPassword(value);
 	};
+
 
 	if (!isInPublic) {
 		return (
@@ -102,7 +112,7 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 													onChange={handlePasswordChange}
 													required
 												/>
-												<button onClick={() => joinProtectedConversation(c, password)}>Join</button>
+												<button onClick={() => handleJoinProtectedConversation(c, password)}>Join</button>
 											</DropdownField>
 											: null
 									}
