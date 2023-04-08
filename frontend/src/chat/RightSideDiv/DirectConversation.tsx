@@ -14,7 +14,15 @@ interface DirectConversationProps {
 	createDirectChat: any;
 }
 
-function DirectConversation({ conversationID, users, user, contactDivColor, UserProfilePicture, createDirectChat }: DirectConversationProps) {
+function DirectConversation(
+	{
+		conversationID,
+		users,
+		user,
+		contactDivColor,
+		UserProfilePicture,
+		createDirectChat
+	}: DirectConversationProps) {
 	const [openMenuId, setOpenMenuId] = useState(null);
 	useEffect(() => {
 		setOpenMenuId(null);
@@ -35,7 +43,15 @@ function DirectConversation({ conversationID, users, user, contactDivColor, User
 										setOpenMenuId={setOpenMenuId}
 									/>
 								</ContactDiv>
-								<DropDownDiv openMenuId={openMenuId} user={u} dropDownContent={["invite", "view profile", "chat", "block"]} createDirectChat={createDirectChat} handleLeaveChannel={null} handleNewPasswordSubmit={null} handleRemovePassword={null}/>
+								<DropDownDiv
+									openMenuId={openMenuId}
+									user={u}
+									dropDownContent={["invite", "view profile", "chat", "block"]}
+									createDirectChat={createDirectChat}
+									handleLeaveChannel={null}
+									handleNewPasswordSubmit={null}
+									handleRemovePassword={null}
+								/>
 							</React.Fragment>
 						);
 					}

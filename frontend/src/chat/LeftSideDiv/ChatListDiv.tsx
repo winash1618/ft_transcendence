@@ -24,7 +24,19 @@ const Privacy = {
 	DIRECT: 'DIRECT'
 };
 
-function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfilePicture, handleSelectedConversation, isInGroup, publicConversations, isInPublic, joinPublicConversation, joinProtectedConversation }: ChatListDivProps) {
+function ChatListDiv(
+	{
+		conversations,
+		conversationID,
+		contactDivColor,
+		UserProfilePicture,
+		handleSelectedConversation,
+		isInGroup,
+		publicConversations,
+		isInPublic,
+		joinPublicConversation,
+		joinProtectedConversation
+	}: ChatListDivProps) {
 	const [isProtected, setIsProtected] = useState(false);
 	const [selectedConversationId, setSelectedConversationId] = useState(null);
 	const [password, setPassword] = useState('');
@@ -62,17 +74,12 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 								<React.Fragment key={c.id}>
 									<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={conversationID === c.id ? contactDivColor : '#1A1D1F'}>
 										<ContactImage src={UserProfilePicture} alt="" />
-										{(isInGroup) ? (c.privacy === Privacy.PUBLIC) ?
-											<>
-												<ContactName>{c.title} <StyledTiLockOpen /> </ContactName>
-											</>
-											:
-											<>
-												<ContactName>{c.title} <StyledTiLockClosed /> </ContactName>
-											</>
-											:
-											<ContactName>{c.user.login}</ContactName>}
-
+										{(isInGroup) ?
+											(c.privacy === Privacy.PUBLIC) ?
+												<><ContactName>{c.title} <StyledTiLockOpen /> </ContactName></> :
+												<><ContactName>{c.title} <StyledTiLockClosed /> </ContactName></> :
+											<ContactName>{c.user.login}</ContactName>
+										}
 									</ContactDiv>
 								</React.Fragment>
 							);
@@ -93,14 +100,11 @@ function ChatListDiv({ conversations, conversationID, contactDivColor, UserProfi
 								<React.Fragment key={c.id}>
 									<ContactDiv key={c.id} backgroundColor={"#1A1D1F"} onClick={() => handlePublicConversationsClick(c)}>
 										<ContactImage src={UserProfilePicture} alt="" />
-										{(c.privacy === Privacy.PUBLIC) ?
-											<>
-												<ContactName>{c.title} <StyledTiLockOpen /> </ContactName>
-											</>
-											:
-											<>
-												<ContactName>{c.title} <StyledTiLockClosed /> </ContactName>
-											</>}
+										{
+											(c.privacy === Privacy.PUBLIC) ?
+												<><ContactName>{c.title} <StyledTiLockOpen /> </ContactName></> :
+												<><ContactName>{c.title} <StyledTiLockClosed /> </ContactName> </>
+										}
 									</ContactDiv>
 									{
 										(selectedConversationId === c.id && isProtected) ?

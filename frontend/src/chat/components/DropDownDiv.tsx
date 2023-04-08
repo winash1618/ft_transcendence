@@ -13,7 +13,16 @@ interface DropDownDivProps {
 	handleRemovePassword: any;
 }
 
-function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, handleLeaveChannel, handleNewPasswordSubmit, handleRemovePassword }: DropDownDivProps) {
+function DropDownDiv(
+	{
+		openMenuId,
+		user,
+		dropDownContent,
+		createDirectChat,
+		handleLeaveChannel,
+		handleNewPasswordSubmit,
+		handleRemovePassword
+	}: DropDownDivProps) {
 	const [password, setPassword] = useState('');
 	const [selectedUserLogin, setSelectedUserLogin] = useState(null);
 	const [isPasswordChange, setIsPasswordChange] = useState(false);
@@ -51,7 +60,7 @@ function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, hand
 		handleNewPasswordSubmit(password);
 		setIsPasswordChange((isPasswordChange === false) ? true : false);
 	}
-	
+
 	const handleDropdown = (e, user) => {
 		setSelectedUserLogin(user.login);
 		if (e.target.innerText === "chat") {
@@ -79,11 +88,11 @@ function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, hand
 			if (window.confirm("Are you sure you want to remove the password this will make the channel Public?")) {
 				console.log("removing password");
 				handleRemovePassword();
-			  } else {
+			} else {
 				console.log("not removing password");
-			  }
+			}
 		}
-		else if (e.target.innerText === "Add Password")	{
+		else if (e.target.innerText === "Add Password") {
 			setIsPasswordChange((isPasswordChange === false) ? true : false);
 			console.log("add password");
 		}
@@ -121,7 +130,7 @@ function DropDownDiv({ openMenuId, user, dropDownContent, createDirectChat, hand
 						</DropdownField>
 						: null
 				}
-						{error && <ErrorMessage>{error}</ErrorMessage>}
+				{error && <ErrorMessage>{error}</ErrorMessage>}
 			</DropdownMenu>
 		</>
 	);

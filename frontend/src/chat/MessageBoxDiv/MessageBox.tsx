@@ -8,7 +8,13 @@ interface MessageBoxProps {
 	participantID: any;
 }
 
-function MessageBox({ messages, messageEndRef, UserProfilePicture, participantID }: MessageBoxProps) {
+function MessageBox(
+	{
+		messages,
+		messageEndRef,
+		UserProfilePicture,
+		participantID
+	}: MessageBoxProps) {
 	return (
 		<>
 			<MessageSendDiv>
@@ -16,7 +22,6 @@ function MessageBox({ messages, messageEndRef, UserProfilePicture, participantID
 					{
 						(
 							messages.map((message) => {
-								console.log("participant Id ", participantID, "auther Id ", message.author_id, "   ", message.author_id === message.myParticipantID);
 								if (message.author_id === participantID) {
 									return (
 										<MessageRightContainer key={message.id}>

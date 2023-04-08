@@ -460,6 +460,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					username: u.username,
 				});
 			});
+
 			const DirectConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.DIRECT);
 			const ConversationObjectArrayWithParticipantId = [];
 			const participants = [];
@@ -707,6 +708,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 
-
-
-
+}

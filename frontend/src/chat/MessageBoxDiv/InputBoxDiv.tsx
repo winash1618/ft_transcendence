@@ -8,13 +8,19 @@ interface InputBoxDivProps {
 	setParticipantIdInInput: any;
 }
 
-function InputBoxDiv({ message, setMessage, handleSubmit, setParticipantIdInInput }: InputBoxDivProps) {
+function InputBoxDiv(
+	{
+		message,
+		setMessage,
+		handleSubmit,
+		setParticipantIdInInput
+	}: InputBoxDivProps) {
 	return (
 		<>
 			<MessageInputParent>
 				<MessageInput
 					type="text"
-					placeholder="A bigger text input"
+					placeholder="Enter your message..."
 					value={message}
 					onChange={(event) => setMessage(event.target.value)}
 					onClick={setParticipantIdInInput}

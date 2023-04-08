@@ -7,7 +7,12 @@ interface DropdownButtonDivProps {
 	setOpenMenuId: any;
 }
 
-function DropdownButtonDiv({ user, openMenuId, setOpenMenuId }: DropdownButtonDivProps) {
+function DropdownButtonDiv(
+	{
+		user,
+		openMenuId,
+		setOpenMenuId
+	}: DropdownButtonDivProps) {
 
 	const toggleMenu = (id) => {
 		setOpenMenuId(openMenuId === id ? null : id);

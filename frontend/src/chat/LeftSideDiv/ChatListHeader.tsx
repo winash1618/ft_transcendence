@@ -9,7 +9,15 @@ interface ChatListHeaderProps {
 	handleExploreChannelsClick: any;
 }
 
-function ChatListHeader({ handleMessageNavClick, handleMessageNavNotUsedClick, messageNavButtonColor, messageNavButtonColorNotUsed, handleCreateConversationClick, handleExploreChannelsClick }: ChatListHeaderProps) {
+function ChatListHeader(
+	{
+		handleMessageNavClick,
+		handleMessageNavNotUsedClick,
+		messageNavButtonColor,
+		messageNavButtonColorNotUsed,
+		handleCreateConversationClick,
+		handleExploreChannelsClick
+	}: ChatListHeaderProps) {
 	return (
 		<>
 			<ParentMessageNav>
@@ -19,8 +27,8 @@ function ChatListHeader({ handleMessageNavClick, handleMessageNavNotUsedClick, m
 				<MessageNavNotUsed onClick={handleMessageNavNotUsedClick} backgroundColor={messageNavButtonColorNotUsed}>
 					<HiOutlineUserGroup /> Groups
 				</MessageNavNotUsed>
-				<StyledBiCommentAdd onClick={handleCreateConversationClick}/>
-				<StyledMdOutlineTravelExplore onClick={handleExploreChannelsClick}/>
+				<StyledBiCommentAdd onClick={handleCreateConversationClick} />
+				<StyledMdOutlineTravelExplore onClick={handleExploreChannelsClick} />
 			</ParentMessageNav>
 		</>
 	);
