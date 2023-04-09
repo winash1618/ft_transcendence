@@ -98,13 +98,13 @@ const LeaderBoardPage = () => {
   /*------------------------------------------------------------------*/
   const [users, setUsers] = useState([]);
 
-	useEffect(() => {
-		axios.get("/leaderboardData").then((res) => {
-			setUsers(res.data);
-		});
-	}, []);
+  useEffect(() => {
+    axios.get("/leaderboardData").then((res) => {
+      setUsers(res.data);
+    });
+  }, []);
   /*------------------------------------------------------------------*/
-  
+
   /*------------------------------------------------------------------*/
   const sortData = (data: LeaderboardData[]) => {
     return data.sort((a, b) => b.score - a.score);
