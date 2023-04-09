@@ -15,9 +15,10 @@ import { PrismaService } from 'src/database/prisma.service';
 import { ConversationService } from 'src/conversation/conversation.service';
 import { ParticipantService } from 'src/participant/participant.service';
 import { MessageService } from 'src/message/message.service';
-import { Privacy, Role } from '@prisma/client';
+import { Privacy, Role, Status } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { randomUUID } from 'crypto';
+
 @WebSocketGateway(8001, {
 	cors: {
 		origin: process.env.FRONTEND_BASE_URL,
@@ -751,6 +752,129 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from makeAdmin');
+		}
+	}
+
+	@SubscribeMessage('banUser')
+	async banUser(socket: AuthenticatedSocket, data: any) {
+		console.log("banUser ", data);
+
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
+			let isAdmin = false;
+			let participantObject = null;
+			conversation.participants.forEach(async (participant) => {
+				if (participant.user_id === data.user_id) {
+					if (participant.role === Role.ADMIN)
+					{
+						socket.emit('error', "You're not allowed to ban an admin");
+						isAdmin = true;
+					}
+					participantObject = participant;
+				}
+			});
+			if (!isAdmin) {
+				await this.prisma.participant.update({
+					where: {
+						id: participantObject.id,
+					},
+					data: {
+						conversation_status: Status.BANNED,
+					}
+				});
+				this.server.to(data.conversation_id).emit('userBanned', data.user_id);
+				
+				socket.emit('alert', 'Participant is now banned');
+				
+			}
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access from banUser');
+		}
+	}
+
+	@SubscribeMessage('kickUser')
+	async kickUser(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
+			let isAdmin = false;
+			let participantObject = null;
+			conversation.participants.forEach(async (participant) => {
+				if (participant.user_id === data.user_id) {
+					if (participant.role === Role.ADMIN)
+					{
+						socket.emit('error', "You're not allowed to kick an admin");
+						isAdmin = true;
+					}
+					participantObject = participant;
+				}
+			});
+			if (!isAdmin) {
+				await this.prisma.participant.update({
+					where: {
+						id: participantObject.id,
+					},
+					data: {
+						conversation_status: Status.KICKED,
+					}
+				});
+				this.server.to(data.conversation_id).emit('userKicked', data.user_id);
+				socket.emit('alert', 'Participant is now kicked');
+				
+			}
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access from kickUser');
+		}
+	}
+
+	@SubscribeMessage('muteUser')
+	async muteUser(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
+			let isAdmin = false;
+			let participantObject = null;
+			conversation.participants.forEach(async (participant) => {
+				if (participant.user_id === data.user_id) {
+					if (participant.role === Role.ADMIN)
+					{
+						socket.emit('error', "You're not allowed to mute an admin");
+						isAdmin = true;
+					}
+					participantObject = participant;
+				}
+			});
+			if (!isAdmin) {
+				await this.prisma.participant.update({
+					where: {
+						id: participantObject.id,
+					},
+					data: {
+						conversation_status: Status.MUTED,
+					}
+				});
+				this.server.to(data.conversation_id).emit('userMuted', data.user_id);
+				socket.emit('alert', 'Participant is now muted');
+				
+			}
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access from muteUser');
 		}
 	}
 }

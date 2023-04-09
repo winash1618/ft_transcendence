@@ -5,7 +5,7 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 CREATE TYPE "Privacy" AS ENUM ('PUBLIC', 'PRIVATE', 'PROTECTED', 'DIRECT');
 
 -- CreateEnum
-CREATE TYPE "Status" AS ENUM ('ACTIVE', 'BLOCKED', 'DELETED');
+CREATE TYPE "Status" AS ENUM ('ACTIVE', 'BANNED', 'KICKED', 'MUTED', 'BLOCKED', 'DELETED');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -28,7 +28,7 @@ CREATE TABLE "Conversation" (
     "creator_id" TEXT NOT NULL,
     "channel_id" TEXT NOT NULL,
     "password" TEXT,
-    "privacy" "Privacy" NOT NULL DEFAULT 'PUBLIC',
+    "privacy" "Privacy" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3),

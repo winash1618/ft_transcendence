@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Privacy } from '@prisma/client';
+import { Privacy, Status } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
@@ -214,6 +214,23 @@ export class ConversationService {
 		participants: {
 			some: {
 				user_id: user_id,
+			},
+		},
+          privacy: privacy,
+      },
+	  include: {
+		messages: true,
+		participants: true,
+	  },
+    });
+  }
+  async getConversationByUserIdAndPrivacyAndStatus(user_id: string, privacy: Privacy) {
+    return await this.prisma.conversation.findMany({
+      where: {
+		participants: {
+			some: {
+				user_id: user_id,
+				conversation_status: Status.ACTIVE || Status.DELETED,
 			},
 		},
           privacy: privacy,

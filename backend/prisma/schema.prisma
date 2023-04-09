@@ -101,6 +101,9 @@ enum Privacy {
 
 enum Status {
   ACTIVE
+  BANNED
+  KICKED
+  MUTED
   BLOCKED
   DELETED
 }
