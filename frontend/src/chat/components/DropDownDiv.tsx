@@ -11,6 +11,7 @@ interface DropDownDivProps {
 	handleLeaveChannel: any;
 	handleNewPasswordSubmit: any;
 	handleRemovePassword: any;
+	handleMakeAdmin: any;
 }
 
 function DropDownDiv(
@@ -21,7 +22,8 @@ function DropDownDiv(
 		createDirectChat,
 		handleLeaveChannel,
 		handleNewPasswordSubmit,
-		handleRemovePassword
+		handleRemovePassword,
+		handleMakeAdmin,
 	}: DropDownDivProps) {
 	const [password, setPassword] = useState('');
 	const [selectedUserLogin, setSelectedUserLogin] = useState(null);
@@ -104,6 +106,10 @@ function DropDownDiv(
 		}
 		else if (e.target.innerText === "mute") {
 			console.log("mute");
+		}
+		else if (e.target.innerText === "Make Admin") {
+			console.log("make admin");
+			handleMakeAdmin(user);
 		}
 	}
 	return (

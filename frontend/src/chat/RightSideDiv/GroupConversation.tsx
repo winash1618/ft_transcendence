@@ -16,6 +16,7 @@ interface GroupConversationProps {
 	handleLeaveChannel: any;
 	handleNewPasswordSubmit: any;
 	handleRemovePassword: any;
+	handleMakeAdmin: any;
 }
 
 const Role = {
@@ -34,7 +35,8 @@ function GroupConversation(
 		Conversation,
 		handleLeaveChannel,
 		handleNewPasswordSubmit,
-		handleRemovePassword
+		handleRemovePassword,
+		handleMakeAdmin,
 	}: GroupConversationProps) {
 	const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -70,6 +72,7 @@ function GroupConversation(
 										handleLeaveChannel={null}
 										handleNewPasswordSubmit={null}
 										handleRemovePassword={null}
+										handleMakeAdmin={handleMakeAdmin}
 									/>
 								</React.Fragment>
 							);
@@ -97,6 +100,7 @@ function GroupConversation(
 											handleLeaveChannel={handleLeaveChannel}
 											handleNewPasswordSubmit={handleNewPasswordSubmit}
 											handleRemovePassword={handleRemovePassword}
+											handleMakeAdmin={null}
 										/>
 									</React.Fragment>
 								)
@@ -123,6 +127,7 @@ function GroupConversation(
 											handleLeaveChannel={handleLeaveChannel}
 											handleNewPasswordSubmit={handleNewPasswordSubmit}
 											handleRemovePassword={handleRemovePassword}
+											handleMakeAdmin={null}
 										/>
 									</React.Fragment>
 								)
@@ -152,6 +157,7 @@ function GroupConversation(
 										handleLeaveChannel={handleLeaveChannel}
 										handleNewPasswordSubmit={handleNewPasswordSubmit}
 										handleRemovePassword={null}
+										handleMakeAdmin={null}
 									/>
 								</React.Fragment>
 							)

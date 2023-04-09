@@ -111,6 +111,7 @@ const MessagesPage = () => {
 			setConversations(object.conversations);
 			setGroupMembers(object.groupMembers);
 			setOtherUsers(object.otherUsers);
+			
 			if (object.conversations.length > 0) {
 				handleOnLoadConversation(object.conversations[0]);
 				setConversationID(object.conversations[0].id);
@@ -119,6 +120,9 @@ const MessagesPage = () => {
 						setParticipantID(p.id);
 					}
 				}
+			}
+			else {
+				setMessages([]);
 			}
 		};
 
@@ -304,8 +308,7 @@ const MessagesPage = () => {
 					}
 				});
 			}
-		}
-		);
+		});
 	}
 
 	const createDirectChat =  (user) => {
@@ -335,6 +338,7 @@ const MessagesPage = () => {
 		setConversations(conversations.filter((c) => c.id !== conversationID));
 		console.log("leave channel");
 	};
+
 	const handleExploreChannelsClick = () => {
 		console.log("explore public channels");
 		setPublicConversations([]);
@@ -349,7 +353,6 @@ const MessagesPage = () => {
 
 	const joinProtectedConversation = (conversation, password) => {
 		socket?.emit('joinProtectedConversation', {conversation_id: conversation.id, password: password});
-		
 	};
 
 	const handleNewPasswordSubmit = (password) => {
@@ -360,6 +363,11 @@ const MessagesPage = () => {
 	const handleRemovePassword = () => {
 		socket?.emit('removePassword', conversationID);
 	};
+
+	const handleMakeAdmin = (user) => {
+		socket?.emit('makeAdmin', {conversation_id: conversationID, user_id: user.id});
+	};
+
 	return (
 		<>
 			<ParentContainer>
@@ -420,6 +428,7 @@ const MessagesPage = () => {
 								handleLeaveChannel={handleLeaveChannel}
 								handleNewPasswordSubmit={handleNewPasswordSubmit}
 								handleRemovePassword={handleRemovePassword}
+								handleMakeAdmin={handleMakeAdmin}
 							/>
 						) : (
 							<DirectConversation

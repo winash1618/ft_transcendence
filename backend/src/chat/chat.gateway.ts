@@ -101,9 +101,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				ListOfAllUsers: ListOfAllUsersObject,
 			};
 			socket.emit('availableUsers', objectToEmit);
+			// socket.emit('alert', 'Connected');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access fron handleConnection');
 		}
 	}
 
@@ -124,9 +125,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			data.author_id = participant[0].id;
 			// data.myParticipantID = participant[0].id;
 			this.server.to(data.conversation_id).emit('sendMessage', data);
+			// socket.emit('alert', 'Message sent');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from sendMessage');
 		}
 	}
 
@@ -178,7 +180,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			let ConversationObjectArray = [];
 			if (conversation.privacy === Privacy.DIRECT) {
 				ConversationObjectArray = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, data.privacy);
-
 			}
 			else {
 				const ConversationObjectArray1 = await this.conversationService.getConversationByUserIdAndPrivacy(user.id, Privacy.PUBLIC);
@@ -232,9 +233,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				otherUsers: otherUsers,
 			}
 			socket.emit('reloadConversations', reloadObject);
+			// socket.emit('alert', 'Conversation reloaded');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from reloadConversations');
 		}
 	}
 
@@ -302,9 +304,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversations: ConversationObjectArrayWithParticipantId,
 			}
 			socket.emit('getDirectConversations', objectToEmit);
+			socket.emit('alert', 'Direct conversations reloaded');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from getDirectConversations');
 		}
 	}
 	@SubscribeMessage('getGroupConversations')
@@ -348,9 +351,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const otherUsers = [];
 			const ListOfAllUsers = await this.prisma.user.findMany();
 			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
-			for (const p of GroupConversationObjectArray[0].participants) {
-				const user = await this.usersService.getUserById(p.user_id);
-				groupMembers.push(user);
+			if (GroupConversationObjectArray.length > 0)
+			{
+				for (const p of GroupConversationObjectArray[0].participants) {
+					const user = await this.usersService.getUserById(p.user_id);
+					groupMembers.push(user);
+				}
 			}
 			ListOfAllUsersWithoutMe.forEach((u) => {
 				let found = false;
@@ -369,9 +375,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				otherUsers: otherUsers,
 			}
 			socket.emit('getGroupConversations', ObjectToEmit);
+			socket.emit('alert', 'Group conversations reloaded');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from getGroupConversations');
 		}
 	}
 
@@ -417,12 +424,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				participants: conversation.participants,
 				messages: conversation.messages,
 			}
-
 			socket.emit('conversationCreated', conversationObject);
-
+			socket.emit('alert', 'conversation created');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from createConversation');
 		}
 	}
 
@@ -505,9 +511,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversations: ConversationObjectArrayWithParticipantId,
 			}
 			socket.emit('getDirectConversations', objectToEmit);
+			socket.emit('alert', 'direct conversation created');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from createDirectConversation');
 		}
 	}
 
@@ -526,9 +533,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversation_id: conversation.id,
 				user_id: userToAdd.id,
 			});
+			socket.emit('alert', 'user added to group');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from addUserToGroup');
 		}
 	}
 
@@ -560,9 +568,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 
 			socket.emit('ConversationsListed', ConversationUserIsNotParticipantList);
+			socket.emit('alert', 'Conversations listed');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from ListConversations');
 		}
 	}
 
@@ -581,7 +590,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			}
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from joinPublicConversation');
 		}
 	}
 
@@ -600,13 +609,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					await this.prisma.participant.update({ where: { id: participant.id }, data: { role: Role.ADMIN } });
 				}
 				socket.emit('protectedConversationJoined', conversation);
+				socket.emit('alert', 'protected conversation joined');
 			}
 			else {
 				socket.emit('error', 'Wrong password');
 			}
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from joinProtectedConversation');
 		}
 	}
 
@@ -632,10 +642,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					}
 				}
 			});
-
+			socket.emit('alert', '{user} left the conversation');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from leaveConversation');
 		}
 	}
 
@@ -678,10 +688,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			}
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from changePassword');
 		}
 	}
-
 
 	@SubscribeMessage('removePassword')
 	async removePassword(socket: AuthenticatedSocket, data: any) {
@@ -703,9 +712,45 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			socket.emit('alert', 'Password removed');
 		}
 		catch (e) {
-			socket.emit('error', 'Unauthorized access');
+			socket.emit('error', 'Unauthorized access from removePassword');
 		}
 	}
 
-
+	@SubscribeMessage('makeAdmin')
+	async makeAdmin(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
+			let isAdmin = false;
+			let participantObject = null;
+			conversation.participants.forEach(async (participant) => {
+				if (participant.user_id === data.user_id){
+					if (participant.role === Role.ADMIN)
+					{
+						socket.emit('error', 'Participant is already admin');
+						isAdmin = true;
+					}
+					participantObject = participant;
+				}
+			});
+			if (!isAdmin) {
+				await this.prisma.participant.update({
+					where: {
+						id: participantObject.id,
+					},
+					data: {
+						role: Role.ADMIN,
+					}
+				});
+				socket.emit('alert', 'Participant is now admin');
+			}
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access from makeAdmin');
+		}
+	}
 }

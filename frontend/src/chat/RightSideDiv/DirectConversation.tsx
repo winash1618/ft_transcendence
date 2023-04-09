@@ -51,6 +51,7 @@ function DirectConversation(
 									handleLeaveChannel={null}
 									handleNewPasswordSubmit={null}
 									handleRemovePassword={null}
+									handleMakeAdmin={null}
 								/>
 							</React.Fragment>
 						);
