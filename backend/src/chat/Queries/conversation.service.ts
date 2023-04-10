@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Privacy } from '@prisma/client';
+import { Privacy, Role } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateConversationDto, UpdateConversationDto } from '../dto/conversation.dto';
 import * as brypt from 'bcrypt';
@@ -37,10 +37,26 @@ export class ConversationService {
     });
   }
 
+
   async checkConversationExists(conversationID: string) {
     return await this.prisma.conversation.findUnique({
       where: {
         id: conversationID,
+      },
+    });
+  }
+
+  async getConversationByID(conversationID: string) {
+    return await this.prisma.conversation.findUnique({
+      where: {
+        id: conversationID,
+      },
+      include: {
+        participants: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
   }
