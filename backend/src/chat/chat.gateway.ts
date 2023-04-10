@@ -18,6 +18,7 @@ import { MessageService } from 'src/message/message.service';
 import { Privacy, Role, Status } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { randomUUID } from 'crypto';
+import { copyFileSync } from 'fs';
 
 @WebSocketGateway(8001, {
 	cors: {
@@ -27,7 +28,6 @@ import { randomUUID } from 'crypto';
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
-	userService: any;
 
 	constructor(
 		private prisma: PrismaService,
@@ -79,14 +79,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			i = 0;
 			DirectConversationObjectArray.forEach((c) => {
-				socket.join(c.id);
+				if (c.participants[i].conversation_status === Status.ACTIVE) {
+					socket.join(c.id);
+				}
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
 					privacy: c.privacy,
-					participant_id: participants[i].id,
-					participant: participants[i],
-					user: ListOfDirectConversationUsers[i],
+					participant_id: participants[i].id, // This is my participant id for this conversation
+					participant: participants[i], // This is my participant object for this conversation
+					user: ListOfDirectConversationUsers[i], // This is only for direct conversations because this is the other user in the conversation
 					creator_id: c.creator_id,
 					channel_id: c.channel_id,
 					created_at: c.created_at,
@@ -96,7 +98,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
-			console.log("Rooms: ", socket.rooms);
+
+
+			// console.log("------------------------------------");
+			// console.log("ListOfAllUsersObject: ", ListOfAllUsersObject);
+			// console.log("Participants: ", participants);
+			// console.log("ListOfDirectConversationUsers: ", ListOfDirectConversationUsers);
+			// console.log("ConversationObjectArrayWithParticipantId: ", ConversationObjectArrayWithParticipantId);
+			// console.log("login ", user.login, " socket Rooms: ", socket.rooms);
+			// console.log("------------------------------------");
+
 			const objectToEmit = {
 				conversations: ConversationObjectArrayWithParticipantId,
 				ListOfAllUsers: ListOfAllUsersObject,
@@ -124,7 +135,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				message: data.content,
 			});
 			data.author_id = participant[0].id;
-			// data.myParticipantID = participant[0].id;
 			this.server.to(data.conversation_id).emit('sendMessage', data);
 			// socket.emit('alert', 'Message sent');
 		}
@@ -133,13 +143,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	handleDisconnect(socket: AuthenticatedSocket) {
-		// const userID = socket.handshake.query.userID as string;
-		// const conversationID = socket.handshake.query.conversationID as string;
-
-		// console.log('User disconnected: ', userID, conversationID);
-
-		// socket.to(conversationID).emit('userLeft', { userID });
+	async handleDisconnect(socket: AuthenticatedSocket) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const participantList = await this.usersService.getUserByIdWithParticipants(user.id);
+			participantList[0].participant_in.forEach(async (p) => {
+				socket.leave(p.conversation_id);
+			});
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access from handleDisconnect');
+		}
 	}
 
 	@SubscribeMessage('reloadConversations')
@@ -210,7 +228,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			i = 0;
 			ConversationObjectArray.forEach((c) => {
-				socket.join(c.id);
+				if (participants[i].conversation_status === Status.ACTIVE || participants[i].conversation_status === Status.MUTED) {
+					socket.join(c.id);
+				}
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
@@ -280,11 +300,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
-			console.log(ListOfDirectConversationUsers);
 
 			i = 0;
 			DirectConversationObjectArray.forEach((c) => {
-				socket.join(c.id);
+				if (participants[i].conversation_status === Status.ACTIVE) {
+					socket.join(c.id);
+				}
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
@@ -301,6 +322,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
+			// console.log("------------------------------------");
+			// console.log("List of All Users: ", ListOfAllUsersObject); // List of all users without me
+			// console.log("List of All Users without me: ", ListOfAllUsersWithoutMe);
+			// console.log("Direct Conversation Object Array: ", DirectConversationObjectArray);
+			// console.log("Participants: ", participants);
+			// console.log("List of Direct Conversation Users: ", ListOfDirectConversationUsers);
+			// console.log("Conversation Object Array with Participant Id: ", ConversationObjectArrayWithParticipantId);
+			// console.log("------------------------------------");
 			const objectToEmit = {
 				conversations: ConversationObjectArrayWithParticipantId,
 			}
@@ -311,6 +340,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			socket.emit('error', 'Unauthorized access from getDirectConversations');
 		}
 	}
+
 	@SubscribeMessage('getGroupConversations')
 	async getGroupConversations(socket: AuthenticatedSocket) {
 		const token = socket.handshake.auth.token;
@@ -331,7 +361,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			}
 			let i = 0;
 			GroupConversationObjectArray.forEach((c) => {
-				socket.join(c.id);
+				if (participants[i].conversation_status === Status.ACTIVE || participants[i].conversation_status === Status.MUTED) {
+					socket.join(c.id);
+				}
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
@@ -347,13 +379,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				i++;
 			});
-			// get all users in the database then select all the users in the ConversationObjectArrayWithParticipantId[0]
+			console.log("rooms: ", socket.rooms);
 			const groupMembers = [];
 			const otherUsers = [];
 			const ListOfAllUsers = await this.prisma.user.findMany();
 			const ListOfAllUsersWithoutMe = ListOfAllUsers.filter((u) => u.id !== user.id);
-			if (GroupConversationObjectArray.length > 0)
-			{
+			if (GroupConversationObjectArray.length > 0) {
 				for (const p of GroupConversationObjectArray[0].participants) {
 					const user = await this.usersService.getUserById(p.user_id);
 					groupMembers.push(user);
@@ -370,6 +401,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					otherUsers.push(u);
 				}
 			});
+
+			// console.log("------------------------------------");
+			// console.log("List of All Users: ", ListOfAllUsers);
+			// console.log("List of All Users without me: ", ListOfAllUsersWithoutMe);
+			// console.log("Group Conversation Object Array: ", GroupConversationObjectArray);
+			// console.log("Participants: ", participants);
+			// console.log("Conversation Object Array with Participant Id: ", ConversationObjectArrayWithParticipantId);
+			// console.log("Group Members: ", groupMembers);
+			// console.log("Other Users: ", otherUsers);
+			// console.log("------------------------------------");
+
 			const ObjectToEmit = {
 				conversations: ConversationObjectArrayWithParticipantId,
 				groupMembers: groupMembers,
@@ -729,9 +771,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			let isAdmin = false;
 			let participantObject = null;
 			conversation.participants.forEach(async (participant) => {
-				if (participant.user_id === data.user_id){
-					if (participant.role === Role.ADMIN)
-					{
+				if (participant.user_id === data.user_id) {
+					if (participant.role === Role.ADMIN) {
 						socket.emit('error', 'Participant is already admin');
 						isAdmin = true;
 					}
@@ -770,15 +811,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			let participantObject = null;
 			conversation.participants.forEach(async (participant) => {
 				if (participant.user_id === data.user_id) {
-					if (participant.role === Role.ADMIN)
-					{
+					if (participant.role === Role.ADMIN) {
 						socket.emit('error', "You're not allowed to ban an admin");
 						isAdmin = true;
 					}
 					participantObject = participant;
 				}
 			});
-			if (!isAdmin) {
+
+			if (participantObject.conversation_status === Status.BANNED) {
+				socket.emit('error', 'Participant is already banned');
+			}
+			else if (!isAdmin) {
 				await this.prisma.participant.update({
 					where: {
 						id: participantObject.id,
@@ -788,9 +832,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					}
 				});
 				this.server.to(data.conversation_id).emit('userBanned', data.user_id);
-				
 				socket.emit('alert', 'Participant is now banned');
-				
 			}
 		}
 		catch (e) {
@@ -811,15 +853,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			let participantObject = null;
 			conversation.participants.forEach(async (participant) => {
 				if (participant.user_id === data.user_id) {
-					if (participant.role === Role.ADMIN)
-					{
+					if (participant.role === Role.ADMIN) {
 						socket.emit('error', "You're not allowed to kick an admin");
 						isAdmin = true;
 					}
 					participantObject = participant;
 				}
 			});
-			if (!isAdmin) {
+			if (participantObject.conversation_status === Status.KICKED) {
+				socket.emit('error', 'Participant is already kicked');
+			}
+			else if (!isAdmin) {
 				await this.prisma.participant.update({
 					where: {
 						id: participantObject.id,
@@ -830,7 +874,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				this.server.to(data.conversation_id).emit('userKicked', data.user_id);
 				socket.emit('alert', 'Participant is now kicked');
-				
 			}
 		}
 		catch (e) {
@@ -851,15 +894,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			let participantObject = null;
 			conversation.participants.forEach(async (participant) => {
 				if (participant.user_id === data.user_id) {
-					if (participant.role === Role.ADMIN)
-					{
+					if (participant.role === Role.ADMIN) {
 						socket.emit('error', "You're not allowed to mute an admin");
 						isAdmin = true;
 					}
 					participantObject = participant;
 				}
 			});
-			if (!isAdmin) {
+			if (participantObject.conversation_status === Status.MUTED) {
+				socket.emit('error', 'Participant is already muted');
+			}
+			else if (!isAdmin) {
 				await this.prisma.participant.update({
 					where: {
 						id: participantObject.id,
@@ -870,11 +915,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				});
 				this.server.to(data.conversation_id).emit('userMuted', data.user_id);
 				socket.emit('alert', 'Participant is now muted');
-				
 			}
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from muteUser');
+		}
+	}
+
+	@SubscribeMessage('unKickUser')
+	async unKickUser(socket: AuthenticatedSocket, data: any) {
+		const token = socket.handshake.auth.token;
+		let user = null;
+		try {
+			user = this.jwtService.verify(token, {
+				secret: process.env.JWT_SECRET,
+			});
+			const participant = await this.prisma.participant.update({
+				where: {
+					id: data.participant_id,
+				},
+				data: {
+					conversation_status: Status.ACTIVE,
+				}
+			});
+			console.log(participant);
+			socket.emit('userUnKicked');
+			socket.emit('alert', "You're now active again");
+		}
+		catch (e) {
+			socket.emit('error', 'Unauthorized access from unKickUser');
 		}
 	}
 }

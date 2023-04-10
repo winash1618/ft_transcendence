@@ -36,15 +36,14 @@ export class UsersService {
 		return await this.prisma.user.findUnique({ where: { login } });
 	}
 	
-	// async getUserObjectWithParticipants(id: string) {
-	// 	return await this.prisma.user.findUnique({
-	// 		where: {
-	// 			id: id,
-	// 		},
-	// 		include: {
-	// 			participant_in: true,
-	// 		},
-	// 	});
-	// }
-
+	async getUserByIdWithParticipants(id: string) {
+		return this.prisma.user.findMany({
+			where: {
+				id: id,
+			},
+			include: {
+				participant_in: true,
+			},
+		});
+	}
 }
