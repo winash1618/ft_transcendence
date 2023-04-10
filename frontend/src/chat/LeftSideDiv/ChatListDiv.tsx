@@ -15,6 +15,9 @@ interface ChatListDivProps {
 	isInPublic: boolean;
 	joinPublicConversation: any;
 	joinProtectedConversation: any;
+	handleParticipantState: any;
+	isOnKick: boolean;
+	handleUnKickUser: any;
 }
 
 const Privacy = {
@@ -35,7 +38,10 @@ function ChatListDiv(
 		publicConversations,
 		isInPublic,
 		joinPublicConversation,
-		joinProtectedConversation
+		joinProtectedConversation,
+		handleParticipantState,
+		isOnKick,
+		handleUnKickUser
 	}: ChatListDivProps) {
 	const [isProtected, setIsProtected] = useState(false);
 	const [selectedConversationId, setSelectedConversationId] = useState(null);
@@ -46,7 +52,7 @@ function ChatListDiv(
 	}, [isInPublic]);
 	function handlePublicConversationsClick(conversation: any) {
 		if (conversation.privacy === Privacy.PUBLIC)
-			joinPublicConversation(conversation);
+		joinPublicConversation(conversation);
 		else if (conversation.privacy === Privacy.PROTECTED) {
 			setSelectedConversationId(conversation.id);
 			setIsProtected((isProtected === false) ? true : false);
@@ -63,6 +69,14 @@ function ChatListDiv(
 		setPassword(value);
 	};
 
+	function handleConversations(conversation: any) {
+		if (isOnKick){
+			setSelectedConversationId(conversation.id);
+		}
+		else {
+		handleParticipantState(conversation);
+		}
+	}
 
 	if (!isInPublic) {
 		return (
@@ -72,15 +86,23 @@ function ChatListDiv(
 						if (c) {
 							return (
 								<React.Fragment key={c.id}>
-									<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={conversationID === c.id ? contactDivColor : '#1A1D1F'}>
+									<ContactDiv key={c.id} onClick={() =>handleConversations(c)} backgroundColor={conversationID === c.id ? contactDivColor : '#1A1D1F'}>
 										<ContactImage src={UserProfilePicture} alt="" />
-										{(isInGroup) ?
+										{
+										(isInGroup) ?
 											(c.privacy === Privacy.PUBLIC) ?
 												<><ContactName>{c.title} <StyledTiLockOpen /> </ContactName></> :
 												<><ContactName>{c.title} <StyledTiLockClosed /> </ContactName></> :
 											<ContactName>{c.user.login}</ContactName>
 										}
 									</ContactDiv>
+										{
+										(selectedConversationId === c.id && isOnKick) ?
+											<DropdownField>
+												<button onClick={() => handleUnKickUser(c)}>Join</button>
+											</DropdownField>
+											: null
+										}
 								</React.Fragment>
 							);
 						}

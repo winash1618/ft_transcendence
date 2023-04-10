@@ -6,6 +6,7 @@ interface InputBoxDivProps {
 	setMessage: any;
 	handleSubmit: any;
 	setParticipantIdInInput: any;
+	isOnMute: boolean;
 }
 
 function InputBoxDiv(
@@ -13,7 +14,9 @@ function InputBoxDiv(
 		message,
 		setMessage,
 		handleSubmit,
-		setParticipantIdInInput
+		setParticipantIdInInput,
+		isOnMute,
+		
 	}: InputBoxDivProps) {
 	return (
 		<>
@@ -22,15 +25,15 @@ function InputBoxDiv(
 					type="text"
 					placeholder="Enter your message..."
 					value={message}
-					onChange={(event) => setMessage(event.target.value)}
+					onChange={(event) => setMessage((!isOnMute) ? event.target.value:'')}
 					onClick={setParticipantIdInInput}
-					onKeyDown={(event) => {
+					onKeyDown={(!isOnMute) ? (event) => {
 						if (event.key === 'Enter') {
 							handleSubmit(event);
 						}
-					}}
+					} : null}
 				/>
-				<SendButton type="submit" onClick={(e) => handleSubmit(e)} size={24} />
+				<SendButton type="submit" onClick={(!isOnMute)? (e) => handleSubmit(e) : null} size={24} />
 			</MessageInputParent>
 		</>
 	);

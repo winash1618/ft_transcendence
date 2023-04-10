@@ -22,6 +22,15 @@ import MessageBox from '../../chat/MessageBoxDiv/MessageBox';
 import InputBoxDiv from '../../chat/MessageBoxDiv/InputBoxDiv';
 import CreateChannelFormDiv from '../../chat/RightSideDiv/CreateChannelFormDiv';
 
+const Status = {
+	ACTIVE: 'ACTIVE',
+	BANNED: 'BANNED',
+	KICKED: 'KICKED',
+	MUTED: 'MUTED',
+	BLOCKED: 'BLOCKED',
+	DELETED: 'DELETED'
+};
+
 const MessagesPage = () => {
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState([]);
@@ -41,6 +50,8 @@ const MessagesPage = () => {
 	const [publicConversations, setPublicConversations] = useState([]);
 	const [isInPublic, setIsInPublic] = useState(false);
 	const [isOnMute, setIsOnMute] = useState(false);
+	const [isOnKick, setIsOnKick] = useState(false);
+	const [isOnBan, setIsOnBan] = useState(false);
 	const messageEndRef = useRef(null);
 	const dispatch = useAppDispatch();
 	useEffect(() => {
@@ -81,10 +92,9 @@ const MessagesPage = () => {
 	useEffect(() => {
 		const handleAvailableUsers = (object) => {
 			if (!isInGroup) {
-				setUsers(object.ListOfAllUsers);
-				setConversations(object.conversations);
+				setUsers(object.ListOfAllUsers); // ListOfAllUsers without the current user
+				setConversations(object.conversations); // List of direct conversations for the current user
 				if (object.conversations.length > 0) {
-					console.log("object.conversations: ", object.conversations);
 					handleOnLoadConversation(object.conversations[0]);
 					setConversationID(object.conversations[0].id);
 					for (const p of object.conversations[0].participants) {
@@ -98,7 +108,6 @@ const MessagesPage = () => {
 
 		const handleDirectConversations = (object) => {
 			setConversations(object.conversations);
-			console.log("object.conversations123: ", object.conversations);
 			if (object.conversations.length > 0) {
 				handleOnLoadConversation(object.conversations[0]);
 				setConversationID(object.conversations[0].id);
@@ -111,14 +120,20 @@ const MessagesPage = () => {
 			setConversations(object.conversations);
 			setGroupMembers(object.groupMembers);
 			setOtherUsers(object.otherUsers);
-			
+
 			if (object.conversations.length > 0) {
-				handleOnLoadConversation(object.conversations[0]);
-				setConversationID(object.conversations[0].id);
-				for (const p of object.conversations[0].participants) {
-					if (user && p.user_id === user.id) {
-						setParticipantID(p.id);
+				if (object.conversations[0].participant.status === Status.ACTIVE) {
+					handleOnLoadConversation(object.conversations[0]);
+					setConversationID(object.conversations[0].id);
+					for (const p of object.conversations[0].participants) {
+						if (user && p.user_id === user.id) {
+							setParticipantID(p.id);
+							console.log("participantID: ", participantID, "participantID2: ", p.id);
+						}
 					}
+				}
+				else {
+					handleParticipantState(object.conversations[0]);
 				}
 			}
 			else {
@@ -127,13 +142,35 @@ const MessagesPage = () => {
 		};
 
 		const handleReloadConversations = (object) => {
+			console.log("handleReloadConversations: ", object);
+			const conversation = object.conversation;
+			console.log("conversation1111:111 ", conversation);
 			setConversations(object.conversations);
+			console.log("conversation1111: ", conversations, "conversation: ", object.conversations);
 			setGroupMembers(object.groupMembers);
 			setOtherUsers(object.otherUsers);
+			setMessages([]);
+			setConversationID(conversation.id);
+			setContactDivColor("#00A551");
+			setParticipantID(conversation.participant_id);
+			conversation.messages.map((m) => {
+				const newMessage = {
+					id: m.id,
+					author_id: m.author_id,
+					myParticipantID: conversation.participant_id,
+					content: m.message,
+					type: "right",
+				};
+				setMessages((messages) => [...messages, newMessage]);
+			});
+			setIsFormVisible(false);
 		};
 
 		const handleMessageReceived = (message) => {
-			setMessages((messages) => [...messages, message]);
+			console.log("conversationID: ", conversationID, "Message received: ", message);
+			if (message.conversation_id === conversationID) {
+				setMessages((messages) => [...messages, message]);
+			}
 		};
 
 		const handleConversationCreated = (object) => {
@@ -158,12 +195,31 @@ const MessagesPage = () => {
 
 		const handleProtectedConversationJoined = (object) => {
 			const conversation = publicConversations.filter((c) => c.id === object.id);
-			console.log ("this is the conversation: ", conversation);
 			setPublicConversations(publicConversations.filter((c) => c.id !== conversation[0].id));
 		};
 
 		const handleAlert = (alert) => {
 			handleAlertMessage(alert);
+		};
+
+		const handleUserBanned = (user_id) => {
+			if (user_id === user.id) {
+				window.location.reload();
+			}
+		};
+		const handleUserKicked = (user_id) => {
+			console.log("I am here: ", user_id);
+			if (user_id === user.id) {
+				window.location.reload();
+			}
+		};
+		const handleUserUnKicked = (user_id) => {
+			window.location.reload();
+		};
+		const handleUserMuted = (user_id) => {
+			if (user_id === user.id) {
+				window.location.reload();
+			}
 		};
 
 		socket?.on('availableUsers', handleAvailableUsers);
@@ -177,6 +233,10 @@ const MessagesPage = () => {
 		socket?.on('error', handleError);
 		socket?.on('alert', handleAlert);
 		socket?.on('protectedConversationJoined', handleProtectedConversationJoined);
+		socket?.on('userBanned', handleUserBanned);
+		socket?.on('userKicked', handleUserKicked);
+		socket?.on('userMuted', handleUserMuted);
+		socket?.on('userUnKicked', handleUserUnKicked);
 
 		return () => {
 			socket?.off('availableUsers', handleAvailableUsers);
@@ -190,8 +250,20 @@ const MessagesPage = () => {
 			socket?.off('error', handleError);
 			socket?.off('alert', handleAlert);
 			socket?.off('protectedConversationJoined', handleProtectedConversationJoined);
+			socket?.off('userBanned', handleUserBanned);
+			socket?.off('userKicked', handleUserKicked);
+			socket?.off('userMuted', handleUserMuted);
+			socket?.off('userUnKicked', handleUserUnKicked);
 		};
-	}, [socket, user, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
+	}, [socket, user, conversationID, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
+
+	// useEffect(() => {
+	// 	if (!hasReloaded && isOnBan) {
+	// 		console.log("itefsasdf", iitit++);
+
+	// 		setHasReloaded(true);
+	// 	}
+	// }, [hasReloaded]);
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
@@ -209,13 +281,16 @@ const MessagesPage = () => {
 		}
 		setIsFormVisible(false);
 	};
-	
+
 	const handleAlertMessage = (message) => {
 		alert(message);
 	}
 
 	const handleMessageNavClick = () => {
 		setIsInPublic(false);
+		setIsOnBan(false);
+		setIsOnKick(false);
+		setIsOnMute(false);
 		socket?.emit('getDirectConversations');
 		setMessageNavButtonColor("#00A551");
 		setMessageNavButtonColorNotUsed("#1A1D1F");
@@ -226,6 +301,8 @@ const MessagesPage = () => {
 		setIsFormVisible(false);
 		setIsInGroup(true);
 		setConversations([]);
+		setMessages([]);
+		setParticipantID(null);
 		socket?.emit('getGroupConversations');
 		setMessageNavButtonColor("#1A1D1F");
 		setMessageNavButtonColorNotUsed("#00A551");
@@ -236,25 +313,8 @@ const MessagesPage = () => {
 	};
 
 	const handleSelectedConversation = async (conversation) => {
-		if (conversation.id !== conversationID) {
-			socket?.emit('reloadConversations', conversation);
-			setMessages([]);
-			setConversationID(conversation.id);
-			setContactDivColor("#00A551");
-			setParticipantID(conversation.participant_id);
-			conversation.messages.map((m) => {
-				console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
-				const newMessage = {
-					id: m.id,
-					author_id: m.author_id,
-					myParticipantID: conversation.participant_id,
-					content: m.message,
-					type: "right",
-				};
-				setMessages((messages) => [...messages, newMessage]);
-			});
-		}
-		setIsFormVisible(false);
+		socket?.emit('reloadConversations', conversation);
+		
 	};
 
 	const handleOnLoadConversation = async (conversation) => {
@@ -263,7 +323,6 @@ const MessagesPage = () => {
 		setContactDivColor("#00A551");
 		setParticipantID(conversation.participant_id);
 		conversation.messages.map((m) => {
-			console.log("conversation.participant_id: ", conversation.participant_id, " author_id: ", m.author_id, conversation.participant_id === m.author_id);
 			const newMessage = {
 				id: m.id,
 				author_id: m.author_id,
@@ -311,7 +370,7 @@ const MessagesPage = () => {
 		});
 	}
 
-	const createDirectChat =  (user) => {
+	const createDirectChat = (user) => {
 		let i = 0;
 		conversations.map((c) => {
 			c.participants.map((p) => {
@@ -329,9 +388,8 @@ const MessagesPage = () => {
 
 	const handleLeaveChannel = () => {
 		const conversation = conversations.filter((c) => c.id === conversationID);
-		socket?.emit('leaveConversation', {conversation_id: conversationID, participant_id: conversation[0].participant_id});
-		if (conversations.length > 1)
-		{
+		socket?.emit('leaveConversation', { conversation_id: conversationID, participant_id: conversation[0].participant_id });
+		if (conversations.length > 1) {
 			setConversationID(conversations.filter((c) => c.id !== conversationID)[0].id);
 			console.log("conversationID: ", conversationID);
 		}
@@ -352,11 +410,11 @@ const MessagesPage = () => {
 	};
 
 	const joinProtectedConversation = (conversation, password) => {
-		socket?.emit('joinProtectedConversation', {conversation_id: conversation.id, password: password});
+		socket?.emit('joinProtectedConversation', { conversation_id: conversation.id, password: password });
 	};
 
 	const handleNewPasswordSubmit = (password) => {
-		socket?.emit('changePassword', {conversation_id: conversationID, password: password});
+		socket?.emit('changePassword', { conversation_id: conversationID, password: password });
 	};
 
 
@@ -365,7 +423,65 @@ const MessagesPage = () => {
 	};
 
 	const handleMakeAdmin = (user) => {
-		socket?.emit('makeAdmin', {conversation_id: conversationID, user_id: user.id});
+		socket?.emit('makeAdmin', { conversation_id: conversationID, user_id: user.id });
+	};
+
+	const handleBanUser = (user) => {
+		console.log("ban user: ", user);
+		socket?.emit('banUser', { conversation_id: conversationID, user_id: user.id });
+	};
+
+	const handleKickUser = (user) => {
+		console.log("kick user: ", user);
+		socket?.emit('kickUser', { conversation_id: conversationID, user_id: user.id });
+	};
+
+	const handleMuteUser = (user) => {
+		socket?.emit('muteUser', { conversation_id: conversationID, user_id: user.id });
+	};
+
+	const handleParticipantState = (conversation) => {
+		console.log("This is happening because i am debugging");
+		console.log("conversation: ", conversation);
+		setConversationID(conversation.id);
+		console.log("conversationID: ", conversationID, "conversationID2: ", conversation.id);
+		console.log("isOnBan: ", isOnBan, "isOnMute: ", isOnMute, "isOnKick: ", isOnKick);
+		setIsOnBan(false);
+		setIsOnMute(false);
+		setIsOnKick(false);
+		if (conversation.participant.conversation_status === Status.BANNED) {
+			alert("You have been banned from this channel2");
+			setIsOnBan(true);
+		}
+		else if (conversation.participant.conversation_status === Status.MUTED) {
+			alert("You have been muted from this channel1");
+			setIsOnMute(true);
+			handleSelectedConversation(conversation);
+		}
+		else if (conversation.participant.conversation_status === Status.KICKED) {
+			alert("You have been kicked from this channel1");
+			setIsOnKick(true);
+		}
+		else {
+			console.log("I am here");
+			handleSelectedConversation(conversation);
+		}
+		// const garbageCollector = setInterval(() => {
+		// 	if (conversation.participant.conversation_status === Status.BLOCKED) {
+		// 		setIsOnBan(true);
+		// 	}
+		// 	else {
+		// 		setIsOnBan(false);
+		// 	}
+		// }, 1000);
+		// return () => {
+		// 	clearInterval(garbageCollector);
+		// };
+	};
+
+	const handleUnKickUser = (conversation) => {
+		socket?.emit('unKickUser', { conversation_id: conversation.id, participant_id: conversation.participant.id });
+		setIsOnKick(false);
 	};
 
 	return (
@@ -391,6 +507,9 @@ const MessagesPage = () => {
 						isInPublic={isInPublic}
 						joinPublicConversation={joinPublicConversation}
 						joinProtectedConversation={joinProtectedConversation}
+						handleParticipantState={handleParticipantState}
+						isOnKick={isOnKick}
+						handleUnKickUser={handleUnKickUser}
 					/>
 				</ChatListContainer>
 				<MessageBoxContainer>
@@ -399,12 +518,15 @@ const MessagesPage = () => {
 						messageEndRef={messageEndRef}
 						UserProfilePicture={UserProfilePicture}
 						participantID={participantID}
+						isOnBan={isOnBan}
+						isOnKick={isOnKick}
 					/>
 					<InputBoxDiv
 						message={message}
 						setMessage={setMessage}
 						handleSubmit={handleSubmit}
 						setParticipantIdInInput={setParticipantIdInInput}
+						isOnMute={isOnMute}
 					/>
 				</MessageBoxContainer>
 				<RightSideDiv>
@@ -429,6 +551,11 @@ const MessagesPage = () => {
 								handleNewPasswordSubmit={handleNewPasswordSubmit}
 								handleRemovePassword={handleRemovePassword}
 								handleMakeAdmin={handleMakeAdmin}
+								handleBanUser={handleBanUser}
+								handleKickUser={handleKickUser}
+								handleMuteUser={handleMuteUser}
+								isOnBan={isOnBan}
+								isOnKick={isOnKick}
 							/>
 						) : (
 							<DirectConversation

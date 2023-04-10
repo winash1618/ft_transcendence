@@ -17,6 +17,11 @@ interface GroupConversationProps {
 	handleNewPasswordSubmit: any;
 	handleRemovePassword: any;
 	handleMakeAdmin: any;
+	handleBanUser: any;
+	handleMuteUser: any;
+	handleKickUser: any;
+	isOnBan: any;
+	isOnKick: any;
 }
 
 const Role = {
@@ -37,6 +42,11 @@ function GroupConversation(
 		handleNewPasswordSubmit,
 		handleRemovePassword,
 		handleMakeAdmin,
+		handleBanUser,
+		handleMuteUser,
+		handleKickUser,
+		isOnBan,
+		isOnKick,
 	}: GroupConversationProps) {
 	const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -44,14 +54,13 @@ function GroupConversation(
 		setOpenMenuId(null);
 	}, [Conversation]);
 
-	if (Conversation !== undefined) {
+	if (Conversation !== undefined && !isOnBan && !isOnKick) {
 		return (
 			<>
 				<Heading1>Group Chat </Heading1>
 				<Heading2> Group Members </Heading2>
 				{
 					groupMembers.map((u) => {
-						console.log("Conversation.participant.role: ", Conversation);
 						if (u.login !== undefined && u.login !== user.login) {
 							return (
 								<React.Fragment key={u.id}>
@@ -67,12 +76,15 @@ function GroupConversation(
 									<DropDownDiv
 										openMenuId={openMenuId}
 										user={u}
-										dropDownContent={["Make Admin", "Kick", "Ban", "Mute"]}
+										dropDownContent={(Conversation.creator_id === user.login)?["Make Admin", "Kick", "Ban", "Mute"]:["Kick", "Ban", "Mute"]}
 										createDirectChat={createDirectChat}
 										handleLeaveChannel={null}
 										handleNewPasswordSubmit={null}
 										handleRemovePassword={null}
 										handleMakeAdmin={handleMakeAdmin}
+										handleBanUser={handleBanUser}
+										handleMuteUser={handleMuteUser}
+										handleKickUser={handleKickUser}
 									/>
 								</React.Fragment>
 							);
@@ -101,6 +113,9 @@ function GroupConversation(
 											handleNewPasswordSubmit={handleNewPasswordSubmit}
 											handleRemovePassword={handleRemovePassword}
 											handleMakeAdmin={null}
+											handleBanUser={null}
+											handleMuteUser={null}
+											handleKickUser={null}
 										/>
 									</React.Fragment>
 								)
@@ -128,6 +143,9 @@ function GroupConversation(
 											handleNewPasswordSubmit={handleNewPasswordSubmit}
 											handleRemovePassword={handleRemovePassword}
 											handleMakeAdmin={null}
+											handleBanUser={null}
+											handleMuteUser={null}
+											handleKickUser={null}
 										/>
 									</React.Fragment>
 								)
@@ -158,6 +176,9 @@ function GroupConversation(
 										handleNewPasswordSubmit={handleNewPasswordSubmit}
 										handleRemovePassword={null}
 										handleMakeAdmin={null}
+										handleBanUser={null}
+										handleMuteUser={null}
+										handleKickUser={null}
 									/>
 								</React.Fragment>
 							)

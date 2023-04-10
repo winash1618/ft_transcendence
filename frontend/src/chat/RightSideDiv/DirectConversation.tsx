@@ -52,6 +52,9 @@ function DirectConversation(
 									handleNewPasswordSubmit={null}
 									handleRemovePassword={null}
 									handleMakeAdmin={null}
+									handleBanUser={null}
+									handleMuteUser={null}
+									handleKickUser={null}
 								/>
 							</React.Fragment>
 						);

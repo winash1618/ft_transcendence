@@ -12,6 +12,9 @@ interface DropDownDivProps {
 	handleNewPasswordSubmit: any;
 	handleRemovePassword: any;
 	handleMakeAdmin: any;
+	handleBanUser: any;
+	handleMuteUser: any;
+	handleKickUser: any;
 }
 
 function DropDownDiv(
@@ -24,6 +27,9 @@ function DropDownDiv(
 		handleNewPasswordSubmit,
 		handleRemovePassword,
 		handleMakeAdmin,
+		handleBanUser,
+		handleMuteUser,
+		handleKickUser
 	}: DropDownDivProps) {
 	const [password, setPassword] = useState('');
 	const [selectedUserLogin, setSelectedUserLogin] = useState(null);
@@ -98,13 +104,16 @@ function DropDownDiv(
 			setIsPasswordChange((isPasswordChange === false) ? true : false);
 			console.log("add password");
 		}
-		else if (e.target.innerText === "kick") {
+		else if (e.target.innerText === "Kick") {
+			handleKickUser(user);
 			console.log("kick");
 		}
-		else if (e.target.innerText === "ban") {
+		else if (e.target.innerText === "Ban") {
+			handleBanUser(user);
 			console.log("ban");
 		}
-		else if (e.target.innerText === "mute") {
+		else if (e.target.innerText === "Mute") {
+			handleMuteUser(user);
 			console.log("mute");
 		}
 		else if (e.target.innerText === "Make Admin") {

@@ -6,6 +6,8 @@ interface MessageBoxProps {
 	messageEndRef: any;
 	UserProfilePicture: any;
 	participantID: any;
+	isOnBan: any;
+	isOnKick: any;
 }
 
 function MessageBox(
@@ -13,15 +15,17 @@ function MessageBox(
 		messages,
 		messageEndRef,
 		UserProfilePicture,
-		participantID
+		participantID,
+		isOnBan,
+		isOnKick,
 	}: MessageBoxProps) {
 	return (
 		<>
 			<MessageSendDiv>
 				<MessageParent>
-					{
-						(
-							messages.map((message) => {
+					{(
+						messages.map((message) => {
+							if (!isOnBan && !isOnKick) {
 								if (message.author_id === participantID) {
 									return (
 										<MessageRightContainer key={message.id}>
@@ -30,7 +34,6 @@ function MessageBox(
 										</MessageRightContainer>
 									);
 								} else {
-
 									return (
 										<MessageLeftContainer key={message.id}>
 											<MessageImage src={UserProfilePicture} alt="" />
@@ -38,8 +41,13 @@ function MessageBox(
 										</MessageLeftContainer>
 									);
 								}
-							})
-						)}
+							} else {
+								return (
+									null
+								)
+							}
+						})
+					)}
 					<div ref={messageEndRef} />
 				</MessageParent>
 			</MessageSendDiv>
