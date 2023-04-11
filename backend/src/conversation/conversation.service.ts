@@ -230,7 +230,7 @@ export class ConversationService {
 		participants: {
 			some: {
 				user_id: user_id,
-				conversation_status: Status.ACTIVE || Status.DELETED,
+				conversation_status: Status.ACTIVE,
 			},
 		},
           privacy: privacy,

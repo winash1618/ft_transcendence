@@ -5,7 +5,7 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 CREATE TYPE "Privacy" AS ENUM ('PUBLIC', 'PRIVATE', 'PROTECTED', 'DIRECT');
 
 -- CreateEnum
-CREATE TYPE "Status" AS ENUM ('ACTIVE', 'BANNED', 'KICKED', 'MUTED', 'BLOCKED', 'DELETED');
+CREATE TYPE "Status" AS ENUM ('ACTIVE', 'BANNED', 'KICKED', 'MUTED');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -57,24 +57,9 @@ CREATE TABLE "Participant" (
     "conversation_id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "mute_expires_at" TIMESTAMP(3),
 
     CONSTRAINT "Participant_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Game" (
-    "id" TEXT NOT NULL,
-    "side" INTEGER NOT NULL,
-    "ballX" INTEGER NOT NULL,
-    "ballY" INTEGER NOT NULL,
-    "isPaused" BOOLEAN NOT NULL,
-    "map" INTEGER NOT NULL,
-    "status" INTEGER NOT NULL,
-    "score" INTEGER NOT NULL,
-    "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Game_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -85,12 +70,6 @@ CREATE TABLE "_friends" (
 
 -- CreateTable
 CREATE TABLE "_blocked_users" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
-);
-
--- CreateTable
-CREATE TABLE "_GameToUser" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
 );
@@ -112,12 +91,6 @@ CREATE UNIQUE INDEX "_blocked_users_AB_unique" ON "_blocked_users"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_blocked_users_B_index" ON "_blocked_users"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_GameToUser_AB_unique" ON "_GameToUser"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_GameToUser_B_index" ON "_GameToUser"("B");
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "Conversation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -142,9 +115,3 @@ ALTER TABLE "_blocked_users" ADD CONSTRAINT "_blocked_users_A_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "_blocked_users" ADD CONSTRAINT "_blocked_users_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_GameToUser" ADD CONSTRAINT "_GameToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_GameToUser" ADD CONSTRAINT "_GameToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

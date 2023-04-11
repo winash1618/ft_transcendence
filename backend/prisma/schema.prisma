@@ -25,7 +25,6 @@ model User {
   updated_at            DateTime        @default(now())
 
   participant_in        Participant[]
-  game                  Game[]
 }
 
 // Conversation table
@@ -69,22 +68,9 @@ model Participant {
   user                  User            @relation(fields: [user_id], references: [id])
   conversation          Conversation    @relation(fields: [conversation_id], references: [id])
   messages              Message[]
+  mute_expires_at       DateTime?
 
   @@unique([conversation_id, user_id])
-}
-
-model Game {
-  id                    String          @id @default(uuid())
-  player                User[]
-  side                  Int
-  ballX                 Int
-  ballY                 Int
-  isPaused              Boolean
-  map                   Int
-  status                Int
-  score                 Int
-  createAt              DateTime        @default(now())
-  updateAt              DateTime        @default(now())
 }
 
 enum Role {
@@ -104,6 +90,4 @@ enum Status {
   BANNED
   KICKED
   MUTED
-  BLOCKED
-  DELETED
 }

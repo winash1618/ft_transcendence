@@ -79,9 +79,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			i = 0;
 			DirectConversationObjectArray.forEach((c) => {
-				if (c.participants[i].conversation_status === Status.ACTIVE) {
+				// if (c.participants[i].conversation_status === Status.ACTIVE) { // removing it for now need more checks
 					socket.join(c.id);
-				}
+				// }
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
@@ -129,14 +129,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				secret: process.env.JWT_SECRET,
 			});
 			const participant = await this.participantService.getParticipant(data.conversation_id, user.id);
-			await this.messageService.create({
-				conversation_id: data.conversation_id,
-				author_id: participant[0].id,
-				message: data.content,
-			});
-			data.author_id = participant[0].id;
-			this.server.to(data.conversation_id).emit('sendMessage', data);
-			// socket.emit('alert', 'Message sent');
+			if (participant[0].conversation_status === Status.ACTIVE) { // only send to the participants that are active
+				await this.messageService.create({
+					conversation_id: data.conversation_id,
+					author_id: participant[0].id,
+					message: data.content,
+				});
+				data.author_id = participant[0].id;
+				this.server.to(data.conversation_id).emit('sendMessage', data);
+			}
+			else {
+				socket.emit('alert', 'Message not sent');
+			}
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from sendMessage');
@@ -228,9 +232,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			i = 0;
 			ConversationObjectArray.forEach((c) => {
-				if (participants[i].conversation_status === Status.ACTIVE || participants[i].conversation_status === Status.MUTED) {
+				// if (participants[i].conversation_status === Status.ACTIVE || participants[i].conversation_status === Status.MUTED) {
 					socket.join(c.id);
-				}
+				// }
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
@@ -243,7 +247,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					created_at: c.created_at,
 					updated_at: c.updated_at,
 					participants: c.participants,
-					messages: c.messages,
+					messages: c.messages.sort((a, b) => a.created_at - b.created_at), // i added this to sort the messages by date since it is coming unsorted
 				});
 				i++;
 			});
@@ -252,6 +256,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversations: ConversationObjectArrayWithParticipantId,
 				groupMembers: groupMembers,
 				otherUsers: otherUsers,
+				conversation: ConversationObjectArrayWithParticipantId.filter((c) => c.id === data.id)[0], // This will give you the updated current conversation object
 			}
 			socket.emit('reloadConversations', reloadObject);
 			// socket.emit('alert', 'Conversation reloaded');
@@ -303,9 +308,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 			i = 0;
 			DirectConversationObjectArray.forEach((c) => {
-				if (participants[i].conversation_status === Status.ACTIVE) {
+				// if (participants[i].conversation_status === Status.ACTIVE) {
 					socket.join(c.id);
-				}
+				// }
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
@@ -318,7 +323,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					created_at: c.created_at,
 					updated_at: c.updated_at,
 					participants: c.participants,
-					messages: c.messages,
+					messages: c.messages
 				});
 				i++;
 			});
@@ -334,7 +339,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversations: ConversationObjectArrayWithParticipantId,
 			}
 			socket.emit('getDirectConversations', objectToEmit);
-			socket.emit('alert', 'Direct conversations reloaded');
+			// socket.emit('alert', 'Direct conversations reloaded');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from getDirectConversations');
@@ -361,9 +366,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			}
 			let i = 0;
 			GroupConversationObjectArray.forEach((c) => {
-				if (participants[i].conversation_status === Status.ACTIVE || participants[i].conversation_status === Status.MUTED) {
+				// if (participants[i].conversation_status === Status.ACTIVE || participants[i].conversation_status === Status.MUTED) {
 					socket.join(c.id);
-				}
+				// }
 				ConversationObjectArrayWithParticipantId.push({
 					id: c.id,
 					title: c.title,
@@ -418,7 +423,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				otherUsers: otherUsers,
 			}
 			socket.emit('getGroupConversations', ObjectToEmit);
-			socket.emit('alert', 'Group conversations reloaded');
+			// socket.emit('alert', 'Group conversations reloaded');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from getGroupConversations');
@@ -454,6 +459,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				user_id: user.id,
 				role: Role.ADMIN,
 			});
+			socket.join(conversation.id); // join the room when the conversation is created
 			const conversationObject = {
 				id: conversation.id,
 				title: conversation.title,
@@ -468,7 +474,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				messages: conversation.messages,
 			}
 			socket.emit('conversationCreated', conversationObject);
-			socket.emit('alert', 'conversation created');
+			// socket.emit('alert', 'conversation created');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from createConversation');
@@ -554,7 +560,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversations: ConversationObjectArrayWithParticipantId,
 			}
 			socket.emit('getDirectConversations', objectToEmit);
-			socket.emit('alert', 'direct conversation created');
+			// socket.emit('alert', 'direct conversation created');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from createDirectConversation');
@@ -576,7 +582,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				conversation_id: conversation.id,
 				user_id: userToAdd.id,
 			});
-			socket.emit('alert', 'user added to group');
+			// socket.emit('alert', 'user added to group');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from addUserToGroup');
@@ -611,7 +617,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 
 			socket.emit('ConversationsListed', ConversationUserIsNotParticipantList);
-			socket.emit('alert', 'Conversations listed');
+			// socket.emit('alert', 'Conversations listed');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from ListConversations');
@@ -652,7 +658,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					await this.prisma.participant.update({ where: { id: participant.id }, data: { role: Role.ADMIN } });
 				}
 				socket.emit('protectedConversationJoined', conversation);
-				socket.emit('alert', 'protected conversation joined');
+				// socket.emit('alert', 'protected conversation joined');
 			}
 			else {
 				socket.emit('error', 'Wrong password');
@@ -685,7 +691,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					}
 				}
 			});
-			socket.emit('alert', '{user} left the conversation');
+			// socket.emit('alert', 'Left the conversation');
 		}
 		catch (e) {
 			socket.emit('error', 'Unauthorized access from leaveConversation');
@@ -798,8 +804,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('banUser')
 	async banUser(socket: AuthenticatedSocket, data: any) {
-		console.log("banUser ", data);
-
 		const token = socket.handshake.auth.token;
 		let user = null;
 		try {
@@ -911,6 +915,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					},
 					data: {
 						conversation_status: Status.MUTED,
+						mute_expires_at: new Date(Date.now() + 1000 * 60 * 7), // mute for 7 minutes
 					}
 				});
 				this.server.to(data.conversation_id).emit('userMuted', data.user_id);
@@ -938,7 +943,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					conversation_status: Status.ACTIVE,
 				}
 			});
-			console.log(participant);
 			socket.emit('userUnKicked');
 			socket.emit('alert', "You're now active again");
 		}
