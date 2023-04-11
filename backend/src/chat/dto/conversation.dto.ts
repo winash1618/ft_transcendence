@@ -9,6 +9,10 @@ export class CreateConversationDto {
 
   @IsString()
   @ApiProperty()
+  creator_id: string;
+
+  @IsString()
+  @ApiProperty()
   password?: string;
 
   @ApiProperty()

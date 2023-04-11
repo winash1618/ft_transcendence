@@ -53,6 +53,7 @@ export class AuthController {
   async guestLogin(@Res() res: Response) {
     const user = await this.userService.findOne('user1')
     const token = await this.authService.getLongExpiryJwtToken(user);
+    console.log(token);
 
     res.cookie('auth', token, { httpOnly: true });
     return res.redirect(process.env.FRONTEND_BASE_URL);

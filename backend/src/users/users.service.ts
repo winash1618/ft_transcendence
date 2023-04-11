@@ -44,6 +44,10 @@ export class UsersService {
 		});
 	}
 
+  async getUserById(id: string): Promise<User | null> {
+		return await this.prisma.user.findUnique({ where: { id } });
+	}
+
   remove(id: number) {
 		return `This action removes a #${id} user`;
 	}

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateMessageDto, UpdateMessageDto } from '../dto/messages.dto';
-import { ConversationService } from './conversation.service';
+import { ConversationService } from './a_conversation.service';
 
 @Injectable()
 export class MessageService {
@@ -11,13 +11,11 @@ export class MessageService {
     ) {}
 
   async createMessage(createMessage: CreateMessageDto) {
-    const conversation = await this.conversationService.checkConversationExists(createMessage.conversation_id);
+    // const conversation = await this.conversationService.checkConversationExists(createMessage.conversation_id);
 
-    console.log(conversation);
-
-    if (!conversation) {
-      throw new Error('Conversation does not exist');
-    }
+    // if (!conversation) {
+    //   throw new Error('Conversation does not exist');
+    // }
 
     return await this.prisma.message.create({
       data: {

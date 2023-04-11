@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Status, Role } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateParticipantDto } from './dto/create-participant.dto';
-import { UpdateParticipantDto } from './dto/update-participant.dto';
+import { CreateParticipantDto, UpdateParticipantDto } from '../dto/participants.dto';
 
 @Injectable()
 export class ParticipantService {
@@ -39,7 +38,7 @@ export class ParticipantService {
   }
 
 
- 
+
   async findAll() {
     return await this.prisma.participant.findMany();
   }

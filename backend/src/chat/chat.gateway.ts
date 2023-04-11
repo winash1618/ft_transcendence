@@ -1,6 +1,6 @@
+
 import { UseGuards } from '@nestjs/common';
 import {
-  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -13,9 +13,9 @@ import { Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { AuthenticatedSocket } from 'src/utils/AuthenticatedScoket.interface';
 import { PrismaService } from 'src/database/prisma.service';
-import { ConversationService } from 'src/conversation/conversation.service';
-import { ParticipantService } from 'src/participant/participant.service';
-import { MessageService } from 'src/message/message.service';
+import { ConversationService } from './Queries/a_conversation.service';
+import { ParticipantService } from './Queries/a_participant.service';
+import { MessageService } from './Queries/message.service';
 import { Privacy, Role, Status } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { randomUUID } from 'crypto';
@@ -32,7 +32,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private prisma: PrismaService,
-    private gatewaySession: GatewaySessionManager,
     private conversationService: ConversationService,
     private participantService: ParticipantService,
     private messageService: MessageService,
@@ -92,7 +91,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					participant: participants[i], // This is my participant object for this conversation
 					user: ListOfDirectConversationUsers[i], // This is only for direct conversations because this is the other user in the conversation
 					creator_id: c.creator_id,
-					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
 					participants: c.participants,
@@ -132,7 +130,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			});
 			const participant = await this.participantService.getParticipant(data.conversation_id, user.id);
 			if (participant[0].conversation_status === Status.ACTIVE) { // only send to the participants that are active
-				await this.messageService.create({
+				await this.messageService.createMessage({
 					conversation_id: data.conversation_id,
 					author_id: participant[0].id,
 					message: data.content,
@@ -245,7 +243,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					participant: participants[i],
 					user: ListOfConversationUsers[i],
 					creator_id: c.creator_id,
-					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
 					participants: c.participants,
@@ -321,7 +318,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					participant: participants[i],
 					user: ListOfDirectConversationUsers[i],
 					creator_id: c.creator_id,
-					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
 					participants: c.participants,
@@ -378,7 +374,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					participant_id: participants[i].id,
 					participant: participants[i],
 					creator_id: c.creator_id,
-					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
 					participants: c.participants,
@@ -443,7 +438,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const conversation = await this.conversationService.createWithPassword({
 				title: data.title,
 				creator_id: user.login,
-				channel_id: randomUUID(),
 				password: data.password,
 				privacy: (data.privacy === "public") ? Privacy.PUBLIC : ((data.privacy === "private") ? Privacy.PRIVATE : Privacy.PROTECTED),
 			});
@@ -469,11 +463,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				participant_id: participant.id,
 				participant: participant,
 				creator_id: conversation.creator_id,
-				channel_id: conversation.channel_id,
 				created_at: conversation.created_at,
 				updated_at: conversation.updated_at,
-				participants: conversation.participants,
-				messages: conversation.messages,
+				// participants: conversation.participants,
+				// messages: conversation.messages,
 			}
 			socket.emit('conversationCreated', conversationObject);
 			// socket.emit('alert', 'conversation created');
@@ -494,7 +487,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const conversation = await this.conversationService.create({
 				title: "direct",
 				creator_id: user.id,
-				channel_id: "channelID",
 				password: "password",
 				privacy: Privacy.DIRECT,
 			});
@@ -549,7 +541,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					participant: participants[i],
 					user: ListOfDirectConversationUsers[i],
 					creator_id: c.creator_id,
-					channel_id: c.channel_id,
 					created_at: c.created_at,
 					updated_at: c.updated_at,
 					participants: c.participants,
@@ -953,3 +944,325 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 }
+
+/*
+ import { UseGuards } from '@nestjs/common';
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { PrismaService } from 'src/database/prisma.service';
+import { ConversationService } from 'src/chat/Queries/conversation.service';
+import { ParticipantService } from 'src/chat/Queries/participant.service';
+import { MessageService } from 'src/chat/Queries/message.service';
+import { Role } from '@prisma/client';
+import { JwtService } from '@nestjs/jwt';
+import { GatewaySessionManager } from './gateway.session';
+
+@WebSocketGateway()
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer() server: Server;
+
+  constructor(
+    private prisma: PrismaService,
+    private gatewaySession: GatewaySessionManager,
+    private conversationService: ConversationService,
+    private participantService: ParticipantService,
+    private messageService: MessageService,
+    private jwtService: JwtService,
+    ) {}
+
+  async handleConnection(client: Socket) {
+    const token = client.handshake.headers.token as string;
+    const userID = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET
+    });
+
+    client.data.userID = userID;
+
+    this.gatewaySession.setUserSocket(userID.id, client);
+
+    console.log('User connected: ', userID);
+
+    const conversations = await this.conversationService.getConversationByUserID(userID.id);
+
+    for (const conversation of conversations) {
+      client.join(conversation.id);
+    }
+
+    const messages = await Promise.all(conversations.map(async (conversation) => {
+      const messages = await this.messageService.getMessagesByConversationID(conversation.id);
+      return {
+        conversationID: conversation.id,
+        messages,
+      }
+    }));
+
+    console.log(messages);
+
+    client.emit('User_conversations', messages);
+
+  }
+
+  handleDisconnect(client: Socket) {
+    console.log('User disconnected: ', client.data.userID);
+  }
+
+  @SubscribeMessage('createConversation')
+  async createConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    console.log("In createConversation")
+    const conversation = await this.conversationService.createConversation({
+      title: data.title,
+    });
+
+    // add only one participant
+    const participant = await this.participantService.addParticipantToConversation({
+      conversation_id: conversation.id,
+      user_id: client.data.userID.id,
+      role: Role.ADMIN,
+      conversation_status: 'ACTIVE',
+    });
+
+    await this.joinConversations(client.data.userID.id);
+    await this.sendMessagesToClient(client);
+    await this.sendConversationCreatedToAllClients(client.data.userID.id, conversation);
+  }
+
+  @SubscribeMessage('joinConversation')
+  async joinConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const participant = await this.participantService.addParticipantToConversation({
+      conversation_id: data.conversationID,
+      user_id: client.data.userID.id,
+      role: Role.USER,
+      conversation_status: 'ACTIVE',
+    });
+
+    await this.joinConversations(client.data.userID.id);
+    await this.sendMessagesToClient(client);
+    await this.sendConversationJoinedToAllClients(client.data.userID.id, data.conversationID);
+  }
+
+  @SubscribeMessage('directMessage')
+  async directMessage(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const conversation = await this.conversationService.createDirectConversation({
+      privacy: 'PRIVATE',
+    },
+    client.data.userID.id,
+    data.userID);
+
+    const participants = await this.participantService.getParticipantsByConversationID(conversation.id);
+    participants.forEach((participant) => {
+      this.gatewaySession.getUserSocket(participant.user_id).join(conversation.id);
+    });
+    const user = this.gatewaySession.getUserSocket(client.data.userID.id);
+    if (!user) return ;
+    this.server.to(user.id).emit('directMessage', conversation);
+    console.log('directMessage', conversation);
+  }
+
+  @SubscribeMessage('leaveConversation')
+  async leaveConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const removedParticipant = await this.participantService.removeParticipantFromConversation(
+      data.conversationID,
+      client.data.userID.id);
+
+    await this.sendConversationPublicToAllClients(data.conversationID);
+    await this.sendConversationLeftToAllClients(client.data.userID.id, data.conversationID);
+
+    const user = this.gatewaySession.getUserSocket(client.data.userID.id);
+    if (!user) return ;
+    user.leave(data.conversationID);
+  }
+
+  @SubscribeMessage('protectRoom')
+  async protectRoom(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const conversation = await this.conversationService.protectConversation(data.conversationID, data.password);
+
+    await this.sendConversationPublicToAllClients(data.conversationID);
+  }
+
+  @SubscribeMessage('sendMessage')
+  async sendMessage(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const participant = await this.participantService.findParticipantByUserIDandConversationID(
+      client.data.userID.id,
+      data.conversationID,
+    );
+
+    const message = await this.messageService.createMessage({
+      message: data.message,
+      author_id: participant.id,
+      conversation_id: data.conversationID,
+    });
+
+    await this.sendConversationPublicToAllClients(data.conversationID);
+    await this.sendMessagesToParticipants(data.conversationID, message);
+  }
+
+  @SubscribeMessage('makeAdmin')
+  async makeAdmin(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const participant = await this.participantService.makeParticipantAdmin(
+      data.conversationID,
+      data.userID,
+    );
+
+    await this.sendConversationPublicToAllClients(data.conversationID);
+  }
+
+  @SubscribeMessage('addParticipant')
+  async addParticipant(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const participant = await this.participantService.addParticipantToConversation({
+      conversation_id: data.conversationID,
+      user_id: data.userID,
+      role: Role.USER,
+      conversation_status: 'ACTIVE',
+    });
+
+    this.joinConversations(data.userID);
+    await this.sendConversationPublicToAllClients(data.conversationID);
+  }
+
+  @SubscribeMessage('removeParticipant')
+  async removeParticipant(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    const participant = await this.participantService.removeParticipantFromConversation(
+      data.conversationID,
+      data.userID,
+    );
+
+    const user = this.gatewaySession.getUserSocket(data.userID);
+    if (!user) return ;
+    user.leave(data.conversationID);
+    await this.sendConversationPublicToAllClients(data.conversationID);
+  }
+
+  // helper function
+
+  private async joinConversations(userID: string) {
+    const user = this.gatewaySession.getUserSocket(userID);
+
+    if (!user) return ;
+    user.join('conversations');
+  }
+
+  private async joinConversationByID(client: Socket, conversationID: string) {
+    const sockets = this.gatewaySession.getAllUserSockets();
+    if (!sockets || sockets.length === 0) return ;
+    sockets.forEach((socket) => {
+      socket.join(conversationID);
+    });
+  }
+
+  private async leaveConversationByID(client: Socket, conversationID: string) {
+    const sockets = this.gatewaySession.getAllUserSockets();
+    if (!sockets || sockets.length === 0) return ;
+    sockets.forEach((socket) => {
+      socket.leave(conversationID);
+    });
+  }
+
+  private async sendMessagesToClient(client: Socket) {
+    const conversations = await this.conversationService.getConversationByUserID(client.data.userID.id);
+
+    const messages = await Promise.all(conversations.map(async (conversation) => {
+      const messages = await this.messageService.getMessagesByConversationID(conversation.id);
+      return {
+        conversationID: conversation.id,
+        messages,
+      }
+    }));
+
+    client.emit('User_conversations', messages);
+  }
+
+  private async sendMessagesToUser(userID: string) {
+    const client = this.gatewaySession.getAllUserSockets();
+    if (!client || client.length === 0) return ;
+    const conversations = await this.conversationService.getConversationByUserID(userID);
+
+    const messages = await Promise.all(conversations.map(async (conversation) => {
+      const messages = await this.messageService.getMessagesByConversationID(conversation.id);
+      return {
+        conversationID: conversation.id,
+        messages,
+      }
+    }));
+
+    client.forEach((socket) => {
+      this.server.to(socket.id).emit('User_conversations', messages);
+    });
+  }
+
+  private async sendMessagesToParticipants(conversationID: string, message: any) {
+    const participants = await this.participantService.getParticipantsByConversationID(conversationID);
+
+    participants.forEach((participant) => {
+      const client = this.gatewaySession.getUserSocket(participant.user_id);
+      if (!client) return ;
+      this.server.to(client.id).emit('message_created', message);
+    });
+  }
+
+  private async sendConversationCreatedToAllClients(userID: string, conversation: any) {
+    const sockets = this.gatewaySession.getAllUserSockets();
+    if (!sockets || sockets.length === 0) return ;
+    sockets.forEach((socket) => {
+      this.server.to(socket.id).emit('conversation_created', conversation);
+    });
+    this.server.emit('conversation_created', conversation);
+  }
+
+  private async sendConversationPublicToAllClients(conversation: any) {
+    const participants = await this.participantService.getParticipantsByConversationID(conversation.id);
+
+    participants.forEach((participant) => {
+      const client = this.gatewaySession.getUserSocket(participant.user_id);
+      if (!client) return ;
+      this.server.to(client.id).emit('conversation_public', conversation);
+    });
+  }
+
+  private async sendConversationProtectedToAllClients(userID: string, conversation: any) {
+    const sockets = this.gatewaySession.getAllUserSockets();
+    if (!sockets || sockets.length === 0) return ;
+    sockets.forEach((socket) => {
+      this.server.to(socket.id).emit('conversation_protected', conversation);
+    });
+    this.server.emit('conversation_protected', conversation);
+  }
+
+  private async sendConversationJoinedToAllClients(userID: string, conversationID: string) {
+    const conversations = await this.conversationService.getConversationByID(conversationID);
+
+    const participants = conversations.participants;
+    participants.forEach(async (participant) => {
+      const messages = await this.messageService.getMessagesByConversationID(conversationID);
+      const sockets = this.gatewaySession.getAllUserSockets();
+      if (!sockets || sockets.length === 0) return ;
+      sockets.forEach((socket) => {
+        this.server.to(socket.id).emit('conversation_joined', {
+          conversationID,
+          participant,
+          messages,
+        });
+      });
+    });
+  }
+
+  private async sendConversationLeftToAllClients(userID: string, conversationID: string) {
+    const sockets = this.gatewaySession.getAllUserSockets();
+    if (!sockets || sockets.length === 0) return ;
+    sockets.forEach((socket) => {
+      this.server.to(socket.id).emit('conversation_left', {
+        conversationID,
+        userID,
+      });
+    });
+  }
+}
+ */

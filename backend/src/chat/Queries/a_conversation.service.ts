@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Privacy, Status } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateConversationDto } from './dto/create-conversation.dto';
-import { UpdateConversationDto } from './dto/update-conversation.dto';
+import { CreateConversationDto, UpdateConversationDto } from '../dto/conversation.dto';
 
 @Injectable()
 export class ConversationService {
@@ -13,7 +12,6 @@ export class ConversationService {
       data: {
         title: createConversationDto.title,
         creator_id: createConversationDto.creator_id,
-        channel_id: createConversationDto.channel_id,
 		privacy: createConversationDto.privacy,
       },
     });
@@ -23,7 +21,6 @@ export class ConversationService {
       data: {
         title: createConversationDto.title,
         creator_id: createConversationDto.creator_id,
-        channel_id: createConversationDto.channel_id,
 		password: createConversationDto.password,
 		privacy: createConversationDto.privacy,
       },
@@ -68,7 +65,6 @@ export class ConversationService {
       data: {
         title: updateConversationDto.title,
         creator_id: updateConversationDto.creator_id,
-        channel_id: updateConversationDto.channel_id,
       },
     });
   }

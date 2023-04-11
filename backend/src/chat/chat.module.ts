@@ -8,9 +8,9 @@ import { PrismaService } from 'src/database/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewaySessionManager } from './gateway.session';
-import { ConversationService } from 'src/chat/Queries/conversation.service';
+import { ConversationService } from 'src/chat/Queries/a_conversation.service';
 import { MessageService } from 'src/chat/Queries/message.service';
-import { ParticipantService } from 'src/chat/Queries/participant.service';
+import { ParticipantService } from 'src/chat/Queries/a_participant.service';
 
 @Module({
   imports: [
