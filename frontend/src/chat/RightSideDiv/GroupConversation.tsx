@@ -4,6 +4,8 @@ import { useState } from "react";
 import DropdownButtonDiv from "../components/DropDownButtonDiv";
 import DropDownDiv from "../components/DropDownDiv";
 import { ContactDiv, ContactImage, ContactName, Heading1, Heading2 } from "./styles/Conversation.styled";
+
+
 interface GroupConversationProps {
 	groupMembers: any;
 	otherUsers: any;
@@ -23,6 +25,8 @@ interface GroupConversationProps {
 	isOnBan: any;
 	isOnKick: any;
 }
+
+
 
 const Role = {
 	ADMIN: 'ADMIN',
@@ -54,6 +58,7 @@ function GroupConversation(
 		setOpenMenuId(null);
 	}, [Conversation]);
 
+	
 	if (Conversation !== undefined && !isOnBan && !isOnKick) {
 		return (
 			<>

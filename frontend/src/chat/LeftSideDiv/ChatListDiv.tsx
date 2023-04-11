@@ -3,14 +3,19 @@ import React, { useEffect, useState } from "react";
 import { Heading2 } from "../RightSideDiv/styles/Conversation.styled";
 import { ContactDiv, ContactImage, ContactName, DropdownField, StyledTiLockClosed, StyledTiLockOpen } from "./styles/ChatListDiv.styled";
 
-
+enum Nav {
+	INBOX,
+	CHANNELS,
+	EXPLORE,
+	CREATE,
+}
 interface ChatListDivProps {
 	conversations: any;
 	conversationID: any;
 	contactDivColor: any;
 	UserProfilePicture: any;
 	handleSelectedConversation: any;
-	isInGroup: boolean;
+	// isInGroup: boolean;
 	publicConversations: any;
 	isInPublic: boolean;
 	joinPublicConversation: any;
@@ -18,6 +23,7 @@ interface ChatListDivProps {
 	handleParticipantState: any;
 	isOnKick: boolean;
 	handleUnKickUser: any;
+	navBar: Nav;
 }
 
 const Privacy = {
@@ -34,14 +40,15 @@ function ChatListDiv(
 		contactDivColor,
 		UserProfilePicture,
 		handleSelectedConversation,
-		isInGroup,
+		// isInGroup,
 		publicConversations,
 		isInPublic,
 		joinPublicConversation,
 		joinProtectedConversation,
 		handleParticipantState,
 		isOnKick,
-		handleUnKickUser
+		handleUnKickUser,
+		navBar,
 	}: ChatListDivProps) {
 	const [isProtected, setIsProtected] = useState(false);
 	const [selectedConversationId, setSelectedConversationId] = useState(null);
@@ -50,6 +57,7 @@ function ChatListDiv(
 		setIsProtected(false);
 		// setPassword(''); not sure if this is needed
 	}, [isInPublic]);
+	// }, [navBar]);
 	function handlePublicConversationsClick(conversation: any) {
 		if (conversation.privacy === Privacy.PUBLIC)
 		joinPublicConversation(conversation);
@@ -78,6 +86,7 @@ function ChatListDiv(
 		}
 	}
 
+	// if (navBar === Nav.CHANNELS) {
 	if (!isInPublic) {
 		return (
 			<>
@@ -89,7 +98,8 @@ function ChatListDiv(
 									<ContactDiv key={c.id} onClick={() =>handleConversations(c)} backgroundColor={conversationID === c.id ? contactDivColor : '#1A1D1F'}>
 										<ContactImage src={UserProfilePicture} alt="" />
 										{
-										(isInGroup) ?
+										(navBar === Nav.CHANNELS) ?
+										// (isInGroup) ?
 											(c.privacy === Privacy.PUBLIC) ?
 												<><ContactName>{c.title} <StyledTiLockOpen /> </ContactName></> :
 												<><ContactName>{c.title} <StyledTiLockClosed /> </ContactName></> :

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CreateChannelButton, CreateChannelFormContainer, CreateChannelInput, CreateChannelInputContainer, CreateChannelLabel, CreateChannelOption, CreateChannelSelect, ErrorMessage, ShowPasswordCheckbox, ShowPasswordLabel } from "./styles/CreateChannelFormDiv.styled";
 import { Heading2 } from "./styles/Conversation.styled";
@@ -47,6 +46,7 @@ function CreateChannelFormDiv({ handleChannelCreation }: CreateChannelFormDivPro
 		handleChannelCreation(event, password);
 		setShowProtected(false);
 	};
+
 	return (
 		<>
 			<CreateChannelFormContainer>

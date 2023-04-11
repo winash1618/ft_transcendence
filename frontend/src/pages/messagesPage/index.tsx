@@ -27,9 +27,14 @@ const Status = {
 	BANNED: 'BANNED',
 	KICKED: 'KICKED',
 	MUTED: 'MUTED',
-	BLOCKED: 'BLOCKED',
-	DELETED: 'DELETED'
 };
+
+enum Nav {
+	INBOX,
+	CHANNELS,
+	EXPLORE,
+	CREATE,
+}
 
 const MessagesPage = () => {
 	const [message, setMessage] = useState("");
@@ -43,7 +48,8 @@ const MessagesPage = () => {
 	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
 	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
 	const [isFormVisible, setIsFormVisible] = useState(false);
-	const [isInGroup, setIsInGroup] = useState(false);
+	// const [isInGroup, setIsInGroup] = useState(false);
+	const [navBar, setNavBar] = useState(Nav.INBOX);
 	const [groupMembers, setGroupMembers] = useState([]);
 	const [otherUsers, setOtherUsers] = useState([]);
 	const [participantID, setParticipantID] = useState(null);
@@ -92,7 +98,8 @@ const MessagesPage = () => {
 
 	useEffect(() => {
 		const handleAvailableUsers = (object) => {
-			if (!isInGroup) {
+			if (navBar === Nav.INBOX) {
+			// if (!isInGroup) {
 				setUsers(object.ListOfAllUsers); // ListOfAllUsers without the current user
 				setConversations(object.conversations); // List of direct conversations for the current user
 				if (object.conversations.length > 0) {
@@ -114,7 +121,8 @@ const MessagesPage = () => {
 				setConversationID(object.conversations[0].id);
 			}
 			setIsFormVisible(false);
-			setIsInGroup(false);
+			// setIsInGroup(false);
+			setNavBar(Nav.INBOX);
 		};
 
 		const handleGroupConversations = (object) => {
@@ -168,7 +176,8 @@ const MessagesPage = () => {
 		};
 
 		const handleConversationCreated = (object) => {
-			if (isInGroup) {
+			if (navBar === Nav.INBOX) {
+			// if (isInGroup) {
 				setConversations((conversations) => [...conversations, object]);
 			}
 		};
@@ -180,6 +189,7 @@ const MessagesPage = () => {
 		const handleConversationsListed = (object) => {
 			setPublicConversations(object);
 			setIsInPublic(true);
+			// setNavBar(Nav.EXPLORE);
 		};
 
 		const handleError = (error) => {
@@ -275,6 +285,7 @@ const MessagesPage = () => {
 
 	const handleMessageNavClick = () => {
 		setIsInPublic(false);
+		// setNavBar(Nav.INBOX);
 		setIsOnBan(false);
 		setIsOnKick(false);
 		setIsOnMute(false);
@@ -288,8 +299,10 @@ const MessagesPage = () => {
 
 	const handleMessageNavNotUsedClick = () => {
 		setIsInPublic(false);
+		// setNavBar(Nav.CHANNELS);
 		setIsFormVisible(false);
-		setIsInGroup(true);
+		setNavBar(Nav.CHANNELS);
+		// setIsInGroup(true);
 		setConversations([]);
 		setMessages([]);
 		setParticipantID(null);
@@ -383,6 +396,8 @@ const MessagesPage = () => {
 			console.log("conversationID: ", conversationID);
 		}
 		setConversations(conversations.filter((c) => c.id !== conversationID));
+		setGroupMembers([]);
+		setOtherUsers([]);
 		console.log("leave channel");
 	};
 
@@ -511,7 +526,7 @@ const MessagesPage = () => {
 						contactDivColor={contactDivColor}
 						UserProfilePicture={UserProfilePicture}
 						handleSelectedConversation={handleSelectedConversation}
-						isInGroup={isInGroup}
+						// isInGroup={isInGroup}
 						publicConversations={publicConversations}
 						isInPublic={isInPublic}
 						joinPublicConversation={joinPublicConversation}
@@ -519,6 +534,7 @@ const MessagesPage = () => {
 						handleParticipantState={handleParticipantState}
 						isOnKick={isOnKick}
 						handleUnKickUser={handleUnKickUser}
+						navBar={navBar}
 					/>
 				</ChatListContainer>
 				<MessageBoxContainer>
@@ -546,7 +562,8 @@ const MessagesPage = () => {
 							<CreateChannelFormDiv
 								handleChannelCreation={handleChannelCreation}
 							/>
-						) : (isInGroup ? (
+								) : (navBar === Nav.CHANNELS ? (
+						// ) : (isInGroup ? (
 							<GroupConversation
 								groupMembers={groupMembers}
 								otherUsers={otherUsers}
