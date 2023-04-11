@@ -29,7 +29,22 @@ export class UsersService {
 		return await this.prisma.user.findUnique({ where: { login } });
 	}
 
-	remove(id: number) {
+	async getUserByLogin(login: string): Promise<User | null> {
+		return await this.prisma.user.findUnique({ where: { login } });
+	}
+
+	async getUserByIdWithParticipants(id: string) {
+		return this.prisma.user.findMany({
+			where: {
+				id: id,
+			},
+			include: {
+				participant_in: true,
+			},
+		});
+	}
+
+  remove(id: number) {
 		return `This action removes a #${id} user`;
 	}
 

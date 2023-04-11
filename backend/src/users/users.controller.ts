@@ -17,11 +17,6 @@ export class UsersController {
 		return this.usersService.create(createUserDto);
 	}
 
-	// @Get()
-	// findAll() {
-	// 	return this.usersService.users();
-	// }
-
 	@Get(':login')
 	async findOne(@Param('login') login: string) {
 		const user = await this.usersService.findOne(login);

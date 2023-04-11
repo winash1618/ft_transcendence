@@ -34,7 +34,7 @@ model Conversation {
   id                    String          @id @default(uuid())
   title                 String?         @unique
   password              String?
-  privacy               Privacy         @default(PUBLIC)
+  privacy               Privacy
   created_at            DateTime        @default(now())
   updated_at            DateTime        @default(now())
 
@@ -67,6 +67,9 @@ model Participant {
   user                  User            @relation(fields: [user_id], references: [id])
   conversation          Conversation    @relation(fields: [conversation_id], references: [id])
   messages              Message[]
+  mute_expires_at       DateTime?
+
+  @@unique([conversation_id, user_id])
 }
 
 model GameHistory {
@@ -96,8 +99,9 @@ enum Privacy {
 
 enum Status {
   ACTIVE
-  BLOCKED
-  DELETED
+  BANNED
+  KICKED
+  MUTED
 }
 
 enum UserStatus {

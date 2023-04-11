@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
+import { MessageOutlined } from "@ant-design/icons";
+import { PlayCircleOutlined } from "@ant-design/icons";
+import { HomeOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import axios, { BASE_URL } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -18,9 +21,10 @@ import { IoNotifications } from "react-icons/io5";
 const { Content, Footer, Header } = Layout;
 
 const navItems = [
-  { icon: UserOutlined, path: "/", label: "Leaderboard" },
-  { icon: UserOutlined, path: "/pingpong", label: "Play ping pong" },
-  { icon: UserOutlined, path: "/messages", label: "Messages" },
+  { icon: HomeOutlined, path: "/", label: "Home" },
+  { icon: UserOutlined, path: "/leaderboard", label: "Leaderboard" },
+  { icon: PlayCircleOutlined, path: "/pingpong", label: "Play ping pong" },
+  { icon: MessageOutlined, path: "/messages", label: "Messages" },
 ];
 
 const Navbar: React.FC = () => {
