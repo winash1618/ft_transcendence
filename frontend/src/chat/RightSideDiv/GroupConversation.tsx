@@ -85,6 +85,7 @@ function GroupConversation(
 										handleBanUser={handleBanUser}
 										handleMuteUser={handleMuteUser}
 										handleKickUser={handleKickUser}
+										handleDirectBlock={null}
 									/>
 								</React.Fragment>
 							);
@@ -116,6 +117,7 @@ function GroupConversation(
 											handleBanUser={null}
 											handleMuteUser={null}
 											handleKickUser={null}
+											handleDirectBlock={null}
 										/>
 									</React.Fragment>
 								)
@@ -146,6 +148,7 @@ function GroupConversation(
 											handleBanUser={null}
 											handleMuteUser={null}
 											handleKickUser={null}
+											handleDirectBlock={null}
 										/>
 									</React.Fragment>
 								)
@@ -179,6 +182,7 @@ function GroupConversation(
 										handleBanUser={null}
 										handleMuteUser={null}
 										handleKickUser={null}
+										handleDirectBlock={null}
 									/>
 								</React.Fragment>
 							)

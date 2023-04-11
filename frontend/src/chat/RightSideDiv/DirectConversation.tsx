@@ -12,6 +12,7 @@ interface DirectConversationProps {
 	contactDivColor: any;
 	UserProfilePicture: any;
 	createDirectChat: any;
+	handleDirectBlock: any;
 }
 
 function DirectConversation(
@@ -21,7 +22,8 @@ function DirectConversation(
 		user,
 		contactDivColor,
 		UserProfilePicture,
-		createDirectChat
+		createDirectChat,
+		handleDirectBlock,
 	}: DirectConversationProps) {
 	const [openMenuId, setOpenMenuId] = useState(null);
 	useEffect(() => {
@@ -55,6 +57,7 @@ function DirectConversation(
 									handleBanUser={null}
 									handleMuteUser={null}
 									handleKickUser={null}
+									handleDirectBlock={handleDirectBlock}
 								/>
 							</React.Fragment>
 						);

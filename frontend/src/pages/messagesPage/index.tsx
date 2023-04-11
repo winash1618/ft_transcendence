@@ -74,6 +74,7 @@ const MessagesPage = () => {
 				return null;
 			}
 		};
+
 		const getSocket = async () => {
 			const socket = io(process.env.REACT_APP_SOCKET_URL, {
 				withCredentials: true,
@@ -120,21 +121,16 @@ const MessagesPage = () => {
 			setConversations(object.conversations);
 			setGroupMembers(object.groupMembers);
 			setOtherUsers(object.otherUsers);
-
 			if (object.conversations.length > 0) {
-				if (object.conversations[0].participant.status === Status.ACTIVE) {
-					handleOnLoadConversation(object.conversations[0]);
-					setConversationID(object.conversations[0].id);
+				if (object.conversations[0].participant.status === Status.ACTIVE || object.conversations[0].participant.status === Status.MUTED) {
 					for (const p of object.conversations[0].participants) {
 						if (user && p.user_id === user.id) {
 							setParticipantID(p.id);
-							console.log("participantID: ", participantID, "participantID2: ", p.id);
 						}
 					}
+					setConversationID(object.conversations[0].id);
 				}
-				else {
-					handleParticipantState(object.conversations[0]);
-				}
+				handleParticipantState(object.conversations[0]);
 			}
 			else {
 				setMessages([]);
@@ -144,9 +140,7 @@ const MessagesPage = () => {
 		const handleReloadConversations = (object) => {
 			console.log("handleReloadConversations: ", object);
 			const conversation = object.conversation;
-			console.log("conversation1111:111 ", conversation);
 			setConversations(object.conversations);
-			console.log("conversation1111: ", conversations, "conversation: ", object.conversations);
 			setGroupMembers(object.groupMembers);
 			setOtherUsers(object.otherUsers);
 			setMessages([]);
@@ -167,7 +161,7 @@ const MessagesPage = () => {
 		};
 
 		const handleMessageReceived = (message) => {
-			console.log("conversationID: ", conversationID, "Message received: ", message);
+			console.log("handleMessageReceived: ", message, "conversationID: ", conversationID);
 			if (message.conversation_id === conversationID) {
 				setMessages((messages) => [...messages, message]);
 			}
@@ -175,7 +169,6 @@ const MessagesPage = () => {
 
 		const handleConversationCreated = (object) => {
 			if (isInGroup) {
-				console.log("I am here: ", object);
 				setConversations((conversations) => [...conversations, object]);
 			}
 		};
@@ -207,15 +200,17 @@ const MessagesPage = () => {
 				window.location.reload();
 			}
 		};
+
 		const handleUserKicked = (user_id) => {
-			console.log("I am here: ", user_id);
 			if (user_id === user.id) {
 				window.location.reload();
 			}
 		};
+
 		const handleUserUnKicked = (user_id) => {
 			window.location.reload();
 		};
+
 		const handleUserMuted = (user_id) => {
 			if (user_id === user.id) {
 				window.location.reload();
@@ -257,14 +252,6 @@ const MessagesPage = () => {
 		};
 	}, [socket, user, conversationID, setUsers, setConversations, setGroupMembers, setOtherUsers, setMessages]);
 
-	// useEffect(() => {
-	// 	if (!hasReloaded && isOnBan) {
-	// 		console.log("itefsasdf", iitit++);
-
-	// 		setHasReloaded(true);
-	// 	}
-	// }, [hasReloaded]);
-
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		if (message.trim() !== "") {
@@ -291,6 +278,9 @@ const MessagesPage = () => {
 		setIsOnBan(false);
 		setIsOnKick(false);
 		setIsOnMute(false);
+		setConversations([]);
+		setMessages([]);
+		setParticipantID(null);
 		socket?.emit('getDirectConversations');
 		setMessageNavButtonColor("#00A551");
 		setMessageNavButtonColorNotUsed("#1A1D1F");
@@ -314,7 +304,6 @@ const MessagesPage = () => {
 
 	const handleSelectedConversation = async (conversation) => {
 		socket?.emit('reloadConversations', conversation);
-		
 	};
 
 	const handleOnLoadConversation = async (conversation) => {
@@ -417,7 +406,6 @@ const MessagesPage = () => {
 		socket?.emit('changePassword', { conversation_id: conversationID, password: password });
 	};
 
-
 	const handleRemovePassword = () => {
 		socket?.emit('removePassword', conversationID);
 	};
@@ -442,9 +430,7 @@ const MessagesPage = () => {
 
 	const handleParticipantState = (conversation) => {
 		console.log("This is happening because i am debugging");
-		console.log("conversation: ", conversation);
-		setConversationID(conversation.id);
-		console.log("conversationID: ", conversationID, "conversationID2: ", conversation.id);
+		console.log("conversation for group: ", conversation);
 		console.log("isOnBan: ", isOnBan, "isOnMute: ", isOnMute, "isOnKick: ", isOnKick);
 		setIsOnBan(false);
 		setIsOnMute(false);
@@ -466,23 +452,46 @@ const MessagesPage = () => {
 			console.log("I am here");
 			handleSelectedConversation(conversation);
 		}
-		// const garbageCollector = setInterval(() => {
-		// 	if (conversation.participant.conversation_status === Status.BLOCKED) {
-		// 		setIsOnBan(true);
-		// 	}
-		// 	else {
-		// 		setIsOnBan(false);
-		// 	}
-		// }, 1000);
-		// return () => {
-		// 	clearInterval(garbageCollector);
-		// };
 	};
 
 	const handleUnKickUser = (conversation) => {
 		socket?.emit('unKickUser', { conversation_id: conversation.id, participant_id: conversation.participant.id });
 		setIsOnKick(false);
 	};
+
+	const handleDirectBlock = (user) => {
+		let conversation_id = null;
+		for (let i = 0; i < conversations.length; i++) {
+			const c = conversations[i];
+			for (let j = 0; j < c.participants.length; j++) {
+				const p = c.participants[j];
+				if (p.user_id === user.id) {
+					conversation_id = c.id;
+					break;
+				}
+			}
+			if (conversation_id !== null) {
+				break;
+			}
+		}
+		console.log("conversationID: ", conversation_id, "user: ", user);
+		socket?.emit('directBlock', { conversation_id: conversation_id, user_id: user.id });
+	};
+
+	// check if the expiration time of mute is passed in regular intervals
+	// useEffect(() => {
+	// 	const interval = setInterval(() => {
+	// 		if (isOnMute) {
+	// 			const conversation = conversations.filter((c) => c.id === conversationID);
+	// 			if (conversation[0].participant.mute_expiration_time < new Date()) {
+	// 				setIsOnMute(false);
+	// 				socket.emit('unMuteUser', { conversation_id: conversationID, participant_id: conversation[0].participant.id })
+	// 				alert("You have been unmuted from this channel");
+	// 			}
+	// 		}
+	// 	}, 1000);
+	// 	return () => clearInterval(interval);
+	// }, [isOnMute]);
 
 	return (
 		<>
@@ -527,6 +536,8 @@ const MessagesPage = () => {
 						handleSubmit={handleSubmit}
 						setParticipantIdInInput={setParticipantIdInInput}
 						isOnMute={isOnMute}
+						isOnBan={isOnBan}
+						isOnKick={isOnKick}
 					/>
 				</MessageBoxContainer>
 				<RightSideDiv>
@@ -565,6 +576,7 @@ const MessagesPage = () => {
 								contactDivColor={contactDivColor}
 								UserProfilePicture={UserProfilePicture}
 								createDirectChat={createDirectChat}
+								handleDirectBlock={handleDirectBlock}
 							/>
 						))
 					}

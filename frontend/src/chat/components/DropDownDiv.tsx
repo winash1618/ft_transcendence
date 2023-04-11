@@ -15,6 +15,7 @@ interface DropDownDivProps {
 	handleBanUser: any;
 	handleMuteUser: any;
 	handleKickUser: any;
+	handleDirectBlock: any;
 }
 
 function DropDownDiv(
@@ -29,7 +30,8 @@ function DropDownDiv(
 		handleMakeAdmin,
 		handleBanUser,
 		handleMuteUser,
-		handleKickUser
+		handleKickUser,
+		handleDirectBlock,
 	}: DropDownDivProps) {
 	const [password, setPassword] = useState('');
 	const [selectedUserLogin, setSelectedUserLogin] = useState(null);
@@ -75,6 +77,7 @@ function DropDownDiv(
 			createDirectChat(user);
 		}
 		else if (e.target.innerText === "block") {
+			handleDirectBlock(user);
 			console.log("block");
 		}
 		else if (e.target.innerText === "invite") {
