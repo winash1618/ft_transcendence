@@ -1,12 +1,12 @@
 import { UseGuards } from '@nestjs/common';
 import {
-	MessageBody,
-	OnGatewayConnection,
-	OnGatewayDisconnect,
-	OnGatewayInit,
-	SubscribeMessage,
-	WebSocketGateway,
-	WebSocketServer,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
@@ -21,22 +21,22 @@ import { randomUUID } from 'crypto';
 import { copyFileSync } from 'fs';
 
 @WebSocketGateway(8001, {
-	cors: {
-		origin: process.env.FRONTEND_BASE_URL,
-		credentials: true,
-	},
+  cors: {
+    origin: process.env.FRONTEND_BASE_URL,
+    credentials: true,
+  },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 
-	constructor(
-		private prisma: PrismaService,
-		private conversationService: ConversationService,
-		private participantService: ParticipantService,
-		private messageService: MessageService,
-		private readonly jwtService: JwtService,
-		private usersService: UsersService
-	) { }
+  constructor(
+    private prisma: PrismaService,
+    private conversationService: ConversationService,
+    private participantService: ParticipantService,
+    private messageService: MessageService,
+    private readonly jwtService: JwtService,
+    private usersService: UsersService,
+  ) {}
 
 	async handleConnection(socket: AuthenticatedSocket) {
 		const token = socket.handshake.auth.token;

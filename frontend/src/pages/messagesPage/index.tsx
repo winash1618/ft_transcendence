@@ -44,7 +44,7 @@ const MessagesPage = () => {
 	const [conversations, setConversations] = useState([]);
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [conversationID, setConversationID] = useState(null);
-	const [messageNavButtonColor, setMessageNavButtonColor] = useState("#00A551");
+	const [messageNavButtonColor, setMessageNavButtonColor] = useState("#ffffff");
 	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
 	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
 	const [isFormVisible, setIsFormVisible] = useState(false);
@@ -293,7 +293,7 @@ const MessagesPage = () => {
 		setMessages([]);
 		setParticipantID(null);
 		socket?.emit('getDirectConversations');
-		setMessageNavButtonColor("#00A551");
+		setMessageNavButtonColor("#ffffff");
 		setMessageNavButtonColorNotUsed("#1A1D1F");
 	};
 
@@ -308,12 +308,14 @@ const MessagesPage = () => {
 		setParticipantID(null);
 		socket?.emit('getGroupConversations');
 		setMessageNavButtonColor("#1A1D1F");
-		setMessageNavButtonColorNotUsed("#00A551");
+		setMessageNavButtonColorNotUsed("#ffffff");
 	};
 
 	const handleCreateConversationClick = () => {
 		setIsFormVisible(true);
 	};
+
+	
 
 	const handleSelectedConversation = async (conversation) => {
 		socket?.emit('reloadConversations', conversation);
