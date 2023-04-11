@@ -38,8 +38,6 @@ services:
     working_dir: /app/backend
     command: >
       bash -c "npm install
-      && npx prisma migrate dev --name init
-      && npx prisma generate
       && npm i -g @nestjs/cli
       && npm run start:dev"
     networks:

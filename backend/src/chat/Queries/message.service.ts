@@ -13,8 +13,6 @@ export class MessageService {
   async createMessage(createMessage: CreateMessageDto) {
     const conversation = await this.conversationService.checkConversationExists(createMessage.conversation_id);
 
-    console.log(conversation);
-
     if (!conversation) {
       throw new Error('Conversation does not exist');
     }

@@ -268,7 +268,6 @@ export class GameEngine {
         this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
         const winner: string = this.gameObj.player1.points >= GAME_POINTS ? this.player1 : this.player2;
         const looser: string = this.gameObj.player1.points >= GAME_POINTS ? this.player2 : this.player1;
-        console.log(this.users.get(winner).userID);
         this.users.get(winner).client.emit('win', winner);
         this.users.get(looser).client.emit('lose', looser);
       }
