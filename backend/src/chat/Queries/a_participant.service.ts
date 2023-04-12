@@ -4,7 +4,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { CreateParticipantDto, UpdateParticipantDto } from '../dto/participants.dto';
 
 @Injectable()
-export class ParticipantService {
+export class a_ParticipantService {
   constructor(private prisma: PrismaService) {}
 
   async create(createParticipantDto: CreateParticipantDto) {

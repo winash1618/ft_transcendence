@@ -2,8 +2,9 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Privacy, Role, Status } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateConversationDto, UpdateConversationDto } from '../dto/conversation.dto';
-import * as brypt from 'bcrypt';
+// import * as brypt from 'bcrypt';
 import { ParticipantService } from './participant.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ConversationService {
@@ -11,15 +12,16 @@ export class ConversationService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => ParticipantService))
     private participantService: ParticipantService,
+    private userService: UsersService,
     ) {}
 
-  private async hashPassword(password: string) {
-    return await brypt.hash(password, 10);
-  }
+  // private async hashPassword(password: string) {
+  //   return await brypt.hash(password, 10);
+  // }
 
-  private async validatePassword(password: string, hash: string) {
-    return await brypt.compare(password, hash);
-  }
+  // private async validatePassword(password: string, hash: string) {
+  //   return await brypt.compare(password, hash);
+  // }
 
   async createConversation(createConversation: CreateConversationDto) {
     if (createConversation.privacy === 'PRIVATE' &&
@@ -28,9 +30,9 @@ export class ConversationService {
       throw new Error('Password is required for private conversation');
     }
 
-    if (createConversation.privacy === 'PROTECTED') {
-      createConversation.password = await this.hashPassword(createConversation.password);
-    }
+    // if (createConversation.privacy === 'PROTECTED') {
+    //   createConversation.password = await this.hashPassword(createConversation.password);
+    // }
 
 
     return await this.prisma.conversation.create({
@@ -54,52 +56,182 @@ export class ConversationService {
       throw new Error('Conversation is already protected');
     }
 
-    const hashedPassword = await this.hashPassword(password);
+    // const hashedPassword = await this.hashPassword(password);
 
     return await this.prisma.conversation.update({
       where: {
         id: conversationID,
       },
       data: {
-        password: hashedPassword,
+        // password: hashedPassword,
         privacy: Privacy.PROTECTED,
       },
     });
   }
 
-  // async createDirectConversation(createConversation: CreateConversationDto, userID: string, otherUserID: string) {
-  //   if (this.checkDirectConversationExists(userID, otherUserID)) {
-  //     throw new Error('Direct conversation already exists');
-  //   }
+  async createDirectConversation(createConversation: CreateConversationDto, userID: string, otherUserID: string) {
+    if (this.checkDirectConversationExists(userID, otherUserID)) {
+      throw new Error('Direct conversation already exists');
+    }
 
-  //   if (userID === otherUserID) {
-  //     throw new Error('Cannot create direct conversation with yourself');
-  //   }
+    if (userID === otherUserID) {
+      throw new Error('Cannot create direct conversation with yourself');
+    }
 
-  //   // Check if other user is blocked or exists
+    // Check if other user is blocked or exists
 
-  //   const conversation = await this.prisma.conversation.create({
-  //     data: {
-  //       privacy: Privacy[createConversation.privacy],
+    const privacy = createConversation.privacy;
+
+    const conversation = await this.createConversation(createConversation);
+
+    await this.participantService.addParticipantToConversation({
+      conversation_id: conversation.id,
+      user_id: userID,
+      role: Role['OWNER'],
+      conversation_status: 'ACTIVE',
+    });
+
+    await this.participantService.addParticipantToConversation({
+      conversation_id: conversation.id,
+      user_id: otherUserID,
+      role: Role['MEMBER'],
+      conversation_status: 'ACTIVE',
+    });
+
+    return conversation;
+  }
+
+  // async getDirectConversationList(userID: string) {
+  //   return this.prisma.conversation.findMany({
+  //     where: {
+  //       participants: {
+  //         some: {
+  //           user_id: userID,
+  //           role: Role['OWNER'],
+  //           conversation_status: {
+  //             not: Status['BANNED']
+  //           }
+  //         },
+  //       },
   //     },
-  //   });
+  //     include: {
+  //       // include only id, title, and privacy
 
-  //   await this.participantService.addParticipantToConversation({
-  //     conversation_id: conversation.id,
-  //     user_id: userID,
-  //     role: 'OWNER',
-  //     conversation_status: 'ACTIVE',
-  //   });
+  async getDirectConversations(userID: string) {
+    if (this.userService.checkIfUserExists(userID)) {
+      throw new Error('User does not exist');
+    }
 
-  //   await this.participantService.addParticipantToConversation({
-  //     conversation_id: conversation.id,
-  //     user_id: otherUserID,
-  //     role: 'MEMBER',
-  //     conversation_status: 'ACTIVE',
-  //   });
+    return await this.prisma.conversation.findMany({
+      where: {
+        privacy: Privacy.DIRECT,
+        participants: {
+          some: {
+            user_id: userID,
+          },
+        },
+      },
+      orderBy: {
+        updated_at: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+        privacy: true,
+      },
+    });
+  }
 
-  //   return conversation;
-  // }
+  async getChannels(userID: string) {
+    if (this.userService.checkIfUserExists(userID)) {
+      throw new Error('User does not exist');
+    }
+
+    return await this.prisma.conversation.findMany({
+      where: {
+        privacy: {
+          in: [Privacy.PUBLIC, Privacy.PRIVATE, Privacy.PROTECTED],
+        },
+        participants: {
+          some: {
+            user_id: userID,
+          },
+        },
+      },
+      orderBy: {
+        updated_at: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+        privacy: true,
+      },
+    });
+  }
+
+  async findChannelsThatUserIsNotIn(userID: string) {
+    if (this.userService.checkIfUserExists(userID)) {
+      throw new Error('User does not exist');
+    }
+
+    return await this.prisma.conversation.findMany({
+      where: {
+        privacy: {
+          in: [Privacy.PUBLIC, Privacy.PROTECTED],
+        },
+        participants: {
+          every: {
+            user_id: {
+              not: userID,
+            },
+          },
+        },
+      },
+      orderBy: {
+        updated_at: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+        privacy: true,
+      },
+    });
+  }
+
+  async friendsNotInConversation(userID: string, conversationID: string) {
+    if (this.userService.checkIfUserExists(userID)) {
+      throw new Error('User does not exist');
+    }
+
+    if (this.checkConversationExists(conversationID)) {
+      throw new Error('Conversation does not exist');
+    }
+
+    if (!this.participantService.isUserAdminInConversation(userID, conversationID)) {
+      throw new Error('User is not admin of the conversation');
+    }
+
+    const friends = await this.prisma.user.findUnique({
+      where: {
+        id: userID,
+      },
+      select: {
+        friends: {
+          where: {
+            NOT: {
+              participant_in: {
+                some: {
+                  conversation_id: conversationID,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return friends?.friends || [];
+  }
 
   async checkConversationExists(conversationID: string) {
     return await this.prisma.conversation.findUnique({
@@ -138,6 +270,7 @@ export class ConversationService {
             user: true,
           },
         },
+        messages: true,
       },
     });
   }
@@ -166,8 +299,43 @@ export class ConversationService {
         participants: {
           include: {
             user: true,
+            messages: true,
           },
         }
+      },
+    });
+  }
+
+  async getConversationByUserIDAndSortedMessages(userID: string) {
+    return this.prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: {
+            user_id: userID,
+            conversation_status: {
+              not: Status['BANNED']
+            }
+          },
+        },
+      },
+      include: {
+        participants: {
+          include: {
+            user: true,
+            messages: {
+              orderBy: {
+                created_at: 'desc',
+              },
+              take: 1,
+            },
+          },
+        },
+        messages: {
+          orderBy: {
+            created_at: 'desc',
+          },
+          take: 1,
+        },
       },
     });
   }

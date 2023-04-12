@@ -9,7 +9,7 @@ async function seed() {
       username: 'User One',
       first_name: 'John',
       last_name: 'Doe',
-      user_status: 'OFFLINE',
+      user_status: 'ONLINE',
     },
   });
 
@@ -17,21 +17,43 @@ async function seed() {
     data: {
       login: 'user2',
       username: 'User Two',
-      first_name: 'Jane',
-      last_name: 'Doe',
+      user_status: 'ONLINE',
+    },
+  });
+
+  const user3 = await prisma.user.create({
+    data: {
+      login: 'user3',
+      username: 'User Three',
       user_status: 'OFFLINE',
     },
   });
 
-  // Create sample game history
-  const gameHistory = await prisma.gameHistory.create({
+  // Create friendships
+  await prisma.user.update({
+    where: { id: user1.id },
     data: {
-      player_one: user1.id,
-      player_two: user2.id,
-      player_score: 5,
-      opponent_score: 3,
-      winner: user1.id,
-      looser: user2.id,
+      friends: {
+        connect: [{ id: user2.id }, { id: user3.id }],
+      },
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: user2.id },
+    data: {
+      friends: {
+        connect: [{ id: user1.id }, { id: user3.id }],
+      },
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: user3.id },
+    data: {
+      friends: {
+        connect: [{ id: user1.id }, { id: user2.id }],
+      },
     },
   });
 }

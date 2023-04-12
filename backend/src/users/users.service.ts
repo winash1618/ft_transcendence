@@ -65,4 +65,37 @@ export class UsersService {
       data: { username: name },
     });
   }
+
+  async getUsersApartFromUser(id: string) {
+    return this.prisma.user.findMany({
+      where: {
+        id: {
+          not: id,
+        },
+      },
+    });
+  }
+
+  async checkIfUserExists(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (user) {
+      return true;
+    }
+    return false;
+  }
+
+  async getFriendsUserFriends(userID: string) {
+    return this.prisma.user.findMany({
+      where: {
+        friends: {
+          some: {
+            id: userID,
+          },
+        },
+      },
+    });
+  }
+
 }

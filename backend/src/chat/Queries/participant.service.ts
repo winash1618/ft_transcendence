@@ -107,6 +107,39 @@ export class ParticipantService {
     });
   }
 
+  async getParticipants(conversationID: string) {
+    if (!this.conversationService.checkConversationExists(conversationID)) {
+      throw new Error('Conversation does not exist');
+    }
+
+    return await this.prisma.participant.findMany({
+      where: {
+        conversation_id: conversationID,
+      },
+      select: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+        role: true,
+        conversation_status: true,
+      },
+    });
+  }
+
+  async isUserAdminInConversation(userID: string, conversationID: string) {
+    const participant = await this.prisma.participant.findFirst({
+      where: {
+        user_id: userID,
+        conversation_id: conversationID,
+        role: Role.ADMIN,
+      },
+    });
+
+    return !!participant;
+  }
+
   async getConversationByUserId(userId: string) {
     return await this.prisma.participant.findMany({
       where: {
