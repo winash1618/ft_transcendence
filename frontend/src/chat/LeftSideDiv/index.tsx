@@ -33,9 +33,9 @@ const LeftSideDiv = ({
 				setConversations={setConversations}
 			/>
 			<LeftSideBody
-				user={user}
 				socket={socket}
 				Navbar={Navbar}
+				setNavbar={setNavbar}
 				conversations={conversations}
 				conversationID={conversationID}
 				UserProfilePicture={UserProfilePicture}

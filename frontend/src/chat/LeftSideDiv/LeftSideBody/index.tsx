@@ -2,20 +2,22 @@ import { useEffect, useState } from "react";
 import { Nav } from "../../chat.functions";
 import DirectChat from "./DirectChat";
 import GroupChat from "./GroupChat";
+import ExploreChat from "./ExploreChat";
+import CreateChat from "./CreateChat";
 
 interface LeftSideBodyProps {
-	user: any;
 	socket: any;
 	Navbar: Nav;
+	setNavbar: any;
 	conversationID: any;
 	conversations: any;
 	UserProfilePicture: any;
 }
 
 const LeftSideBody = ({
-	user,
 	socket,
 	Navbar,
+	setNavbar,
 	conversationID,
 	conversations,
 	UserProfilePicture,
@@ -27,8 +29,6 @@ const LeftSideBody = ({
 		console.log("Direct 1");
 		return (
 			<DirectChat
-				socket={socket}
-				Navbar={Navbar}
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
 				selectedConversationID={selectedConversationID}
@@ -39,8 +39,6 @@ const LeftSideBody = ({
 	else if (Navbar === Nav.GROUPS) {
 		return (
 			<GroupChat
-				socket={socket}
-				Navbar={Navbar}
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
 				selectedConversationID={selectedConversationID}
@@ -48,19 +46,23 @@ const LeftSideBody = ({
 			/>
 		);
 	} 
-	// else if (Navbar === Nav.EXPLORE) {
-	// 	return (
-	// 		<ExploreChat
-	// 			socket={socket}
-	// 		/>
-	// 	);
-	// } else if (Navbar === Nav.CREATE) {
-	// 	return (
-	// 		<CreateChat
-	// 			socket={socket}
-	// 		/>
-	// 	);
-	// }
+	else if (Navbar === Nav.EXPLORE) {
+		return (
+			<ExploreChat
+				conversations={conversations}
+				selectedConversationID={selectedConversationID}
+				setSelectedConversationID={setSelectedConversationID}
+			/>
+		);
+	}
+	 else if (Navbar === Nav.CREATE) {
+		return (
+			<CreateChat
+				socket={socket}
+				setNavbar={setNavbar}
+			/>
+		);
+	}
 };
 
 export default LeftSideBody;

@@ -28,64 +28,101 @@ function LeftSideHeader({
 	setConversations,
 }: LeftSideHeaderProps) {
 	const dispatch = useAppDispatch();
-	const getConversation = async (nav: Nav) => {
-		const getToken = async () => {
-			try {
-			  const response = await axios.get("http://localhost:3001/token", {
-				withCredentials: true,
-			  });
-			  localStorage.setItem("auth", JSON.stringify(response.data));
-			  return response.data.token;
-			} catch (err) {
-			  dispatch(logOut());
-			  window.location.reload();
-			  return null;
-			}
-		  };
-		  
-		if (nav === Nav.DIRECT)
-		{
-			const token = await getToken();
-			console.log(token);
-			try {
-				const result = await axios.get("http://localhost:3001/chat/direct", {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				setConversations(result.data);
-			} catch (err) {
-				setConversations([]);
-				console.log(err);
-			}
-		}
-		else if (nav === Nav.GROUPS)
-		{
-			const token = await getToken();
-			try {
-				const result = await axios.get("http://localhost:3001/chat/groups", {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				setConversations(result.data);
-			} catch (err) {
-				setConversations([]);
-				console.log(err);
-			}
-		}
+	
 
-		setNavbar(nav);
-	};
+	useEffect(() => {
+		const getConversation = async (nav: Nav) => {
+			const getToken = async () => {
+				try {
+				  const response = await axios.get("http://localhost:3001/token", {
+					withCredentials: true,
+				  });
+				  localStorage.setItem("auth", JSON.stringify(response.data));
+				  return response.data.token;
+				} catch (err) {
+				  dispatch(logOut());
+				  window.location.reload();
+				  return null;
+				}
+			  };
+			  
+			if (nav === Nav.DIRECT)
+			{
+				const token = await getToken();
+				console.log(token);
+				try {
+					const result = await axios.get("http://localhost:3001/chat/direct", {
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					});
+					setConversations(result.data);
+				} catch (err) {
+					setConversations([]);
+					console.log(err);
+				}
+			}
+			else if (nav === Nav.GROUPS)
+			{
+				const token = await getToken();
+				try {
+					const result = await axios.get("http://localhost:3001/chat/groups", {
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					});
+					setConversations(result.data);
+				} catch (err) {
+					setConversations([]);
+					console.log(err);
+				}
+			}
+			else if (nav === Nav.CREATE)
+			{
+				const token = await getToken();
+				try {
+					const result = await axios.get("http://localhost:3001/chat/create", {
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					});
+				} catch (err) {
+					setConversations([]);
+					console.log(err);
+				}
+			}
+			else if (nav === Nav.EXPLORE)
+			{
+				console.log("Explore");
+				const token = await getToken();
+				try {
+					const result = await axios.get("http://localhost:3001/chat/explore", {
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					});
+					setConversations(result.data);
+				} catch (err) {
+					setConversations([]);
+					console.log(err);
+				}
+			}
+
+		};
+		getConversation(Navbar);
+	}, [Navbar]);
+
 
 
 	return (
 		<>
 			<ParentMessageNav>
 				<StyledHiOutlineUser
-					onClick={() => getConversation(Nav.DIRECT)}
+					onClick={() => setNavbar(Nav.DIRECT)}
 					color={Navbar === Nav.DIRECT ? Colors.WHITE : Colors.PRIMARY}
 					size={30}
 				/>
@@ -95,13 +132,13 @@ function LeftSideHeader({
 					size={30}
 				/>
 				<StyledBiCommentAdd
-					onClick={() => setNavbar(Nav.EXPLORE)}
-					color={Navbar === Nav.EXPLORE ? Colors.WHITE : Colors.PRIMARY}
+					onClick={() => setNavbar(Nav.CREATE)}
+					color={Navbar === Nav.CREATE ? Colors.WHITE : Colors.PRIMARY}
 					size={30}
 				/>
 				<StyledMdOutlineTravelExplore
-					onClick={() => setNavbar(Nav.CREATE)}
-					color={Navbar === Nav.CREATE ? Colors.WHITE : Colors.PRIMARY}
+					onClick={() => setNavbar(Nav.EXPLORE)}
+					color={Navbar === Nav.EXPLORE ? Colors.WHITE : Colors.PRIMARY}
 					size={30}
 				/>
 			</ParentMessageNav>

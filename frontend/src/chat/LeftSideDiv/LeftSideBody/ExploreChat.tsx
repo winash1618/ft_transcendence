@@ -1,24 +1,23 @@
-import React, { useState } from "react";
-import { Colors, Nav, Privacy } from "../../chat.functions";
+import React from "react";
 import { ContactDiv, ContactImage, ContactName } from "./LeftSideBody.styled";
+import { Colors, Privacy } from "../../chat.functions";
 
-interface GroupChatProps {
+interface ExploreChatProps {
 	conversations: any;
-	UserProfilePicture: any;
 	selectedConversationID: any;
 	setSelectedConversationID: any;
 }
 
-const GroupChat = ({
+const ExploreChat = ({
 	conversations,
-	UserProfilePicture,
 	selectedConversationID,
 	setSelectedConversationID,
-}: GroupChatProps) => {
+} : ExploreChatProps) => {
 
 	function handleSelectedConversation(conversation: any) {
 		setSelectedConversationID(conversation.id);
 	}
+
 	return (
 		<>
 			{
@@ -27,7 +26,6 @@ const GroupChat = ({
 						return (
 							<React.Fragment key={c.id}>
 								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={selectedConversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
-									<ContactImage src={UserProfilePicture} alt="" />
 									<ContactName>{c.title}{(c.privacy === Privacy.PUBLIC) ? (" (PUBLIC)") : (c.privacy === Privacy.PROTECTED) ? (" (PROTECTED)") : (c.privacy === Privacy.PRIVATE) ? (" (PRIVATE)") : null}</ContactName>
 								</ContactDiv>
 							</React.Fragment>
@@ -39,4 +37,4 @@ const GroupChat = ({
 	);
 };
 
-export default GroupChat;
+export default ExploreChat;

@@ -62,7 +62,7 @@ export class ChatController {
       }
     }
 
-    @Get('search/channels')
+    @Get('explore')
     async searchChannels(@Req() req) {
       try {
         return await this.conversationService.findChannelsThatUserIsNotIn(req.user.id);

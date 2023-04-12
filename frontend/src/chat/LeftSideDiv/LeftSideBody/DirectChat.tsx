@@ -3,8 +3,6 @@ import { ContactDiv, ContactImage, ContactName, DropdownField, StyledTiLockClose
 import { Nav, Privacy, Colors } from "../../chat.functions";
 
 interface DirectChatProp {
-	socket: any;
-	Navbar: Nav;
 	conversations: any;
 	UserProfilePicture: any;
 	selectedConversationID: any;
@@ -12,8 +10,6 @@ interface DirectChatProp {
 }
 
 const DirectChat = ({
-	socket,
-	Navbar,
 	conversations,
 	UserProfilePicture,
 	selectedConversationID,

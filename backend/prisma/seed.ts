@@ -59,11 +59,26 @@ async function seed() {
 
   const conversation1 = await prisma.conversation.create({
     data: {
-      privacy: Privacy['DIRECT'],
-      creator_id: user1.id,
+		title: 'Conversation 1',
+      privacy: Privacy['PUBLIC'],
+      creator_id: user3.id,
       participants: {
         create: [
-          { user_id: user1.id },
+          { user_id: user3.id },
+          { user_id: user2.id },
+        ],
+      },
+    },
+  });
+
+  const conversation4 = await prisma.conversation.create({
+    data: {
+		title: 'Conversation 4',
+      privacy: Privacy['PROTECTED'],
+      creator_id: user3.id,
+      participants: {
+        create: [
+          { user_id: user3.id },
           { user_id: user2.id },
         ],
       },
@@ -72,7 +87,8 @@ async function seed() {
 
   const conversation2 = await prisma.conversation.create({
     data: {
-      privacy: 'DIRECT',
+		title: 'Conversation 2',
+      privacy: 'PUBLIC',
       creator_id: user1.id,
       participants: {
         create: [
@@ -85,7 +101,8 @@ async function seed() {
 
   const conversation3 = await prisma.conversation.create({
     data: {
-      privacy: 'DIRECT',
+		title: 'Conversation 3',
+      privacy: 'PROTECTED',
       creator_id: user2.id,
       participants: {
         create: [
