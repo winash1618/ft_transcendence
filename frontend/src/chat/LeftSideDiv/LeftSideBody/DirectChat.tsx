@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ContactDiv, ContactImage, ContactName, DropdownField, StyledTiLockClosed, StyledTiLockOpen } from "./LeftSideBody.styled";
 import { Nav, Privacy, Colors } from "../../chat.functions";
 
@@ -18,7 +18,6 @@ const DirectChat = ({
 	UserProfilePicture,
 	selectedConversationID,
 	setSelectedConversationID,
-
 }: DirectChatProp) => {
 
 	function handleSelectedConversation(conversation: any) {
@@ -33,7 +32,7 @@ const DirectChat = ({
 							<React.Fragment key={c.id}>
 								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={selectedConversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
 									<ContactImage src={UserProfilePicture} alt="" />
-									<ContactName>{c.user.login}</ContactName>
+									<ContactName>{c.participants[0].user.username}</ContactName>
 								</ContactDiv>
 							</React.Fragment>
 						);

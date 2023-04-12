@@ -19,7 +19,7 @@ const GroupChat = ({
 	selectedConversationID,
 	setSelectedConversationID,
 }: GroupChatProps) => {
-
+	
 	function handleSelectedConversation(conversation: any) {
 		setSelectedConversationID(conversation.id);
 	}
