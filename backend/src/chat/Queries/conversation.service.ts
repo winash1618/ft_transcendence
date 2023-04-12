@@ -102,7 +102,7 @@ export class ConversationService {
   }
 
   async getDirectConversations(userID: string) {
-    if (!this.userService.checkIfUserExists(userID)) {
+    if (!(await this.userService.checkIfUserExists(userID))) {
       throw new Error('User does not exist');
     }
 
@@ -122,6 +122,20 @@ export class ConversationService {
         id: true,
         title: true,
         privacy: true,
+        participants: {
+          select: {
+            user: {
+              select: {
+                username: true,
+              },
+            },
+          },
+          where: {
+            user_id: {
+              not: userID,
+            },
+          },
+        },
       },
     });
   }
