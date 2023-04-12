@@ -4,6 +4,7 @@ import DirectChat from "./DirectChat";
 import GroupChat from "./GroupChat";
 
 interface LeftSideBodyProps {
+	user: any;
 	socket: any;
 	Navbar: Nav;
 	conversationID: any;
@@ -11,6 +12,7 @@ interface LeftSideBodyProps {
 }
 
 const LeftSideBody = ({
+	user,
 	socket,
 	Navbar,
 	conversationID,

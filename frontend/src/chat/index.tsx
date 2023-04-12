@@ -7,10 +7,12 @@ import { UserProfilePicture } from "../assets";
 
 interface ChatProps {
 	socket: any;
+	user: any;
 }
 
 const Chat = ({
 	socket,
+	user,
 }: ChatProps) => {
 	const [Navbar, setNavbar] = useState(Nav.DIRECT);
 	const [conversationID, setConversationID] = useState(null);
@@ -22,12 +24,14 @@ const Chat = ({
 			<ParentContainer>
 				<LeftSideContainer>
 					<LeftSideHeader
+						user={user}
 						socket={socket}
 						Navbar={Navbar}
 						setNavbar={setNavbar}
 						setConversations={setConversations}
 					/>
 					<LeftSideBody
+						user={user}
 						socket={socket}
 						Navbar={Navbar}
 						conversationID={conversationID}

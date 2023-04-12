@@ -8,6 +8,7 @@ import Chat from "../../chat";
 
 const MessagesPage = () => {
 	const [socket, setSocket] = useState<Socket | null>(null);
+	const [user, setUser] = useState(null);
 	const dispatch = useAppDispatch();
   
 	useEffect(() => {
@@ -18,7 +19,7 @@ const MessagesPage = () => {
 		  });
 		  localStorage.setItem("auth", JSON.stringify(response.data));
 		  dispatch(setUserInfo(response.data.user));
-		  console.log(response.data.user);
+		  setUser(response.data.user);
 		  return response.data.token;
 		} catch (err) {
 		  dispatch(logOut());
@@ -50,7 +51,7 @@ const MessagesPage = () => {
 		<>
 			<Chat
 				socket={socket}
-				
+				user={user}
 			/>
 		</>
 	);

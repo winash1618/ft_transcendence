@@ -13,6 +13,7 @@ import { io } from "socket.io-client";
 import { logOut } from "../../../store/authReducer";
 
 interface LeftSideHeaderProps {
+	user: any;
 	socket: any;
 	Navbar: Nav;
 	setNavbar: (nav: Nav) => void;
@@ -20,6 +21,7 @@ interface LeftSideHeaderProps {
 }
 
 function LeftSideHeader({
+	user,
 	socket,
 	Navbar,
 	setNavbar,
