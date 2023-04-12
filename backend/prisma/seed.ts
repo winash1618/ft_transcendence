@@ -91,7 +91,6 @@ async function seed() {
         create: [
           { user_id: user1.id },
           { user_id: user2.id },
-          { user_id: user3.id },
         ],
       },
     },
