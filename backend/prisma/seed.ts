@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Privacy } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -53,6 +53,46 @@ async function seed() {
     data: {
       friends: {
         connect: [{ id: user1.id }, { id: user2.id }],
+      },
+    },
+  });
+
+  const conversation1 = await prisma.conversation.create({
+    data: {
+      privacy: Privacy['DIRECT'],
+      creator_id: user1.id,
+      participants: {
+        create: [
+          { user_id: user1.id },
+          { user_id: user2.id },
+        ],
+      },
+    },
+  });
+
+  const conversation2 = await prisma.conversation.create({
+    data: {
+      privacy: 'DIRECT',
+      creator_id: user1.id,
+      participants: {
+        create: [
+          { user_id: user1.id },
+          { user_id: user3.id },
+        ],
+      },
+    },
+  });
+
+  const conversation3 = await prisma.conversation.create({
+    data: {
+      privacy: 'DIRECT',
+      creator_id: user2.id,
+      participants: {
+        create: [
+          { user_id: user1.id },
+          { user_id: user2.id },
+          { user_id: user3.id },
+        ],
       },
     },
   });

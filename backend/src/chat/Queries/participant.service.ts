@@ -63,25 +63,35 @@ export class ParticipantService {
 
   async addParticipantToConversation(
     createParticipant: CreateParticipantDto,
+    password?: string,
   ) {
-    const conversation = await this.conversationService.checkConversationExists(
-      createParticipant.conversation_id,
-    );
+    try {
+      const conversation = await this.conversationService.checkConversationExists(
+        createParticipant.conversation_id,
+      );
 
-    if (!conversation) {
-      throw new Error('Conversation does not exist');
+      if (!conversation) {
+        throw new Error('Conversation does not exist');
+      }
+
+      if (conversation.privacy === 'PROTECTED' &&
+        this.conversationService.validatePassword(password, conversation.password)) {
+        throw new Error('Incorrect password');
+      }
+
+      const participant = await this.checkParticipantExists(
+        createParticipant.conversation_id,
+        createParticipant.user_id,
+      );
+
+      if (participant) {
+        throw new Error('Participant already exists');
+      }
+
+      return await this.addParticipant(createParticipant);
+    } catch (error) {
+      throw new Error(error.message);
     }
-
-    const participant = await this.checkParticipantExists(
-      createParticipant.conversation_id,
-      createParticipant.user_id,
-    );
-
-    if (participant) {
-      throw new Error('Participant already exists');
-    }
-
-    return await this.addParticipant(createParticipant);
   }
 
   async checkParticipantExists(
@@ -181,7 +191,11 @@ export class ParticipantService {
     );
 
     if (!participant) {
-      throw new Error('Participant does not exist');
+      throw new Error('Participant does not exist in conversation');
+    }
+
+    if (participant.conversation_status === Status.DELETED) {
+      throw new Error('Participant already removed from conversation');
     }
 
     return await this.prisma.participant.update({
