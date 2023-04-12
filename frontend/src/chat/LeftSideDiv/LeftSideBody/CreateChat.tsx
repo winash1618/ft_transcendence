@@ -77,9 +77,9 @@ const CreateChat = ({
 				<CreateChannelInputContainer>
 					<CreateChannelLabel htmlFor="channel-status">status:</CreateChannelLabel>
 					<CreateChannelSelect id="channel-status" name="channel-status" onChange={handleStatusChange} required>
-						<CreateChannelOption value="public">Public</CreateChannelOption>
-						<CreateChannelOption value="private">Private</CreateChannelOption>
-						<CreateChannelOption value="protected">Protected</CreateChannelOption>
+						<CreateChannelOption value="PUBLIC">Public</CreateChannelOption>
+						<CreateChannelOption value="PRIVATE">Private</CreateChannelOption>
+						<CreateChannelOption value="PROTECTED">Protected</CreateChannelOption>
 					</CreateChannelSelect>
 				</CreateChannelInputContainer>
 				{

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { LeftSideContainer, ParentContainer } from "./chat.styled";
+import { LeftSideContainer, MessageBoxContainer, ParentContainer } from "./chat.styled";
 import LeftSideHeader from "./LeftSideDiv/LeftSideHeader";
 import { Nav } from "./chat.functions";
 import LeftSideBody from "./LeftSideDiv/LeftSideBody";
 import { UserProfilePicture } from "../assets";
 import LeftSideDiv from "./LeftSideDiv";
+import MessageDiv from "./MessageDiv";
 
 interface ChatProps {
 	socket: any;
@@ -18,6 +19,8 @@ const Chat = ({
 	const [Navbar, setNavbar] = useState(Nav.DIRECT);
 	const [conversationID, setConversationID] = useState(null);
 	const [conversations, setConversations] = useState([]);
+	const [messages, setMessages] = useState([]);
+
 
 	return (
 		<>
@@ -30,10 +33,21 @@ const Chat = ({
 						setNavbar={setNavbar}
 						conversations={conversations}
 						conversationID={conversationID}
+						setConversationID={setConversationID}
 						UserProfilePicture={UserProfilePicture}
 						setConversations={setConversations}
+						setMessages={setMessages}
 					/>
 				</LeftSideContainer>
+				<MessageBoxContainer>
+					<MessageDiv
+						user={user}
+						socket={socket}
+						messages={messages}
+						setMessages={setMessages}
+						conversationID={conversationID}
+					/>
+				</MessageBoxContainer>
 			</ParentContainer>
 		</>
 	);

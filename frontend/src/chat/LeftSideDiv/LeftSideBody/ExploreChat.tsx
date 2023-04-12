@@ -4,15 +4,12 @@ import { Colors, Privacy } from "../../chat.functions";
 
 interface ExploreChatProps {
 	conversations: any;
-	selectedConversationID: any;
-	setSelectedConversationID: any;
 }
 
 const ExploreChat = ({
 	conversations,
-	selectedConversationID,
-	setSelectedConversationID,
 } : ExploreChatProps) => {
+	const [selectedConversationID, setSelectedConversationID] = React.useState("");
 
 	function handleSelectedConversation(conversation: any) {
 		setSelectedConversationID(conversation.id);

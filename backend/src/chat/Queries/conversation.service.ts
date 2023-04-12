@@ -34,6 +34,8 @@ export class ConversationService {
       createConversation.password = await this.hashPassword(createConversation.password);
     }
 
+	console.log(createConversation.privacy)
+
     try {
       const conversation = await this.prisma.conversation.create({
         data: {

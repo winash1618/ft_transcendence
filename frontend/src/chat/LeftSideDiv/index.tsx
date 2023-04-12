@@ -9,8 +9,10 @@ interface LeftSideDivProps {
 	setNavbar: any;
 	conversations: any;
 	conversationID: any;
+	setConversationID: any;
 	UserProfilePicture: any;
 	setConversations: any;
+	setMessages: any;
 }
 
 const LeftSideDiv = ({
@@ -20,8 +22,10 @@ const LeftSideDiv = ({
 	setNavbar,
 	conversations,
 	conversationID,
+	setConversationID,
 	UserProfilePicture,
 	setConversations,
+	setMessages,
 } : LeftSideDivProps) => {
 	return (
 		<>
@@ -38,7 +42,9 @@ const LeftSideDiv = ({
 				setNavbar={setNavbar}
 				conversations={conversations}
 				conversationID={conversationID}
+				setConversationID={setConversationID}
 				UserProfilePicture={UserProfilePicture}
+				setMessages={setMessages}
 			/>
 		</>
 	);

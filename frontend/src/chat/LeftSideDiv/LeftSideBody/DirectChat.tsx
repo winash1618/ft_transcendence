@@ -1,24 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { ContactDiv, ContactImage, ContactName, DropdownField, StyledTiLockClosed, StyledTiLockOpen } from "./LeftSideBody.styled";
 import { Nav, Privacy, Colors } from "../../chat.functions";
+import axios from "axios";
+import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { logOut } from "../../../store/authReducer";
 
 interface DirectChatProp {
 	conversations: any;
 	UserProfilePicture: any;
-	selectedConversationID: any;
-	setSelectedConversationID: any;
+	setConversationID: any;
+	setMessages: any;
 }
 
 const DirectChat = ({
 	conversations,
 	UserProfilePicture,
-	selectedConversationID,
-	setSelectedConversationID,
+	setConversationID,
+	setMessages,
 }: DirectChatProp) => {
 
-	function handleSelectedConversation(conversation: any) {
-		setSelectedConversationID(conversation.id);
-	}
+	const dispatch = useAppDispatch();
+
+	async function handleSelectedConversation(conversation: any) {
+		setConversationID(conversation.id);
+		const getToken = async () => {
+			try {
+			  const response = await axios.get("http://localhost:3001/token", {
+				withCredentials: true,
+			  });
+			  localStorage.setItem("auth", JSON.stringify(response.data));
+			  return response.data.token;
+			} catch (err) {
+			  dispatch(logOut());
+			  window.location.reload();
+			  return null;
+			}
+		  };
+		  
+		const token = await getToken();
+		try {
+		  const result = await axios.get(`http://localhost:3001/${conversation.id}/Messages`, {
+			withCredentials: true,
+			headers: {
+			  Authorization: `Bearer ${token}`,
+			},
+		  });
+		  setMessages(result.data);
+		} catch (err) {
+		  console.log(err);
+		}
+	  }
 	return (
 		<>
 			{
@@ -26,7 +57,7 @@ const DirectChat = ({
 					if (c) {
 						return (
 							<React.Fragment key={c.id}>
-								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={selectedConversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
+								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={setConversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
 									<ContactImage src={UserProfilePicture} alt="" />
 									<ContactName>{c.participants[0].user.username}</ContactName>
 								</ContactDiv>

@@ -12,7 +12,7 @@ export class a_ConversationService {
       data: {
         title: createConversationDto.title,
         creator_id: createConversationDto.creator_id,
-		privacy: createConversationDto.privacy,
+		privacy: Privacy[createConversationDto.privacy],
       },
     });
   }
@@ -22,7 +22,7 @@ export class a_ConversationService {
         title: createConversationDto.title,
         creator_id: createConversationDto.creator_id,
 		password: createConversationDto.password,
-		privacy: createConversationDto.privacy,
+		privacy: Privacy[createConversationDto.privacy],
       },
 	  include: {
 		participants: true,

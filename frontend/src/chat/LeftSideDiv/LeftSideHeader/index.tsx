@@ -79,21 +79,6 @@ function LeftSideHeader({
 					console.log(err);
 				}
 			}
-			else if (nav === Nav.CREATE)
-			{
-				const token = await getToken();
-				try {
-					const result = await axios.get("http://localhost:3001/chat/create", {
-						withCredentials: true,
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					});
-				} catch (err) {
-					setConversations([]);
-					console.log(err);
-				}
-			}
 			else if (nav === Nav.EXPLORE)
 			{
 				console.log("Explore");

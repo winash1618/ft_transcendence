@@ -16,7 +16,7 @@ export class CreateConversationDto {
   password?: string;
 
   @ApiProperty()
-  privacy?: Privacy;
+  privacy?: string;
 }
 
 export class UpdateConversationDto extends PartialType(CreateConversationDto) {}

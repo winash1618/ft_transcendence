@@ -72,6 +72,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('createConversation')
   async createConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     console.log("In createConversation")
+	console.log(data.privacy)
 
     const conversation = await this.conversationService.createConversation({
       title: data.title,

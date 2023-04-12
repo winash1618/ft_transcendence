@@ -10,8 +10,10 @@ interface LeftSideBodyProps {
 	Navbar: Nav;
 	setNavbar: any;
 	conversationID: any;
+	setConversationID: any;
 	conversations: any;
 	UserProfilePicture: any;
+	setMessages: any;
 }
 
 const LeftSideBody = ({
@@ -19,11 +21,11 @@ const LeftSideBody = ({
 	Navbar,
 	setNavbar,
 	conversationID,
+	setConversationID,
 	conversations,
 	UserProfilePicture,
+	setMessages,
 }: LeftSideBodyProps) => {
-
-	const [selectedConversationID, setSelectedConversationID] = useState(null);
 
 	if (Navbar === Nav.DIRECT) {
 		console.log("Direct 1");
@@ -31,8 +33,8 @@ const LeftSideBody = ({
 			<DirectChat
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
-				selectedConversationID={selectedConversationID}
-				setSelectedConversationID={setSelectedConversationID}
+				setConversationID={setConversationID}
+				setMessages={setMessages}
 			/>
 		);
 	} 
@@ -41,8 +43,8 @@ const LeftSideBody = ({
 			<GroupChat
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
-				selectedConversationID={selectedConversationID}
-				setSelectedConversationID={setSelectedConversationID}
+				setConversationID={setConversationID}
+				setMessages={setMessages}
 			/>
 		);
 	} 
@@ -50,8 +52,6 @@ const LeftSideBody = ({
 		return (
 			<ExploreChat
 				conversations={conversations}
-				selectedConversationID={selectedConversationID}
-				setSelectedConversationID={setSelectedConversationID}
 			/>
 		);
 	}
