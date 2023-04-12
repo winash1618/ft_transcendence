@@ -24,6 +24,7 @@ export class ChatController {
     @Get('direct')
     async getConversations(@Req() req) {
       try {
+        // return await this.conversationService.getDirectConversations('8929f5df-7c6b-4684-9c77-0b18a3e2caa5');
         return await this.conversationService.getDirectConversations(req.user.id);
       }
       catch (error) {

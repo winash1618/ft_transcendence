@@ -2,7 +2,7 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Privacy, Role, Status } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateConversationDto, UpdateConversationDto } from '../dto/conversation.dto';
-// import * as brypt from 'bcrypt';
+import * as brypt from 'bcrypt';
 import { ParticipantService } from './participant.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -15,55 +15,55 @@ export class ConversationService {
     private userService: UsersService,
     ) {}
 
-  // private async hashPassword(password: string) {
-  //   return await brypt.hash(password, 10);
-  // }
+  private async hashPassword(password: string) {
+    return await brypt.hash(password, 10);
+  }
 
-  // private async validatePassword(password: string, hash: string) {
-  //   return await brypt.compare(password, hash);
-  // }
+  async validatePassword(password: string, hash: string) {
+    return await brypt.compare(password, hash);
+  }
 
   async createConversation(createConversation: CreateConversationDto) {
-    if (createConversation.privacy === 'PRIVATE' &&
+    if (createConversation.privacy === 'PROTECTED' &&
       (createConversation.password === '' || createConversation.password === undefined)
     ) {
-      throw new Error('Password is required for private conversation');
+      throw new Error('Password is required for Protected conversation');
     }
 
-    // if (createConversation.privacy === 'PROTECTED') {
-    //   createConversation.password = await this.hashPassword(createConversation.password);
-    // }
+    if (createConversation.privacy === 'PROTECTED') {
+      createConversation.password = await this.hashPassword(createConversation.password);
+    }
 
-
-    return await this.prisma.conversation.create({
-      data: {
-        title: createConversation.title,
-        creator_id: createConversation.creator_id,
-        password: createConversation.password,
-        privacy: Privacy[createConversation.privacy],
-      },
-    });
+    try {
+      const conversation = await this.prisma.conversation.create({
+        data: {
+          title: createConversation.title,
+          creator_id: createConversation.creator_id,
+          password: createConversation.password,
+          privacy: Privacy[createConversation.privacy],
+        },
+      });
+      return conversation;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   async protectConversation(conversationID: string, password: string) {
     const conversation = await this.checkConversationExists(conversationID);
 
-    if (!conversation) {
-      throw new Error('Conversation does not exist');
-    }
-
-    if (conversation.privacy === 'PROTECTED') {
+    if (conversation.privacy === Privacy.PROTECTED) {
       throw new Error('Conversation is already protected');
     }
 
-    // const hashedPassword = await this.hashPassword(password);
+    const hashedPassword = await this.hashPassword(password);
 
     return await this.prisma.conversation.update({
       where: {
         id: conversationID,
       },
       data: {
-        // password: hashedPassword,
+        password: hashedPassword,
         privacy: Privacy.PROTECTED,
       },
     });
@@ -78,9 +78,9 @@ export class ConversationService {
       throw new Error('Cannot create direct conversation with yourself');
     }
 
-    // Check if other user is blocked or exists
-
-    const privacy = createConversation.privacy;
+    if (this.userService.isUserBlocked(userID, otherUserID)) {
+      throw new Error('User is blocked');
+    }
 
     const conversation = await this.createConversation(createConversation);
 
@@ -101,24 +101,8 @@ export class ConversationService {
     return conversation;
   }
 
-  // async getDirectConversationList(userID: string) {
-  //   return this.prisma.conversation.findMany({
-  //     where: {
-  //       participants: {
-  //         some: {
-  //           user_id: userID,
-  //           role: Role['OWNER'],
-  //           conversation_status: {
-  //             not: Status['BANNED']
-  //           }
-  //         },
-  //       },
-  //     },
-  //     include: {
-  //       // include only id, title, and privacy
-
   async getDirectConversations(userID: string) {
-    if (this.userService.checkIfUserExists(userID)) {
+    if (!this.userService.checkIfUserExists(userID)) {
       throw new Error('User does not exist');
     }
 

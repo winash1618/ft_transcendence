@@ -98,4 +98,21 @@ export class UsersService {
     });
   }
 
+  async isUserBlocked(blockedUserID: string, blockingUserID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: blockingUserID,
+      },
+      select: {
+        blocked_users: {
+          where: {
+            id: blockedUserID,
+          },
+        },
+      },
+    });
+
+    return user.blocked_users.length > 0;
+  }
+
 }

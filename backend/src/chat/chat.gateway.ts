@@ -72,9 +72,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('createConversation')
   async createConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     console.log("In createConversation")
+
     const conversation = await this.conversationService.createConversation({
       title: data.title,
       creator_id: client.data.userID.id,
+      password: data.password,
+      privacy: data.privacy,
     });
 
     // add only one participant
@@ -92,6 +95,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinConversation')
   async joinConversation(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    console.log("In joinConversation")
+
     const participant = await this.participantService.addParticipantToConversation({
       conversation_id: data.conversationID,
       user_id: client.data.userID.id,
@@ -109,7 +114,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const conversation = await this.conversationService.createDirectConversation({
       title: data.title,
       creator_id: client.data.userID.id,
-      privacy: 'PRIVATE',
+      privacy: 'DIRECT',
     },
     client.data.userID.id,
     data.userID);
@@ -118,10 +123,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     participants.forEach((participant) => {
       this.gatewaySession.getUserSocket(participant.user_id).join(conversation.id);
     });
-    const user = this.gatewaySession.getUserSocket(client.data.userID.id);
-    if (!user) return ;
-    this.server.to(user.id).emit('directMessage', conversation);
-    console.log('directMessage', conversation);
+    this.server.to(client.id).emit('directMessage', conversation);
   }
 
   @SubscribeMessage('leaveConversation')
@@ -142,7 +144,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async protectRoom(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     const conversation = await this.conversationService.protectConversation(data.conversationID, data.password);
 
-    await this.sendConversationPublicToAllClients(data.conversationID);
+    await this.sendConversationProtectedToAllClients(data.conversationID);
   }
 
   @SubscribeMessage('sendMessage')
@@ -284,7 +286,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  private async sendConversationProtectedToAllClients(userID: string, conversation: any) {
+  private async sendConversationProtectedToAllClients(conversation: any) {
     const sockets = this.gatewaySession.getAllUserSockets();
     if (!sockets || sockets.length === 0) return ;
     sockets.forEach((socket) => {
