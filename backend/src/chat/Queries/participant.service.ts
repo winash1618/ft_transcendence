@@ -295,4 +295,83 @@ export class ParticipantService {
 
     return await this.updateParticipantRole(conversationID, userID, 'ADMIN');
   }
+
+  async banUserFromConversation(
+    conversationID: string,
+    userID: string,
+    adminUser: string
+  ) {
+    if (this.validationCheck(conversationID, userID))
+      throw new Error('Validation check failed');
+
+    await this.updateParticipantStatus(conversationID, userID, Status.BANNED);
+    return await this.removeParticipantFromConversation(conversationID, userID);
+  }
+
+  async unbanUserFromConversation(
+    conversationID: string,
+    userID: string,
+    adminUser: string
+  ) {
+    if (this.validationCheck(conversationID, userID))
+      throw new Error('Validation check failed');
+
+    return await this.updateParticipantStatus(conversationID, userID, Status.ACTIVE);
+  }
+
+  async kickUserFromConversation(
+    conversationID: string,
+    userID: string,
+    adminUser: string
+  ) {
+    if (this.validationCheck(conversationID, userID))
+      throw new Error('Validation check failed');
+
+    await this.updateParticipantStatus(conversationID, userID, Status.KICKED);
+
+    return await this.removeParticipantFromConversation(conversationID, userID);
+  }
+
+  async validationCheck(
+    conversationID: string,
+    userID: string,
+    adminUser?: string
+  ) {
+    const conversation = await this.conversationService.checkConversationExists(
+      conversationID,
+    );
+
+    if (!conversation) {
+      throw new Error('Conversation does not exist');
+    }
+
+    const participant = await this.checkParticipantExists(
+      conversationID,
+      userID,
+    );
+
+    if (!participant) {
+      throw new Error('Participant does not exist');
+    }
+
+    if (participant.conversation_status === Status.DELETED) {
+      throw new Error('Participant has been removed from conversation');
+    }
+
+    if (participant.conversation_status === Status.BANNED) {
+      throw new Error('Participant has been banned from conversation');
+    }
+
+    if (participant.conversation_status === Status.KICKED) {
+      throw new Error('Participant has been kicked from conversation');
+    }
+
+    if (adminUser) {
+      const isAdmin = await this.isUserAdminInConversation(adminUser, conversationID);
+      if (!isAdmin)
+        throw new Error('User is not an admin');
+    }
+
+    return true;
+  }
 }

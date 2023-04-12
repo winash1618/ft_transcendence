@@ -87,6 +87,7 @@ model GameHistory {
 }
 
 enum Role {
+  OWNER
   ADMIN
   USER
 }

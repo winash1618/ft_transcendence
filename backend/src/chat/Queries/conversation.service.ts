@@ -69,6 +69,24 @@ export class ConversationService {
     });
   }
 
+  async removePasswordFromConversation(conversationID: string) {
+    const conversation = await this.checkConversationExists(conversationID);
+
+    if (conversation.privacy !== Privacy.PROTECTED) {
+      throw new Error('Conversation is not protected');
+    }
+
+    return await this.prisma.conversation.update({
+      where: {
+        id: conversationID,
+      },
+      data: {
+        password: null,
+        privacy: Privacy.PUBLIC,
+      },
+    });
+  }
+
   async createDirectConversation(createConversation: CreateConversationDto, userID: string, otherUserID: string) {
     if (this.checkDirectConversationExists(userID, otherUserID)) {
       throw new Error('Direct conversation already exists');
@@ -141,7 +159,7 @@ export class ConversationService {
   }
 
   async getChannels(userID: string) {
-    if (this.userService.checkIfUserExists(userID)) {
+    if (!this.userService.checkIfUserExists(userID)) {
       throw new Error('User does not exist');
     }
 
@@ -168,7 +186,7 @@ export class ConversationService {
   }
 
   async findChannelsThatUserIsNotIn(userID: string) {
-    if (this.userService.checkIfUserExists(userID)) {
+    if (!this.userService.checkIfUserExists(userID)) {
       throw new Error('User does not exist');
     }
 
@@ -197,7 +215,7 @@ export class ConversationService {
   }
 
   async friendsNotInConversation(userID: string, conversationID: string) {
-    if (this.userService.checkIfUserExists(userID)) {
+    if (!this.userService.checkIfUserExists(userID)) {
       throw new Error('User does not exist');
     }
 
