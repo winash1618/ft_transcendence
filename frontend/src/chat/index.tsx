@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LeftSideContainer, ParentContainer } from "./chat.styled";
 import LeftSideHeader from "./LeftSideDiv/LeftSideHeader/LeftSideHeader";
 import { Nav } from "./chat.functions";
@@ -11,17 +11,21 @@ interface ChatProps {
 
 const Chat = ({
 	socket,
-} : ChatProps) => {
+}: ChatProps) => {
 	const [Navbar, setNavbar] = useState(Nav.DIRECT);
 	const [conversationID, setConversationID] = useState(null);
+	const [conversations, setConversations] = useState([]);
+
 
 	return (
 		<>
 			<ParentContainer>
 				<LeftSideContainer>
 					<LeftSideHeader
+						socket={socket}
 						Navbar={Navbar}
 						setNavbar={setNavbar}
+						setConversations={setConversations}
 					/>
 					<LeftSideBody
 						socket={socket}

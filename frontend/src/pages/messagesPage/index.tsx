@@ -18,6 +18,7 @@ const MessagesPage = () => {
 		  });
 		  localStorage.setItem("auth", JSON.stringify(response.data));
 		  dispatch(setUserInfo(response.data.user));
+		  console.log(response.data.user);
 		  return response.data.token;
 		} catch (err) {
 		  dispatch(logOut());

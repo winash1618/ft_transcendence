@@ -1,58 +1,91 @@
 import {
-  ParentMessageNav,
-  StyledBiCommentAdd,
-  StyledHiOutlineUser,
-  StyledHiOutlineUserGroup,
-  StyledMdOutlineTravelExplore,
-} from "../styles/LeftSideHeader.styled";
+	ParentMessageNav,
+	StyledBiCommentAdd,
+	StyledHiOutlineUser,
+	StyledHiOutlineUserGroup,
+	StyledMdOutlineTravelExplore,
+} from "./LeftSideHeader.styled";
 import { Nav, Colors } from "../../chat.functions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { io } from "socket.io-client";
+import { logOut } from "../../../store/authReducer";
 
 interface LeftSideHeaderProps {
+	socket: any;
 	Navbar: Nav;
 	setNavbar: (nav: Nav) => void;
+	setConversations: (conversations: any) => void;
 }
 
 function LeftSideHeader({
+	socket,
 	Navbar,
 	setNavbar,
+	setConversations,
 }: LeftSideHeaderProps) {
-
-	
-
-	function handleNavClick (nav: Nav) {
+	const dispatch = useAppDispatch();
+	const getConversation = async (nav: Nav) => {
+		const getToken = async () => {
+			try {
+			  const response = await axios.get("http://localhost:3001/token", {
+				withCredentials: true,
+			  });
+			  localStorage.setItem("auth", JSON.stringify(response.data));
+			  return response.data.token;
+			} catch (err) {
+			  dispatch(logOut());
+			  window.location.reload();
+			  return null;
+			}
+		  };
+		  
+		if (nav === Nav.DIRECT)
+		{
+			const token = await getToken();
+			console.log(token);
+			try {
+				const result = await axios.get("http://localhost:3001/chat/direct", {
+					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+				console.log(result.data);
+			} catch (err) {
+				console.log(err);
+			}
+		}
 		setNavbar(nav);
-	}
+	};
 
-
-
-  return (
-    <>
-      <ParentMessageNav>
-        <StyledHiOutlineUser
-          onClick={() => handleNavClick(Nav.DIRECT)}
-          color={Navbar === Nav.DIRECT ? Colors.WHITE : Colors.PRIMARY}
-          size={30}
-        />
-        <StyledHiOutlineUserGroup
-          onClick={() => handleNavClick(Nav.GROUPS)}
-          color={Navbar === Nav.GROUPS ? Colors.WHITE : Colors.PRIMARY}
-          size={30}
-        />
-
-        <StyledBiCommentAdd
-          onClick={() => handleNavClick(Nav.EXPLORE)}
-          color={Navbar === Nav.EXPLORE ? Colors.WHITE : Colors.PRIMARY}
-          size={30}
-        />
-        <StyledMdOutlineTravelExplore
-          onClick={() => handleNavClick(Nav.CREATE)}
-          color={Navbar === Nav.CREATE ? Colors.WHITE : Colors.PRIMARY}
-          size={30}
-        />
-      </ParentMessageNav>
-    </>
-  );
+	return (
+		<>
+			<ParentMessageNav>
+				<StyledHiOutlineUser
+					onClick={() => getConversation(Nav.DIRECT)}
+					color={Navbar === Nav.DIRECT ? Colors.WHITE : Colors.PRIMARY}
+					size={30}
+				/>
+				<StyledHiOutlineUserGroup
+					onClick={() => setNavbar(Nav.GROUPS)}
+					color={Navbar === Nav.GROUPS ? Colors.WHITE : Colors.PRIMARY}
+					size={30}
+				/>
+				<StyledBiCommentAdd
+					onClick={() => setNavbar(Nav.EXPLORE)}
+					color={Navbar === Nav.EXPLORE ? Colors.WHITE : Colors.PRIMARY}
+					size={30}
+				/>
+				<StyledMdOutlineTravelExplore
+					onClick={() => setNavbar(Nav.CREATE)}
+					color={Navbar === Nav.CREATE ? Colors.WHITE : Colors.PRIMARY}
+					size={30}
+				/>
+			</ParentMessageNav>
+		</>
+	);
 }
 
 export default LeftSideHeader;
