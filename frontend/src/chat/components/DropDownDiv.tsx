@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { DropdownField } from "../LeftSideDiv/styles/ChatListDiv.styled";
-import { ErrorMessage } from "../RightSideDiv/styles/CreateChannelFormDiv.styled";
+import { DropdownField } from "../LeftSideDiv/styles/LeftsideDiv.styled";
+import { ErrorMessage } from "../LeftSideDiv/styles/CreateChannelFormDiv.styled";
 import { DropdownContent, DropdownItem, DropdownMenu } from "./styles/DropDownDiv.styled";
 
 interface DropDownDivProps {

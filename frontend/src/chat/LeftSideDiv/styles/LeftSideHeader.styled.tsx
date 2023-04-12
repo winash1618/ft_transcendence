@@ -1,4 +1,5 @@
 import { BiCommentAdd } from "react-icons/bi";
+import { HiOutlineUser, HiOutlineUserGroup } from "react-icons/hi";
 import { MdOutlineTravelExplore } from "react-icons/md";
 import styled from "styled-components";
 
@@ -15,6 +16,24 @@ export const ParentMessageNav = styled.div`
 `;
 
 export const StyledBiCommentAdd = styled(BiCommentAdd)`
+  &: hover {
+    cursor: pointer;
+    transform: scale(1.3);
+  }
+`;
+export const StyledHiOutlineUser = styled(HiOutlineUser)`
+  &: hover {
+    cursor: pointer;
+    transform: scale(1.3);
+  }
+`;
+export const StyledHiOutlineUserGroup = styled(HiOutlineUserGroup)`
+  &: hover {
+    cursor: pointer;
+    transform: scale(1.3);
+  }
+`;
+export const StyledMdOutlineTravelExplore = styled(MdOutlineTravelExplore)`
   &: hover {
     cursor: pointer;
     transform: scale(1.3);
@@ -45,17 +64,4 @@ export const MessageNavNotUsed = styled.button<MessageNavNotUsedProps>`
   background: ${({ backgroundColor }) => backgroundColor};
   border-radius: 15px;
   border: 0px;
-`;
-
-export const StyledMdOutlineTravelExplore = styled(MdOutlineTravelExplore)`
-  color: #00a551;
-  font-size: 2em;
-  margin-left: 0.5em;
-  margin-right: 1em;
-  &: hover {
-    cursor: pointer;
-  }
-  &: active {
-    transform: scale(0.9); /* Example of click effect: scale down to 90% */
-  }
 `;

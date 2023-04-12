@@ -6,7 +6,7 @@ export const ParentContainer = styled.div`
   height: 80vh;
 `;
 
-export const ChatListContainer = styled.div`
+export const LeftSideContainer = styled.div`
   display: flex;
   color: #1A1D1F;
   flex-direction: column;

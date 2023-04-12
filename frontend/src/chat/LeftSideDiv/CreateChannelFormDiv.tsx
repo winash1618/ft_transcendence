@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CreateChannelButton, CreateChannelFormContainer, CreateChannelInput, CreateChannelInputContainer, CreateChannelLabel, CreateChannelOption, CreateChannelSelect, ErrorMessage, ShowPasswordCheckbox, ShowPasswordLabel } from "./styles/CreateChannelFormDiv.styled";
-import { Heading2 } from "./styles/Conversation.styled";
+import { Heading2 } from "../RightSideDiv/styles/Conversation.styled";
 interface CreateChannelFormDivProps {
 	handleChannelCreation: any;
 }
