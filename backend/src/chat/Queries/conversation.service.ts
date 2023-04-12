@@ -159,7 +159,7 @@ export class ConversationService {
   }
 
   async getChannels(userID: string) {
-    if (this.userService.checkIfUserExists(userID)) {
+    if (!this.userService.checkIfUserExists(userID)) {
       throw new Error('User does not exist');
     }
 
@@ -186,7 +186,7 @@ export class ConversationService {
   }
 
   async findChannelsThatUserIsNotIn(userID: string) {
-    if (this.userService.checkIfUserExists(userID)) {
+    if (!this.userService.checkIfUserExists(userID)) {
       throw new Error('User does not exist');
     }
 
@@ -215,7 +215,7 @@ export class ConversationService {
   }
 
   async friendsNotInConversation(userID: string, conversationID: string) {
-    if (this.userService.checkIfUserExists(userID)) {
+    if (!this.userService.checkIfUserExists(userID)) {
       throw new Error('User does not exist');
     }
 
