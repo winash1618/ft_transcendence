@@ -161,7 +161,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     await this.sendConversationPublicToAllClients(data.conversationID);
-    await this.sendMessagesToParticipants(data.conversationID, message);
+    this.server.to(data.conversation_id).emit('messageCreated', message);
+    // await this.sendMessagesToParticipants(data.conversationID, message);
   }
 
   @SubscribeMessage('makeAdmin')
@@ -302,7 +303,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }));
 
-    client.emit('User_conversations', messages);
+    client.emit('UserConversations', messages);
   }
 
   private async sendMessagesToUser(userID: string) {
@@ -319,7 +320,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }));
 
     client.forEach((socket) => {
-      this.server.to(socket.id).emit('User_conversations', messages);
+      this.server.to(socket.id).emit('UserConversations', messages);
     });
   }
 
@@ -329,7 +330,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     participants.forEach((participant) => {
       const client = this.gatewaySession.getUserSocket(participant.user_id);
       if (!client) return ;
-      this.server.to(client.id).emit('message_created', message);
+      this.server.to(client.id).emit('messageCreated', message);
     });
   }
 
@@ -337,9 +338,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const sockets = this.gatewaySession.getAllUserSockets();
     if (!sockets || sockets.length === 0) return ;
     sockets.forEach((socket) => {
-      this.server.to(socket.id).emit('conversation_created', conversation);
+      this.server.to(socket.id).emit('conversatioCreated', conversation);
     });
-    this.server.emit('conversation_created', conversation);
+    this.server.emit('conversationCreated', conversation);
   }
 
   private async sendConversationPublicToAllClients(conversation: any) {
@@ -348,7 +349,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     participants.forEach((participant) => {
       const client = this.gatewaySession.getUserSocket(participant.user_id);
       if (!client) return ;
-      this.server.to(client.id).emit('conversation_public', conversation);
+      this.server.to(client.id).emit('conversationCublic', conversation);
     });
   }
 
@@ -356,9 +357,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const sockets = this.gatewaySession.getAllUserSockets();
     if (!sockets || sockets.length === 0) return ;
     sockets.forEach((socket) => {
-      this.server.to(socket.id).emit('conversation_protected', conversation);
+      this.server.to(socket.id).emit('conversationCrotected', conversation);
     });
-    this.server.emit('conversation_protected', conversation);
+    this.server.emit('conversationCrotected', conversation);
   }
 
   private async sendConversationJoinedToAllClients(userID: string, conversationID: string) {
@@ -370,7 +371,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const sockets = this.gatewaySession.getAllUserSockets();
       if (!sockets || sockets.length === 0) return ;
       sockets.forEach((socket) => {
-        this.server.to(socket.id).emit('conversation_joined', {
+        this.server.to(socket.id).emit('conversationJoined', {
           conversationID,
           participant,
           messages,
@@ -383,7 +384,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const sockets = this.gatewaySession.getAllUserSockets();
     if (!sockets || sockets.length === 0) return ;
     sockets.forEach((socket) => {
-      this.server.to(socket.id).emit('conversation_left', {
+      this.server.to(socket.id).emit('conversationLeft', {
         conversationID,
         userID,
       });
