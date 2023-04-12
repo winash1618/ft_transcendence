@@ -17,6 +17,7 @@ import { MessageService } from 'src/chat/Queries/message.service';
 import { Role } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
+import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -33,6 +34,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private conversationService: ConversationService,
     private participantService: ParticipantService,
     private messageService: MessageService,
+    private userService: UsersService,
     private jwtService: JwtService,
     ) {}
 
@@ -154,14 +156,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.conversationID,
     );
 
+    const user = await this.userService.getUserById(participant.user_id);
+
     const message = await this.messageService.createMessage({
       message: data.message,
       author_id: participant.id,
       conversation_id: data.conversationID,
     });
 
+    const messageWithSenderInfo = {
+      ...message,
+      sender: {
+        id: user.id,
+        username: user.username,
+      },
+    };
+
     await this.sendConversationPublicToAllClients(data.conversationID);
-    this.server.to(data.conversation_id).emit('messageCreated', message);
+    this.server.to(data.conversation_id).emit('messageCreated', messageWithSenderInfo);
     // await this.sendMessagesToParticipants(data.conversationID, message);
   }
 
