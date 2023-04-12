@@ -69,6 +69,24 @@ export class ConversationService {
     });
   }
 
+  async removePasswordFromConversation(conversationID: string) {
+    const conversation = await this.checkConversationExists(conversationID);
+
+    if (conversation.privacy !== Privacy.PROTECTED) {
+      throw new Error('Conversation is not protected');
+    }
+
+    return await this.prisma.conversation.update({
+      where: {
+        id: conversationID,
+      },
+      data: {
+        password: null,
+        privacy: Privacy.PUBLIC,
+      },
+    });
+  }
+
   async createDirectConversation(createConversation: CreateConversationDto, userID: string, otherUserID: string) {
     if (this.checkDirectConversationExists(userID, otherUserID)) {
       throw new Error('Direct conversation already exists');

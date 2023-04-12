@@ -42,7 +42,7 @@ export class ChatController {
       }
     }
 
-    @Get('channels')
+    @Get('groups')
     async getChannels(@Req() req) {
       try{
         return await this.conversationService.getChannels(req.user.id);

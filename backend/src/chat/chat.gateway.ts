@@ -84,7 +84,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const participant = await this.participantService.addParticipantToConversation({
       conversation_id: conversation.id,
       user_id: client.data.userID.id,
-      role: Role.ADMIN,
+      role: Role['OWNER'],
       conversation_status: 'ACTIVE',
     });
 
@@ -198,6 +198,72 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!user) return ;
     user.leave(data.conversationID);
     await this.sendConversationPublicToAllClients(data.conversationID);
+  }
+
+	@SubscribeMessage('banUser')
+	async banUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+		try {
+      const participant = await this.participantService.banUserFromConversation(
+        data.conversationID,
+        data.userID,
+        client.data.userID.id,
+      );
+
+      const user = this.gatewaySession.getUserSocket(data.userID);
+      if (!user) return ;
+      user.leave(data.conversationID);
+      await this.sendConversationPublicToAllClients(data.conversationID);
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access from banUser');
+		}
+	}
+
+  @SubscribeMessage('unbanUser')
+  async unbanUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    try {
+      const participant = await this.participantService.unbanUserFromConversation(
+        data.conversationID,
+        data.userID,
+        client.data.userID.id,
+      );
+
+      await this.sendConversationPublicToAllClients(data.conversationID);
+    }
+    catch (e) {
+      client.emit('error', 'Unauthorized access from unbanUser');
+    }
+  }
+
+	@SubscribeMessage('kickUser')
+	async kickUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+		try {
+      const participant = await this.participantService.kickUserFromConversation(
+        data.conversationID,
+        data.userID,
+        client.data.userID.id,
+      );
+
+      const user = this.gatewaySession.getUserSocket(data.userID);
+      if (!user) return ;
+      user.leave(data.conversationID);
+      await this.sendConversationPublicToAllClients(data.conversationID);
+		}
+		catch (e) {
+			client.emit('error', 'Unauthorized access from kickUser');
+		}
+	}
+
+  @SubscribeMessage('removePassword')
+  async removePassword(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    try {
+      const conversation = await this.conversationService.removePasswordFromConversation(data.conversationID);
+
+      await this.sendConversationPublicToAllClients(data.conversationID);
+    }
+    catch (e) {
+      client.emit('error', 'Unauthorized access from removePassword');
+    }
   }
 
   // helper function
@@ -325,220 +391,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 }
 
-
-	// @SubscribeMessage('joinProtectedConversation')
-	// async joinProtectedConversation(client: Socket, data: any) {
-	// 	const token = client.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
-	// 		if (conversation.password === data.password) {
-	// 			const participant = await this.participantService.create({ user_id: client.data.userID.id, conversation_id: data.conversation_id });
-	// 			if (conversation.participants.length === 0) {
-	// 				await this.prisma.participant.update({ where: { id: participant.id }, data: { role: Role.ADMIN } });
-	// 			}
-	// 			client.emit('protectedConversationJoined', conversation);
-	// 			// client.emit('alert', 'protected conversation joined');
-	// 		}
-	// 		else {
-	// 			client.emit('error', 'Wrong password');
-	// 		}
-	// 	}
-	// 	catch (e) {
-	// 		client.emit('error', 'Unauthorized access from joinProtectedConversation');
-	// 	}
-	// }
-
-	// @SubscribeMessage('changePassword')
-	// async changePassword(client: Socket, data: any) {
-	// 	const token = client.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
-	// 		if (conversation.privacy === Privacy.PUBLIC) {
-	// 			await this.prisma.conversation.update({
-	// 				where: {
-	// 					id: data.conversation_id,
-	// 				},
-	// 				data: {
-	// 					password: data.password,
-	// 					privacy: Privacy.PROTECTED,
-	// 				}
-	// 			});
-	// 			client.emit('alert', 'Password changed, conversation is now protected');
-	// 		}
-	// 		else {
-	// 			if (conversation.password === data.password) {
-	// 				client.emit('alert', 'Enter new password');
-	// 			}
-	// 			else {
-	// 				await this.prisma.conversation.update({
-	// 					where: {
-	// 						id: data.conversation_id,
-	// 					},
-	// 					data: {
-	// 						password: data.password,
-	// 					}
-	// 				});
-	// 				client.emit('alert', 'Password changed');
-	// 			}
-	// 		}
-	// 	}
-	// 	catch (e) {
-	// 		client.emit('error', 'Unauthorized access from changePassword');
-	// 	}
-	// }
-
-	// @SubscribeMessage('removePassword')
-	// async removePassword(client: Socket, data: any) {
-	// 	const token = client.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		await this.prisma.conversation.update({
-	// 			where: {
-	// 				id: data.conversation_id,
-	// 			},
-	// 			data: {
-	// 				password: null,
-	// 				privacy: Privacy.PUBLIC,
-	// 			}
-	// 		});
-	// 		client.emit('alert', 'Password removed');
-	// 	}
-	// 	catch (e) {
-	// 		client.emit('error', 'Unauthorized access from removePassword');
-	// 	}
-	// }
-
-	// @SubscribeMessage('makeAdmin')
-	// async makeAdmin(client: Socket, data: any) {
-	// 	const token = client.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
-	// 		let isAdmin = false;
-	// 		let participantObject = null;
-	// 		conversation.participants.forEach(async (participant) => {
-	// 			if (participant.user_id === data.user_id) {
-	// 				if (participant.role === Role.ADMIN) {
-	// 					client.emit('error', 'Participant is already admin');
-	// 					isAdmin = true;
-	// 				}
-	// 				participantObject = participant;
-	// 			}
-	// 		});
-	// 		if (!isAdmin) {
-	// 			await this.prisma.participant.update({
-	// 				where: {
-	// 					id: participantObject.id,
-	// 				},
-	// 				data: {
-	// 					role: Role.ADMIN,
-	// 				}
-	// 			});
-	// 			client.emit('alert', 'Participant is now admin');
-	// 		}
-	// 	}
-	// 	catch (e) {
-	// 		client.emit('error', 'Unauthorized access from makeAdmin');
-	// 	}
-	// }
-
-	// @SubscribeMessage('banUser')
-	// async banUser(client: Socket, data: any) {
-	// 	const token = client.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
-	// 		let isAdmin = false;
-	// 		let participantObject = null;
-	// 		conversation.participants.forEach(async (participant) => {
-	// 			if (participant.user_id === data.user_id) {
-	// 				if (participant.role === Role.ADMIN) {
-	// 					client.emit('error', "You're not allowed to ban an admin");
-	// 					isAdmin = true;
-	// 				}
-	// 				participantObject = participant;
-	// 			}
-	// 		});
-
-	// 		if (participantObject.conversation_status === Status.BANNED) {
-	// 			client.emit('error', 'Participant is already banned');
-	// 		}
-	// 		else if (!isAdmin) {
-	// 			await this.prisma.participant.update({
-	// 				where: {
-	// 					id: participantObject.id,
-	// 				},
-	// 				data: {
-	// 					conversation_status: Status.BANNED,
-	// 				}
-	// 			});
-	// 			this.server.to(data.conversation_id).emit('userBanned', data.user_id);
-	// 			client.emit('alert', 'Participant is now banned');
-	// 		}
-	// 	}
-	// 	catch (e) {
-	// 		client.emit('error', 'Unauthorized access from banUser');
-	// 	}
-	// }
-
-	// @SubscribeMessage('kickUser')
-	// async kickUser(client: Socket, data: any) {
-	// 	const token = client.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		const conversation = await this.conversationService.getConversationWithParticipants(data.conversation_id);
-	// 		let isAdmin = false;
-	// 		let participantObject = null;
-	// 		conversation.participants.forEach(async (participant) => {
-	// 			if (participant.user_id === data.user_id) {
-	// 				if (participant.role === Role.ADMIN) {
-	// 					client.emit('error', "You're not allowed to kick an admin");
-	// 					isAdmin = true;
-	// 				}
-	// 				participantObject = participant;
-	// 			}
-	// 		});
-	// 		if (participantObject.conversation_status === Status.KICKED) {
-	// 			client.emit('error', 'Participant is already kicked');
-	// 		}
-	// 		else if (!isAdmin) {
-	// 			await this.prisma.participant.update({
-	// 				where: {
-	// 					id: participantObject.id,
-	// 				},
-	// 				data: {
-	// 					conversation_status: Status.KICKED,
-	// 				}
-	// 			});
-	// 			this.server.to(data.conversation_id).emit('userKicked', data.user_id);
-	// 			client.emit('alert', 'Participant is now kicked');
-	// 		}
-	// 	}
-	// 	catch (e) {
-	// 		client.emit('error', 'Unauthorized access from kickUser');
-	// 	}
-	// }
-
 	// @SubscribeMessage('muteUser')
 	// async muteUser(client: Socket, data: any) {
 	// 	const token = client.handshake.auth.token;
@@ -580,28 +432,3 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	// 		client.emit('error', 'Unauthorized access from muteUser');
 	// 	}
 	// }
-
-	// @SubscribeMessage('unKickUser')
-	// async unKickUser(client: Socket, data: any) {
-	// 	const token = client.handshake.auth.token;
-	// 	let user = null;
-	// 	try {
-	// 		user = this.jwtService.verify(token, {
-	// 			secret: process.env.JWT_SECRET,
-	// 		});
-	// 		const participant = await this.prisma.participant.update({
-	// 			where: {
-	// 				id: data.participant_id,
-	// 			},
-	// 			data: {
-	// 				conversation_status: Status.ACTIVE,
-	// 			}
-	// 		});
-	// 		client.emit('userUnKicked');
-	// 		client.emit('alert', "You're now active again");
-	// 	}
-	// 	catch (e) {
-	// 		client.emit('error', 'Unauthorized access from unKickUser');
-	// 	}
-	// }
-
