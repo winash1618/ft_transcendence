@@ -41,8 +41,6 @@ export class ConversationService {
       );
     }
 
-    console.log(createConversation.privacy);
-
     try {
       const conversation = await this.prisma.conversation.create({
         data: {

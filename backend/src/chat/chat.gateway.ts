@@ -20,12 +20,13 @@ import { GatewaySessionManager } from './gateway.session';
 import { UsersService } from 'src/users/users.service';
 import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
-})
+// @WebSocketGateway(8001, {
+//   cors: {
+//     origin: process.env.FRONTEND_BASE_URL,
+//     credentials: true,
+//   },
+// })
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -40,8 +41,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
+    // const token = client.handshake.auth.token as string;
+    const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
@@ -83,7 +84,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: any,
   ) {
     console.log('In createConversation');
-    console.log(data.privacy);
 
     const conversation = await this.conversationService.createConversation({
       title: data.title,
@@ -99,7 +99,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         user_id: client.data.userID.id,
         role: Role['OWNER'],
         conversation_status: 'ACTIVE',
-      });
+      },
+      data.password,
+      );
 
     await this.joinConversations(client.data.userID.id, conversation.id);
     await this.sendMessagesToClient(client);
@@ -122,7 +124,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         user_id: client.data.userID.id,
         role: Role.USER,
         conversation_status: 'ACTIVE',
-      });
+      },
+      data.password,
+      );
 
     await this.joinConversations(client.data.userID.id, data.conversationID);
     await this.sendMessagesToClient(client);

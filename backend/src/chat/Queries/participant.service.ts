@@ -86,7 +86,7 @@ export class ParticipantService {
 
       if (
         conversation.privacy === 'PROTECTED' &&
-        this.conversationService.validatePassword(
+        !this.conversationService.validatePassword(
           password,
           conversation.password,
         )
