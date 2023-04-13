@@ -18,6 +18,7 @@ import { Role } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
 import { UsersService } from 'src/users/users.service';
+import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -99,8 +100,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         role: Role['OWNER'],
         conversation_status: 'ACTIVE',
       });
-	  
-    await this.joinConversations(client.data.userID.id);
+
+    await this.joinConversations(client.data.userID.id, conversation.id);
     await this.sendMessagesToClient(client);
     await this.sendConversationCreatedToAllClients(
       client.data.userID.id,
@@ -123,7 +124,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         conversation_status: 'ACTIVE',
       });
 
-    await this.joinConversations(client.data.userID.id);
+    await this.joinConversations(client.data.userID.id, data.conversationID);
     await this.sendMessagesToClient(client);
     await this.sendConversationJoinedToAllClients(
       client.data.userID.id,
@@ -197,27 +198,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('sendMessage')
   async sendMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: sendMessageDto,
   ) {
     console.log('In sendMessage', data);
-    const participant =
-      await this.participantService.findParticipantByUserIDandConversationID(
-        client.data.userID.id,
-        data.conversationID,
-      );
+    try {
+      const participant =
+        await this.participantService.findParticipantByUserIDandConversationID(
+          client.data.userID.id,
+          data.conversationID,
+        );
 
-    const message = await this.messageService.createMessage({
-      message: data.message,
-      author_id: participant.id,
-      conversation_id: data.conversationID,
-    });
+      const message = await this.messageService.createMessage({
+        message: data.message,
+        author_id: participant.id,
+        conversation_id: data.conversationID,
+      });
 
-    await this.sendConversationPublicToAllClients(data.conversationID);
-	console.log('In sendMessage end', data.conversationID)
-
-    this.server
-      .to(data.conversationID)
-      .emit('messageCreated', message);
+      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server
+        .to(data.conversationID)
+        .emit('messageCreated', message);
+    }
+    catch (e) {
+      console.log(e);
+    }
     // await this.sendMessagesToParticipants(data.conversationID, message);
   }
 
@@ -244,7 +248,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         conversation_status: 'ACTIVE',
       });
 
-    this.joinConversations(data.userID);
+    this.joinConversations(data.userID, data.conversationID);
     await this.sendConversationPublicToAllClients(data.conversationID);
   }
 
@@ -337,11 +341,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // helper function
 
-  private async joinConversations(userID: string) {
+  private async joinConversations(userID: string, conversationID: string) {
     const user = this.gatewaySession.getUserSocket(userID);
 
     if (!user) return;
-    user.join('conversations');
+    user.join(conversationID);
   }
 
   private async joinConversationByID(client: Socket, conversationID: string) {
