@@ -9,9 +9,14 @@ export class GameService {
   constructor(private readonly prisma: PrismaService) {}
 
   async storeGameHistory(gameData: CreateGameDto): Promise<void> {
-
-    gameData.winner = (gameData.player_score > gameData.opponent_score) ? gameData.player_one : gameData.player_two;
-    gameData.looser = (gameData.player_score < gameData.opponent_score) ? gameData.player_one : gameData.player_two;
+    gameData.winner =
+      gameData.player_score > gameData.opponent_score
+        ? gameData.player_one
+        : gameData.player_two;
+    gameData.looser =
+      gameData.player_score < gameData.opponent_score
+        ? gameData.player_one
+        : gameData.player_two;
 
     await this.prisma.gameHistory.create({
       data: gameData,

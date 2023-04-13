@@ -33,10 +33,12 @@ export class AuthController {
     return 'testing this';
   }
 
-	@UseGuards(FtAuthGuard)
-	@Get()
-	async redirectUri(@Req() req, @Res() res: Response) {
-		const token = await this.authService.getLongExpiryJwtToken(req.user as User);
+  @UseGuards(FtAuthGuard)
+  @Get()
+  async redirectUri(@Req() req, @Res() res: Response) {
+    const token = await this.authService.getLongExpiryJwtToken(
+      req.user as User,
+    );
     console.log(token);
 
     res.cookie('auth', token, { httpOnly: true });
@@ -51,7 +53,7 @@ export class AuthController {
 
   @Get('guest')
   async guestLogin(@Res() res: Response) {
-    const user = await this.userService.findOne('user1')
+    const user = await this.userService.findOne('user1');
     const token = await this.authService.getLongExpiryJwtToken(user);
     console.log(token);
 
@@ -59,16 +61,15 @@ export class AuthController {
     return res.redirect(process.env.FRONTEND_BASE_URL);
   }
 
-	@Get('token')
-	async GetAuth(
-		@Req() req,
-		@Res() res: Response,
-	): Promise<Response> {
-		const cookie = req.cookies.auth;
-		try {
-			if (!cookie) {
-				return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
-			}
+  @Get('token')
+  async GetAuth(@Req() req, @Res() res: Response): Promise<Response> {
+    const cookie = req.cookies.auth;
+    try {
+      if (!cookie) {
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .json({ message: 'Unauthorized' });
+      }
 
       const verifyToken = await this.authService.verifyToken(cookie);
 

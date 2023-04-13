@@ -9,7 +9,7 @@ import {
   UserMap,
   InvitationMap,
   Paddle,
-  BallMovement
+  BallMovement,
 } from './interface/game.interface';
 import { Socket } from 'socket.io';
 import { Server } from 'socket.io';
@@ -34,28 +34,24 @@ export class GameEngine {
   ballMovement: BallMovement;
   interval: any;
 
-  initGameObj(
-    points: number,
-    player1: string,
-    player2: string,
-  ): GameObject {
+  initGameObj(points: number, player1: string, player2: string): GameObject {
     return {
       gameStatus: GameStatus.WAITING,
       paddle1: {
         x: 0,
-        y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2),
+        y: GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2,
         movingUp: false,
         movingDown: false,
       },
       paddle2: {
-        x: (GAME_WIDTH - PADDLE_WIDTH),
-        y: (GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2),
+        x: GAME_WIDTH - PADDLE_WIDTH,
+        y: GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2,
         movingUp: false,
         movingDown: false,
       },
       ball: {
-        x: (GAME_WIDTH / 2),
-        y: (GAME_HEIGHT / 2)
+        x: GAME_WIDTH / 2,
+        y: GAME_HEIGHT / 2,
       },
       player1: { points: 0, name: player1 },
       player2: { points: 0, name: player2 },
@@ -68,7 +64,12 @@ export class GameEngine {
     };
   }
 
-  constructor(game: Game, server: Server, player1: SocketData, player2: SocketData) {
+  constructor(
+    game: Game,
+    server: Server,
+    player1: SocketData,
+    player2: SocketData,
+  ) {
     this.gameID = game.gameID;
     this.server = server;
     this.gameObj = this.initGameObj(7, game.player1, game.player2);
@@ -76,28 +77,22 @@ export class GameEngine {
       x: 0,
       y: 0,
       radian: 0,
-    }
+    };
     this.users = new Map<string, SocketData>();
-    this.users.set(
-      game.player1,
-      {
-        playerNumber: 1,
-        client: player1.client,
-        gameID: game.gameID,
-        userID: game.player1,
-        status: GameStatus.WAITING,
-      }
-    )
-    this.users.set(
-      game.player2,
-      {
-        playerNumber: 2,
-        client: player2.client,
-        gameID: game.gameID,
-        userID: game.player2,
-        status: GameStatus.WAITING,
-      }
-    )
+    this.users.set(game.player1, {
+      playerNumber: 1,
+      client: player1.client,
+      gameID: game.gameID,
+      userID: game.player1,
+      status: GameStatus.WAITING,
+    });
+    this.users.set(game.player2, {
+      playerNumber: 2,
+      client: player2.client,
+      gameID: game.gameID,
+      userID: game.player2,
+      status: GameStatus.WAITING,
+    });
     this.player1 = game.player1;
     this.player2 = game.player2;
   }
@@ -126,17 +121,31 @@ export class GameEngine {
     }
 
     this.ballMovement.radian = (radianRatio * Math.PI) / 4;
-    this.ballMovement.x = isBallMovingRight * Math.cos(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
-    this.ballMovement.y = yDirection * Math.sin(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
+    this.ballMovement.x =
+      isBallMovingRight *
+      Math.cos(this.ballMovement.radian) *
+      BALL_SPEED *
+      this.gameObj.gameSetting.speed;
+    this.ballMovement.y =
+      yDirection *
+      Math.sin(this.ballMovement.radian) *
+      BALL_SPEED *
+      this.gameObj.gameSetting.speed;
   }
 
   ballMove() {
     const ballRightMax = GAME_WIDTH - BALL_SIZE;
     const ballBottomMax = GAME_HEIGHT - BALL_SIZE;
 
-    this.gameObj.ball.x = Math.min(ballRightMax, Math.max(0, this.gameObj.ball.x + this.ballMovement.x));
+    this.gameObj.ball.x = Math.min(
+      ballRightMax,
+      Math.max(0, this.gameObj.ball.x + this.ballMovement.x),
+    );
 
-    this.gameObj.ball.y = Math.min(ballBottomMax, Math.max(0, this.gameObj.ball.y + this.ballMovement.y));
+    this.gameObj.ball.y = Math.min(
+      ballBottomMax,
+      Math.max(0, this.gameObj.ball.y + this.ballMovement.y),
+    );
 
     const ball = this.gameObj.ball;
     const paddle1 = this.gameObj.paddle1;
@@ -146,13 +155,17 @@ export class GameEngine {
     if (ball.x <= 0) {
       // Player 2 scores
       this.gameObj.player2.points++;
-      this.server.to(this.gameID).emit('player2Score', this.gameObj.player2.points);
+      this.server
+        .to(this.gameID)
+        .emit('player2Score', this.gameObj.player2.points);
       this.resetBall();
       return;
     } else if (ball.x >= GAME_WIDTH - BALL_SIZE) {
       // Player 1 scores
       this.gameObj.player1.points++;
-      this.server.to(this.gameID).emit('player1Score', this.gameObj.player1.points);
+      this.server
+        .to(this.gameID)
+        .emit('player1Score', this.gameObj.player1.points);
       this.resetBall();
       return;
     }
@@ -170,7 +183,8 @@ export class GameEngine {
       ball.y <= paddle1.y + PADDLE_HEIGHT &&
       paddle1.x <= ball.x &&
       ball.x <= paddle1.x + PADDLE_WIDTH &&
-      this.ballMovement.x < 0) {
+      this.ballMovement.x < 0
+    ) {
       this.ballBounce(paddle1.y);
     }
     if (
@@ -178,7 +192,8 @@ export class GameEngine {
       ball.y <= paddle2.y + PADDLE_HEIGHT &&
       paddle2.x <= ball.x + BALL_SIZE &&
       ball.x + BALL_SIZE <= paddle2.x + PADDLE_WIDTH &&
-      this.ballMovement.x > 0) {
+      this.ballMovement.x > 0
+    ) {
       this.ballBounce(paddle2.y);
     }
   }
@@ -187,25 +202,31 @@ export class GameEngine {
     this.gameObj.ball.x = (GAME_HEIGHT - BALL_SIZE) / 2;
     this.gameObj.ball.y = (GAME_WIDTH - BALL_SIZE) / 2;
     this.ballMovement.radian = (Math.random() * Math.PI) / 4;
-    this.ballMovement.x = (Math.random() < 0.5 ? 1 : -1) * Math.cos(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
-    this.ballMovement.y = (Math.random() < 0.5 ? 1 : -1) * Math.sin(this.ballMovement.radian) * BALL_SPEED * this.gameObj.gameSetting.speed;
+    this.ballMovement.x =
+      (Math.random() < 0.5 ? 1 : -1) *
+      Math.cos(this.ballMovement.radian) *
+      BALL_SPEED *
+      this.gameObj.gameSetting.speed;
+    this.ballMovement.y =
+      (Math.random() < 0.5 ? 1 : -1) *
+      Math.sin(this.ballMovement.radian) *
+      BALL_SPEED *
+      this.gameObj.gameSetting.speed;
   }
 
   barMove(key: KeyPress, position: Position, isPressed: boolean) {
     if (key.upKey) {
       if (isPressed) {
-        position.movingUp = true
-      }
-      else {
-        position.movingUp = false
+        position.movingUp = true;
+      } else {
+        position.movingUp = false;
       }
     }
     if (key.downKey) {
       if (isPressed) {
-        position.movingDown = true
-      }
-      else {
-        position.movingDown = false
+        position.movingDown = true;
+      } else {
+        position.movingDown = false;
       }
     }
   }
@@ -244,10 +265,8 @@ export class GameEngine {
     this.gameObj.time = GAME_TIME;
     this.interval = setInterval(() => {
       this.gameObj.remainingTime--;
-      if (this.gameObj.remainingTime === 0)
-        clearInterval(this.interval);
-      else
-        this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+      if (this.gameObj.remainingTime === 0) clearInterval(this.interval);
+      else this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
     }, 1000);
   }
 
@@ -262,18 +281,26 @@ export class GameEngine {
       this.playerMove();
       this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
 
-      if (this.gameObj.player1.points >= GAME_POINTS || this.gameObj.player2.points >= GAME_POINTS) {
+      if (
+        this.gameObj.player1.points >= GAME_POINTS ||
+        this.gameObj.player2.points >= GAME_POINTS
+      ) {
         clearInterval(this.interval);
         this.gameObj.gameStatus = GameStatus.WAITING;
         this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-        const winner: string = this.gameObj.player1.points >= GAME_POINTS ? this.player1 : this.player2;
-        const looser: string = this.gameObj.player1.points >= GAME_POINTS ? this.player2 : this.player1;
+        const winner: string =
+          this.gameObj.player1.points >= GAME_POINTS
+            ? this.player1
+            : this.player2;
+        const looser: string =
+          this.gameObj.player1.points >= GAME_POINTS
+            ? this.player2
+            : this.player1;
         this.users.get(winner).client.emit('win', winner);
         this.users.get(looser).client.emit('lose', looser);
       }
     }, GAME_TIME);
   }
 
-  stopGame() {
-  }
+  stopGame() {}
 }

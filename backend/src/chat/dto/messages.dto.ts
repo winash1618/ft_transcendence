@@ -1,5 +1,5 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 export class CreateMessageDto {
   @IsString()

@@ -8,10 +8,12 @@ export class MessageService {
   constructor(
     private prisma: PrismaService,
     private conversationService: ConversationService,
-    ) {}
+  ) {}
 
   async createMessage(createMessage: CreateMessageDto) {
-    const conversation = await this.conversationService.checkConversationExists(createMessage.conversation_id);
+    const conversation = await this.conversationService.checkConversationExists(
+      createMessage.conversation_id,
+    );
 
     if (!conversation) {
       throw new Error('Conversation does not exist');
@@ -41,7 +43,7 @@ export class MessageService {
       },
       include: {
         author: true,
-      }
+      },
     });
   }
 
@@ -67,10 +69,10 @@ export class MessageService {
             },
           },
         },
-		id: true,
+        id: true,
         message: true,
         conversation_id: true,
       },
     });
-    }
   }
+}

@@ -1,7 +1,15 @@
-import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { Status, Role } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateParticipantDto, UpdateParticipantDto } from '../dto/participants.dto';
+import {
+  CreateParticipantDto,
+  UpdateParticipantDto,
+} from '../dto/participants.dto';
 import { ConversationService } from './conversation.service';
 
 @Injectable()
@@ -10,17 +18,17 @@ export class ParticipantService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => ConversationService))
     private conversationService: ConversationService,
-    ) {}
+  ) {}
 
-  async addParticipant(
-    createParticipant: CreateParticipantDto,
-  ) {
+  async addParticipant(createParticipant: CreateParticipantDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: createParticipant.user_id },
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${createParticipant.user_id} not found.`);
+      throw new NotFoundException(
+        `User with ID ${createParticipant.user_id} not found.`,
+      );
     }
 
     // Check if the conversation exists
@@ -29,7 +37,9 @@ export class ParticipantService {
     });
 
     if (!conversation) {
-      throw new NotFoundException(`Conversation with ID ${createParticipant.conversation_id} not found.`);
+      throw new NotFoundException(
+        `Conversation with ID ${createParticipant.conversation_id} not found.`,
+      );
     }
 
     return await this.prisma.participant.create({
@@ -46,7 +56,6 @@ export class ParticipantService {
     userID: string,
     conversationID: string,
   ) {
-
     const participant = await this.prisma.participant.findFirst({
       where: {
         user_id: userID,
@@ -66,16 +75,22 @@ export class ParticipantService {
     password?: string,
   ) {
     try {
-      const conversation = await this.conversationService.checkConversationExists(
-        createParticipant.conversation_id,
-      );
+      const conversation =
+        await this.conversationService.checkConversationExists(
+          createParticipant.conversation_id,
+        );
 
       if (!conversation) {
         throw new Error('Conversation does not exist');
       }
 
-      if (conversation.privacy === 'PROTECTED' &&
-        this.conversationService.validatePassword(password, conversation.password)) {
+      if (
+        conversation.privacy === 'PROTECTED' &&
+        this.conversationService.validatePassword(
+          password,
+          conversation.password,
+        )
+      ) {
         throw new Error('Incorrect password');
       }
 
@@ -94,10 +109,7 @@ export class ParticipantService {
     }
   }
 
-  async checkParticipantExists(
-    conversationID: string,
-    userID: string,
-  ) {
+  async checkParticipantExists(conversationID: string, userID: string) {
     return await this.prisma.participant.findFirst({
       where: {
         conversation_id: conversationID,
@@ -243,7 +255,7 @@ export class ParticipantService {
   async updateParticipantRole(
     conversationID: string,
     userID: string,
-    role: string
+    role: string,
   ) {
     const conversation = await this.conversationService.checkConversationExists(
       conversationID,
@@ -272,15 +284,11 @@ export class ParticipantService {
     });
   }
 
-  async makeParticipantAdmin(
-    conversationID: string,
-    userID: string,
-  ) {
+  async makeParticipantAdmin(conversationID: string, userID: string) {
     const conversation = await this.conversationService.checkConversationExists(
       conversationID,
     );
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     const participant = await this.checkParticipantExists(
       conversationID,
@@ -299,7 +307,7 @@ export class ParticipantService {
   async banUserFromConversation(
     conversationID: string,
     userID: string,
-    adminUser: string
+    adminUser: string,
   ) {
     if (this.validationCheck(conversationID, userID))
       throw new Error('Validation check failed');
@@ -311,18 +319,22 @@ export class ParticipantService {
   async unbanUserFromConversation(
     conversationID: string,
     userID: string,
-    adminUser: string
+    adminUser: string,
   ) {
     if (this.validationCheck(conversationID, userID))
       throw new Error('Validation check failed');
 
-    return await this.updateParticipantStatus(conversationID, userID, Status.ACTIVE);
+    return await this.updateParticipantStatus(
+      conversationID,
+      userID,
+      Status.ACTIVE,
+    );
   }
 
   async kickUserFromConversation(
     conversationID: string,
     userID: string,
-    adminUser: string
+    adminUser: string,
   ) {
     if (this.validationCheck(conversationID, userID))
       throw new Error('Validation check failed');
@@ -335,7 +347,7 @@ export class ParticipantService {
   async validationCheck(
     conversationID: string,
     userID: string,
-    adminUser?: string
+    adminUser?: string,
   ) {
     const conversation = await this.conversationService.checkConversationExists(
       conversationID,
@@ -367,9 +379,11 @@ export class ParticipantService {
     }
 
     if (adminUser) {
-      const isAdmin = await this.isUserAdminInConversation(adminUser, conversationID);
-      if (!isAdmin)
-        throw new Error('User is not an admin');
+      const isAdmin = await this.isUserAdminInConversation(
+        adminUser,
+        conversationID,
+      );
+      if (!isAdmin) throw new Error('User is not an admin');
     }
 
     return true;

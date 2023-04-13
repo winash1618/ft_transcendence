@@ -7,50 +7,50 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 @Injectable()
 export class UsersService {
-	constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-	async create(createUserDto: CreateUserDto) {
-		return this.prisma.user.create({ data: createUserDto });
-	}
+  async create(createUserDto: CreateUserDto) {
+    return this.prisma.user.create({ data: createUserDto });
+  }
 
-	async add42User(userDto: CreateUserDto) {
-		return await this.prisma.user.create({ data: userDto });
-	}
+  async add42User(userDto: CreateUserDto) {
+    return await this.prisma.user.create({ data: userDto });
+  }
 
-	findAll() {
-		return this.prisma.user.findMany();
-	}
+  findAll() {
+    return this.prisma.user.findMany();
+  }
 
-	async users(): Promise<User[]> {
-		return this.prisma.user.findMany();
-	}
+  async users(): Promise<User[]> {
+    return this.prisma.user.findMany();
+  }
 
-	async findOne(login: string): Promise<User | null> {
-		return await this.prisma.user.findUnique({ where: { login } });
-	}
+  async findOne(login: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({ where: { login } });
+  }
 
-	async getUserByLogin(login: string): Promise<User | null> {
-		return await this.prisma.user.findUnique({ where: { login } });
-	}
+  async getUserByLogin(login: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({ where: { login } });
+  }
 
-	async getUserByIdWithParticipants(id: string) {
-		return this.prisma.user.findMany({
-			where: {
-				id: id,
-			},
-			include: {
-				participant_in: true,
-			},
-		});
-	}
+  async getUserByIdWithParticipants(id: string) {
+    return this.prisma.user.findMany({
+      where: {
+        id: id,
+      },
+      include: {
+        participant_in: true,
+      },
+    });
+  }
 
   async getUserById(id: string): Promise<User | null> {
-		return await this.prisma.user.findUnique({ where: { id } });
-	}
+    return await this.prisma.user.findUnique({ where: { id } });
+  }
 
   remove(id: number) {
-		return `This action removes a #${id} user`;
-	}
+    return `This action removes a #${id} user`;
+  }
 
   async userStatusUpdate(id: string, status: string) {
     return await this.prisma.user.update({
@@ -114,5 +114,4 @@ export class UsersService {
 
     return user.blocked_users.length > 0;
   }
-
 }

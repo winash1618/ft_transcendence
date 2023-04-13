@@ -1,7 +1,10 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Privacy, Role, Status } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateConversationDto, UpdateConversationDto } from '../dto/conversation.dto';
+import {
+  CreateConversationDto,
+  UpdateConversationDto,
+} from '../dto/conversation.dto';
 import * as brypt from 'bcrypt';
 import { ParticipantService } from './participant.service';
 import { UsersService } from 'src/users/users.service';
@@ -13,7 +16,7 @@ export class ConversationService {
     @Inject(forwardRef(() => ParticipantService))
     private participantService: ParticipantService,
     private userService: UsersService,
-    ) {}
+  ) {}
 
   private async hashPassword(password: string) {
     return await brypt.hash(password, 10);
@@ -24,17 +27,21 @@ export class ConversationService {
   }
 
   async createConversation(createConversation: CreateConversationDto) {
-    if (createConversation.privacy === 'PROTECTED' &&
-      (createConversation.password === '' || createConversation.password === undefined)
+    if (
+      createConversation.privacy === 'PROTECTED' &&
+      (createConversation.password === '' ||
+        createConversation.password === undefined)
     ) {
       throw new Error('Password is required for Protected conversation');
     }
 
     if (createConversation.privacy === 'PROTECTED') {
-      createConversation.password = await this.hashPassword(createConversation.password);
+      createConversation.password = await this.hashPassword(
+        createConversation.password,
+      );
     }
 
-	console.log(createConversation.privacy)
+    console.log(createConversation.privacy);
 
     try {
       const conversation = await this.prisma.conversation.create({
@@ -89,7 +96,11 @@ export class ConversationService {
     });
   }
 
-  async createDirectConversation(createConversation: CreateConversationDto, userID: string, otherUserID: string) {
+  async createDirectConversation(
+    createConversation: CreateConversationDto,
+    userID: string,
+    otherUserID: string,
+  ) {
     if (this.checkDirectConversationExists(userID, otherUserID)) {
       throw new Error('Direct conversation already exists');
     }
@@ -225,7 +236,9 @@ export class ConversationService {
       throw new Error('Conversation does not exist');
     }
 
-    if (!this.participantService.isUserAdminInConversation(userID, conversationID)) {
+    if (
+      !this.participantService.isUserAdminInConversation(userID, conversationID)
+    ) {
       throw new Error('User is not admin of the conversation');
     }
 
@@ -308,8 +321,8 @@ export class ConversationService {
           some: {
             user_id: userID,
             conversation_status: {
-              not: Status['BANNED']
-            }
+              not: Status['BANNED'],
+            },
           },
         },
       },
@@ -319,7 +332,7 @@ export class ConversationService {
             user: true,
             messages: true,
           },
-        }
+        },
       },
     });
   }
@@ -331,8 +344,8 @@ export class ConversationService {
           some: {
             user_id: userID,
             conversation_status: {
-              not: Status['BANNED']
-            }
+              not: Status['BANNED'],
+            },
           },
         },
       },

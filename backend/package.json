@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prettier": "prettier --write \"./**/*.{js,jsx,ts,tsx,json,css,md}\""
   },
   "dependencies": {
     "@nestjs/axios": "^2.0.0",
@@ -64,7 +65,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "29.3.1",
-    "prettier": "^2.3.2",
+    "prettier": "^2.8.7",
     "prisma": "^4.11.0",
     "source-map-support": "^0.5.20",
     "supertest": "^6.1.3",

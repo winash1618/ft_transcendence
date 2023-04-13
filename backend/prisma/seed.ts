@@ -59,66 +59,54 @@ async function seed() {
 
   const conversation1 = await prisma.conversation.create({
     data: {
-		title: 'Conversation 1',
+      title: 'Conversation 1',
       privacy: Privacy['PUBLIC'],
       creator_id: user3.id,
       participants: {
-        create: [
-          { user_id: user3.id },
-          { user_id: user2.id },
-        ],
+        create: [{ user_id: user3.id }, { user_id: user2.id }],
       },
     },
   });
 
   const conversation4 = await prisma.conversation.create({
     data: {
-		title: 'Conversation 4',
+      title: 'Conversation 4',
       privacy: Privacy['PROTECTED'],
       creator_id: user3.id,
       participants: {
-        create: [
-          { user_id: user3.id },
-          { user_id: user2.id },
-        ],
+        create: [{ user_id: user3.id }, { user_id: user2.id }],
       },
     },
   });
 
   const conversation2 = await prisma.conversation.create({
     data: {
-		title: 'Conversation 2',
+      title: 'Conversation 2',
       privacy: 'PUBLIC',
       creator_id: user1.id,
       participants: {
-        create: [
-          { user_id: user1.id },
-          { user_id: user3.id },
-        ],
+        create: [{ user_id: user1.id }, { user_id: user3.id }],
       },
     },
   });
 
   const conversation3 = await prisma.conversation.create({
     data: {
-		title: 'Conversation 3',
+      title: 'Conversation 3',
       privacy: 'PROTECTED',
       creator_id: user2.id,
       participants: {
-        create: [
-          { user_id: user1.id },
-          { user_id: user2.id },
-        ],
+        create: [{ user_id: user1.id }, { user_id: user2.id }],
       },
     },
   });
 }
 
 seed()
-  .catch((e) => {
+  .catch(e => {
     console.log(e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-  })
+  });

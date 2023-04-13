@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters, ParseUUIDPipe, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  NotFoundException,
+  UseFilters,
+  ParseUUIDPipe,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
@@ -13,83 +26,92 @@ import { UsersService } from 'src/users/users.service';
 @UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class ChatController {
-	constructor(
+  constructor(
     private readonly chatService: ChatService,
     private conversationService: ConversationService,
     private participantService: ParticipantService,
     private messageService: MessageService,
-	private userService: UsersService,
+    private userService: UsersService,
     private usersService: UsersService,
-    ) { }
+  ) {}
 
-    @Get('direct')
-    async getConversations(@Req() req) {
-      try {
-        // return await this.conversationService.getDirectConversations('38144271-a29c-401b-b9ab-da7023f0be00');
-        return await this.conversationService.getDirectConversations(req.user.id);
-      }
-      catch (error) {
-        throw new NotFoundException(error.message);
-      }
+  @Get('direct')
+  async getConversations(@Req() req) {
+    try {
+      // return await this.conversationService.getDirectConversations('38144271-a29c-401b-b9ab-da7023f0be00');
+      return await this.conversationService.getDirectConversations(req.user.id);
+    } catch (error) {
+      throw new NotFoundException(error.message);
     }
+  }
 
-    @Get(':conversationID/participants')
-    async getParticipants(@Param('conversationID', ParseUUIDPipe) conversationID: string) {
-      try {
-        return await this.participantService.getParticipants(conversationID);
-      }
-      catch (error) {
-        throw new NotFoundException(error.message);
-      }
+  @Get(':conversationID/participants')
+  async getParticipants(
+    @Param('conversationID', ParseUUIDPipe) conversationID: string,
+  ) {
+    try {
+      return await this.participantService.getParticipants(conversationID);
+    } catch (error) {
+      throw new NotFoundException(error.message);
     }
+  }
 
-    @Get('groups')
-    async getChannels(@Req() req) {
-      try{
-        return await this.conversationService.getChannels(req.user.id);
-      }
-      catch (error) {
-        throw new NotFoundException(error.message);
-      }
+  @Get('groups')
+  async getChannels(@Req() req) {
+    try {
+      return await this.conversationService.getChannels(req.user.id);
+    } catch (error) {
+      throw new NotFoundException(error.message);
     }
+  }
 
-    @Get(':conversationID/messages')
-    async getMessages(@Req() req, @Param('conversationID') conversationID: string) {
-      try {
-		const user = await this.userService.getUserById(req.user.id);
-        const conversations = await this.messageService.getDisplayMessagesByConversationID(conversationID);
-		const conversationWithSenderInfo = {
-			conversations: conversations,
-			sender: {
-				id: user.id,
-				username: user.username,
-			}
-		};
-		return conversationWithSenderInfo;
-      }
-      catch (error) {
-        throw new NotFoundException(error.message);
-      }
+  @Get(':conversationID/messages')
+  async getMessages(
+    @Req() req,
+    @Param('conversationID') conversationID: string,
+  ) {
+    try {
+      const user = await this.userService.getUserById(req.user.id);
+      const conversations =
+        await this.messageService.getDisplayMessagesByConversationID(
+          conversationID,
+        );
+      const conversationWithSenderInfo = {
+        conversations: conversations,
+        sender: {
+          id: user.id,
+          username: user.username,
+        },
+      };
+      return conversationWithSenderInfo;
+    } catch (error) {
+      throw new NotFoundException(error.message);
     }
+  }
 
-    @Get('explore')
-    async searchChannels(@Req() req) {
-      try {
-        return await this.conversationService.findChannelsThatUserIsNotIn(req.user.id);
-      }
-      catch (error) {
-        throw new NotFoundException(error.message);
-      }
+  @Get('explore')
+  async searchChannels(@Req() req) {
+    try {
+      return await this.conversationService.findChannelsThatUserIsNotIn(
+        req.user.id,
+      );
+    } catch (error) {
+      throw new NotFoundException(error.message);
     }
+  }
 
-    @Get('channel/:channelID/addFriends')
-    async getFriendsToAddToChannel(@Param('channelID', ParseUUIDPipe) channelID: string, @Req() req) {
-      try {
-        return await this.conversationService.friendsNotInConversation(channelID, req.user.id);
-      }
-      catch (error) {
-        throw new NotFoundException(error.message);
-      }
+  @Get('channel/:channelID/addFriends')
+  async getFriendsToAddToChannel(
+    @Param('channelID', ParseUUIDPipe) channelID: string,
+    @Req() req,
+  ) {
+    try {
+      return await this.conversationService.friendsNotInConversation(
+        channelID,
+        req.user.id,
+      );
+    } catch (error) {
+      throw new NotFoundException(error.message);
     }
-
+  }
 }

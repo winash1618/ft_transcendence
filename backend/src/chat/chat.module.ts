@@ -23,9 +23,9 @@ import { ChatController } from './chat.controller';
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
-        }
-      })
+          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN'),
+        },
+      }),
     }),
     AuthModule,
     UsersModule,
@@ -40,7 +40,8 @@ import { ChatController } from './chat.controller';
     ConversationService,
     MessageService,
     ParticipantService,
-    PrismaService],
+    PrismaService,
+  ],
   controllers: [ChatController],
 })
 export class ChatModule {}

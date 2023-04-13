@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Status, Role } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateParticipantDto, UpdateParticipantDto } from '../dto/participants.dto';
+import {
+  CreateParticipantDto,
+  UpdateParticipantDto,
+} from '../dto/participants.dto';
 
 @Injectable()
 export class a_ParticipantService {
@@ -20,24 +23,21 @@ export class a_ParticipantService {
       data: {
         user_id: createParticipantDto.user_id,
         conversation_id: createParticipantDto.conversation_id,
-		role: createParticipantDto.role,
+        role: createParticipantDto.role,
       },
     });
   }
 
   async getConversationParticipants(conversationID: string) {
-	return await this.prisma.participant.findMany({
-		where: {
-			conversation_id: conversationID,
-		},
-		include: {
-			user: true,
-		},
-	});
-
+    return await this.prisma.participant.findMany({
+      where: {
+        conversation_id: conversationID,
+      },
+      include: {
+        user: true,
+      },
+    });
   }
-
-
 
   async findAll() {
     return await this.prisma.participant.findMany();
@@ -95,7 +95,7 @@ export class a_ParticipantService {
     return await this.prisma.participant.findMany({
       where: {
         conversation_id: conversationID,
-		user_id: userID,
+        user_id: userID,
       },
     });
   }
@@ -137,11 +137,7 @@ export class a_ParticipantService {
     });
   }
 
-  async updateRole(
-    userID: string,
-    conversationID: string,
-    role: string,
-  ) {
+  async updateRole(userID: string, conversationID: string, role: string) {
     return await this.prisma.participant.update({
       where: {
         conversation_id_user_id: {
@@ -155,10 +151,7 @@ export class a_ParticipantService {
     });
   }
 
-  async getConversationStatus(
-    userID: string,
-    conversationID: string,
-  ) {
+  async getConversationStatus(userID: string, conversationID: string) {
     return await this.prisma.participant.findUnique({
       where: {
         conversation_id_user_id: {
@@ -172,10 +165,7 @@ export class a_ParticipantService {
     });
   }
 
-  async getRole(
-    userID: string,
-    conversationID: string,
-  ) {
+  async getRole(userID: string, conversationID: string) {
     return await this.prisma.participant.findUnique({
       where: {
         conversation_id_user_id: {
@@ -189,10 +179,7 @@ export class a_ParticipantService {
     });
   }
 
-  async getConversationId(
-    userID: string,
-    conversationID: string,
-  ) {
+  async getConversationId(userID: string, conversationID: string) {
     return await this.prisma.participant.findUnique({
       where: {
         conversation_id_user_id: {
@@ -206,10 +193,7 @@ export class a_ParticipantService {
     });
   }
 
-  async getUserId(
-    userID: string,
-    conversationID: string,
-  ) {
+  async getUserId(userID: string, conversationID: string) {
     return await this.prisma.participant.findUnique({
       where: {
         conversation_id_user_id: {

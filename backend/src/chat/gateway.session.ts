@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { Socket } from "socket.io";
+import { Injectable } from '@nestjs/common';
+import { Socket } from 'socket.io';
 
 export interface IGatewaySessionManager {
   getUserSocket(userId: string): Socket;

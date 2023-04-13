@@ -10,8 +10,8 @@ import { ConfigService } from '@nestjs/config';
 export class WsJwtStrategy extends PassportStrategy(Strategy, 'wsjwt') {
   constructor(
     private userService: UsersService,
-    private configService: ConfigService
-    ) {
+    private configService: ConfigService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,

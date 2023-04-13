@@ -15,14 +15,14 @@ import { PrismaModule } from 'src/database/prisma.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
-        }
-      })
+          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN'),
+        },
+      }),
     }),
     PrismaModule,
     AuthModule,
     UsersModule,
   ],
-  providers: [GameGateway, GameService]
+  providers: [GameGateway, GameService],
 })
-export class GameModule { }
+export class GameModule {}

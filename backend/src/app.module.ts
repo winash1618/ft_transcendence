@@ -9,10 +9,11 @@ import { GameModule } from './game/game.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    AuthModule, UsersModule,
+    AuthModule,
+    UsersModule,
     PrismaModule,
     ChatModule,
-    GameModule
+    GameModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,6 +1,6 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsString } from "class-validator";
-import { Privacy } from "@prisma/client";
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
+import { Privacy } from '@prisma/client';
 
 export class CreateConversationDto {
   @IsString()
