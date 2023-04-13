@@ -57,7 +57,7 @@ export class MessageService {
         conversation_id: conversationID,
       },
       orderBy: {
-        created_at: 'desc',
+        created_at: 'asc',
       },
       select: {
         author: {

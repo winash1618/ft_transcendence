@@ -71,19 +71,12 @@ export class ChatController {
     @Param('conversationID') conversationID: string,
   ) {
     try {
-      const user = await this.userService.getUserById(req.user.id);
       const conversations =
         await this.messageService.getDisplayMessagesByConversationID(
           conversationID,
         );
-      const conversationWithSenderInfo = {
-        conversations: conversations,
-        sender: {
-          id: user.id,
-          username: user.username,
-        },
-      };
-      return conversationWithSenderInfo;
+      console.log(conversations);
+      return conversations;
     } catch (error) {
       throw new NotFoundException(error.message);
     }
