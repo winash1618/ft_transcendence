@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Colors } from "../../chat.functions";
+import { Colors, Nav } from "../../chat.functions";
 import { AutoComplete, List } from "antd";
 
 interface ExploreChatProps {
+	socket: any;
 	conversations: Conversation[];
+	setNavbar: any;
 }
 
 interface Conversation {
@@ -13,12 +15,18 @@ interface Conversation {
 }
 
 const ExploreChat = ({
+	socket,
 	conversations,
+	setNavbar,
 }: ExploreChatProps) => {
 	const [selectedConversationID, setSelectedConversationID] = React.useState("");
 
+
+
 	function handleSelectedConversation(conversation: any) {
 		setSelectedConversationID(conversation.id);
+		socket?.emit("joinConversation", {conversationID: conversation.id, password: ""});
+		setNavbar(Nav.GROUPS);
 	}
 	const [searchKeyword, setSearchKeyword] = useState('');
 

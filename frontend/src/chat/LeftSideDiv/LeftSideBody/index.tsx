@@ -52,6 +52,7 @@ const LeftSideBody = ({
 	else if (Navbar === Nav.EXPLORE) {
 		return (
 			<ExploreChat
+				socket={socket}
 				conversations={conversations}
 			/>
 		);
