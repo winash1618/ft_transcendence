@@ -206,27 +206,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.conversationID,
       );
 
-    const user = await this.userService.getUserById(participant.user_id);
-
     const message = await this.messageService.createMessage({
       message: data.message,
       author_id: participant.id,
       conversation_id: data.conversationID,
     });
 
-    const messageWithSenderInfo = {
-      ...message,
-      sender: {
-        id: user.id,
-        username: user.username,
-      },
-    };
-    console.log(messageWithSenderInfo);
-
     await this.sendConversationPublicToAllClients(data.conversationID);
     this.server
       .to(data.conversationID)
-      .emit('messageCreated', messageWithSenderInfo);
+      .emit('messageCreated', message);
     // await this.sendMessagesToParticipants(data.conversationID, message);
   }
 
