@@ -30,7 +30,7 @@ export class MessageService {
           select: {
             user: {
               select: {
-				id: true,
+                id: true,
                 username: true,
               },
             },
@@ -71,7 +71,7 @@ export class MessageService {
           select: {
             user: {
               select: {
-				id: true,
+                id: true,
                 username: true,
               },
             },

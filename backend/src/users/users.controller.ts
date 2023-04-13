@@ -20,6 +20,7 @@ import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 
 @Controller('users')
 @ApiTags('users')
+@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -48,12 +49,16 @@ export class UsersController {
   //     return await this.usersService.userStatusUpdate(id, data.status);
   //   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':uuid')
   async updateUserName(
     @Param('uuid', new ParseUUIDPipe()) uuid: string,
     @Body() data: { name: string },
   ) {
     return await this.usersService.updateUserName(uuid, data.name);
+  }
+
+  @Get('friends/:uuid')
+  async getFriends(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
+    return await this.usersService.getUserFriends(uuid);
   }
 }
