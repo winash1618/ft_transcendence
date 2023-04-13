@@ -86,7 +86,7 @@ export class UsersService {
     return false;
   }
 
-  async getFriendsUserFriends(userID: string) {
+  async getUserFriends(userID: string) {
     return this.prisma.user.findMany({
       where: {
         friends: {
