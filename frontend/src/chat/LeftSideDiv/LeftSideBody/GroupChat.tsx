@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Colors, Nav, Privacy } from "../../chat.functions";
-import { ContactDiv, ContactImage, ContactName } from "./LeftSideBody.styled";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
@@ -32,6 +31,12 @@ const GroupChat = ({
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
+	const [filterValue, setFilterValue] = useState('');
+	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+
+	useEffect(() => {
+		setFilteredConversations(conversations);
+	}, [conversations]);
 
 	async function handleSelectedConversation(conversation: any) {
 		setConversationID(conversation.id);
@@ -48,7 +53,6 @@ const GroupChat = ({
 				return null;
 			}
 		};
-
 		const token = await getToken();
 		try {
 			const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
@@ -57,7 +61,6 @@ const GroupChat = ({
 					Authorization: `Bearer ${token}`,
 				},
 			});
-			console.log(result.data);
 			setMessages(result.data.conversations);
 			setSender(result.data.sender);
 		} catch (err) {
@@ -65,43 +68,17 @@ const GroupChat = ({
 		}
 	}
 
-	// 	return (
-	// 		<>
-	// 			{
-	// 				conversations.map((c) => {
-	// 					if (c) {
-	// 						return (
-	// 							<React.Fragment key={c.id}>
-	// 								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={conversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
-	// 									<ContactImage src={UserProfilePicture} alt="" />
-	// 									<ContactName>{c.title}{(c.privacy === Privacy.PUBLIC) ? (" (PUBLIC)") : (c.privacy === Privacy.PROTECTED) ? (" (PROTECTED)") : (c.privacy === Privacy.PRIVATE) ? (" (PRIVATE)") : null}</ContactName>
-	// 								</ContactDiv>
-	// 							</React.Fragment>
-	// 						);
-	// 					}
-	// 				})
-	// 			}
-	// 		</>
-	// 	);
-	// };
-
-	const [filterValue, setFilterValue] = useState('');
-	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
-
 	const handleAutoCompleteSearch = (value: string) => {
 		setFilterValue(value);
 		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
 		console.log("filteredconversation", filteredConversations);
 	};
 
-
 	const options = filteredConversations.map(conversation => ({
 		value: conversation.title,
 		label: conversation.title,
 	}));
-	useEffect(() => {
-		setFilteredConversations(conversations);
-	}, [conversations]);
+
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>

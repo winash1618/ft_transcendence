@@ -39,29 +39,3 @@ export const StyledMdOutlineTravelExplore = styled(MdOutlineTravelExplore)`
     transform: scale(1.3);
   }
 `;
-
-interface MessageNavProps {
-  backgroundColor: string;
-}
-
-export const MessageNav = styled.button<MessageNavProps>`
-  color: white;
-  font-size: 1rem;
-  // margin: 1em;
-  background: ${({ backgroundColor }) => backgroundColor};
-  border-radius: 15px;
-  border: none;
-`;
-
-interface MessageNavNotUsedProps {
-  backgroundColor: string;
-}
-
-// A new component based on Button, but with some override styles
-export const MessageNavNotUsed = styled.button<MessageNavNotUsedProps>`
-  color: white;
-  font-size: 1em;
-  background: ${({ backgroundColor }) => backgroundColor};
-  border-radius: 15px;
-  border: 0px;
-`;

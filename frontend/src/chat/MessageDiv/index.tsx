@@ -38,7 +38,6 @@ const MessageDiv = ({
 		}
 	};
 
-
 	useEffect(() => {
 		const handleMessageCreated = (object) => {
 			console.log("object: ", object);

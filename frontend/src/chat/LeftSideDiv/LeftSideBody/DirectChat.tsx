@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { ContactDiv, ContactImage, ContactName, DropdownField, StyledTiLockClosed, StyledTiLockOpen } from "./LeftSideBody.styled";
 import { Nav, Privacy, Colors } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
@@ -56,58 +55,14 @@ const DirectChat = ({
 					Authorization: `Bearer ${token}`,
 				},
 			});
-
-			// setMessages(result.data.conversations.filter(conversation => conversation.participants.length > 0));
 			setMessages(result.data.conversations);
 			setSender(result.data.sender);
 		} catch (err) {
 			console.log(err);
 		}
 	}
-
-	// return (
-	// 	<>
-	// 		{
-	// 			conversations.map((c) => {
-	// 				if (c) {
-	// 					return (
-	// 						<React.Fragment key={c.id}>
-	// 							<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={setConversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
-	// 								<ContactImage src={UserProfilePicture} alt="" />
-	// 								{/* <ContactName>{c.participants[0].user.username}</ContactName> */}
-	// 							</ContactDiv>
-	// 						</React.Fragment>
-	// 					);
-	// 				}
-	// 			})
-	// 		}
-	// 	</>
-	// );
-	// return (
-
-	// 	<List
-	// 		itemLayout="horizontal"
-	// 		dataSource={conversations}
-	// 		renderItem={conversation => (
-	// 			<List.Item onClick={() => handleSelectedConversation(conversation)}  style={{
-	// 				backgroundColor:(conversationID === conversation.id) ? Colors.SECONDARY : Colors.PRIMARY,
-	// 				transition: 'background-color 0.3s ease-in-out',
-	// 				cursor: 'pointer',
-	// 				paddingLeft: '20px',
-	// 				borderRadius: '10px',
-	// 				color: 'white',
-	// 				marginBottom: '10px'
-	// 			  }}>
-	// 				<List.Item.Meta
-	// 					avatar={<Avatar src={UserProfilePicture} />}
-	// 				/>
-	// 			</List.Item>
-	// 		)}
-	// 	/>
-	// );
 	const [filterValue, setFilterValue] = useState('');
 
-	// Filter the conversations based on the user's input
 	const filteredConversations = conversations.filter(
 		conversation => conversation.title.toUpperCase().includes(filterValue.toUpperCase())
 	);
@@ -116,9 +71,6 @@ const DirectChat = ({
 		value: conversation.title,
 		label: conversation.title,
 	}));
-	useEffect(() => {
-		console.log('conversations', filteredConversations);
-	}, [filterValue]);
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>

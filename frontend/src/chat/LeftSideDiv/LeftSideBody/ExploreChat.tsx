@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { ContactDiv, ContactImage, ContactName } from "./LeftSideBody.styled";
-import { Colors, Privacy } from "../../chat.functions";
-import { AutoComplete, Avatar, List } from "antd";
+import { Colors } from "../../chat.functions";
+import { AutoComplete, List } from "antd";
 
 interface ExploreChatProps {
 	conversations: Conversation[];

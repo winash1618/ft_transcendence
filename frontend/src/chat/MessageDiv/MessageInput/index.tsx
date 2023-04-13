@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
-import { Input, MessageInputParent, SendButton } from "../MessageDiv.styled";
+import { Button, Input } from "antd";
+import { BsSend } from "react-icons/bs";
 
 interface MessageInputProps {
 	message: any;
@@ -16,7 +17,7 @@ function MessageInput(
 	}: MessageInputProps) {
 	return (
 		<>
-			<MessageInputParent>
+			<div style={{ display: 'flex', flexDirection: 'row', width: '100%', height: 'auto', alignItems: 'center', justifyContent: 'center', paddingRight: '30px', paddingLeft: '10px' }}>
 				<Input
 					type="text"
 					placeholder="Enter your message..."
@@ -27,9 +28,11 @@ function MessageInput(
 							handleSubmit(event);
 						}
 					}}
+					size="large"
+					style={{ flex: 1, marginRight: '10px' }}
 				/>
-				<SendButton type="submit" onClick={(e) => handleSubmit(e)} size={24} />
-			</MessageInputParent>
+				<Button type="primary" icon={<BsSend size={24}/>} size="large" onClick={(e) => handleSubmit(e)} />
+			</div>
 		</>
 	);
 }
