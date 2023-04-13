@@ -1,22 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Colors, Nav, Privacy } from "../../chat.functions";
 import { ContactDiv, ContactImage, ContactName } from "./LeftSideBody.styled";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
+import { List, Avatar, AutoComplete } from 'antd';
 
 interface GroupChatProps {
-	conversations: any;
+	conversations: Conversation[];
 	UserProfilePicture: any;
 	setConversationID: any;
+	conversationID: any;
 	setMessages: any;
-	setSender:	any;
+	setSender: any;
 }
+
+interface Conversation {
+	id: number;
+	title: string;
+	privacy: 'PUBLIC' | 'PROTECTED' | 'PRIVATE';
+}
+
 
 const GroupChat = ({
 	conversations,
 	UserProfilePicture,
 	setConversationID,
+	conversationID,
 	setMessages,
 	setSender,
 }: GroupChatProps) => {
@@ -27,50 +37,108 @@ const GroupChat = ({
 		setConversationID(conversation.id);
 		const getToken = async () => {
 			try {
-			  const response = await axios.get("http://localhost:3001/token", {
-				withCredentials: true,
-			  });
-			  localStorage.setItem("auth", JSON.stringify(response.data));
-			  return response.data.token;
+				const response = await axios.get("http://localhost:3001/token", {
+					withCredentials: true,
+				});
+				localStorage.setItem("auth", JSON.stringify(response.data));
+				return response.data.token;
 			} catch (err) {
-			  dispatch(logOut());
-			  window.location.reload();
-			  return null;
+				dispatch(logOut());
+				window.location.reload();
+				return null;
 			}
-		  };
-		  
+		};
+
 		const token = await getToken();
 		try {
-		  const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
-			withCredentials: true,
-			headers: {
-			  Authorization: `Bearer ${token}`,
-			},
-		  });
-		  console.log(result.data);
-		  setMessages(result.data.conversations);
-		  setSender(result.data.sender);
+			const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+			console.log(result.data);
+			setMessages(result.data.conversations);
+			setSender(result.data.sender);
 		} catch (err) {
-		  console.log(err);
+			console.log(err);
 		}
-	  }
-	  
+	}
+
+	// 	return (
+	// 		<>
+	// 			{
+	// 				conversations.map((c) => {
+	// 					if (c) {
+	// 						return (
+	// 							<React.Fragment key={c.id}>
+	// 								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={conversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
+	// 									<ContactImage src={UserProfilePicture} alt="" />
+	// 									<ContactName>{c.title}{(c.privacy === Privacy.PUBLIC) ? (" (PUBLIC)") : (c.privacy === Privacy.PROTECTED) ? (" (PROTECTED)") : (c.privacy === Privacy.PRIVATE) ? (" (PRIVATE)") : null}</ContactName>
+	// 								</ContactDiv>
+	// 							</React.Fragment>
+	// 						);
+	// 					}
+	// 				})
+	// 			}
+	// 		</>
+	// 	);
+	// };
+
+	const [filterValue, setFilterValue] = useState('');
+	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+
+	const handleAutoCompleteSearch = (value: string) => {
+		setFilterValue(value);
+		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
+		console.log("filteredconversation", filteredConversations);
+	};
+
+
+	const options = filteredConversations.map(conversation => ({
+		value: conversation.title,
+		label: conversation.title,
+	}));
+	useEffect(() => {
+		setFilteredConversations(conversations);
+	}, [conversations]);
 	return (
 		<>
-			{
-				conversations.map((c) => {
-					if (c) {
-						return (
-							<React.Fragment key={c.id}>
-								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={setConversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
-									<ContactImage src={UserProfilePicture} alt="" />
-									<ContactName>{c.title}{(c.privacy === Privacy.PUBLIC) ? (" (PUBLIC)") : (c.privacy === Privacy.PROTECTED) ? (" (PROTECTED)") : (c.privacy === Privacy.PRIVATE) ? (" (PRIVATE)") : null}</ContactName>
-								</ContactDiv>
-							</React.Fragment>
-						);
+			<div style={{ textAlign: 'center' }}>
+				<AutoComplete
+					options={options}
+					value={filterValue}
+					onSearch={handleAutoCompleteSearch}
+					placeholder="Search conversations"
+					filterOption={(inputValue, option) =>
+						option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
 					}
-				})
-			}
+					style={{ width: '80%', marginBottom: '10px' }}
+				/>
+			</div>
+			<List
+				itemLayout="horizontal"
+				dataSource={filteredConversations.filter(conversation => conversation)}
+				renderItem={conversation => (
+					<List.Item
+						onClick={() => handleSelectedConversation(conversation)}
+						style={{
+							backgroundColor: (conversationID === conversation.id) ? Colors.SECONDARY : Colors.PRIMARY,
+							transition: 'background-color 0.3s ease-in-out',
+							cursor: 'pointer',
+							paddingLeft: '20px',
+							borderRadius: '10px',
+							color: 'white',
+							marginBottom: '10px'
+						}}
+					>
+						<List.Item.Meta
+							avatar={<Avatar src={UserProfilePicture} />}
+							title={<span style={{ color: 'white' }}>{conversation.title} {conversation.privacy === 'PUBLIC' ? '(PUBLIC)' : conversation.privacy === 'PROTECTED' ? '(PROTECTED)' : conversation.privacy === 'PRIVATE' ? '(PRIVATE)' : null}</span>}
+						/>
+					</List.Item>
+				)}
+			/>
 		</>
 	);
 };

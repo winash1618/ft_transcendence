@@ -1,35 +1,68 @@
-import React from "react";
+import React, { useState } from "react";
 import { ContactDiv, ContactImage, ContactName } from "./LeftSideBody.styled";
 import { Colors, Privacy } from "../../chat.functions";
+import { AutoComplete, Avatar, List } from "antd";
 
 interface ExploreChatProps {
-	conversations: any;
+	conversations: Conversation[];
+}
+
+interface Conversation {
+	id: string;
+	title: string;
+	privacy: "PUBLIC" | "PROTECTED" | "PRIVATE";
 }
 
 const ExploreChat = ({
 	conversations,
-} : ExploreChatProps) => {
+}: ExploreChatProps) => {
 	const [selectedConversationID, setSelectedConversationID] = React.useState("");
 
 	function handleSelectedConversation(conversation: any) {
 		setSelectedConversationID(conversation.id);
 	}
+	const [searchKeyword, setSearchKeyword] = useState('');
+
+	const handleSearch = value => {
+		setSearchKeyword(value);
+	};
+
+	const filteredConversations = conversations.filter(conversation =>
+		conversation.title.toLowerCase().includes(searchKeyword.toLowerCase())
+	);
 
 	return (
 		<>
-			{
-				conversations.map((c) => {
-					if (c) {
-						return (
-							<React.Fragment key={c.id}>
-								<ContactDiv key={c.id} onClick={() => handleSelectedConversation(c)} backgroundColor={selectedConversationID === c.id ? Colors.SECONDARY : Colors.PRIMARY}>
-									<ContactName>{c.title}{(c.privacy === Privacy.PUBLIC) ? (" (PUBLIC)") : (c.privacy === Privacy.PROTECTED) ? (" (PROTECTED)") : (c.privacy === Privacy.PRIVATE) ? (" (PRIVATE)") : null}</ContactName>
-								</ContactDiv>
-							</React.Fragment>
-						);
-					}
-				})
-			}
+			<div style={{ textAlign: 'center' }}>
+				<AutoComplete
+					options={[]}
+					placeholder="Search conversations"
+					onSearch={handleSearch}
+					style={{ width: '80%', marginBottom: '10px' }}
+				/>
+			</div>
+			<List
+				itemLayout="horizontal"
+				dataSource={filteredConversations}
+				renderItem={conversation => (
+					<List.Item
+						onClick={() => handleSelectedConversation(conversation)}
+						style={{
+							backgroundColor: selectedConversationID === conversation.id ? Colors.SECONDARY : Colors.PRIMARY,
+							transition: 'background-color 0.3s ease-in-out',
+							cursor: 'pointer',
+							paddingLeft: '20px',
+							borderRadius: '10px',
+							color: 'white',
+							marginBottom: '10px',
+						}}
+					>
+						<List.Item.Meta
+							title={<span style={{ color: 'white' }}>{conversation.title} {conversation.privacy === 'PUBLIC' ? '(PUBLIC)' : conversation.privacy === 'PROTECTED' ? '(PROTECTED)' : conversation.privacy === 'PRIVATE' ? '(PRIVATE)' : null}</span>}
+						/>
+					</List.Item>
+				)}
+			/>
 		</>
 	);
 };

@@ -30,7 +30,7 @@ export const MessageBoxContainer = styled.div`
   height: 100%;
 `;
 
-export const RightSideDiv = styled.div`
+export const RightSideContainer = styled.div`
 display: flex;
 flex-direction: column;
 justify-content: flex-start;

@@ -35,22 +35,24 @@ const LeftSideBody = ({
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
+				conversationID={conversationID}
 				setMessages={setMessages}
 				setSender={setSender}
 			/>
 		);
-	} 
+	}
 	else if (Navbar === Nav.GROUPS) {
 		return (
 			<GroupChat
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
+				conversationID={conversationID}
 				setMessages={setMessages}
 				setSender={setSender}
 			/>
 		);
-	} 
+	}
 	else if (Navbar === Nav.EXPLORE) {
 		return (
 			<ExploreChat
@@ -58,7 +60,7 @@ const LeftSideBody = ({
 			/>
 		);
 	}
-	 else if (Navbar === Nav.CREATE) {
+	else if (Navbar === Nav.CREATE) {
 		return (
 			<CreateChat
 				socket={socket}

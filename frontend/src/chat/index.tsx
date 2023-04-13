@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { LeftSideContainer, MessageBoxContainer, ParentContainer } from "./chat.styled";
+import { LeftSideContainer, MessageBoxContainer, ParentContainer, RightSideContainer } from "./chat.styled";
 import LeftSideHeader from "./LeftSideDiv/LeftSideHeader";
 import { Nav } from "./chat.functions";
 import LeftSideBody from "./LeftSideDiv/LeftSideBody";
 import { UserProfilePicture } from "../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
+import RightSideDiv from "./RightSideDiv";
 
 interface ChatProps {
 	socket: any;
@@ -52,6 +53,11 @@ const Chat = ({
 						setSender={setSender}
 					/>
 				</MessageBoxContainer>
+				<RightSideContainer>
+					<RightSideDiv 
+						Navbar={Navbar}
+					/>
+				</RightSideContainer>
 			</ParentContainer>
 		</>
 	);
