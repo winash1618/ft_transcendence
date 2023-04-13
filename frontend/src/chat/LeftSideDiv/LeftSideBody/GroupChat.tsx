@@ -59,7 +59,8 @@ const GroupChat = ({
 					Authorization: `Bearer ${token}`,
 				},
 			});
-			setMessages(result.data.conversations);
+			console.log("result.data ", result.data);
+			setMessages(result.data);
 		} catch (err) {
 			console.log(err);
 		}

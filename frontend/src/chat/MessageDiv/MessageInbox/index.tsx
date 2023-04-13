@@ -24,7 +24,7 @@ function MessageInbox(
 						messages.map((message) => {
 							if (user.id === user.id) {
 								return (
-									<Row justify="end" style={{ marginBottom: '1em', marginTop: '1em' }}>
+									<Row key={message.id} justify="end" style={{ marginBottom: '1em', marginTop: '1em' }}>
 										<Col xs={24} sm={18} md={12} lg={8}>
 											<div
 												style={{
@@ -52,7 +52,7 @@ function MessageInbox(
 								);
 							} else {
 								return (
-									<Row justify="start" style={{ marginBottom: '1em', marginTop: '1em' }}>
+									<Row key={message.id} justify="start" style={{ marginBottom: '1em', marginTop: '1em' }}>
 										<Col xs={24} sm={18} md={12} lg={8}>
 											<div
 												style={{

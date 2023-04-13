@@ -52,7 +52,7 @@ const DirectChat = ({
 					Authorization: `Bearer ${token}`,
 				},
 			});
-			setMessages(result.data.conversations);
+			setMessages(result.data);
 		} catch (err) {
 			console.log(err);
 		}
