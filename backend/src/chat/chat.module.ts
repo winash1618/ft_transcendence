@@ -8,9 +8,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewaySessionManager } from './gateway.session';
-import { a_ConversationService } from 'src/chat/Queries/a_conversation.service';
 import { MessageService } from 'src/chat/Queries/message.service';
-import { a_ParticipantService } from 'src/chat/Queries/a_participant.service';
 import { ConversationService } from './Queries/conversation.service';
 import { ParticipantService } from './Queries/participant.service';
 import { ChatController } from './chat.controller';
@@ -35,8 +33,6 @@ import { ChatController } from './chat.controller';
     ChatGateway,
     ChatService,
     UsersService,
-    a_ConversationService,
-    a_ParticipantService,
     ConversationService,
     MessageService,
     ParticipantService,
