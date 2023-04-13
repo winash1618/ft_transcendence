@@ -21,7 +21,6 @@ const Chat = ({
 	const [conversationID, setConversationID] = useState(null);
 	const [conversations, setConversations] = useState([]);
 	const [messages, setMessages] = useState([]);
-	const [sender, setSender] = useState({} as any);
 
 
 	return (
@@ -39,7 +38,6 @@ const Chat = ({
 						UserProfilePicture={UserProfilePicture}
 						setConversations={setConversations}
 						setMessages={setMessages}
-						setSender={setSender}
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>
@@ -49,8 +47,6 @@ const Chat = ({
 						messages={messages}
 						setMessages={setMessages}
 						conversationID={conversationID}
-						sender={sender}
-						setSender={setSender}
 					/>
 				</MessageBoxContainer>
 				<RightSideContainer>

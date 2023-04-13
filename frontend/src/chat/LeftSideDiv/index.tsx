@@ -13,7 +13,6 @@ interface LeftSideDivProps {
 	UserProfilePicture: any;
 	setConversations: any;
 	setMessages: any;
-	setSender: any;
 }
 
 const LeftSideDiv = ({
@@ -27,7 +26,6 @@ const LeftSideDiv = ({
 	UserProfilePicture,
 	setConversations,
 	setMessages,
-	setSender,
 } : LeftSideDivProps) => {
 	return (
 		<>
@@ -47,7 +45,6 @@ const LeftSideDiv = ({
 				setConversationID={setConversationID}
 				UserProfilePicture={UserProfilePicture}
 				setMessages={setMessages}
-				setSender={setSender}
 			/>
 		</>
 	);

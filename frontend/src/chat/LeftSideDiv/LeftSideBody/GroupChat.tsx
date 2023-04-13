@@ -11,7 +11,6 @@ interface GroupChatProps {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
-	setSender: any;
 }
 
 interface Conversation {
@@ -27,7 +26,6 @@ const GroupChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
-	setSender,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -62,7 +60,6 @@ const GroupChat = ({
 				},
 			});
 			setMessages(result.data.conversations);
-			setSender(result.data.sender);
 		} catch (err) {
 			console.log(err);
 		}
