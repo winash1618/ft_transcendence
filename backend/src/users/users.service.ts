@@ -95,6 +95,10 @@ export class UsersService {
           },
         },
       },
+      select: {
+        username: true,
+        user_status: true,
+      }
     });
   }
 
