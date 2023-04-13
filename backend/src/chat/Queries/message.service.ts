@@ -25,13 +25,19 @@ export class MessageService {
         author_id: createMessage.author_id,
         conversation_id: createMessage.conversation_id,
       },
-      include: {
+      select: {
         author: {
-          include: {
-            user: true,
+          select: {
+            user: {
+              select: {
+                username: true,
+              },
+            },
           },
         },
-        conversation: true,
+        id: true,
+        message: true,
+        conversation_id: true,
       },
     });
   }
