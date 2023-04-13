@@ -14,7 +14,6 @@ interface LeftSideBodyProps {
 	conversations: any;
 	UserProfilePicture: any;
 	setMessages: any;
-	setSender: any;
 }
 
 const LeftSideBody = ({
@@ -26,7 +25,6 @@ const LeftSideBody = ({
 	conversations,
 	UserProfilePicture,
 	setMessages,
-	setSender,
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
@@ -37,7 +35,6 @@ const LeftSideBody = ({
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}
-				setSender={setSender}
 			/>
 		);
 	}
@@ -49,7 +46,6 @@ const LeftSideBody = ({
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}
-				setSender={setSender}
 			/>
 		);
 	}

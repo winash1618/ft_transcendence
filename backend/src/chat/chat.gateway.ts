@@ -99,7 +99,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         role: Role['OWNER'],
         conversation_status: 'ACTIVE',
       });
-
+	  
     await this.joinConversations(client.data.userID.id);
     await this.sendMessagesToClient(client);
     await this.sendConversationCreatedToAllClients(
@@ -199,7 +199,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
   ) {
-    console.log('In sendMessage');
+    console.log('In sendMessage', data);
     const participant =
       await this.participantService.findParticipantByUserIDandConversationID(
         client.data.userID.id,
@@ -213,6 +213,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     await this.sendConversationPublicToAllClients(data.conversationID);
+	console.log('In sendMessage end', data.conversationID)
+
     this.server
       .to(data.conversationID)
       .emit('messageCreated', message);

@@ -126,42 +126,6 @@ function LeftSideHeader({
 			</ParentMessageNav>
 		</>
 	);
-	// const [collapsed, setCollapsed] = useState(false);
-	// const [selectedNav, setSelectedNav] = useState('');
-  
-	// const toggleCollapsed = () => {
-	//   setCollapsed(!collapsed);
-	// };
-  
-	// return (
-	// 	<div style={{ width: 256 }}>
-	// 	  <Button type="primary" onClick={toggleCollapsed} style={{ marginBottom: 16 }}>
-	// 		{collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-	// 	  </Button>
-	// 	  <Menu
-	// 		defaultSelectedKeys={['']}
-	// 		mode="inline"
-	// 		theme="dark"
-	// 		inlineCollapsed={collapsed}
-	// 		onSelect={(item) => setSelectedNav(item.key.toString())}
-	// 		selectedKeys={[selectedNav]}
-	// 	  >
-	// 		<Menu.Item key="direct" icon={<HiOutlineUser size={30} color={selectedNav === 'direct' ? 'white' : '#1890ff'} />} onClick={() => handleNavbarClick(Nav.DIRECT)}>
-	// 		  Direct
-	// 		</Menu.Item>
-	// 		<Menu.Item key="groups" icon={<HiOutlineUserGroup size={30} color={selectedNav === 'groups' ? 'white' : '#1890ff'} />} onClick={() => handleNavbarClick(Nav.GROUPS)}>
-	// 		  Groups
-	// 		</Menu.Item>
-	// 		<Menu.Item key="create" icon={<BiCommentAdd size={30} color={selectedNav === 'create' ? 'white' : '#1890ff'} />} onClick={() => handleNavbarClick(Nav.CREATE)}>
-	// 		  Create
-	// 		</Menu.Item>
-	// 		<Menu.Item key="explore" icon={<MdOutlineTravelExplore size={30} color={selectedNav === 'explore' ? 'white' : '#1890ff'} />} onClick={() => handleNavbarClick(Nav.EXPLORE)}>
-	// 		  Explore
-	// 		</Menu.Item>
-			
-	// 	  </Menu>
-	// 	</div>
-	//   );
-	};
+};
 
 export default LeftSideHeader;

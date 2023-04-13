@@ -9,8 +9,6 @@ interface MessageDivProps {
 	messages: any;
 	setMessages: any;
 	conversationID: any;
-	sender: any;
-	setSender: any;
 }
 
 const MessageDiv = ({
@@ -19,8 +17,6 @@ const MessageDiv = ({
 	messages,
 	setMessages,
 	conversationID,
-	sender,
-	setSender,
 }: MessageDivProps) => {
 	const messageEndRef = useRef(null);
 	const [message, setMessage] = useState("");
@@ -43,7 +39,6 @@ const MessageDiv = ({
 			console.log("object: ", object);
 			const message = object;
 			console.log("message: ", message);
-			setSender(object.sender);
 			setMessages((messages) => [...messages, message]);
 		};
 		socket?.on('messageCreated', handleMessageCreated);
@@ -58,7 +53,6 @@ const MessageDiv = ({
 	return (
 		<>
 			<MessageInbox
-				sender={sender}
 				user={user}
 				messages={messages}
 				messageEndRef={messageEndRef}

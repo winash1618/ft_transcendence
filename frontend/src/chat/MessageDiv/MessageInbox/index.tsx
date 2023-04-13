@@ -3,7 +3,6 @@ import { MessageParent, MessageSendDiv } from "../MessageDiv.styled";
 import { Avatar, Col, Row } from "antd";
 
 interface MessageInboxProps {
-	sender: any;
 	user: any;
 	messages: any;
 	messageEndRef: any;
@@ -12,7 +11,6 @@ interface MessageInboxProps {
 
 function MessageInbox(
 	{
-		sender,
 		user,
 		messages,
 		messageEndRef,
@@ -24,9 +22,9 @@ function MessageInbox(
 				<MessageParent>
 					{(
 						messages.map((message) => {
-							if (sender.id === user.id) {
+							if (message.author.user.id === user.id) {
 								return (
-									<Row justify="end" style={{ marginBottom: '1em', marginTop: '1em' }}>
+									<Row key={message.id} justify="end" style={{ marginBottom: '1em', marginTop: '1em' }}>
 										<Col xs={24} sm={18} md={12} lg={8}>
 											<div
 												style={{
@@ -54,7 +52,7 @@ function MessageInbox(
 								);
 							} else {
 								return (
-									<Row justify="start" style={{ marginBottom: '1em', marginTop: '1em' }}>
+									<Row key={message.id} justify="start" style={{ marginBottom: '1em', marginTop: '1em' }}>
 										<Col xs={24} sm={18} md={12} lg={8}>
 											<div
 												style={{

@@ -11,7 +11,6 @@ interface DirectChatProp {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
-	setSender: any;
 }
 
 interface Conversation {
@@ -25,7 +24,6 @@ const DirectChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
-	setSender,
 }: DirectChatProp) => {
 
 	const dispatch = useAppDispatch();
@@ -46,7 +44,6 @@ const DirectChat = ({
 			}
 		};
 		setMessages([]);
-		setSender("");
 		const token = await getToken();
 		try {
 			const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
@@ -55,8 +52,7 @@ const DirectChat = ({
 					Authorization: `Bearer ${token}`,
 				},
 			});
-			setMessages(result.data.conversations);
-			setSender(result.data.sender);
+			setMessages(result.data);
 		} catch (err) {
 			console.log(err);
 		}
