@@ -18,6 +18,7 @@ export class ChatController {
     private conversationService: ConversationService,
     private participantService: ParticipantService,
     private messageService: MessageService,
+	private userService: UsersService,
     private usersService: UsersService,
     ) { }
 
@@ -53,9 +54,18 @@ export class ChatController {
     }
 
     @Get(':conversationID/messages')
-    async getMessages(@Param('conversationID', ParseUUIDPipe) conversationID: string) {
+    async getMessages(@Req() req, @Param('conversationID') conversationID: string) {
       try {
-        return await this.messageService.getDisplayMessagesByConversationID(conversationID);
+		const user = await this.userService.getUserById(req.user.id);
+        const conversations = await this.messageService.getDisplayMessagesByConversationID(conversationID);
+		const conversationWithSenderInfo = {
+			conversations: conversations,
+			sender: {
+				id: user.id,
+				username: user.username,
+			}
+		};
+		return conversationWithSenderInfo;
       }
       catch (error) {
         throw new NotFoundException(error.message);

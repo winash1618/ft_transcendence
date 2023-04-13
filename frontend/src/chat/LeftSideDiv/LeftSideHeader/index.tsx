@@ -28,10 +28,9 @@ function LeftSideHeader({
 	setConversations,
 }: LeftSideHeaderProps) {
 	const dispatch = useAppDispatch();
-	
-
 	useEffect(() => {
 		const getConversation = async (nav: Nav) => {
+			setConversations([]);
 			const getToken = async () => {
 				try {
 				  const response = await axios.get("http://localhost:3001/token", {
@@ -49,7 +48,6 @@ function LeftSideHeader({
 			if (nav === Nav.DIRECT)
 			{
 				const token = await getToken();
-				console.log(token);
 				try {
 					const result = await axios.get("http://localhost:3001/chat/direct", {
 						withCredentials: true,
@@ -81,7 +79,6 @@ function LeftSideHeader({
 			}
 			else if (nav === Nav.EXPLORE)
 			{
-				console.log("Explore");
 				const token = await getToken();
 				try {
 					const result = await axios.get("http://localhost:3001/chat/explore", {

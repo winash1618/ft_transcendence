@@ -67,6 +67,7 @@ export class MessageService {
             },
           },
         },
+		id: true,
         message: true,
         conversation_id: true,
       },

@@ -152,6 +152,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('sendMessage')
   async sendMessage(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+	console.log("In sendMessage")
     const participant = await this.participantService.findParticipantByUserIDandConversationID(
       client.data.userID.id,
       data.conversationID,
@@ -172,9 +173,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         username: user.username,
       },
     };
+	console.log(messageWithSenderInfo)
 
     await this.sendConversationPublicToAllClients(data.conversationID);
-    this.server.to(data.conversation_id).emit('messageCreated', messageWithSenderInfo);
+    this.server.to(data.conversationID).emit('messageCreated', messageWithSenderInfo);
     // await this.sendMessagesToParticipants(data.conversationID, message);
   }
 

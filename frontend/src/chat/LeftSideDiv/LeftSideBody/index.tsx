@@ -14,6 +14,7 @@ interface LeftSideBodyProps {
 	conversations: any;
 	UserProfilePicture: any;
 	setMessages: any;
+	setSender: any;
 }
 
 const LeftSideBody = ({
@@ -25,16 +26,17 @@ const LeftSideBody = ({
 	conversations,
 	UserProfilePicture,
 	setMessages,
+	setSender,
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
-		console.log("Direct 1");
 		return (
 			<DirectChat
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
 				setMessages={setMessages}
+				setSender={setSender}
 			/>
 		);
 	} 
@@ -45,6 +47,7 @@ const LeftSideBody = ({
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
 				setMessages={setMessages}
+				setSender={setSender}
 			/>
 		);
 	} 

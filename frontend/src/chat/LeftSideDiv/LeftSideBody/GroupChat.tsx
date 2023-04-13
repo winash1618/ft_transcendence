@@ -10,6 +10,7 @@ interface GroupChatProps {
 	UserProfilePicture: any;
 	setConversationID: any;
 	setMessages: any;
+	setSender:	any;
 }
 
 const GroupChat = ({
@@ -17,6 +18,7 @@ const GroupChat = ({
 	UserProfilePicture,
 	setConversationID,
 	setMessages,
+	setSender,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -39,13 +41,15 @@ const GroupChat = ({
 		  
 		const token = await getToken();
 		try {
-		  const result = await axios.get(`http://localhost:3001/${conversation.id}/Messages`, {
+		  const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
 			withCredentials: true,
 			headers: {
 			  Authorization: `Bearer ${token}`,
 			},
 		  });
-		  setMessages(result.data);
+		  console.log(result.data);
+		  setMessages(result.data.conversations);
+		  setSender(result.data.sender);
 		} catch (err) {
 		  console.log(err);
 		}

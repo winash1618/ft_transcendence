@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { MessageImage, MessageLeft, MessageLeftContainer, MessageParent, MessageRight, MessageRightContainer, MessageSendDiv } from "../MessageDiv.styled";
 
 interface MessageInboxProps {
@@ -23,10 +24,12 @@ function MessageInbox(
 				<MessageParent>
 					{(
 						messages.map((message) => {
+							// console.log ("sender.id: ", sender.id, " user.id: ", user.id)
+							console.log("message: ", message);
 							if (sender.id === user.id) {
 								return (
 									<MessageRightContainer key={message.id}>
-										<MessageRight>{message.content}</MessageRight>
+										<MessageRight>{message.message}</MessageRight>
 										<MessageImage src={UserProfilePicture} alt="" />
 									</MessageRightContainer>
 								);
@@ -34,7 +37,7 @@ function MessageInbox(
 								return (
 									<MessageLeftContainer key={message.id}>
 										<MessageImage src={UserProfilePicture} alt="" />
-										<MessageLeft>{message.content}</MessageLeft>
+										<MessageLeft>{message.message}</MessageLeft>
 									</MessageLeftContainer>
 								);
 							}

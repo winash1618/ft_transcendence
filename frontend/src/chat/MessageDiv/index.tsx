@@ -9,6 +9,8 @@ interface MessageDivProps {
 	messages: any;
 	setMessages: any;
 	conversationID: any;
+	sender: any;
+	setSender: any;
 }
 
 const MessageDiv = ({
@@ -17,10 +19,11 @@ const MessageDiv = ({
 	messages,
 	setMessages,
 	conversationID,
-} : MessageDivProps) => {
+	sender,
+	setSender,
+}: MessageDivProps) => {
 	const messageEndRef = useRef(null);
 	const [message, setMessage] = useState("");
-	const [sender, setSender] = useState({} as any);
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
@@ -29,7 +32,8 @@ const MessageDiv = ({
 				conversationID: conversationID,
 				message: message,
 			};
-			socket?.emit('messageCreate', newMessage);
+			console.log("newMessage: ", newMessage);
+			socket?.emit('sendMessage', newMessage);
 			setMessage("");
 		}
 	};
@@ -37,17 +41,17 @@ const MessageDiv = ({
 
 	useEffect(() => {
 		const handleMessageCreated = (object) => {
-			const { message } = object.message;
+			console.log("object: ", object);
+			const message = object;
+			console.log("message: ", message);
 			setSender(object.sender);
-			if (message.conversation_id === conversationID) {
-				setMessages((messages) => [...messages, message]);
-			}
+			setMessages((messages) => [...messages, message]);
 		};
 		socket?.on('messageCreated', handleMessageCreated);
 		return () => {
 			socket?.off('messageCreated', handleMessageCreated);
 		};
-	}, [messages]);
+	}, [socket, message, conversationID]);
 
 	useEffect(() => {
 		messageEndRef.current.scrollIntoView({ behavior: "smooth" });
