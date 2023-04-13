@@ -22,7 +22,7 @@ function MessageInbox(
 				<MessageParent>
 					{(
 						messages.map((message) => {
-							if (user.id === user.id) {
+							if (message.author.user.id === user.id) {
 								return (
 									<Row key={message.id} justify="end" style={{ marginBottom: '1em', marginTop: '1em' }}>
 										<Col xs={24} sm={18} md={12} lg={8}>
