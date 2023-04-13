@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { PrismaModule } from 'src/database/prisma.module';
+import { GameController } from './game.controller';
 
 @Module({
   imports: [
@@ -24,5 +25,6 @@ import { PrismaModule } from 'src/database/prisma.module';
     UsersModule,
   ],
   providers: [GameGateway, GameService],
+  controllers: [GameController],
 })
 export class GameModule {}

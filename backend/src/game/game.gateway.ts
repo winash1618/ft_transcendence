@@ -72,7 +72,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       player1Score: 0,
       player2Score: 0,
     };
-    const gameRoom = new GameEngine(game, this.server, player1, player2);
+    const gameRoom = new GameEngine(game, this.server, player1, player2, this.gameService);
     gameRoom.startSettings();
     this.gameRooms[id] = gameRoom;
     return id;
@@ -220,8 +220,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.gameRooms[roomID].startGame();
     }
     // const gameDTO: CreateGameDto = {
-    //   player_one: this.gameRooms[roomID].gameObj.player1.name,
-    //   player_two: this.gameRooms[roomID].gameObj.player2.name,
+    //   player_one: this.gameRooms[roomID].gameObj.player1.name.id,
+    //   player_two: this.gameRooms[roomID].gameObj.player2.name.id,
     //   player_score: this.gameRooms[roomID].gameObj.player1.points,
     //   opponent_score: this.gameRooms[roomID].gameObj.player2.points,
     //   winner: '',
