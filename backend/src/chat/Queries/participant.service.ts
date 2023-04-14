@@ -5,7 +5,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { Status, Role } from '@prisma/client';
-import { PrismaService } from 'src/database/prisma.service';
+import { PrismaService } from '../../database/prisma.service';
 import {
   CreateParticipantDto,
   UpdateParticipantDto,
@@ -86,7 +86,7 @@ export class ParticipantService {
 
       if (
         conversation.privacy === 'PROTECTED' &&
-        this.conversationService.validatePassword(
+        !this.conversationService.validatePassword(
           password,
           conversation.password,
         )
@@ -346,7 +346,7 @@ export class ParticipantService {
 
   async validationCheck(
     conversationID: string,
-    userID: string,
+    userID?: string,
     adminUser?: string,
   ) {
     const conversation = await this.conversationService.checkConversationExists(
@@ -357,25 +357,27 @@ export class ParticipantService {
       throw new Error('Conversation does not exist');
     }
 
-    const participant = await this.checkParticipantExists(
-      conversationID,
-      userID,
-    );
+    if (userID) {
+        const participant = await this.checkParticipantExists(
+          conversationID,
+          userID,
+        );
 
-    if (!participant) {
-      throw new Error('Participant does not exist');
-    }
+        if (!participant) {
+          throw new Error('Participant does not exist');
+        }
 
-    if (participant.conversation_status === Status.DELETED) {
-      throw new Error('Participant has been removed from conversation');
-    }
+      if (participant.conversation_status === Status.DELETED) {
+        throw new Error('Participant has been removed from conversation');
+      }
 
-    if (participant.conversation_status === Status.BANNED) {
-      throw new Error('Participant has been banned from conversation');
-    }
+      if (participant.conversation_status === Status.BANNED) {
+        throw new Error('Participant has been banned from conversation');
+      }
 
-    if (participant.conversation_status === Status.KICKED) {
-      throw new Error('Participant has been kicked from conversation');
+      if (participant.conversation_status === Status.KICKED) {
+        throw new Error('Participant has been kicked from conversation');
+      }
     }
 
     if (adminUser) {
@@ -387,5 +389,26 @@ export class ParticipantService {
     }
 
     return true;
+  }
+
+  async bannedUsers(conversationID: string) {
+
+    if (this.validationCheck(conversationID))
+      throw new Error('Validation check failed');
+
+    return this.prisma.participant.findMany({
+      where: {
+        conversation_id: conversationID,
+        conversation_status: Status['BANNED'],
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+          }
+        },
+      },
+    });
   }
 }

@@ -19,7 +19,6 @@ import { ChatService } from './chat.service';
 import { ConversationService } from './Queries/conversation.service';
 import { ParticipantService } from './Queries/participant.service';
 import { MessageService } from './Queries/message.service';
-import { UsersService } from 'src/users/users.service';
 
 @Controller('chat')
 @ApiTags('chat')
@@ -31,8 +30,6 @@ export class ChatController {
     private conversationService: ConversationService,
     private participantService: ParticipantService,
     private messageService: MessageService,
-    private userService: UsersService,
-    private usersService: UsersService,
   ) {}
 
   @Get('direct')
@@ -45,7 +42,7 @@ export class ChatController {
     }
   }
 
-  @Get(':conversationID/participants')
+  @Get(':conversationID/members')
   async getParticipants(
     @Param('conversationID', ParseUUIDPipe) conversationID: string,
   ) {
@@ -67,7 +64,6 @@ export class ChatController {
 
   @Get(':conversationID/messages')
   async getMessages(
-    @Req() req,
     @Param('conversationID') conversationID: string,
   ) {
     try {
@@ -88,6 +84,17 @@ export class ChatController {
       return await this.conversationService.findChannelsThatUserIsNotIn(
         req.user.id,
       );
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  @Get('channel/:channelID/banned')
+  async getBannedUsers(
+    @Param('channelID', ParseUUIDPipe) channelID: string,
+  ) {
+    try {
+      return await this.participantService.bannedUsers(channelID);
     } catch (error) {
       throw new NotFoundException(error.message);
     }

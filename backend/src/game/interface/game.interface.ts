@@ -40,7 +40,7 @@ export interface Position {
 
 export interface PlayerStats {
   points: number;
-  name: string;
+  name: any;
 }
 
 export interface GameObject {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import { User, Prisma, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -95,6 +95,10 @@ export class UsersService {
           },
         },
       },
+      select: {
+        username: true,
+        user_status: true,
+      }
     });
   }
 
