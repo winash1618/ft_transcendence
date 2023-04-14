@@ -1,13 +1,13 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Privacy, Role, Status } from '@prisma/client';
-import { PrismaService } from 'src/database/prisma.service';
+import { PrismaService } from '../../database/prisma.service';
 import {
   CreateConversationDto,
   UpdateConversationDto,
 } from '../dto/conversation.dto';
 import * as brypt from 'bcrypt';
 import { ParticipantService } from './participant.service';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../users/users.service';
 
 @Injectable()
 export class ConversationService {
