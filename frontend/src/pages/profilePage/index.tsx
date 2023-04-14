@@ -29,7 +29,7 @@ const ProfilePage = () => {
           <ProfileHeader />
           <ProfileInfoContainer>
             <ProfilePersonalInfo />
-			<ProfileMatchHistory />
+            <ProfileMatchHistory />
           </ProfileInfoContainer>
         </ProfileContainer>
       )}
