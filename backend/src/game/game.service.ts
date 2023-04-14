@@ -9,16 +9,28 @@ export class GameService {
   constructor(private readonly prisma: PrismaService) {}
 
   async storeGameHistory(gameData: CreateGameDto): Promise<void> {
-
-    gameData.winner = (gameData.player_score > gameData.opponent_score) ? gameData.player_one : gameData.player_two;
-    gameData.looser = (gameData.player_score < gameData.opponent_score) ? gameData.player_one : gameData.player_two;
+    gameData.winner =
+      gameData.player_score > gameData.opponent_score
+        ? gameData.player_one
+        : gameData.player_two;
+    gameData.looser =
+      gameData.player_score < gameData.opponent_score
+        ? gameData.player_one
+        : gameData.player_two;
 
     await this.prisma.gameHistory.create({
-      data: gameData,
+      data: {
+        player_one: gameData.player_one,
+        player_two: gameData.player_two,
+        player_score: gameData.player_score,
+        opponent_score: gameData.opponent_score,
+        winner: gameData.winner,
+        looser: gameData.looser,
+      }
     });
   }
 
-  async getGameHistory(playerId: string): Promise<GameHistory[]> {
+  async getGameHistory(playerId: string) {
     const gameHistory = await this.prisma.gameHistory.findMany({
       where: {
         OR: [
@@ -30,7 +42,33 @@ export class GameService {
           },
         ],
       },
+      select: {
+        player_one: true,
+        player_two: true,
+        player_score: true,
+        opponent_score: true,
+        winner: true,
+        looser: true,
+        playerOne: {
+          select: {
+            username: true,
+          },
+        },
+        playerTwo: {
+          select: {
+            username: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+
+    if (!gameHistory) {
+      throw new Error('No game history found');
+    }
+
     return gameHistory;
   }
 
