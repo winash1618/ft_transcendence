@@ -51,7 +51,9 @@ const Chat = ({
 				</MessageBoxContainer>
 				<RightSideContainer>
 					<RightSideDiv 
+						user={user}
 						Navbar={Navbar}
+						conversationID={conversationID}
 					/>
 				</RightSideContainer>
 			</ParentContainer>
