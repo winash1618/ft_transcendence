@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { PrismaModule } from 'src/database/prisma.module';
+import { GameController } from './game.controller';
 
 @Module({
   imports: [
@@ -15,14 +16,15 @@ import { PrismaModule } from 'src/database/prisma.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
-        }
-      })
+          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN'),
+        },
+      }),
     }),
     PrismaModule,
     AuthModule,
     UsersModule,
   ],
-  providers: [GameGateway, GameService]
+  providers: [GameGateway, GameService],
+  controllers: [GameController],
 })
-export class GameModule { }
+export class GameModule {}
