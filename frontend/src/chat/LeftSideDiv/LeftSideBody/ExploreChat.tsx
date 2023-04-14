@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Colors, Nav } from "../../chat.functions";
-import { AutoComplete, List } from "antd";
+import { Colors, Nav, Privacy } from "../../chat.functions";
+import { AutoComplete, Button, Input, List } from "antd";
 
 interface ExploreChatProps {
 	socket: any;
@@ -20,16 +20,22 @@ const ExploreChat = ({
 	setNavbar,
 }: ExploreChatProps) => {
 	const [selectedConversationID, setSelectedConversationID] = React.useState("");
-
+	const [password, setPassword] = useState('');
+	const [searchKeyword, setSearchKeyword] = useState('');
 
 
 	function handleSelectedConversation(conversation: any) {
 		setSelectedConversationID(conversation.id);
-		socket?.emit("joinConversation", {conversationID: conversation.id, password: ""});
+		if (conversation.privacy === "PUBLIC") {
+			socket?.emit("joinConversation", { conversationID: conversation.id, password: "" });
+			setNavbar(Nav.GROUPS);
+		}
+	}
+
+	function handleProtectedConversation(conversation: any, password: string) {
+		socket?.emit("joinConversation", { conversationID: conversation.id, password: password });
 		setNavbar(Nav.GROUPS);
 	}
-	const [searchKeyword, setSearchKeyword] = useState('');
-
 	const handleSearch = value => {
 		setSearchKeyword(value);
 	};
@@ -38,6 +44,11 @@ const ExploreChat = ({
 		conversation.title.toLowerCase().includes(searchKeyword.toLowerCase())
 	);
 
+	// const menu = (
+	// 	<Menu>
+	// 		<Menu.Item key="1">Join</Menu.Item>
+	// 	</Menu>
+	// );
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>
@@ -51,23 +62,59 @@ const ExploreChat = ({
 			<List
 				itemLayout="horizontal"
 				dataSource={filteredConversations}
-				renderItem={conversation => (
-					<List.Item
-						onClick={() => handleSelectedConversation(conversation)}
-						style={{
-							backgroundColor: selectedConversationID === conversation.id ? Colors.SECONDARY : Colors.PRIMARY,
-							transition: 'background-color 0.3s ease-in-out',
-							cursor: 'pointer',
-							paddingLeft: '20px',
-							borderRadius: '10px',
-							color: 'white',
-							marginBottom: '10px',
-						}}
-					>
-						<List.Item.Meta
-							title={<span style={{ color: 'white' }}>{conversation.title} {conversation.privacy === 'PUBLIC' ? '(PUBLIC)' : conversation.privacy === 'PROTECTED' ? '(PROTECTED)' : conversation.privacy === 'PRIVATE' ? '(PRIVATE)' : null}</span>}
-						/>
-					</List.Item>
+				renderItem={(conversation) => (
+					<>
+						<List.Item
+							onClick={() => handleSelectedConversation(conversation)}
+							style={{
+								backgroundColor:
+									selectedConversationID === conversation.id
+										? Colors.SECONDARY
+										: Colors.PRIMARY,
+								transition: "background-color 0.3s ease-in-out",
+								cursor: "pointer",
+								paddingLeft: "20px",
+								borderRadius: "10px",
+								color: "white",
+								marginBottom: "10px",
+							}}
+						>
+							<List.Item.Meta
+								title={
+									<span style={{ color: "white" }}>
+										{conversation.title}{" "}
+										{conversation.privacy === "PUBLIC"
+											? "(PUBLIC)"
+											: conversation.privacy === "PROTECTED"
+												? "(PROTECTED)"
+												: conversation.privacy === "PRIVATE"
+													? "(PRIVATE)"
+													: null}
+									</span>
+								}
+							/>
+						</List.Item>
+						{selectedConversationID === conversation.id &&
+							conversation.privacy === Privacy.PROTECTED&& (
+								<div style={{ marginTop: "10px", paddingLeft: "20px" }}>
+									<Input
+										placeholder="Enter password"
+										style={{ width: "50%" }}
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+									/>
+									<Button
+										type="primary"
+										style={{ marginLeft: "10px" }}
+										onClick={() =>
+											handleProtectedConversation(conversation, password)
+										}
+									>
+										Join
+									</Button>
+								</div>
+							)}
+					</>
 				)}
 			/>
 		</>

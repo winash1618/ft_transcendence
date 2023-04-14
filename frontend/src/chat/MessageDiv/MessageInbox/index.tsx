@@ -33,7 +33,7 @@ function MessageInbox(
 													alignItems: 'center',
 													background: '#111315',
 													border: '1px solid #00A551',
-													borderRadius: '15px',
+													borderRadius: '15px 15px 0 15px',
 													color: 'white',
 													padding: '1em',
 												}}
@@ -61,7 +61,7 @@ function MessageInbox(
 													alignItems: 'center',
 													background: '#e4e4e4',
 													border: '1px solid #ddd',
-													borderRadius: '15px',
+													borderRadius: '15px 15px 15px 0',
 													color: 'black',
 													padding: '1em',
 												}}

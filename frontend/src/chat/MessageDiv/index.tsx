@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import MessageInbox from "./MessageInbox";
 import MessageInput from "./MessageInput";
 import { UserProfilePicture } from "../../assets";
+import { Status } from "../chat.functions";
 
 interface MessageDivProps {
 	user: any;
+	status: any;
 	socket: any;
 	messages: any;
 	setMessages: any;
@@ -13,6 +15,7 @@ interface MessageDivProps {
 
 const MessageDiv = ({
 	user,
+	status,
 	socket,
 	messages,
 	setMessages,
@@ -36,16 +39,15 @@ const MessageDiv = ({
 
 	useEffect(() => {
 		const handleMessageCreated = (object) => {
-			console.log("object: ", object);
-			const message = object;
-			console.log("message: ", message);
-			setMessages((messages) => [...messages, message]);
+			if (object.conversation_id === conversationID) {
+				setMessages((messages) => [...messages, object]);
+			}
 		};
 		socket?.on('messageCreated', handleMessageCreated);
 		return () => {
 			socket?.off('messageCreated', handleMessageCreated);
 		};
-	}, [socket, message, conversationID]);
+	}, [socket, conversationID, setMessages]);
 
 	useEffect(() => {
 		messageEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -58,11 +60,15 @@ const MessageDiv = ({
 				messageEndRef={messageEndRef}
 				UserProfilePicture={UserProfilePicture}
 			/>
-			<MessageInput
-				message={message}
-				setMessage={setMessage}
-				handleSubmit={handleSubmit}
-			/>
+			{
+				(status !== Status.MUTED) && (
+					<MessageInput
+						message={message}
+						setMessage={setMessage}
+						handleSubmit={handleSubmit}
+					/>
+				)
+			}
 		</>
 	);
 };

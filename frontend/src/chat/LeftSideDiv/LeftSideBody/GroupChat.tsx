@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Colors, Nav, Privacy } from "../../chat.functions";
+import { Colors, Nav } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
@@ -11,6 +11,7 @@ interface GroupChatProps {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
+	Navbar: Nav;
 }
 
 interface Conversation {
@@ -26,6 +27,7 @@ const GroupChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
+	Navbar,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -33,8 +35,9 @@ const GroupChat = ({
 	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 
 	useEffect(() => {
+		console.log("conversations", conversations);
 		setFilteredConversations(conversations);
-	}, [conversations]);
+	}, [conversations, Navbar]);
 
 	async function handleSelectedConversation(conversation: any) {
 		setConversationID(conversation.id);

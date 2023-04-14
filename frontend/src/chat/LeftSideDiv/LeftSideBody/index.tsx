@@ -46,6 +46,7 @@ const LeftSideBody = ({
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}
+				Navbar={Navbar}
 			/>
 		);
 	}
@@ -54,6 +55,7 @@ const LeftSideBody = ({
 			<ExploreChat
 				socket={socket}
 				conversations={conversations}
+				setNavbar={setNavbar}
 			/>
 		);
 	}

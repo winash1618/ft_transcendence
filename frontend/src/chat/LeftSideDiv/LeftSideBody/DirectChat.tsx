@@ -67,6 +67,7 @@ const DirectChat = ({
 		value: conversation.title,
 		label: conversation.title,
 	}));
+
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>
