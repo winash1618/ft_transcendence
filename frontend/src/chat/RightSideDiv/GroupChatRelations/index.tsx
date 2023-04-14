@@ -48,9 +48,10 @@ const GroupChatRelations = ({ conversationID }: GroupChatRelationsProps) => {
     };
     if (nav === GNav.GROUPS) {
       const token = await getToken();
+      console.log(conversationID);
       try {
         const result = await axios.get(
-          `http://localhost:3001/users/chat/${conversationID}/members`,
+          `http://localhost:3001/chat/${conversationID}/members`,
           {
             withCredentials: true,
             headers: {
@@ -59,7 +60,45 @@ const GroupChatRelations = ({ conversationID }: GroupChatRelationsProps) => {
           }
         );
         setResults(result.data);
-        console.log("hgfhgfhtf",result.data);
+        console.log("Group members", result.data);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    if (nav === GNav.BLOCKED) {
+      const token = await getToken();
+      console.log(conversationID);
+      try {
+        const result = await axios.get(
+          `http://localhost:3001/chat/channel/${conversationID}/banned`,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setResults(result.data);
+        console.log("Banned Members", result.data);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    if (nav === GNav.ADD) {
+      const token = await getToken();
+      console.log(conversationID);
+      try {
+        const result = await axios.get(
+          `http://localhost:3001/chat/channel/${conversationID}/addFriends`,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setResults(result.data);
+        console.log("Add Members", result.data);
       } catch (err) {
         console.log(err);
       }
