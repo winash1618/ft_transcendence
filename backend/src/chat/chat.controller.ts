@@ -106,10 +106,13 @@ export class ChatController {
     @Req() req,
   ) {
     try {
-      return await this.conversationService.friendsNotInConversation(
+      const friends = await this.conversationService.friendsNotInConversation(
         channelID,
         req.user.id,
       );
+
+      console.log(friends);
+      return friends;
     } catch (error) {
       throw new NotFoundException(error.message);
     }

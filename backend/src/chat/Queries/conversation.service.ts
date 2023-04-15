@@ -230,7 +230,7 @@ export class ConversationService {
       throw new Error('User does not exist');
     }
 
-    if (this.checkConversationExists(conversationID)) {
+    if (!this.checkConversationExists(conversationID)) {
       throw new Error('Conversation does not exist');
     }
 
@@ -240,7 +240,7 @@ export class ConversationService {
       throw new Error('User is not admin of the conversation');
     }
 
-    const friends = await this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: {
         id: userID,
       },
@@ -258,8 +258,6 @@ export class ConversationService {
         },
       },
     });
-
-    return friends?.friends || [];
   }
 
   async checkConversationExists(conversationID: string) {
