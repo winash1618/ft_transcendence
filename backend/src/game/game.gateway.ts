@@ -20,7 +20,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuid4 } from 'uuid';
-import { CreateGameDto } from './dto/create-game.dto';
 
 @WebSocketGateway(8001, {
   cors: {
