@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Colors, Nav, Privacy } from "../../chat.functions";
+import { Colors, Nav, Status } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
@@ -11,6 +11,8 @@ interface GroupChatProps {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
+	Navbar: Nav;
+	status: any;
 }
 
 interface Conversation {
@@ -26,6 +28,8 @@ const GroupChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
+	Navbar,
+	status,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -33,36 +37,40 @@ const GroupChat = ({
 	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 
 	useEffect(() => {
+		console.log("conversations", conversations);
 		setFilteredConversations(conversations);
-	}, [conversations]);
+	}, [conversations, Navbar]);
 
 	async function handleSelectedConversation(conversation: any) {
-		setConversationID(conversation.id);
-		const getToken = async () => {
+		if (status === Status.ACTIVE || status === Status.MUTED)
+		{
+			setConversationID(conversation.id);
+			const getToken = async () => {
+				try {
+					const response = await axios.get("http://localhost:3001/token", {
+						withCredentials: true,
+					});
+					localStorage.setItem("auth", JSON.stringify(response.data));
+					return response.data.token;
+				} catch (err) {
+					dispatch(logOut());
+					window.location.reload();
+					return null;
+				}
+			};
+			const token = await getToken();
 			try {
-				const response = await axios.get("http://localhost:3001/token", {
+				const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
 					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
 				});
-				localStorage.setItem("auth", JSON.stringify(response.data));
-				return response.data.token;
+				console.log("Messages Object from Group chat", result.data);
+				setMessages(result.data);
 			} catch (err) {
-				dispatch(logOut());
-				window.location.reload();
-				return null;
+				console.log(err);
 			}
-		};
-		const token = await getToken();
-		try {
-			const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-			console.log("result.data ", result.data);
-			setMessages(result.data);
-		} catch (err) {
-			console.log(err);
 		}
 	}
 
@@ -109,7 +117,24 @@ const GroupChat = ({
 					>
 						<List.Item.Meta
 							avatar={<Avatar src={UserProfilePicture} />}
-							title={<span style={{ color: 'white' }}>{conversation.title} {conversation.privacy === 'PUBLIC' ? '(PUBLIC)' : conversation.privacy === 'PROTECTED' ? '(PROTECTED)' : conversation.privacy === 'PRIVATE' ? '(PRIVATE)' : null}</span>}
+							title={
+								<span style={{ color: 'white' }}>
+									{conversation.title}
+									{
+										conversation.privacy === 'PUBLIC'
+											? ' (PUBLIC)' : conversation.privacy === 'PROTECTED'
+												? ' (PROTECTED)' : conversation.privacy === 'PRIVATE'
+													? ' (PRIVATE)' : null
+									}
+									{
+										status === Status.ACTIVE
+											? ' (ACTIVE)' : status === Status.BANNED
+												? ' (BANNED)' : status === Status.MUTED
+													? ' (MUTED)' : status === Status.KICKED
+														? ' (KICKED)' : null
+									}
+								</span>
+							}
 						/>
 					</List.Item>
 				)}

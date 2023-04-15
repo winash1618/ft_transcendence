@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Nav } from "../../chat.functions";
-import { Form, Input, Button, Select, Checkbox, Row, Col } from 'antd';
+import { Form, Input, Button, Select, Row, Col } from 'antd';
 const { Option } = Select;
 interface CreateChatProps {
 	socket: any;
@@ -11,7 +11,6 @@ const CreateChat = ({
 	socket,
 	setNavbar,
 }: CreateChatProps) => {
-	const [showPassword, setShowPassword] = useState(false);
 	const [showProtected, setShowProtected] = useState(false);
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');

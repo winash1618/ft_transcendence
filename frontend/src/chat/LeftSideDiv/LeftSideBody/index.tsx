@@ -8,6 +8,7 @@ import CreateChat from "./CreateChat";
 interface LeftSideBodyProps {
 	socket: any;
 	Navbar: Nav;
+	status: any;
 	setNavbar: any;
 	conversationID: any;
 	setConversationID: any;
@@ -19,6 +20,7 @@ interface LeftSideBodyProps {
 const LeftSideBody = ({
 	socket,
 	Navbar,
+	status,
 	setNavbar,
 	conversationID,
 	setConversationID,
@@ -35,6 +37,7 @@ const LeftSideBody = ({
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}
+				Navbar={Navbar}
 			/>
 		);
 	}
@@ -46,13 +49,17 @@ const LeftSideBody = ({
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}
+				Navbar={Navbar}
+				status={status}
 			/>
 		);
 	}
 	else if (Navbar === Nav.EXPLORE) {
 		return (
 			<ExploreChat
+				socket={socket}
 				conversations={conversations}
+				setNavbar={setNavbar}
 			/>
 		);
 	}
