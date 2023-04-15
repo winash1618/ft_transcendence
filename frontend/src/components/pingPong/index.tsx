@@ -7,10 +7,12 @@ const PingPong = ({
   player,
   players,
   roomID,
+  mobile,
   socket,
 }: {
   player: number;
   players: any;
+  mobile: boolean;
   roomID: string;
   socket: Socket | null;
 }) => {
@@ -22,6 +24,7 @@ const PingPong = ({
           <PingPongCanvas
             player={player}
             roomID={roomID}
+            mobile={mobile}
             socket={socket}
             players={players}
           />

@@ -3,16 +3,19 @@ import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import { UserProfilePicture } from "../../../assets";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { PingPongContainer } from "../pingPong.styled";
-import { CANVAS_HEIGHT, CANVAS_WIDTH, draw } from "./pingPongCanvas.functions";
+import { draw } from "./pingPongCanvas.functions";
 import {
-	GameProfileImg,
+  GameProfileImg,
   ScoreText,
   ScoreUserInfoWrapper,
   ScoreWrapper,
   StatusText,
   StyledCanvas,
 } from "./pingPongCanvas.styled";
+import { PingPongContainer } from "../pingPong.styled";
+
+export let CANVAS_WIDTH = 900;
+export let CANVAS_HEIGHT = 800;
 
 export type GameType = {
   pause: boolean;
@@ -69,9 +72,11 @@ const PingPongCanvas = ({
   players,
   roomID,
   socket,
+  mobile,
 }: {
   player: number;
   players: any;
+  mobile: boolean;
   roomID: string;
   socket: Socket | null;
 }) => {
@@ -79,6 +84,8 @@ const PingPongCanvas = ({
   const [gameStatus, setGameStatus] = useState<number>(0);
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
+  const [canvasWidth, setCanvasWidth] = useState<number>(900);
+  const [canvasHeight, setCanvasHeight] = useState<number>(800);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -91,14 +98,36 @@ const PingPongCanvas = ({
 
   useEffect(() => {
     if (canvaRef.current) {
-      canvaRef.current.width = CANVAS_WIDTH;
-      canvaRef.current.height = CANVAS_HEIGHT;
+      if (mobile) {
+        canvaRef.current.width = 300;
+        canvaRef.current.height = 500;
+        game.paddle1.width = 10;
+        game.paddle1.height = 50;
+        game.paddle2.width = 10;
+        game.paddle2.height = 50;
+        game.paddle2.x = 300 - 10;
+        game.paddle1.x = 0;
+        game.paddle2.y = (500 / 2) - (50 / 2);
+        game.paddle1.y = (500 / 2) - (50 / 2);
+        game.ball.radius = 6.25;
+      } else {
+        canvaRef.current.width = CANVAS_WIDTH;
+        canvaRef.current.height = CANVAS_HEIGHT;
+      }
       let ctx = canvaRef.current.getContext("2d");
       if (ctx) {
         requestAnimationFrame(() =>
           draw(ctx, game, player, setPlayer1Score, setPlayer2Score)
         );
       }
+    }
+    if (mobile) {
+      window.addEventListener("mousemove", (event) => {
+        socket?.emit("moveMouse", {
+          roomID: roomID,
+          y: event.clientY - canvaRef.current.offsetTop,
+        });
+      });
     }
     window.addEventListener("keydown", (event) => {
       if (event.key === "w") {
@@ -184,7 +213,14 @@ const PingPongCanvas = ({
       setPlayer2Score(data);
     });
     if (roomID.length > 0) {
-      socket?.emit("StartGame", roomID);
+      if (mobile) {
+        setCanvasWidth(300);
+        setCanvasHeight(500);
+      }
+      socket?.emit("StartGame", {
+        roomID,
+        mobile,
+      });
     }
     return () => {
       socket?.off("gameUpdate", (data) => {
@@ -208,11 +244,15 @@ const PingPongCanvas = ({
       socket?.disconnect();
     };
   }, [socket, player, dispatch, roomID]);
+
   return (
     <PingPongContainer>
-      <StyledCanvas ref={canvaRef} />
+      <StyledCanvas
+        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
+        ref={canvaRef}
+      />
       <ScoreWrapper>
-        <ScoreUserInfoWrapper style={{marginRight: "30px"}}>
+        <ScoreUserInfoWrapper style={{ marginRight: "30px" }}>
           <GameProfileImg
             src={UserProfilePicture}
             alt="A profile photo of the current user"
@@ -222,7 +262,7 @@ const PingPongCanvas = ({
         <ScoreText>
           {player1Score} : {player2Score}{" "}
         </ScoreText>
-        <ScoreUserInfoWrapper style={{marginLeft: "30px"}}>
+        <ScoreUserInfoWrapper style={{ marginLeft: "30px" }}>
           {players.player2.login}
           <GameProfileImg
             src={UserProfilePicture}

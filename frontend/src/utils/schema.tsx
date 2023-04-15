@@ -5,6 +5,8 @@ export const PlaySchema = yup
     map: yup
       .number()
       .required("Map field is required"),
+    mobile: yup
+      .boolean(),
   })
   .required();
 

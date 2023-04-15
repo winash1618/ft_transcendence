@@ -1,8 +1,5 @@
 import { GameType } from ".";
 
-export const CANVAS_WIDTH = 900;
-export const CANVAS_HEIGHT = 800;
-
 type BallType = {
   x: number;
   y: number;
