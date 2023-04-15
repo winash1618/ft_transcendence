@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Colors, Nav, Status } from "../../chat.functions";
+import { Colors, Conversation, Nav, Role, Status } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { List, Avatar, AutoComplete } from 'antd';
+import { List, Avatar, AutoComplete, Dropdown, Button, Menu } from 'antd';
 
 interface GroupChatProps {
 	conversations: Conversation[];
@@ -13,12 +13,6 @@ interface GroupChatProps {
 	setMessages: any;
 	Navbar: Nav;
 	status: any;
-}
-
-interface Conversation {
-	id: number;
-	title: string;
-	privacy: 'PUBLIC' | 'PROTECTED' | 'PRIVATE';
 }
 
 
@@ -39,11 +33,11 @@ const GroupChat = ({
 	useEffect(() => {
 		console.log("conversations", conversations);
 		setFilteredConversations(conversations);
+		setMessages([]);
 	}, [conversations, Navbar]);
 
 	async function handleSelectedConversation(conversation: any) {
-		if (status === Status.ACTIVE || status === Status.MUTED)
-		{
+		if (status === Status.ACTIVE || status === Status.MUTED) {
 			setConversationID(conversation.id);
 			const getToken = async () => {
 				try {
@@ -103,40 +97,58 @@ const GroupChat = ({
 				itemLayout="horizontal"
 				dataSource={filteredConversations.filter(conversation => conversation)}
 				renderItem={conversation => (
-					<List.Item
-						onClick={() => handleSelectedConversation(conversation)}
-						style={{
-							backgroundColor: (conversationID === conversation.id) ? Colors.SECONDARY : Colors.PRIMARY,
-							transition: 'background-color 0.3s ease-in-out',
-							cursor: 'pointer',
-							paddingLeft: '20px',
-							borderRadius: '10px',
-							color: 'white',
-							marginBottom: '10px'
-						}}
-					>
-						<List.Item.Meta
-							avatar={<Avatar src={UserProfilePicture} />}
-							title={
-								<span style={{ color: 'white' }}>
-									{conversation.title}
-									{
-										conversation.privacy === 'PUBLIC'
-											? ' (PUBLIC)' : conversation.privacy === 'PROTECTED'
-												? ' (PROTECTED)' : conversation.privacy === 'PRIVATE'
-													? ' (PRIVATE)' : null
-									}
-									{
-										status === Status.ACTIVE
-											? ' (ACTIVE)' : status === Status.BANNED
-												? ' (BANNED)' : status === Status.MUTED
-													? ' (MUTED)' : status === Status.KICKED
-														? ' (KICKED)' : null
-									}
-								</span>
-							}
-						/>
-					</List.Item>
+					<>
+						<List.Item
+							onClick={() => handleSelectedConversation(conversation)}
+							style={{
+								backgroundColor: (conversationID === conversation.id) ? Colors.SECONDARY : Colors.PRIMARY,
+								transition: 'background-color 0.3s ease-in-out',
+								cursor: 'pointer',
+								paddingLeft: '20px',
+								borderRadius: '10px',
+								color: 'white',
+								marginBottom: '10px'
+							}}
+						>
+							<List.Item.Meta
+								avatar={<Avatar src={UserProfilePicture} />}
+								title={
+									<span style={{ color: 'white' }}>
+										{conversation.title}
+										{
+											conversation.privacy === 'PUBLIC'
+												? ' (PUBLIC)' : conversation.privacy === 'PROTECTED'
+													? ' (PROTECTED)' : conversation.privacy === 'PRIVATE'
+														? ' (PRIVATE)' : null
+										}
+										{
+											status === Status.ACTIVE
+												? ' (ACTIVE)' : status === Status.BANNED
+													? ' (BANNED)' : status === Status.MUTED
+														? ' (MUTED)' : status === Status.KICKED
+															? ' (KICKED)' : null
+										}
+									</span>
+								}
+							/>
+						</List.Item>
+						{
+							conversationID === conversation.id && (<div>
+								<Button
+										type="primary"
+										style={{ marginLeft: "10px", backgroundColor: "red", borderColor: "red" }}
+									>
+										Leave conversation
+									</Button>
+								{conversation.participants[0].role === Role.OWNER && (<Button
+										type="primary"
+										style={{ marginLeft: "10px", backgroundColor: "blue", borderColor: "blue" }}
+									>
+										Add password
+									</Button>)}
+									</div>)
+						}
+					</>
 				)}
 			/>
 		</>

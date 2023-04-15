@@ -44,11 +44,6 @@ const ExploreChat = ({
 		conversation.title.toLowerCase().includes(searchKeyword.toLowerCase())
 	);
 
-	// const menu = (
-	// 	<Menu>
-	// 		<Menu.Item key="1">Join</Menu.Item>
-	// 	</Menu>
-	// );
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>
@@ -95,7 +90,7 @@ const ExploreChat = ({
 							/>
 						</List.Item>
 						{selectedConversationID === conversation.id &&
-							conversation.privacy === Privacy.PROTECTED&& (
+							conversation.privacy === Privacy.PROTECTED && (
 								<div style={{ marginTop: "10px", paddingLeft: "20px" }}>
 									<Input
 										placeholder="Enter password"

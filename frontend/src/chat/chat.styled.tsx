@@ -24,6 +24,7 @@ export const LeftSideContainer = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
+	margin: 0 0 20px 0;
   }
 `;
 
