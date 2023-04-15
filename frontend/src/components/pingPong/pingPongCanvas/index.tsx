@@ -107,8 +107,8 @@ const PingPongCanvas = ({
         game.paddle2.height = 50;
         game.paddle2.x = 300 - 10;
         game.paddle1.x = 0;
-        game.paddle2.y = (500 / 2) - (50 / 2);
-        game.paddle1.y = (500 / 2) - (50 / 2);
+        game.paddle2.y = 500 / 2 - 50 / 2;
+        game.paddle1.y = 500 / 2 - 50 / 2;
         game.ball.radius = 6.25;
       } else {
         canvaRef.current.width = CANVAS_WIDTH;
@@ -254,7 +254,10 @@ const PingPongCanvas = ({
       <ScoreWrapper>
         <ScoreUserInfoWrapper style={{ marginRight: "30px" }}>
           <GameProfileImg
-            src={UserProfilePicture}
+            src={`http://localhost:3001/users/profile-image/${players.player1.profile_picture}`}
+            onError={(e) => {
+              e.currentTarget.src = UserProfilePicture;
+            }}
             alt="A profile photo of the current user"
           />
           {players.player1.login}
@@ -265,7 +268,10 @@ const PingPongCanvas = ({
         <ScoreUserInfoWrapper style={{ marginLeft: "30px" }}>
           {players.player2.login}
           <GameProfileImg
-            src={UserProfilePicture}
+            src={`http://localhost:3001/users/profile-image/${players.player2.profile_picture}`}
+            onError={(e) => {
+              e.currentTarget.src = UserProfilePicture;
+            }}
             alt="A profile photo of the current user"
           />
         </ScoreUserInfoWrapper>

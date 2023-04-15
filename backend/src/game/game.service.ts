@@ -52,11 +52,13 @@ export class GameService {
         playerOne: {
           select: {
             username: true,
+            profile_picture: true,
           },
         },
         playerTwo: {
           select: {
             username: true,
+            profile_picture: true,
           },
         },
       },

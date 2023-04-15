@@ -24,7 +24,13 @@ const ProfileHeader = () => {
         }}
       />
       <ProfileWrapper>
-        <ProfilePicture src={UserProfilePicture}></ProfilePicture>
+        <ProfilePicture
+          src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+          onError={(e) => {
+            e.currentTarget.src = UserProfilePicture;
+          }}
+          alt="A profile photo of the current user"
+        ></ProfilePicture>
         <ProfileInfoWrapper>
           <UserName>{user.first_name + " " + user.last_name}</UserName>
           <UserRating type="secondary">{"Rating 1000"}</UserRating>

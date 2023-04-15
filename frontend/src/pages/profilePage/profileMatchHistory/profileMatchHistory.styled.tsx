@@ -1,4 +1,4 @@
-import { Card } from "antd";
+import { Card, Col, Row } from "antd";
 import styled from "styled-components";
 
 export const ProfileMatchHistoryContainer = styled(Card)`
@@ -20,9 +20,7 @@ export const ProfileMatchHistoryContainer = styled(Card)`
   }
 `;
 
-export const HistoryInfoWrapper = styled.div`
-  display: flex;
-  align-items: center;
+export const HistoryInfoWrapper = styled.table`
 `
 
 export const PlayerName = styled.h1`
@@ -73,7 +71,8 @@ export const ProfilePicture = styled.img`
 
 export const HistoryScoreText = styled.div`
   font-size: 3rem;
-  padding: 20px;
+  text-align: center;
+  padding: 15px;
   font-family: Consolas, monaco, monospace;
   @media (max-width: 1200px) {
     font-size: 2rem;

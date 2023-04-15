@@ -5,4 +5,5 @@ export interface userData {
   lastName: string,
   firstName: string | null,
   secret_code: string | null,
+  profile_picture: string | null,
 }

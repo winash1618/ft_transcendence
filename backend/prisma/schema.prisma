@@ -15,6 +15,7 @@ model User {
   login                 String          @unique
   username              String?
   first_name            String?
+  profile_picture       String?
   last_name             String?
   secret_code           String?
   friends               User[]          @relation("friends")
