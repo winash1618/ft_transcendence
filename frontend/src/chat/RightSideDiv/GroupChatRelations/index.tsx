@@ -6,11 +6,11 @@ import {
   GroupName,
   GroupTitle,
 } from "./group.styled";
-import { List, Avatar, Dropdown, Menu } from "antd";
+import { List, Avatar, Dropdown, Menu, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
-import { Colors, GNav } from "../../chat.functions";
+import { Colors, GNav, Role } from "../../chat.functions";
 import { useState } from "react";
 import axios from "axios";
 import { logOut } from "../../../store/authReducer";
@@ -18,17 +18,61 @@ import { useAppDispatch } from "../../../hooks/reduxHooks";
 
 interface GroupChatRelationsProps {
   conversationID: string;
+	conversation: any;
 }
+const handleMenuClick = (e: any) => {
+  console.log("click", e);
+};
 
-const menu = (
-  <Menu>
-    <Menu.Item key="chat">Chat</Menu.Item>
-    <Menu.Item key="profile">Profile</Menu.Item>
-    <Menu.Item key="invite">Invite</Menu.Item>
-  </Menu>
-);
+// const menu = (
+//   <Menu>
+//     <Menu.Item key="admin">Make Admin</Menu.Item>
+//     <Menu.Item key="ban">Ban</Menu.Item>
+//     <Menu.Item key="mute">Mute</Menu.Item>
+//     <Menu.Item key="kick">Kick</Menu.Item>
+//   </Menu>
+// );
 
-const GroupChatRelations = ({ conversationID }: GroupChatRelationsProps) => {
+
+
+const GroupChatRelations = ({ conversationID,conversation }: GroupChatRelationsProps) => {
+	/*-----------MENU-------------------------------------------------*/
+	const items: MenuProps["items"] = [
+		{
+			key: "1",
+			label: (
+				<a target="_blank" rel="noopener noreferrer">
+					Make Admin
+				</a>
+			),
+			disabled:  conversation && conversation.participants[0].role === Role.ADMIN ? true : false ,
+		},
+		{
+			key: "2",
+			label: (
+				<a target="_blank" rel="noopener noreferrer">
+					Ban
+				</a>
+			),
+		},
+		{
+			key: "3",
+			label: (
+				<a target="_blank" rel="noopener noreferrer">
+					Mute
+				</a>
+			),
+		},
+		{
+			key: "4",
+			label: (
+				<a target="_blank" rel="noopener noreferrer">
+					Kick
+				</a>
+			),
+		},
+	];
+	/*----------------------------------------------------------------*/ 
   const dispatch = useAppDispatch();
   const [GroupNav, setGroupNav] = useState(GNav.GROUPS);
   const [results, setResults] = useState([]);
@@ -46,9 +90,9 @@ const GroupChatRelations = ({ conversationID }: GroupChatRelationsProps) => {
         return null;
       }
     };
-    if (nav === GNav.GROUPS) {
+    if (nav === GNav.GROUPS && conversationID !== null) {
       const token = await getToken();
-      console.log(conversationID);
+      console.log("conversationID", conversationID);
       try {
         const result = await axios.get(
           `http://localhost:3001/chat/${conversationID}/members`,
@@ -65,7 +109,7 @@ const GroupChatRelations = ({ conversationID }: GroupChatRelationsProps) => {
         console.log(err);
       }
     }
-    if (nav === GNav.BLOCKED) {
+    if (nav === GNav.BLOCKED && conversationID !== null) {
       const token = await getToken();
       console.log(conversationID);
       try {
@@ -84,7 +128,7 @@ const GroupChatRelations = ({ conversationID }: GroupChatRelationsProps) => {
         console.log(err);
       }
     }
-    if (nav === GNav.ADD) {
+    if (nav === GNav.ADD && conversationID !== null) {
       const token = await getToken();
       console.log(conversationID);
       try {
@@ -125,23 +169,25 @@ const GroupChatRelations = ({ conversationID }: GroupChatRelationsProps) => {
           size={30}
         />
       </GroupTitle>
-      {/* <List
+      <List
         itemLayout="horizontal"
         dataSource={results}
         renderItem={(result) => (
           <GroupItem>
             <GroupInfo>
               <GroupAvatar src={UserProfilePicture} />
-              <GroupName>{result.username}</GroupName>
-              <Dropdown overlay={menu} trigger={["click"]}>
-                <GroupArrow>
-                  <DownOutlined className="Group-arrow" />
-                </GroupArrow>
-              </Dropdown>
+              <GroupName>{result.user.username}</GroupName>
+              {result.role === "USER" ? (
+                <Dropdown menu={{ items }} trigger={["click"]}>
+                  <GroupArrow>
+                    <DownOutlined className="group-arrow" />
+                  </GroupArrow>
+                </Dropdown>
+              ) : null}
             </GroupInfo>
           </GroupItem>
         )}
-      /> */}
+      />
     </>
   );
 };

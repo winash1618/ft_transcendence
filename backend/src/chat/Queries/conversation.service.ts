@@ -192,6 +192,14 @@ export class ConversationService {
         id: true,
         title: true,
         privacy: true,
+				participants: {
+					select: {
+						role: true,
+					},
+					where: {
+						user_id: userID,
+					},
+				}
       },
     });
   }

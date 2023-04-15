@@ -11,6 +11,7 @@ interface GroupChatProps {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
+	setConversation: any;
 }
 
 interface Conversation {
@@ -26,6 +27,7 @@ const GroupChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
+	setConversation,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -38,6 +40,7 @@ const GroupChat = ({
 
 	async function handleSelectedConversation(conversation: any) {
 		setConversationID(conversation.id);
+		setConversation(conversation);
 		const getToken = async () => {
 			try {
 				const response = await axios.get("http://localhost:3001/token", {
