@@ -10,14 +10,13 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { PrismaService } from 'src/database/prisma.service';
-import { ConversationService } from 'src/chat/Queries/conversation.service';
-import { ParticipantService } from 'src/chat/Queries/participant.service';
-import { MessageService } from 'src/chat/Queries/message.service';
+import { ConversationService } from './Queries/conversation.service';
+import { ParticipantService } from './Queries/participant.service';
+import { MessageService } from './Queries/message.service';
 import { Role } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
 
 @WebSocketGateway(8001, {
@@ -31,7 +30,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   constructor(
-    private prisma: PrismaService,
     private gatewaySession: GatewaySessionManager,
     private conversationService: ConversationService,
     private participantService: ParticipantService,

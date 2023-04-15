@@ -19,7 +19,14 @@ export class GameService {
         : gameData.player_two;
 
     await this.prisma.gameHistory.create({
-      data: gameData,
+      data: {
+        player_one: gameData.player_one,
+        player_two: gameData.player_two,
+        player_score: gameData.player_score,
+        opponent_score: gameData.opponent_score,
+        winner: gameData.winner,
+        looser: gameData.looser,
+      }
     });
   }
 
@@ -34,6 +41,9 @@ export class GameService {
             player_two: playerId,
           },
         ],
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
     return gameHistory;

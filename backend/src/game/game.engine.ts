@@ -13,6 +13,7 @@ import {
 } from './interface/game.interface';
 import { Socket } from 'socket.io';
 import { Server } from 'socket.io';
+import { GameService } from './game.service';
 
 const GAME_WIDTH = 900;
 const GAME_HEIGHT = 800;
@@ -22,7 +23,7 @@ const BALL_SIZE = 12.5;
 const BALL_SPEED = 5;
 const PADDLE_SPEED = 15;
 const GAME_TIME = 30;
-const GAME_POINTS = 11;
+const GAME_POINTS = 2;
 
 export class GameEngine {
   gameID: string;
@@ -69,6 +70,7 @@ export class GameEngine {
     server: Server,
     player1: SocketData,
     player2: SocketData,
+    private gameService: GameService,
   ) {
     this.gameID = game.gameID;
     this.server = server;
@@ -298,6 +300,14 @@ export class GameEngine {
             : this.player1;
         this.users.get(winner).client.emit('win', winner);
         this.users.get(looser).client.emit('lose', looser);
+        this.gameService.storeGameHistory({
+          player_one: this.gameObj.player1.name.id,
+          player_two: this.gameObj.player2.name.id,
+          player_score: this.gameObj.player1.points,
+          opponent_score: this.gameObj.player2.points,
+          winner: '',
+          looser: '',
+        })
       }
     }, GAME_TIME);
   }
