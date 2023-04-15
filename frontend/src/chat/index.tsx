@@ -29,6 +29,7 @@ const Chat = ({
 						user={user}
 						socket={socket}
 						Navbar={Navbar}
+						status={status}
 						setNavbar={setNavbar}
 						conversations={conversations}
 						conversationID={conversationID}

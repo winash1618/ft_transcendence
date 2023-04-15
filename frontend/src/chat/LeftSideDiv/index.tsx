@@ -6,6 +6,7 @@ interface LeftSideDivProps {
 	user: any;
 	socket: any;
 	Navbar: Nav;
+	status: any;
 	setNavbar: any;
 	conversations: any;
 	conversationID: any;
@@ -19,6 +20,7 @@ const LeftSideDiv = ({
 	user,
 	socket,
 	Navbar,
+	status,
 	setNavbar,
 	conversations,
 	conversationID,
@@ -39,6 +41,7 @@ const LeftSideDiv = ({
 			<LeftSideBody
 				socket={socket}
 				Navbar={Navbar}
+				status={status}
 				setNavbar={setNavbar}
 				conversations={conversations}
 				conversationID={conversationID}
