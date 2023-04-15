@@ -15,8 +15,8 @@ const GroupTitle = styled.div`
   width: 100%;
   height: 2.5rem;
   display: flex;
+  justify-content: space-around;
   align-items: center;
-  justify-content: center;
 `;
 
 const GroupInfo = styled.div`
@@ -47,11 +47,4 @@ const GroupAvatar = styled.img`
   margin-right: 15px;
 `;
 
-export {
-  GroupItem,
-  GroupInfo,
-  GroupName,
-  GroupAvatar,
-  GroupTitle,
-  GroupArrow,
-};
+export { GroupItem, GroupInfo, GroupName, GroupAvatar, GroupTitle, GroupArrow };

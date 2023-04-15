@@ -6,12 +6,15 @@ interface RightSideDivProps {
 	user: any;
 	Navbar: Nav;
 	conversationID: string;
+	conversation: any;
 }
 
 const RightSideDiv = ({
 	user,
 	Navbar,
 	conversationID,
+	conversation,
+
 }: RightSideDivProps) => {
 	if (Navbar === Nav.DIRECT) {
 		return (
@@ -27,6 +30,7 @@ const RightSideDiv = ({
 			<>
 				<GroupChatRelations 
 				conversationID = {conversationID}
+				conversation = {conversation}
 				/>
 			</>
 		);

@@ -13,6 +13,7 @@ interface GroupChatProps {
 	setMessages: any;
 	Navbar: Nav;
 	status: any;
+	setConversation: any;
 }
 
 
@@ -24,6 +25,7 @@ const GroupChat = ({
 	setMessages,
 	Navbar,
 	status,
+	setConversation,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
