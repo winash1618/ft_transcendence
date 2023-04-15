@@ -11,6 +11,7 @@ interface DirectChatProp {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
+	Navbar: Nav;
 }
 
 interface Conversation {
@@ -24,9 +25,15 @@ const DirectChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
+	Navbar,
 }: DirectChatProp) => {
 
 	const dispatch = useAppDispatch();
+	const [filterValue, setFilterValue] = useState('');
+
+	useEffect(() => {
+		console.log("conversations", conversations);
+	}, [conversations, Navbar]);
 
 	async function handleSelectedConversation(conversation: any) {
 		setConversationID(conversation.id);
@@ -57,7 +64,6 @@ const DirectChat = ({
 			console.log(err);
 		}
 	}
-	const [filterValue, setFilterValue] = useState('');
 
 	const filteredConversations = conversations.filter(
 		conversation => conversation.title.toUpperCase().includes(filterValue.toUpperCase())
@@ -67,6 +73,7 @@ const DirectChat = ({
 		value: conversation.title,
 		label: conversation.title,
 	}));
+
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>

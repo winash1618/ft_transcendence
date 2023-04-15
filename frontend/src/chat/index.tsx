@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LeftSideContainer, MessageBoxContainer, ParentContainer, RightSideContainer } from "./chat.styled";
-import LeftSideHeader from "./LeftSideDiv/LeftSideHeader";
-import { Nav } from "./chat.functions";
-import LeftSideBody from "./LeftSideDiv/LeftSideBody";
+import { Nav, Status } from "./chat.functions";
 import { UserProfilePicture } from "../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
@@ -21,8 +19,8 @@ const Chat = ({
 	const [conversationID, setConversationID] = useState(null);
 	const [conversations, setConversations] = useState([]);
 	const [messages, setMessages] = useState([]);
+	const [status, setStatus] = useState(Status.ACTIVE);
 	const [conversation, setConversation] = useState(null);
-
 
 	return (
 		<>
@@ -32,6 +30,7 @@ const Chat = ({
 						user={user}
 						socket={socket}
 						Navbar={Navbar}
+						status={status}
 						setNavbar={setNavbar}
 						conversations={conversations}
 						conversationID={conversationID}
@@ -43,13 +42,16 @@ const Chat = ({
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>
-					<MessageDiv
-						user={user}
-						socket={socket}
-						messages={messages}
-						setMessages={setMessages}
-						conversationID={conversationID}
-					/>
+					{(status === Status.ACTIVE || status === Status.MUTED) && (
+						<MessageDiv
+							user={user}
+							status={status}
+							socket={socket}
+							messages={messages}
+							setMessages={setMessages}
+							conversationID={conversationID}
+						/>
+					)}
 				</MessageBoxContainer>
 				<RightSideContainer>
 					<RightSideDiv 
