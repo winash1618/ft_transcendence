@@ -15,6 +15,7 @@ import axios from "../../api";
 
 /*------------------------------------------------------------------*/
 import { List, Avatar } from "antd";
+import { Nav } from "../../chat/chat.functions";
 
 interface LeaderboardData {
   id: number;
@@ -29,6 +30,42 @@ interface LeaderboardProps {
 /*------------------------------------------------------------------*/
 
 const LeaderBoardPage = () => {
+  const dispatch = useAppDispatch();
+  /*------------------------------------------------------------------*/
+  /*------------------------------------------------------------------*/
+  const getInfos = async () => {
+    const getToken = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/token", {
+          withCredentials: true,
+        });
+        localStorage.setItem("auth", JSON.stringify(response.data));
+        return response.data.token;
+      } catch (err) {
+        dispatch(logOut());
+        window.location.reload();
+        return null;
+      }
+    };
+
+    const token = await getToken();
+    try {
+      const result = await axios.get(
+        "http://localhost:3001/users/friends/:uuid",
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(result.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  /*------------------------------------------------------------------*/
+  /*------------------------------------------------------------------*/
   const customStyles = {
     color: "white !important",
   };
@@ -96,7 +133,6 @@ const LeaderBoardPage = () => {
     },
   ];
   /*------------------------------------------------------------------*/
-  const [users, setUsers] = useState([]);
 
   /*------------------------------------------------------------------*/
 
@@ -108,6 +144,7 @@ const LeaderBoardPage = () => {
   return (
     <div>
       <h2 style={{ color: "white" }}>----------</h2>
+      <button onClick={getInfos}>Get Infos</button>
       <List
         itemLayout="horizontal"
         dataSource={sortData(data)}

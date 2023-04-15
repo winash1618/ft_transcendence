@@ -24,3 +24,9 @@ export const Privacy = {
 	PROTECTED: 'PROTECTED',
 	DIRECT: 'DIRECT'
 };
+
+export const GNav = {
+	GROUPS: 'GROUPS',
+	BLOCKED: 'BLOCKED',
+	ADD: 'ADD',
+};
