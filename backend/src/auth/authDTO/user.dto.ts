@@ -4,4 +4,5 @@ export interface userData {
   displayName: string,
   lastName: string,
   firstName: string | null,
+  secret_code: string | null,
 }

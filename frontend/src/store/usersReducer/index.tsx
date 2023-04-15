@@ -5,6 +5,7 @@ interface UsersState {
   users: [];
   user: any;
   nickNameIsChanged: boolean;
+  matchHistory: [];
   isLoading: boolean;
   error: any;
 }
@@ -12,6 +13,7 @@ interface UsersState {
 const initialState: UsersState = {
   users: [],
   user: {},
+  matchHistory: [],
   nickNameIsChanged: false,
   isLoading: false,
   error: {},
@@ -29,6 +31,19 @@ export const fetchUserById = createAsyncThunk(
     }
   }
 );
+
+export const fetchMatchHistory = createAsyncThunk(
+  "users/fetchMatchHistory",
+  async (id: string, thunkApi) => {
+    try {
+      const result = await axiosPrivate.get(`/game/history/${id}`);
+      return result.data;
+    } catch (error) {
+      return thunkApi.rejectWithValue(error);
+    }
+  }
+);
+
 
 export const fetchAllUsers = createAsyncThunk(
   "users/fetchAll",
@@ -76,6 +91,27 @@ const usersSlide = createSlice({
     });
     builder.addCase(fetchUserById.rejected, (state, action) => {
       console.log(action.payload);
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
+      };
+    });
+    builder.addCase(fetchMatchHistory.pending, (state) => {
+      return {
+        ...state,
+        isLoading: true,
+        error: null,
+      };
+    });
+    builder.addCase(fetchMatchHistory.fulfilled, (state, action) => {
+      return {
+        ...state,
+        matchHistory: action.payload,
+        isLoading: false,
+      };
+    });
+    builder.addCase(fetchMatchHistory.rejected, (state, action) => {
       return {
         ...state,
         isLoading: false,

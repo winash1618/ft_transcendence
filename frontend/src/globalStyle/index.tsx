@@ -33,4 +33,17 @@ export const GlobalStyle = createGlobalStyle`
 	#root {
 		height: 100%;
 	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+	::-webkit-scrollbar-track {
+		/* background: #f1f1f1; */
+		box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+	}
+	::-webkit-scrollbar-thumb {
+		background-color: var(--main-400);
+		border-radius: 20px;
+	}
 `;

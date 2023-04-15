@@ -12,9 +12,16 @@ import {
   UserLogin,
   UserName,
 } from "./userInfo.styled";
+import useLogout from "../../../hooks/useLogout";
 
 const UserInfo = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
+  const logOut = useLogout();
+
+  const signOut = async () => {
+    await logOut();
+    window.location.reload();
+  };
 
   const items: MenuProps["items"] = [
     {
@@ -25,6 +32,11 @@ const UserInfo = () => {
     {
       key: "2",
       label: <Link to={`/profile/${userInfo.login}`}>Profile</Link>,
+      icon: <IoLogOut />,
+    },
+    {
+      key: "3",
+      label: <span onClick={signOut}>Logout</span>,
       icon: <IoLogOut />,
     },
   ];

@@ -1,17 +1,20 @@
-import { Col, Row } from "antd";
+import { Card, Col, Row } from "antd";
 import styled from "styled-components";
 
-export const ProfilePersonalInfoContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+export const ProfilePersonalInfoContainer = styled(Card)`
   background: var(--main-700);
-  margin: 50px 0px;
   border-radius: 10px;
-  width: 100%;
   padding: 30px 0px;
+  height: 100%;
   max-width: 600px;
+  border: none;
+  color: #fff;
+  & .ant-card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 `;
 
 export const PersonalTitle = styled.h1`
@@ -29,6 +32,8 @@ export const CustomRow = styled(Row)`
 
 export const PersonalInfo = styled.p`
   font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 export const CustomCol = styled(Col)`
