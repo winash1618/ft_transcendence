@@ -15,6 +15,7 @@ interface LeftSideBodyProps {
 	conversations: any;
 	UserProfilePicture: any;
 	setMessages: any;
+	setConversation: any;
 }
 
 const LeftSideBody = ({
@@ -27,6 +28,7 @@ const LeftSideBody = ({
 	conversations,
 	UserProfilePicture,
 	setMessages,
+	setConversation,
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
@@ -51,6 +53,7 @@ const LeftSideBody = ({
 				setMessages={setMessages}
 				Navbar={Navbar}
 				status={status}
+				setConversation={setConversation}
 			/>
 		);
 	}

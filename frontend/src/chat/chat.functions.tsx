@@ -30,3 +30,9 @@ export const GNav = {
 	BLOCKED: 'BLOCKED',
 	ADD: 'ADD',
 };
+
+export const Role = {
+	OWNER: 'OWNER',
+	ADMIN: 'ADMIN',
+	USER: 'USER',
+}
