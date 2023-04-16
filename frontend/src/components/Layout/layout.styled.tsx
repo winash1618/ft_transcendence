@@ -25,7 +25,7 @@ export const HeaderWrapper = styled.div`
 `;
 export const CustomSider = styled(Sider)`
   position: absolute !important;
+  border-radius: 15px !important;
   z-index: 99999;
-  height: 100vh;
   background: #222222 !important;
 `;

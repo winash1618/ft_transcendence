@@ -1,5 +1,5 @@
+import { Button, Modal } from "antd";
 import styled from "styled-components";
-import { Select } from "antd";
 
 export const FormContainer = styled.form`
   width: 100%;
@@ -17,20 +17,8 @@ export const FormDetails = styled.div`
 `;
 
 export const InputController = styled.div`
-  margin-bottom: 2rem;
-`;
-
-export const FormButton = styled.button`
-  background-color: var(--blue-500);
+  margin-bottom: 1rem;
   width: 100%;
-  height: 58px;
-  line-height: 58px;
-  border: none;
-  border-radius: 3px;
-  color: white;
-  font-size: 0.87rem;
-  cursor: pointer;
-  margin-top: 12px;
 `;
 
 export const FormInputTitle = styled.label`
@@ -52,28 +40,11 @@ export const FormTitle = styled.div`
   margin-bottom: 3rem;
 `;
 
-export const FormSelect = styled(Select)`
-  width: 100%;
-`;
-
-export const FormSwitchMsg = styled.p`
-  font-weight: 400;
-  font-size: 0.75rem;
-  line-height: 18px;
-  margin-top: 15px;
-  text-align: center;
-`;
-
 export const InputAlert = styled.p`
   color: #cdcdcd;
   padding-top: 6px;
 `;
 
-export const SearchingWrapper = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-direction: column;
-`;
+export const SettingsContainer = styled.div`
+  
+`

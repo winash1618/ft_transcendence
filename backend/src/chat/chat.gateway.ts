@@ -19,13 +19,13 @@ import { GatewaySessionManager } from './gateway.session';
 import { UsersService } from '../users/users.service';
 import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
-})
-// @WebSocketGateway()
+// @WebSocketGateway(8001, {
+//   cors: {
+//     origin: process.env.FRONTEND_BASE_URL,
+//     credentials: true,
+//   },
+// })
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -39,8 +39,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
+    // const token = client.handshake.auth.token as string;
+    const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
@@ -161,15 +161,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.userID,
       );
 
-    const participants =
-      await this.participantService.getParticipantsByConversationID(
-        conversation.id,
-      );
-    participants.forEach(participant => {
-      this.gatewaySession
-        .getUserSocket(participant.user_id)
-        .join(conversation.id);
-    });
+    await this.joinConversations(client.data.userID.id, conversation.id);
+    await this.joinConversations(data.userID, conversation.id);
     this.server.to(client.id).emit('directMessage', conversation);
   }
 

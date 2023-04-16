@@ -7,6 +7,7 @@ import NickNamePage from "../pages/nickNamePage";
 import PingPongPage from "../pages/pingPongPage";
 import ProfilePage from "../pages/profilePage";
 import SettingsPage from "../pages/settingsPage";
+import AuthenticatePage from "../pages/authenticatePage";
 
 export const router = createBrowserRouter([
   {
@@ -21,4 +22,5 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "*", element: <PageNotFound404 /> },
+  { path: "/authenticate", element: <AuthenticatePage /> },
 ]);

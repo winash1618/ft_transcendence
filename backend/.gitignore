@@ -38,6 +38,3 @@ test.ts
 # env files
 .env
 test.ts
-
-# Prisma migration
-prisma/migrations
