@@ -25,14 +25,32 @@ export const Privacy = {
 	DIRECT: 'DIRECT'
 };
 
+export const Role = {
+	OWNER: 'OWNER',
+	ADMIN: 'ADMIN',
+	USER: 'USER',
+};
+
 export const GNav = {
 	GROUPS: 'GROUPS',
 	BLOCKED: 'BLOCKED',
 	ADD: 'ADD',
 };
 
-export const Role = {
-	OWNER: 'OWNER',
-	ADMIN: 'ADMIN',
-	USER: 'USER',
+export interface User {
+	id: number;
+	username: string;
+	avatar: string;
+}
+
+export interface Participant {
+	id: number;
+	user: User;
+	role: 'OWNER' | 'ADMIN' | 'USER';
+}
+export interface Conversation {
+	id: number;
+	title: string;
+	participants: Participant[];
+	privacy: 'PRIVATE' | 'PROTECTED' | 'PUBLIC';
 }

@@ -15,13 +15,13 @@ import { Socket } from 'socket.io';
 import { Server } from 'socket.io';
 import { GameService } from './game.service';
 
-const GAME_WIDTH = 900;
-const GAME_HEIGHT = 800;
-const PADDLE_WIDTH = 20;
-const PADDLE_HEIGHT = 100;
-const BALL_SIZE = 12.5;
-const BALL_SPEED = 5;
-const PADDLE_SPEED = 15;
+let GAME_WIDTH = 900;
+let GAME_HEIGHT = 800;
+let PADDLE_WIDTH = 20;
+let PADDLE_HEIGHT = 100;
+let BALL_SIZE = 12.5;
+let BALL_SPEED = 5;
+let PADDLE_SPEED = 15;
 const GAME_TIME = 30;
 const GAME_POINTS = 2;
 
@@ -201,8 +201,8 @@ export class GameEngine {
   }
 
   resetBall() {
-    this.gameObj.ball.x = (GAME_HEIGHT - BALL_SIZE) / 2;
-    this.gameObj.ball.y = (GAME_WIDTH - BALL_SIZE) / 2;
+    this.gameObj.ball.y = (GAME_HEIGHT - BALL_SIZE) / 2;
+    this.gameObj.ball.x = (GAME_WIDTH - BALL_SIZE) / 2;
     this.ballMovement.radian = (Math.random() * Math.PI) / 4;
     this.ballMovement.x =
       (Math.random() < 0.5 ? 1 : -1) *
@@ -244,6 +244,17 @@ export class GameEngine {
     }
   }
 
+  moveMouse(y: number, client: Socket) {
+    if (this.users.get(client.data.userID) === undefined) {
+      return;
+    }
+    if (this.users.get(client.data.userID).playerNumber === 1) {
+      this.gameObj.paddle1.y = y;
+    } else if (this.users.get(client.data.userID).playerNumber === 2) {
+      this.gameObj.paddle2.y = y;
+    }
+  }
+
   playerMove() {
     if (this.gameObj.paddle1.movingUp) {
       if (this.gameObj.paddle1.y >= PADDLE_SPEED)
@@ -272,7 +283,17 @@ export class GameEngine {
     }, 1000);
   }
 
-  startGame() {
+  startGame(mobile: boolean) {
+    if (mobile) {
+      GAME_WIDTH = 300;
+      GAME_HEIGHT = 500;
+      PADDLE_WIDTH = 10;
+      PADDLE_HEIGHT = 50;
+      BALL_SIZE = 6.25;
+      BALL_SPEED = 2.5;
+      PADDLE_SPEED = 7.5;
+      console.log(GAME_HEIGHT, GAME_WIDTH);
+    }
     clearInterval(this.interval);
     this.initGameObj(0, this.player1, this.player2);
     this.gameObj.gameStatus = GameStatus.PLAYING;

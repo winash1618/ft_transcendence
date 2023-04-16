@@ -21,6 +21,7 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuid4 } from 'uuid';
 import { CreateGameDto } from './dto/create-game.dto';
+import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -33,22 +34,26 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
   private gameRooms: GameEngine[] = [];
   private users: SocketData[] = [];
+  private mobile: SocketData[] = [];
   private invitedUser: InvitationMap = new Map<string, SocketData[]>();
   private userSockets: UserMap = new Map<string, SocketData>();
 
   constructor(
     private readonly gameService: GameService,
     private readonly jwtService: JwtService,
+    private usersService: UsersService,
   ) {}
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     const token = client.handshake.auth.token;
     const userid = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
 
-    console.log('User connected: ', userid);
     client.data.userID = userid;
+    const user = await this.usersService.findOne(client.data.userID['login']);
+    client.data.userID['login'] = user.username;
+    console.log('User connected: ', userid);
 
     this.setUserStatus(client, GameStatus.WAITING);
   }
@@ -59,7 +64,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       secret: process.env.JWT_SECRET,
     });
     console.log('User disconnected: ', userid);
-    this.users = this.users.filter(user => user.userID === userid);
+    this.users = this.users.filter((user: any) => user.userID.login !== userid.login);
+    this.mobile = this.mobile.filter((user: any) => user.userID.login !== userid.login);
     this.userSockets.delete(userid);
   }
 
@@ -72,7 +78,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       player1Score: 0,
       player2Score: 0,
     };
-    const gameRoom = new GameEngine(game, this.server, player1, player2, this.gameService);
+    const gameRoom = new GameEngine(
+      game,
+      this.server,
+      player1,
+      player2,
+      this.gameService,
+    );
     gameRoom.startSettings();
     this.gameRooms[id] = gameRoom;
     return id;
@@ -97,36 +109,62 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('Register')
-  async registerUser(@ConnectedSocket() client: Socket) {
+  async registerUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: any,
+  ) {
     let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
 
     if (
-      this.users.find(user => user.userID['id'] === socketData.userID['id'])
+      this.users.find(
+        (user) => user.userID['id'] === socketData.userID['id'],
+      ) ||
+      this.mobile.find((user) => user.userID['id'] === socketData.userID['id'])
     ) {
       this.server.to(client.id).emit('error');
       return;
     }
 
-    if (this.users.length >= 1) {
-      this.users[0].playerNumber = 1;
-      this.users[0].status = GameStatus.READY;
+    if ((this.users.length >= 1 && !data.mobile) || (this.mobile.length >= 1 && data.mobile)) {
+      let user = this.users[0];
+      if (data.mobile) {
+        user = this.mobile[0];
+      }
+      user.playerNumber = 1;
+      user.status = GameStatus.READY;
       socketData.playerNumber = 2;
       socketData.status = GameStatus.READY;
-      const roomID = this.createGameRoom(this.users[0], socketData);
-      this.users[0].gameID = roomID;
+      const roomID = this.createGameRoom(user, socketData);
+      user.gameID = roomID;
       socketData.gameID = roomID;
       this.server.to(client.id).emit('start', {
         playerNo: 2,
+        mobile: data.mobile,
+        players: {
+          player1: user.userID,
+          player2: socketData.userID,
+        },
         roomID,
       });
-      this.server.to(this.users[0].client.id).emit('start', {
+      this.server.to(user.client.id).emit('start', {
         playerNo: 1,
+        mobile: data.mobile,
+        players: {
+          player1: user.userID,
+          player2: socketData.userID,
+        },
         roomID,
       });
       this.users.splice(0, 1);
     } else {
       socketData.status = GameStatus.READY;
-      this.users.push(socketData);
+      if (!data.mobile) {
+        this.users.push(socketData);
+      } else {
+        this.mobile.push(socketData);
+      }
+      console.log(this.mobile);
+      console.log(this.users);
     }
   }
 
@@ -192,6 +230,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('moveMouse')
+  handleMoveMouse(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+    const roomId = data.roomID;
+    if (roomId in this.gameRooms)
+      this.gameRooms[roomId].moveMouse(data.y, client);
+  }
+
+
   @SubscribeMessage('move')
   handleMove(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
     const roomId = data.roomID;
@@ -203,7 +249,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('StartGame')
   async startGame(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    const roomID = data;
+    const roomID = data.roomID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
 
     if (!this.gameRooms[roomID]) {
@@ -217,17 +263,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
     if (this.gameRooms[roomID]) {
-      this.gameRooms[roomID].startGame();
+      this.gameRooms[roomID].startGame(data.mobile);
     }
-    // const gameDTO: CreateGameDto = {
-    //   player_one: this.gameRooms[roomID].gameObj.player1.name.id,
-    //   player_two: this.gameRooms[roomID].gameObj.player2.name.id,
-    //   player_score: this.gameRooms[roomID].gameObj.player1.points,
-    //   opponent_score: this.gameRooms[roomID].gameObj.player2.points,
-    //   winner: '',
-    //   looser: '',
-    // }
-    // console.log(gameDTO);
-    // await this.gameService.storeGameHistory(gameDTO);
   }
 }

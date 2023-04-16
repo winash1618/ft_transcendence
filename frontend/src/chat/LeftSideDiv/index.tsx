@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Nav } from "../chat.functions";
 import LeftSideBody from "./LeftSideBody";
 import LeftSideHeader from "./LeftSideHeader";
@@ -31,6 +32,11 @@ const LeftSideDiv = ({
 	setMessages,
 	setConversation,
 } : LeftSideDivProps) => {
+	useEffect(() => {
+		setMessages([]);
+		setConversations([]);
+		setConversationID("");
+	}, [Navbar]);
 	return (
 		<>
 			<LeftSideHeader

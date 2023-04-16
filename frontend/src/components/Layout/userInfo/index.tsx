@@ -12,9 +12,15 @@ import {
   UserLogin,
   UserName,
 } from "./userInfo.styled";
+import useLogout from "../../../hooks/useLogout";
 
 const UserInfo = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
+  const logOut = useLogout();
+  const signOut = async () => {
+    await logOut();
+    window.location.reload();
+  };
 
   const items: MenuProps["items"] = [
     {
@@ -27,13 +33,21 @@ const UserInfo = () => {
       label: <Link to={`/profile/${userInfo.login}`}>Profile</Link>,
       icon: <IoLogOut />,
     },
+    {
+      key: "3",
+      label: <span onClick={signOut}>Logout</span>,
+      icon: <IoLogOut />,
+    },
   ];
   return (
     <ProfileWrapper>
       <Dropdown menu={{ items }} placement="bottomRight">
         <DropDownLink onClick={(e) => e.preventDefault()}>
           <ProfileImg
-            src={UserProfilePicture}
+            src={`http://localhost:3001/users/profile-image/${userInfo?.profile_picture}`}
+            onError={(e) => {
+              e.currentTarget.src = UserProfilePicture;
+            }}
             alt="A profile photo of the current user"
           />
           <UserInfoWrapper>

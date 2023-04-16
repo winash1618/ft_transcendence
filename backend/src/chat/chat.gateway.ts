@@ -19,13 +19,13 @@ import { GatewaySessionManager } from './gateway.session';
 import { UsersService } from '../users/users.service';
 import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
-})
-// @WebSocketGateway()
+// @WebSocketGateway(8001, {
+//   cors: {
+//     origin: process.env.FRONTEND_BASE_URL,
+//     credentials: true,
+//   },
+// })
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -39,8 +39,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
+    // const token = client.handshake.auth.token as string;
+    const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
@@ -139,6 +139,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
   ) {
+    console.log('In directMessage');
+    const exists = await this.conversationService.checkDirectConversationExists(
+      client.data.userID.id,
+      data.userID
+    );
+	console.log(exists)
+
+    if (exists !== null) {
+      this.server.to(client.data.userID.id).emit('directExists', exists.id);
+      return;
+    }
+
+	console.log('not exists')
+
     const conversation =
       await this.conversationService.createDirectConversation(
         {
@@ -150,16 +164,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.userID,
       );
 
-    const participants =
-      await this.participantService.getParticipantsByConversationID(
-        conversation.id,
-      );
-    participants.forEach(participant => {
-      this.gatewaySession
-        .getUserSocket(participant.user_id)
-        .join(conversation.id);
-    });
-    this.server.to(client.id).emit('directMessage', conversation);
+    await this.joinConversations(client.data.userID.id, conversation.id);
+    await this.joinConversations(data.userID, conversation.id);
+    this.server.to(client.data.userID.id).emit('directMessage', conversation);
   }
 
   @SubscribeMessage('leaveConversation')
@@ -274,6 +281,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('banUser')
   async banUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     try {
+      console.log('In banUser');
       const participant = await this.participantService.banUserFromConversation(
         data.conversationID,
         data.userID,
