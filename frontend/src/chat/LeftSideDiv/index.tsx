@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Nav } from "../chat.functions";
 import LeftSideBody from "./LeftSideBody";
 import LeftSideHeader from "./LeftSideHeader";
@@ -6,6 +7,7 @@ interface LeftSideDivProps {
 	user: any;
 	socket: any;
 	Navbar: Nav;
+	status: any;
 	setNavbar: any;
 	conversations: any;
 	conversationID: any;
@@ -13,12 +15,14 @@ interface LeftSideDivProps {
 	UserProfilePicture: any;
 	setConversations: any;
 	setMessages: any;
+	setConversation: any;
 }
 
 const LeftSideDiv = ({
 	user,
 	socket,
 	Navbar,
+	status,
 	setNavbar,
 	conversations,
 	conversationID,
@@ -26,7 +30,13 @@ const LeftSideDiv = ({
 	UserProfilePicture,
 	setConversations,
 	setMessages,
+	setConversation,
 } : LeftSideDivProps) => {
+	useEffect(() => {
+		setMessages([]);
+		setConversations([]);
+		setConversationID("");
+	}, [Navbar]);
 	return (
 		<>
 			<LeftSideHeader
@@ -39,12 +49,14 @@ const LeftSideDiv = ({
 			<LeftSideBody
 				socket={socket}
 				Navbar={Navbar}
+				status={status}
 				setNavbar={setNavbar}
 				conversations={conversations}
 				conversationID={conversationID}
 				setConversationID={setConversationID}
 				UserProfilePicture={UserProfilePicture}
 				setMessages={setMessages}
+				setConversation={setConversation}
 			/>
 		</>
 	);

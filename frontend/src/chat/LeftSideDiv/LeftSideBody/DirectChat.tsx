@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Nav, Privacy, Colors } from "../../chat.functions";
+import { Nav, Privacy, Colors, Conversation } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
@@ -11,12 +11,10 @@ interface DirectChatProp {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
+	Navbar: Nav;
 }
 
-interface Conversation {
-	id: number;
-	title: string;
-}
+
 
 const DirectChat = ({
 	conversations,
@@ -24,9 +22,17 @@ const DirectChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
+	Navbar,
 }: DirectChatProp) => {
 
 	const dispatch = useAppDispatch();
+	const [filterValue, setFilterValue] = useState('');
+
+	useEffect(() => {
+		console.log("conversations", conversations);
+		setMessages([]);
+		// setConversationID('');
+	}, [conversations, Navbar]);
 
 	async function handleSelectedConversation(conversation: any) {
 		setConversationID(conversation.id);
@@ -57,16 +63,16 @@ const DirectChat = ({
 			console.log(err);
 		}
 	}
-	const [filterValue, setFilterValue] = useState('');
 
 	const filteredConversations = conversations.filter(
-		conversation => conversation.title.toUpperCase().includes(filterValue.toUpperCase())
+		conversation => conversation.participants[0].user.username.toUpperCase().includes(filterValue.toUpperCase())
 	);
 
 	const options = filteredConversations.map(conversation => ({
-		value: conversation.title,
-		label: conversation.title,
+		value: conversation.participants[0].user.username,
+		label: conversation.participants[0].user.username,
 	}));
+
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>
@@ -99,6 +105,7 @@ const DirectChat = ({
 					>
 						<List.Item.Meta
 							avatar={<Avatar src={UserProfilePicture} />}
+							title={<span style={{ color: 'white' }}>{conversation.participants[0].user.username}</span>}
 						/>
 					</List.Item>
 				)}
