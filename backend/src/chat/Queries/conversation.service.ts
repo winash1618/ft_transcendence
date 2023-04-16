@@ -267,11 +267,18 @@ export class ConversationService {
   }
 
   async checkConversationExists(conversationID: string) {
-    return await this.prisma.conversation.findUnique({
+    console.log(conversationID)
+    const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationID,
       },
     });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation does not exist');
+    }
+
+    return conversation;
   }
 
   async checkDirectConversationExists(userID: string, otherUserID: string) {

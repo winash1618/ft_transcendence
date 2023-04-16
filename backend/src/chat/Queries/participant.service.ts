@@ -155,11 +155,13 @@ export class ParticipantService {
       where: {
         user_id: userID,
         conversation_id: conversationID,
-        role: Role.ADMIN,
+        role: {
+          in: [Role.OWNER, Role.ADMIN],
+        },
       },
     });
 
-    return !!participant;
+    return participant !== null;
   }
 
   async getConversationByUserId(userId: string) {
@@ -189,26 +191,14 @@ export class ParticipantService {
     conversationID: string,
     userID: string,
   ) {
-    const conversation = await this.conversationService.checkConversationExists(
-      conversationID,
-    );
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation does not exist');
-    }
+    // if (!this.validationCheck(conversationID, userID)) {
+    //   throw new NotFoundException('Participant does not exist');
+    // }
 
     const participant = await this.checkParticipantExists(
       conversationID,
       userID,
     );
-
-    if (!participant) {
-      throw new NotFoundException('Participant does not exist in conversation');
-    }
-
-    if (participant.conversation_status === Status.DELETED) {
-      throw new NotFoundException('Participant already removed from conversation');
-    }
 
     return await this.prisma.participant.update({
       where: {
@@ -225,14 +215,6 @@ export class ParticipantService {
     userID: string,
     status: Status,
   ) {
-    const conversation = await this.conversationService.checkConversationExists(
-      conversationID,
-    );
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation does not exist');
-    }
-
     const participant = await this.checkParticipantExists(
       conversationID,
       userID,
@@ -309,10 +291,30 @@ export class ParticipantService {
     userID: string,
     adminUser: string,
   ) {
-    if (this.validationCheck(conversationID, userID))
+    if (!this.validationCheck(conversationID, userID, adminUser))
       throw new NotFoundException('Validation check failed');
 
-    await this.updateParticipantStatus(conversationID, userID, Status.BANNED);
+    const participant = await this.checkParticipantExists(
+      conversationID,
+      userID,
+    );
+
+    if (!participant || participant.conversation_status === Status.DELETED)
+      throw new NotFoundException('Participant does not exist');
+
+    if (participant.role === Role.OWNER)
+      throw new NotFoundException('Cannot ban owner');
+
+    if (participant.role === Role.ADMIN)
+      throw new NotFoundException('Cannot ban admin');
+
+    if (participant.conversation_status === Status.BANNED)
+      throw new NotFoundException('Participant is already banned');
+
+    if (participant.conversation_status === Status.KICKED)
+      throw new NotFoundException('Participant is already kicked');
+
+    const parti = await this.updateParticipantStatus(conversationID, userID, Status.BANNED);
     return await this.removeParticipantFromConversation(conversationID, userID);
   }
 

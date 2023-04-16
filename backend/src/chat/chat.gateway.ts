@@ -19,13 +19,13 @@ import { GatewaySessionManager } from './gateway.session';
 import { UsersService } from '../users/users.service';
 import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
-})
-// @WebSocketGateway()
+// @WebSocketGateway(8001, {
+//   cors: {
+//     origin: process.env.FRONTEND_BASE_URL,
+//     credentials: true,
+//   },
+// })
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -39,8 +39,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
+    // const token = client.handshake.auth.token as string;
+    const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
@@ -147,7 +147,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	console.log(exists)
 
     if (exists !== null) {
-		console.log('exists');
       this.server.to(client.data.userID.id).emit('directExists', exists.id);
       return;
     }
@@ -282,6 +281,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('banUser')
   async banUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     try {
+      console.log('In banUser');
       const participant = await this.participantService.banUserFromConversation(
         data.conversationID,
         data.userID,
