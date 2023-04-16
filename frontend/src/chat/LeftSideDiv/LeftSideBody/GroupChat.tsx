@@ -47,6 +47,7 @@ const GroupChat = ({
 		if (status === Status.ACTIVE || status === Status.MUTED)
 		{
 			setConversationID(conversation.id);
+			setConversation(conversation);
 			const getToken = async () => {
 				try {
 					const response = await axios.get("http://localhost:3001/token", {

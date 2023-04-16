@@ -3,6 +3,7 @@ import DirectChatRelations from "./DirectChatRelations";
 import GroupChatRelations from "./GroupChatRelations";
 
 interface RightSideDivProps {
+	socket: any;
 	user: any;
 	Navbar: Nav;
 	conversationID: string;
@@ -10,6 +11,7 @@ interface RightSideDivProps {
 }
 
 const RightSideDiv = ({
+	socket,
 	user,
 	Navbar,
 	conversationID,
@@ -29,6 +31,7 @@ const RightSideDiv = ({
 		return (
 			<>
 				<GroupChatRelations 
+				socket={socket}
 				conversationID = {conversationID}
 				conversation = {conversation}
 				/>
