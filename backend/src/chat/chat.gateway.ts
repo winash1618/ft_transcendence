@@ -307,8 +307,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           client.data.userID.id,
         );
 
-      // await this.sendConversationPublicToAllClients(data.conversationID);
-      this.server.to(data.conversationID).emit('unbanUser', data.userID);
+      await this.sendConversationPublicToAllClients(data.conversationID);
     } catch (e) {
       client.emit('error', 'Unauthorized access from unbanUser');
     }
