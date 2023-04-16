@@ -17,12 +17,10 @@ import { logOut } from "../../../store/authReducer";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 
 interface GroupChatRelationsProps {
+  socket: any;
   conversationID: string;
-	conversation: any;
+  conversation: any;
 }
-const handleMenuClick = (e: any) => {
-  console.log("click", e);
-};
 
 // const menu = (
 //   <Menu>
@@ -33,46 +31,102 @@ const handleMenuClick = (e: any) => {
 //   </Menu>
 // );
 
+const GroupChatRelations = ({
+  socket,
+  conversationID,
+  conversation,
+}: GroupChatRelationsProps) => {
+  const [user, setUser] = useState<any>(null);
+  /*-----------Handle Menu Click-------------------------------------------------*/
+  const handleMenuClick = (e: any) => {
+    if (e.target.textContent === "Make Admin") {
+      socket?.emit("makeAdmin", conversation);
+      console.log("Make Admin");
+    } else if (e.target.textContent === "Ban") {
+      socket?.emit("ban", conversation);
+      console.log("Ban");
+    } else if (e.target.textContent === "Mute") {
+      socket?.emit("mute", conversation);
+      console.log("Mute");
+    } else if (e.target.textContent === "Kick") {
+      socket?.emit("kick", conversation);
+      console.log("Kick");
+    }
+  };
+  /*-----------Handle Menu Click-------------------------------------------------*/
+  /*-----------MENU-------------------------------------------------*/
+  console.log("lollipop", conversation);
 
-
-const GroupChatRelations = ({ conversationID,conversation }: GroupChatRelationsProps) => {
-	/*-----------MENU-------------------------------------------------*/
-	const items: MenuProps["items"] = [
-		{
-			key: "1",
-			label: (
-				<a target="_blank" rel="noopener noreferrer">
-					Make Admin
-				</a>
-			),
-			disabled:  conversation && conversation.participants[0].role === Role.ADMIN ? true : false ,
-		},
-		{
-			key: "2",
-			label: (
-				<a target="_blank" rel="noopener noreferrer">
-					Ban
-				</a>
-			),
-		},
-		{
-			key: "3",
-			label: (
-				<a target="_blank" rel="noopener noreferrer">
-					Mute
-				</a>
-			),
-		},
-		{
-			key: "4",
-			label: (
-				<a target="_blank" rel="noopener noreferrer">
-					Kick
-				</a>
-			),
-		},
-	];
-	/*----------------------------------------------------------------*/ 
+  const items2: MenuProps["items"] = [
+    {
+      key: "1",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Unban
+        </a>
+      ),
+    },
+  ];
+  /*----------------------------------------------------------------*/
+  const items: MenuProps["items"] = [
+    {
+      key: "1",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Make Admin
+        </a>
+      ),
+      disabled:
+        conversation && conversation.participants[0].role !== Role.OWNER
+          ? true
+          : false,
+    },
+    {
+      key: "2",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ban
+        </a>
+      ),
+    },
+    {
+      key: "3",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Mute
+        </a>
+      ),
+    },
+    {
+      key: "4",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Kick
+        </a>
+      ),
+    },
+  ];
+  /*----------------------------------------------------------------*/
   const dispatch = useAppDispatch();
   const [GroupNav, setGroupNav] = useState(GNav.GROUPS);
   const [results, setResults] = useState([]);
@@ -114,7 +168,7 @@ const GroupChatRelations = ({ conversationID,conversation }: GroupChatRelationsP
       console.log(conversationID);
       try {
         const result = await axios.get(
-          `http://localhost:3001/chat/channel/${conversationID}/banned`,
+          `http://localhost:3001/chat/${conversationID}/members`,
           {
             withCredentials: true,
             headers: {
@@ -133,7 +187,7 @@ const GroupChatRelations = ({ conversationID,conversation }: GroupChatRelationsP
       console.log(conversationID);
       try {
         const result = await axios.get(
-          `http://localhost:3001/chat/channel/${conversationID}/addFriends`,
+          `http://localhost:3001/chat/${conversationID}/members`,
           {
             withCredentials: true,
             headers: {
@@ -169,25 +223,53 @@ const GroupChatRelations = ({ conversationID,conversation }: GroupChatRelationsP
           size={30}
         />
       </GroupTitle>
-      <List
-        itemLayout="horizontal"
-        dataSource={results}
-        renderItem={(result) => (
-          <GroupItem>
-            <GroupInfo>
-              <GroupAvatar src={UserProfilePicture} />
-              <GroupName>{result.user.username}</GroupName>
-              {result.role === "USER" ? (
-                <Dropdown menu={{ items }} trigger={["click"]}>
-                  <GroupArrow>
-                    <DownOutlined className="group-arrow" />
-                  </GroupArrow>
-                </Dropdown>
-              ) : null}
-            </GroupInfo>
-          </GroupItem>
-        )}
-      />
+      {GroupNav === GNav.GROUPS ? (
+        <List
+          itemLayout="horizontal"
+          dataSource={results}
+          renderItem={(result) => (
+            <GroupItem>
+              <GroupInfo>
+                <GroupAvatar src={UserProfilePicture} />
+                <GroupName>{result.user.username}</GroupName>
+                {conversation.participants[0].role !== Role.USER ? (
+                  result.role === "USER" ? (
+                    <Dropdown menu={{ items }} trigger={["click"]}>
+                      <GroupArrow>
+                        <DownOutlined className="group-arrow" />
+                      </GroupArrow>
+                    </Dropdown>
+                  ) : null
+                ) : null}
+              </GroupInfo>
+            </GroupItem>
+          )}
+        />
+      ) : GroupNav === GNav.BLOCKED ? (
+        <List
+          itemLayout="horizontal"
+          dataSource={results}
+          renderItem={(result) => (
+            <GroupItem>
+              <GroupInfo>
+                <GroupAvatar src={UserProfilePicture} />
+                <GroupName>{result.user.username}</GroupName>
+                {conversation.participants[0].role !== Role.USER ? (
+                  result.role === "USER" ? (
+                    <Dropdown menu={{ items }} trigger={["click"]}>
+                      <GroupArrow>
+                        <DownOutlined className="group-arrow" />
+                      </GroupArrow>
+                    </Dropdown>
+                  ) : null
+                ) : null}
+              </GroupInfo>
+            </GroupItem>
+          )}
+        />
+      ) : (
+        <h1>Ban</h1>
+      )}
     </>
   );
 };

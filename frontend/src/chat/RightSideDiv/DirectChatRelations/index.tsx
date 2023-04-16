@@ -13,7 +13,7 @@ import {
   DirectArrow,
 } from "./direct.styled";
 
-import { List, Avatar, Dropdown, Menu } from "antd";
+import { List, Avatar, Dropdown, Menu, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 
 interface DirectData {
@@ -32,6 +32,18 @@ interface UserInfo {
 interface DirectChatRelationsProps {
   user: any;
 }
+
+/*-----------------------------------------*/
+const handleMenuClick = (e: any) => {
+  if (e.target.textContent === "Chat") {
+    console.log("Chat");
+  } else if (e.target.textContent === "Profile") {
+    console.log("Profile");
+  } else if (e.target.textContent === "Invite") {
+    console.log("Invite");
+  }
+};
+/*-----------------------------------------*/
 
 const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
   const dispatch = useAppDispatch();
@@ -81,6 +93,46 @@ const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
       <Menu.Item key="invite">Invite</Menu.Item>
     </Menu>
   );
+
+  const items: MenuProps["items"] = [
+    {
+      key: "1",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Chat
+        </a>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Profile
+        </a>
+      ),
+    },
+    {
+      key: "3",
+      label: (
+        <a
+          onClick={(e) => handleMenuClick(e)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Invite
+        </a>
+      ),
+    },
+  ];
+
   /*----------------------------------------------------------------------------------------*/
   return (
     <>
@@ -95,7 +147,7 @@ const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
             <DirectInfo>
               <DirectAvatar src={UserProfilePicture} />
               <DirectName>{result.username}</DirectName>
-              <Dropdown overlay={menu} trigger={["click"]}>
+              <Dropdown menu={{ items }} trigger={["click"]}>
                 <DirectArrow>
                   <DownOutlined className="direct-arrow" />
                 </DirectArrow>
