@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
@@ -30,7 +30,7 @@ export class GameService {
     });
   }
 
-  async getGameHistory(playerId: string): Promise<GameHistory[]> {
+  async getGameHistory(playerId: string) {
     const gameHistory = await this.prisma.gameHistory.findMany({
       where: {
         OR: [
@@ -42,10 +42,35 @@ export class GameService {
           },
         ],
       },
+      select: {
+        player_one: true,
+        player_two: true,
+        player_score: true,
+        opponent_score: true,
+        winner: true,
+        looser: true,
+        playerOne: {
+          select: {
+            username: true,
+            profile_picture: true,
+          },
+        },
+        playerTwo: {
+          select: {
+            username: true,
+            profile_picture: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
     });
+
+    if (!gameHistory) {
+      throw new NotFoundException('No game history found');
+    }
+
     return gameHistory;
   }
 

@@ -14,7 +14,7 @@ export const ProfileHeaderContainer = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    padding: 150px 0px 0px 0px;
+    padding: 70px 0px 20px 0px;
   }
 `;
 

@@ -52,10 +52,31 @@ export class UsersService {
     return `This action removes a #${id} user`;
   }
 
+  async updateProfilePicture(id: string, picture: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { profile_picture: picture },
+    });
+  }
+
   async userStatusUpdate(id: string, status: string) {
     return await this.prisma.user.update({
       where: { id },
       data: { user_status: UserStatus[status] },
+    });
+  }
+
+  async updateSecretCode(id: string, secret: string | null) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { secret_code: secret },
+    });
+  }
+
+  async updateAuthentication(id: string, is_authenticated: boolean) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { is_authenticated },
     });
   }
 

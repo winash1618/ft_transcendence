@@ -1,3 +1,4 @@
+import { Col, Row } from "antd";
 import styled from "styled-components";
 
 export const ProfileContainer = styled.div`
@@ -7,9 +8,29 @@ export const ProfileContainer = styled.div`
   }
 `;
 
-export const ProfileInfoContainer = styled.div`
-	display: flex;
-	width: 100%;
-	align-items: center;
-	justify-content: center;
-`
+export const ProfileInfoContainer = styled(Row)`
+  max-width: 1200px;
+  margin-top: 50px;
+  align-items: stretch;
+  @media (max-width: 991px) {
+    max-width: 600px;
+  }
+  @media (max-width: 603px) {
+    max-width: 385px;
+  }
+`;
+
+export const CustomCol = styled(Col)`
+  width: 600px;
+  @media (max-width: 603px) {
+    width: 385px;
+  }
+  height: 470px;
+`;
+
+export const ProfileCenterContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+`;
