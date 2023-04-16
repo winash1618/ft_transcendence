@@ -139,6 +139,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
   ) {
+    console.log('In directMessage');
+    const exists = await this.conversationService.checkDirectConversationExists(
+      client.data.userID.id,
+      data.userID
+    );
+
+    if (exists) {
+      this.server.to(client.id).emit('directExists', exists.id);
+      return;
+    }
+
     const conversation =
       await this.conversationService.createDirectConversation(
         {
