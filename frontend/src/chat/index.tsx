@@ -55,6 +55,7 @@ const Chat = ({
 				</MessageBoxContainer>
 				<RightSideContainer>
 					<RightSideDiv 
+						socket={socket}
 						user={user}
 						Navbar={Navbar}
 						conversationID={conversationID}
