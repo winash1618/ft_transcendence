@@ -1,10 +1,10 @@
+import { Button, Modal } from "antd";
 import styled from "styled-components";
 
 export const FormContainer = styled.form`
   width: 100%;
   height: 100%;
   padding: 3rem 2rem;
-  background: var(--bg-gray);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -17,7 +17,8 @@ export const FormDetails = styled.div`
 `;
 
 export const InputController = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+  width: 100%;
 `;
 
 export const FormInputTitle = styled.label`
@@ -43,3 +44,7 @@ export const InputAlert = styled.p`
   color: #cdcdcd;
   padding-top: 6px;
 `;
+
+export const SettingsContainer = styled.div`
+  
+`

@@ -19,15 +19,16 @@ const ButtonStyling = styled(Button)<StyledButtonProp>`
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
+  background: var(--main-400);
   padding: 0 4rem;
   border-radius: 5px;
   text-transform: capitalize;
   text-decoration: dashed;
   &:focus {
-    background: var(--main-500);
+    background: var(--main-500) !important;
   }
-  &:hover {
-    background: var(--main-700);
+  :hover {
+    background: var(--main-500) !important;
   }
 `;
 

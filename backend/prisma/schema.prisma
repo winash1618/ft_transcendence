@@ -18,6 +18,7 @@ model User {
   profile_picture       String?
   last_name             String?
   secret_code           String?
+  is_authenticated      Boolean?
   friends               User[]          @relation("friends")
   friends_of            User[]          @relation("friends")
   blocked_users         User[]          @relation("blocked_users")

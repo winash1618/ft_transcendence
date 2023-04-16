@@ -39,6 +39,12 @@ const Navbar: React.FC = () => {
         if (!response.data.user.username) {
           navigate("/set-nickname");
         }
+        if (
+          !response.data.user.is_authenticated &&
+          response.data.user.secret_code
+        ) {
+          navigate("/authenticate");
+        }
         setIsLoadingPage(false);
       } catch (err) {
         dispatch(logOut());
@@ -80,7 +86,11 @@ const Navbar: React.FC = () => {
               <LogoImg src="https://www.pngall.com/wp-content/uploads/2016/05/Ping-Pong-Download-PNG.png" />
             </LogoWrapper>
             <Menu
-              style={{ background: "var(--main-700)", paddingBottom: "20px", borderRadius: "15px" }}
+              style={{
+                background: "var(--main-700)",
+                paddingBottom: "20px",
+                borderRadius: "15px",
+              }}
               theme="dark"
               mode="inline"
               selectedKeys={[selected]}

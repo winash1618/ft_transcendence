@@ -2,18 +2,19 @@ import * as yup from "yup";
 
 export const PlaySchema = yup
   .object({
-    map: yup
-      .number()
-      .required("Map field is required"),
-    mobile: yup
-      .boolean(),
+    map: yup.number().required("Map field is required"),
+    mobile: yup.boolean(),
   })
   .required();
 
-  export const NickNameSchema = yup
+export const NickNameSchema = yup
   .object({
-    nickName: yup
-      .string()
-      .required("Nick name field is required"),
+    nickName: yup.string().required("Nick name field is required"),
+  })
+  .required();
+
+export const TwoFactorSchema = yup
+  .object({
+    otp: yup.string().required("The pin field is required"),
   })
   .required();

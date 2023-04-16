@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
@@ -14,6 +15,8 @@ import { UsersService } from 'src/users/users.service';
 import { FtAuthGuard } from 'src/utils/guards/ft.guard';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { AuthService } from './auth.service';
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
 
 @Controller()
 export class AuthController {
@@ -36,6 +39,7 @@ export class AuthController {
   @UseGuards(FtAuthGuard)
   @Get()
   async redirectUri(@Req() req, @Res() res: Response) {
+    await this.userService.updateAuthentication(req.user.id, false);
     const token = await this.authService.getLongExpiryJwtToken(
       req.user as User,
     );
@@ -47,7 +51,7 @@ export class AuthController {
 
   @UseGuards(FtAuthGuard)
   @Get('42/login')
-  handleLogin() {
+  async handleLogin() {
     return;
   }
 
@@ -56,8 +60,8 @@ export class AuthController {
   async logout(@Res() res: Response) {
     res.clearCookie('auth');
     return res
-	.status(HttpStatus.OK)
-	.json({ message: 'logged out successfully' });
+      .status(HttpStatus.OK)
+      .json({ message: 'logged out successfully' });
   }
 
   @Get('guest')
@@ -86,7 +90,6 @@ export class AuthController {
           .status(HttpStatus.UNAUTHORIZED)
           .json({ message: 'Unauthorized' });
       }
-
       const cookieToken = await this.authService.decodeToken(cookie);
 
       if (!cookieToken) {
@@ -107,5 +110,73 @@ export class AuthController {
         .status(HttpStatus.UNAUTHORIZED)
         .json({ message: 'Unauthorized' });
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('generate')
+  async generate2FASecret(@Res() res: Response): Promise<Response> {
+    const secret = speakeasy.generateSecret({
+      length: 15,
+      name: 'ft_transcendence',
+    });
+    const qrCode = await QRCode.toDataURL(secret.otpauth_url);
+    return res
+      .status(HttpStatus.ACCEPTED)
+      .json({ secret: secret.base32, qrCode });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('verify-otp')
+  async verifyOTP(
+    @Req() req,
+    @Res() res: Response,
+    @Body() body: { secret: string; otp: string },
+  ): Promise<Response> {
+    const verified = speakeasy.totp.verify({
+      secret: body.secret,
+      encoding: 'base32',
+      token: body.otp,
+      window: 1,
+    });
+
+    if (verified) {
+      const user = await this.userService.updateSecretCode(req.user.id, body.secret);
+      return res.status(HttpStatus.ACCEPTED).json({ user });
+    } else {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'otp is invalid' });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('validate-otp')
+  async validateOTP(
+    @Req() req,
+    @Res() res: Response,
+    @Body() body: { otp: string },
+  ): Promise<Response> {
+    const verified = speakeasy.totp.verify({
+      secret: req.user.secret_code,
+      encoding: 'base32',
+      token: body.otp,
+      window: 1,
+    });
+
+    if (verified) {
+      await this.userService.updateAuthentication(req.user.id, true);
+      return res.status(HttpStatus.ACCEPTED).json({ message: 'otp is valid' });
+    } else {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'otp is invalid' });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('disable-2fa')
+  async disable2FA(@Req() req, @Res() res: Response): Promise<Response> {
+    const user = await this.userService.updateSecretCode(req.user.id, null);
+    return res.status(HttpStatus.ACCEPTED).json({ user });
   }
 }
