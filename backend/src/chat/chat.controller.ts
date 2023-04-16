@@ -47,7 +47,7 @@ export class ChatController {
     @Param('conversationID', ParseUUIDPipe) conversationID: string,
   ) {
     try {
-      return await this.participantService.getParticipants(conversationID);
+      return await this.participantService.getConversationMembers(conversationID);
     } catch (error) {
       throw new NotFoundException(error.message);
     }

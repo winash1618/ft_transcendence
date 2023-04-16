@@ -134,8 +134,7 @@ const GroupChatRelations = ({
           }
         );
         setResults(result.data);
-        console.log("Banned Members", result.data);
-        console.log("Banned Members", result.data);
+        console.log("Banned Members", result);
       } catch (err) {
         console.log(err);
       }

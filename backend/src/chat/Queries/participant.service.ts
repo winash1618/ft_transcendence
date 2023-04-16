@@ -151,6 +151,29 @@ export class ParticipantService {
     });
   }
 
+  async getConversationMembers(conversationID: string) {
+    if (!this.conversationService.checkConversationExists(conversationID)) {
+      throw new NotFoundException('Conversation does not exist');
+    }
+
+    return await this.prisma.participant.findMany({
+      where: {
+        conversation_id: conversationID,
+        conversation_status: Status.ACTIVE,
+      },
+      select: {
+        user: {
+          select: {
+            username: true,
+            id: true,
+          },
+        },
+        role: true,
+        conversation_status: true,
+      },
+    });
+  }
+
   async isUserAdminInConversation(userID: string, conversationID: string) {
     const participant = await this.prisma.participant.findFirst({
       where: {
@@ -316,12 +339,11 @@ export class ParticipantService {
     if (participant.conversation_status === Status.KICKED)
       throw new NotFoundException('Participant is already kicked');
 
-    const parti = await this.updateParticipantStatus(
+    return await this.updateParticipantStatus(
       conversationID,
       userID,
       Status.BANNED,
     );
-    return await this.removeParticipantFromConversation(conversationID, userID);
   }
 
   async unbanUserFromConversation(
