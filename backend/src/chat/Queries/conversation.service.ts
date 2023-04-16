@@ -109,6 +109,7 @@ export class ConversationService {
     }
 
     const conversation = await this.createConversation(createConversation);
+	console.log(conversation)
 
     await this.participantService.addParticipantToConversation({
       conversation_id: conversation.id,

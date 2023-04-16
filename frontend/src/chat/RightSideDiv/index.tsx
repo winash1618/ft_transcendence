@@ -23,6 +23,7 @@ const RightSideDiv = ({
 			<>
 				<DirectChatRelations
 				user={user}
+				socket={socket}
 				/>
 			</>
 		);

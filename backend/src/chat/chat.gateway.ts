@@ -144,11 +144,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.data.userID.id,
       data.userID
     );
+	console.log(exists)
 
-    if (exists) {
-      this.server.to(client.id).emit('directExists', exists.id);
+    if (exists !== null) {
+		console.log('exists');
+      this.server.to(client.data.userID.id).emit('directExists', exists.id);
       return;
     }
+
+	console.log('not exists')
 
     const conversation =
       await this.conversationService.createDirectConversation(
@@ -163,7 +167,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.joinConversations(client.data.userID.id, conversation.id);
     await this.joinConversations(data.userID, conversation.id);
-    this.server.to(client.id).emit('directMessage', conversation);
+    this.server.to(client.data.userID.id).emit('directMessage', conversation);
   }
 
   @SubscribeMessage('leaveConversation')
