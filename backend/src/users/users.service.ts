@@ -96,6 +96,7 @@ export class UsersService {
         },
       },
       select: {
+		id: true,
         username: true,
         user_status: true,
       }

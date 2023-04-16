@@ -145,7 +145,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.userID
     );
 
-    if (exists) {
+    if (exists === null) {
+		console.log('exists');
       this.server.to(client.id).emit('directExists', exists.id);
       return;
     }
@@ -170,6 +171,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .getUserSocket(participant.user_id)
         .join(conversation.id);
     });
+	console.log('outside');
     this.server.to(client.id).emit('directMessage', conversation);
   }
 

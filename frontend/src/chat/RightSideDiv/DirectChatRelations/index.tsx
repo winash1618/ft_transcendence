@@ -31,21 +31,12 @@ interface UserInfo {
 
 interface DirectChatRelationsProps {
   user: any;
+  socket: any;
 }
 
-/*-----------------------------------------*/
-const handleMenuClick = (e: any) => {
-  if (e.target.textContent === "Chat") {
-    console.log("Chat");
-  } else if (e.target.textContent === "Profile") {
-    console.log("Profile");
-  } else if (e.target.textContent === "Invite") {
-    console.log("Invite");
-  }
-};
-/*-----------------------------------------*/
 
-const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
+
+const DirectChatRelations = ({ user, socket }: DirectChatRelationsProps) => {
   const dispatch = useAppDispatch();
   /*----------------------------------------------------------------------------------------*/
   const getInfos = async () => {
@@ -86,49 +77,54 @@ const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
   /*----------------------------------------------------------------------------------------*/
   const [results, setResults] = useState<UserInfo[]>([]);
   /*----------------------------------------------------------------------------------------*/
-  const menu = (
-    <Menu>
-      <Menu.Item key="chat">Chat</Menu.Item>
-      <Menu.Item key="profile">Profile</Menu.Item>
-      <Menu.Item key="invite">Invite</Menu.Item>
-    </Menu>
-  );
 
+const [userClicked, setUserClicked] = useState(null);
+
+const handleUserClick = (user: any) => {
+	  setUserClicked(user);
+	    };
+/*-----------------------------------------*/
+const handleMenuClick = (e: any) => {
+	if (e.target.textContent === "Chat") {
+		console.log("user from chat" , userClicked);
+		  socket?.emit("directMessage", { userID: userClicked.id, title: userClicked.username });
+	  console.log("Chat");
+	} else if (e.target.textContent === "Profile") {
+	  console.log("Profile");
+	} else if (e.target.textContent === "Invite") {
+	  console.log("Invite");
+	}
+  };
+  /*-----------------------------------------*/
   const items: MenuProps["items"] = [
     {
       key: "1",
       label: (
-        <a
+        <div
           onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Chat
-        </a>
+        </div>
       ),
     },
     {
       key: "2",
       label: (
-        <a
+        <div
           onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Profile
-        </a>
+        </div>
       ),
     },
     {
       key: "3",
       label: (
-        <a
+        <div
           onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
         >
           Invite
-        </a>
+        </div>
       ),
     },
   ];
@@ -143,7 +139,7 @@ const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
         itemLayout="horizontal"
         dataSource={results}
         renderItem={(result) => (
-          <DirectItem>
+          <DirectItem key={result.id} onClick={() => handleUserClick(result)}>
             <DirectInfo>
               <DirectAvatar src={UserProfilePicture} />
               <DirectName>{result.username}</DirectName>
