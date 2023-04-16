@@ -11,7 +11,10 @@ import {
   ParseUUIDPipe,
   UseGuards,
   Req,
+  Res,
+  HttpStatus,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
@@ -33,10 +36,12 @@ export class ChatController {
   ) {}
 
   @Get('direct')
-  async getConversations(@Req() req) {
+  async getConversations(@Req() req, @Res() res: Response) {
     try {
-      // return await this.conversationService.getDirectConversations('38144271-a29c-401b-b9ab-da7023f0be00');
-      return await this.conversationService.getDirectConversations(req.user.id);
+      const conversation = await this.conversationService.getDirectConversations(req.user.id);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Conversations retrieved successfully', conversation });
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -45,18 +50,25 @@ export class ChatController {
   @Get(':conversationID/members')
   async getParticipants(
     @Param('conversationID', ParseUUIDPipe) conversationID: string,
+    @Res() res: Response,
   ) {
     try {
-      return await this.participantService.getParticipants(conversationID);
+      const participants = await this.participantService.getParticipants(conversationID);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Participants retrieved successfully', participants });
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
 
   @Get('groups')
-  async getChannels(@Req() req) {
+  async getChannels(@Req() req, @Res() res: Response) {
     try {
-      return await this.conversationService.getChannels(req.user.id);
+      const channels = await this.conversationService.getChannels(req.user.id);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Channels retrieved successfully', channels });
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -65,25 +77,30 @@ export class ChatController {
   @Get(':conversationID/messages')
   async getMessages(
     @Param('conversationID') conversationID: string,
+    @Res() res: Response,
   ) {
     try {
       const conversations =
         await this.messageService.getDisplayMessagesByConversationID(
           conversationID,
         );
-      console.log(conversations);
-      return conversations;
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Messages retrieved successfully', conversations });
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
 
   @Get('explore')
-  async searchChannels(@Req() req) {
+  async searchChannels(@Req() req, @Res() res: Response) {
     try {
-      return await this.conversationService.findChannelsThatUserIsNotIn(
+      const channels = await this.conversationService.findChannelsThatUserIsNotIn(
         req.user.id,
       );
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Channels retrieved successfully', channels });
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -92,9 +109,13 @@ export class ChatController {
   @Get('channel/:channelID/banned')
   async getBannedUsers(
     @Param('channelID', ParseUUIDPipe) channelID: string,
+    @Res() res: Response,
   ) {
     try {
-      return await this.participantService.bannedUsers(channelID);
+      const participants = await this.participantService.bannedUsers(channelID);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Banned users retrieved successfully', participants });
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -104,15 +125,16 @@ export class ChatController {
   async getFriendsToAddToChannel(
     @Param('channelID', ParseUUIDPipe) channelID: string,
     @Req() req,
+    @Res() res: Response,
   ) {
     try {
       const friends = await this.conversationService.friendsNotInConversation(
         channelID,
         req.user.id,
       );
-
-      console.log(friends);
-      return friends;
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Friends retrieved successfully', friends });
     } catch (error) {
       throw new NotFoundException(error.message);
     }
