@@ -1,10 +1,11 @@
 import styled from "styled-components";
-import { Select } from "antd";
+import { Input, Select } from "antd";
 
 export const FormContainer = styled.form`
   width: 100%;
   height: 100%;
   padding: 3rem 2rem;
+  background: var(--main-700);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -52,9 +53,7 @@ export const FormTitle = styled.div`
   margin-bottom: 3rem;
 `;
 
-export const FormSelect = styled(Select)`
-  width: 100%;
-`;
+export const FormInput = styled(Input)``;
 
 export const FormSwitchMsg = styled.p`
   font-weight: 400;

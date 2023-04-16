@@ -14,23 +14,26 @@ import {
 import { PlaySchema } from "../../utils/schema";
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
-import { Spin } from "antd";
+import { Checkbox, Spin } from "antd";
 import { ErrorAlert } from "../toastify";
 
 export type PlayType = {
   map: number;
-  password: string;
-  rememberMe: boolean;
+  mobile: boolean;
 };
 
 const PlayForm = ({
   setIsGameStarted,
   setPlayer,
+  setPlayers,
+  setMobile,
   socket,
   setRoomID,
 }: {
   setIsGameStarted: any;
   setPlayer: any;
+  setPlayers: any;
+  setMobile: any;
   socket: Socket | null;
   setRoomID: any;
 }) => {
@@ -45,6 +48,8 @@ const PlayForm = ({
     socket?.on("start", (data) => {
       setIsGameStarted(true);
       setPlayer(data.playerNo);
+      setMobile(data.mobile);
+      setPlayers(data.players);
       setRoomID(data.roomID);
     });
     socket?.on("error", (data) => {
@@ -54,6 +59,8 @@ const PlayForm = ({
       socket?.off("start", (data) => {
         setIsGameStarted(true);
         setPlayer(data.playerNo);
+        setMobile(data.mobile);
+        setPlayers(data.players);
         setRoomID(data.roomID);
       });
       socket?.off("error", (data) => {
@@ -64,6 +71,7 @@ const PlayForm = ({
 
   const onSubmit: SubmitHandler<PlayType> = (data) => {
     setIsSearching(true);
+    console.log(data);
     socket?.emit("Register", data);
   };
 
@@ -75,14 +83,14 @@ const PlayForm = ({
           <FormInputTitle htmlFor="map">Choose a map</FormInputTitle>
           <Controller
             control={control}
+            defaultValue={1}
             name="map"
             render={({ field: { onChange, value } }) => (
               <FormSelect
                 onChange={onChange}
                 options={[
-                  { value: 1, label: "Rocky blue" },
-                  { value: 2, label: "Icy lakes" },
-                  { value: 3, label: "Red sands" },
+                  { value: 1, label: "Default" },
+                  { value: 2, label: "Power up" },
                 ]}
                 value={value}
                 placeholder="Choose a map to play with"
@@ -91,6 +99,24 @@ const PlayForm = ({
             )}
           />
           {errors.map && <InputAlert>{errors.map.message}</InputAlert>}
+        </InputController>
+        <InputController>
+          <Controller
+            control={control}
+            defaultValue={false}
+            name="mobile"
+            render={({ field: { onChange, value } }) => (
+              <Checkbox
+                onChange={onChange}
+                style={{ color: "#fff" }}
+                checked={value}
+                id="mobile"
+              >
+                Mobile
+              </Checkbox>
+            )}
+          />
+          {errors.mobile && <InputAlert>{errors.mobile.message}</InputAlert>}
         </InputController>
         <ButtonComponent
           style={{ width: "100%", marginBottom: "6px" }}
