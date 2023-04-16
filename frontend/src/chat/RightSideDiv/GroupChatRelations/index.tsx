@@ -6,7 +6,7 @@ import {
   GroupName,
   GroupTitle,
 } from "./group.styled";
-import { List, Avatar, Dropdown, Menu, MenuProps } from "antd";
+import { List, Avatar, Dropdown, Menu, MenuProps, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
@@ -22,28 +22,28 @@ interface GroupChatRelationsProps {
   conversation: any;
 }
 
-// const menu = (
-//   <Menu>
-//     <Menu.Item key="admin">Make Admin</Menu.Item>
-//     <Menu.Item key="ban">Ban</Menu.Item>
-//     <Menu.Item key="mute">Mute</Menu.Item>
-//     <Menu.Item key="kick">Kick</Menu.Item>
-//   </Menu>
-// );
-
 const GroupChatRelations = ({
   socket,
   conversationID,
   conversation,
 }: GroupChatRelationsProps) => {
   const [user, setUser] = useState<any>(null);
+  /*-----------Handle User Click-------------------------------------------------*/
+  const handleUserClick = (participants: any) => {
+    setUser(participants.user);
+  };
+  /*-----------Handle User Click-------------------------------------------------*/
   /*-----------Handle Menu Click-------------------------------------------------*/
   const handleMenuClick = (e: any) => {
     if (e.target.textContent === "Make Admin") {
-      socket?.emit("makeAdmin", conversation);
+      socket?.emit("makeAdmin");
       console.log("Make Admin");
     } else if (e.target.textContent === "Ban") {
-      socket?.emit("ban", conversation);
+      console.log("User Ban", user);
+      socket?.emit("banUser", {
+        conversationID: conversation.id,
+        userID: user.id,
+      });
       console.log("Ban");
     } else if (e.target.textContent === "Mute") {
       socket?.emit("mute", conversation);
@@ -54,36 +54,16 @@ const GroupChatRelations = ({
     }
   };
   /*-----------Handle Menu Click-------------------------------------------------*/
+  /*-----------Handle Unban Click-------------------------------------------------*/
+  const handleUnbanClick = () => {
+    console.log("unban");
+  };
+  /*-----------Handle Unban Click-------------------------------------------------*/
   /*-----------MENU-------------------------------------------------*/
-  console.log("lollipop", conversation);
-
-  const items2: MenuProps["items"] = [
-    {
-      key: "1",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Unban
-        </a>
-      ),
-    },
-  ];
-  /*----------------------------------------------------------------*/
   const items: MenuProps["items"] = [
     {
       key: "1",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Make Admin
-        </a>
-      ),
+      label: <div onClick={(e) => handleMenuClick(e)}>Make Admin</div>,
       disabled:
         conversation && conversation.participants[0].role !== Role.OWNER
           ? true
@@ -91,41 +71,18 @@ const GroupChatRelations = ({
     },
     {
       key: "2",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Ban
-        </a>
-      ),
+      label: <div onClick={(e) => handleMenuClick(e)}>Ban</div>,
     },
     {
       key: "3",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Mute
-        </a>
-      ),
+      label: <div onClick={(e) => handleMenuClick(e)}>Mute</div>,
     },
     {
       key: "4",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Kick
-        </a>
-      ),
+      label: <div onClick={(e) => handleMenuClick(e)}>Kick</div>,
     },
   ];
+  /*----------------------------------------------------------------*/
   /*----------------------------------------------------------------*/
   const dispatch = useAppDispatch();
   const [GroupNav, setGroupNav] = useState(GNav.GROUPS);
@@ -168,7 +125,7 @@ const GroupChatRelations = ({
       console.log(conversationID);
       try {
         const result = await axios.get(
-          `http://localhost:3001/chat/${conversationID}/members`,
+          `http://localhost:3001/chat/channel/${conversationID}/banned`,
           {
             withCredentials: true,
             headers: {
@@ -177,6 +134,7 @@ const GroupChatRelations = ({
           }
         );
         setResults(result.data);
+        console.log("Banned Members", result.data);
         console.log("Banned Members", result.data);
       } catch (err) {
         console.log(err);
@@ -228,7 +186,7 @@ const GroupChatRelations = ({
           itemLayout="horizontal"
           dataSource={results}
           renderItem={(result) => (
-            <GroupItem>
+            <GroupItem key={result.id} onClick={() => handleUserClick(result)}>
               <GroupInfo>
                 <GroupAvatar src={UserProfilePicture} />
                 <GroupName>{result.user.username}</GroupName>
@@ -256,11 +214,9 @@ const GroupChatRelations = ({
                 <GroupName>{result.user.username}</GroupName>
                 {conversation.participants[0].role !== Role.USER ? (
                   result.role === "USER" ? (
-                    <Dropdown menu={{ items }} trigger={["click"]}>
-                      <GroupArrow>
-                        <DownOutlined className="group-arrow" />
-                      </GroupArrow>
-                    </Dropdown>
+                    <Button type="primary" onClick={handleUnbanClick}>
+                      Unban
+                    </Button>
                   ) : null
                 ) : null}
               </GroupInfo>

@@ -86,14 +86,6 @@ const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
   /*----------------------------------------------------------------------------------------*/
   const [results, setResults] = useState<UserInfo[]>([]);
   /*----------------------------------------------------------------------------------------*/
-  const menu = (
-    <Menu>
-      <Menu.Item key="chat">Chat</Menu.Item>
-      <Menu.Item key="profile">Profile</Menu.Item>
-      <Menu.Item key="invite">Invite</Menu.Item>
-    </Menu>
-  );
-
   const items: MenuProps["items"] = [
     {
       key: "1",
@@ -132,7 +124,6 @@ const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
       ),
     },
   ];
-
   /*----------------------------------------------------------------------------------------*/
   return (
     <>

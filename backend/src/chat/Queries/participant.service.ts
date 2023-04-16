@@ -142,6 +142,7 @@ export class ParticipantService {
         user: {
           select: {
             username: true,
+						id: true,
           },
         },
         role: true,
@@ -358,14 +359,14 @@ export class ParticipantService {
     }
 
     if (userID) {
-        const participant = await this.checkParticipantExists(
-          conversationID,
-          userID,
-        );
+      const participant = await this.checkParticipantExists(
+        conversationID,
+        userID,
+      );
 
-        if (!participant) {
-          throw new Error('Participant does not exist');
-        }
+      if (!participant) {
+        throw new Error('Participant does not exist');
+      }
 
       if (participant.conversation_status === Status.DELETED) {
         throw new Error('Participant has been removed from conversation');
@@ -392,10 +393,13 @@ export class ParticipantService {
   }
 
   async bannedUsers(conversationID: string) {
+    const conversation = await this.conversationService.checkConversationExists(
+      conversationID,
+    );
 
-    if (this.validationCheck(conversationID))
-      throw new Error('Validation check failed');
-
+    if (!conversation) {
+      throw new Error('Conversation does not exist');
+    }
     return this.prisma.participant.findMany({
       where: {
         conversation_id: conversationID,
@@ -406,7 +410,7 @@ export class ParticipantService {
           select: {
             id: true,
             username: true,
-          }
+          },
         },
       },
     });
