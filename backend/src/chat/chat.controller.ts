@@ -22,7 +22,7 @@ import { MessageService } from './Queries/message.service';
 
 @Controller('chat')
 @ApiTags('chat')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class ChatController {
   constructor(
@@ -47,7 +47,7 @@ export class ChatController {
     @Param('conversationID', ParseUUIDPipe) conversationID: string,
   ) {
     try {
-      return await this.participantService.getParticipants(conversationID);
+      return await this.participantService.getConversationMembers(conversationID);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
