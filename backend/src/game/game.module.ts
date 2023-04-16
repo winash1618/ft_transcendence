@@ -7,6 +7,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { PrismaModule } from 'src/database/prisma.module';
 import { GameController } from './game.controller';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { GameController } from './game.controller';
     AuthModule,
     UsersModule,
   ],
-  providers: [GameGateway, GameService],
+  providers: [GameGateway, GameService, UsersService],
   controllers: [GameController],
 })
 export class GameModule {}
