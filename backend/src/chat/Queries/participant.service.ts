@@ -245,22 +245,11 @@ export class ParticipantService {
       if (this.isUserAdminInConversation(adminUser, conversation.id) === null)
         throw new NotFoundException('User is not an admin');
 
-    return await this.prisma.participant.update({
-      where: {
-        id: participant.id,
-      },
-      data: {
-        conversation_status: Status.DELETED,
-        role: Role.USER,
-      },
-      select: {
-        id: true,
-        user_id: true,
-        conversation_id: true,
-        conversation_status: true,
-        role: true,
-      },
-    });
+    return await this.updateParticipantStatus(
+      conversationID,
+      userID,
+      'DELETED'
+    );
   }
 
   async updateParticipantStatus(

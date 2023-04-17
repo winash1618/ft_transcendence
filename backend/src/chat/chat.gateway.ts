@@ -42,8 +42,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    // const token = client.handshake.auth.token as string;
-    const token = client.handshake.headers.token as string;
+    const token = client.handshake.auth.token as string;
+    // const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
