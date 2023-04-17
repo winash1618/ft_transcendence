@@ -100,7 +100,11 @@ export class ParticipantService {
       );
 
       if (participant) {
-        throw new NotFoundException('Participant already exists');
+        return await this.updateParticipantStatus(
+          createParticipant.conversation_id,
+          createParticipant.user_id,
+          'ACTIVE',
+        );
       }
 
       return await this.addParticipant(createParticipant);
@@ -174,28 +178,6 @@ export class ParticipantService {
     });
   }
 
-  async getConversationMembers(conversationID: string) {
-    if (!this.conversationService.checkConversationExists(conversationID)) {
-      throw new NotFoundException('Conversation does not exist');
-    }
-
-    return await this.prisma.participant.findMany({
-      where: {
-        conversation_id: conversationID,
-        conversation_status: Status.ACTIVE,
-      },
-      select: {
-        user: {
-          select: {
-            username: true,
-          },
-        },
-        role: true,
-        conversation_status: true,
-      },
-    });
-  }
-
   async isUserAdminInConversation(userID: string, conversationID: string) {
     const participant = await this.prisma.participant.findFirst({
       where: {
@@ -237,14 +219,22 @@ export class ParticipantService {
     conversationID: string,
     userID: string,
   ) {
-    // if (!this.validationCheck(conversationID, userID)) {
-    //   throw new NotFoundException('Participant does not exist');
-    // }
-
     const participant = await this.checkParticipantExists(
       conversationID,
       userID,
     );
+
+    if (!participant) {
+      throw new NotFoundException('Participant does not exist');
+    }
+
+    const conversation = await this.conversationService.checkConversationExists(
+      conversationID,
+    );
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation does not exist');
+    }
 
     return await this.prisma.participant.update({
       where: {
@@ -252,6 +242,13 @@ export class ParticipantService {
       },
       data: {
         conversation_status: Status.DELETED,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        conversation_id: true,
+        conversation_status: true,
+        role: true,
       },
     });
   }
@@ -276,6 +273,13 @@ export class ParticipantService {
       },
       data: {
         conversation_status: status,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        conversation_id: true,
+        conversation_status: true,
+        role: true,
       },
     });
   }
