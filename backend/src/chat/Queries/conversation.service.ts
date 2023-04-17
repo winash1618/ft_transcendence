@@ -62,11 +62,19 @@ export class ConversationService {
     }
   }
 
-  async protectConversation(conversationID: string, password: string) {
+  async protectConversation(conversationID: string, password: string, admin: string) {
     const conversation = await this.checkConversationExists(conversationID);
 
     if (conversation.privacy === Privacy.PROTECTED) {
       throw new NotFoundException('Conversation is already protected');
+    }
+
+    if (conversation.privacy === Privacy.DIRECT) {
+      throw new NotFoundException('Cannot protect direct conversation');
+    }
+
+    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === false) {
+      throw new NotFoundException('User is not admin');
     }
 
     const hashedPassword = await this.hashPassword(password);

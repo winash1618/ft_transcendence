@@ -22,7 +22,7 @@ import { MessageService } from './Queries/message.service';
 
 @Controller('chat')
 @ApiTags('chat')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class ChatController {
   constructor(
