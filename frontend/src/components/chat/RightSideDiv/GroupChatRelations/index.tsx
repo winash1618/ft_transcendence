@@ -8,13 +8,13 @@ import {
 } from "./group.styled";
 import { List, Avatar, Dropdown, Menu, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-import { UserProfilePicture } from "../../../assets";
+import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role } from "../../chat.functions";
 import { useState } from "react";
 import axios from "axios";
-import { logOut } from "../../../store/authReducer";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
 
 interface GroupChatRelationsProps {
   socket: any;

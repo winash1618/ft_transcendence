@@ -8,8 +8,8 @@ import {
 import { Nav, Colors } from "../../chat.functions";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { logOut } from "../../../store/authReducer";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 import { Button, Menu } from "antd";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { HiOutlineUser, HiOutlineUserGroup } from "react-icons/hi";

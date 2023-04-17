@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { UserProfilePicture } from "../../../assets";
+import { UserProfilePicture } from "../../../../assets";
 import { io, Socket } from "socket.io-client";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { logOut, setUserInfo } from "../../../store/authReducer";
-import axios from "../../../api";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
+import { logOut, setUserInfo } from "../../../../store/authReducer";
+import axios from "../../../../api";
 import {
   DirectItem,
   DirectInfo,

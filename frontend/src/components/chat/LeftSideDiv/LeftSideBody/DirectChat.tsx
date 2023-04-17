@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Nav, Privacy, Colors, Conversation } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { logOut } from "../../../store/authReducer";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 import { List, Avatar, AutoComplete } from 'antd';
 
 interface DirectChatProp {

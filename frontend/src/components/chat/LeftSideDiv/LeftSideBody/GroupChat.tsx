@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Colors, Conversation, Nav, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { logOut } from "../../../store/authReducer";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 import { List, Avatar, AutoComplete, Dropdown, Button, Menu } from 'antd';
 
 interface GroupChatProps {

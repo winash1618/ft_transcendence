@@ -21,8 +21,7 @@ import { IoNotifications } from "react-icons/io5";
 const { Content, Footer, Header } = Layout;
 
 const navItems = [
-  { icon: HomeOutlined, path: "/", label: "Home" },
-  { icon: UserOutlined, path: "/leaderboard", label: "Leaderboard" },
+  { icon: HomeOutlined, path: "/", label: "Leaderboard" },
   { icon: PlayCircleOutlined, path: "/pingpong", label: "Play ping pong" },
   { icon: MessageOutlined, path: "/messages", label: "Messages" },
 ];

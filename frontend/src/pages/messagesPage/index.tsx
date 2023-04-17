@@ -3,7 +3,7 @@ import { Socket, io } from "socket.io-client";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { logOut, setUserInfo } from "../../store/authReducer";
 import axios from "../../api";
-import Chat from "../../chat";
+import Chat from "../../components/chat";
 
 
 const MessagesPage = () => {

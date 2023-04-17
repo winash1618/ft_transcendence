@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import MessageInbox from "./MessageInbox";
 import MessageInput from "./MessageInput";
-import { UserProfilePicture } from "../../assets";
+import { UserProfilePicture } from "../../../assets";
 import { Status } from "../chat.functions";
 
 interface MessageDivProps {
