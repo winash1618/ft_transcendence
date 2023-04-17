@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { UserOutlined } from "@ant-design/icons";
 import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
-import { Layout, Menu } from "antd";
+import { ConfigProvider, Layout, Menu, theme } from "antd";
 import axios, { BASE_URL } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/reduxHooks";
@@ -17,6 +16,7 @@ import {
 } from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
+const { darkAlgorithm } = theme;
 
 const { Content, Footer, Header } = Layout;
 
@@ -29,6 +29,7 @@ const navItems = [
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState(true);
   const [selected, setSelected] = useState<string>("0");
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -74,66 +75,82 @@ const Navbar: React.FC = () => {
       {isLoadingPage ? (
         <Loading />
       ) : (
-        <Layout style={{ minHeight: "100%" }}>
-          <CustomSider
-            collapsedWidth="0"
-            collapsible={true}
-            onBreakpoint={(broken) => {
-              console.log(broken);
-            }}
-            onCollapse={(collapsed, type) => {
-              console.log(collapsed, type);
-            }}
-          >
-            <LogoWrapper>
-              <LogoImg src="https://www.pngall.com/wp-content/uploads/2016/05/Ping-Pong-Download-PNG.png" />
-            </LogoWrapper>
-            <Menu
-              style={{
-                background: "var(--main-700)",
-                paddingBottom: "20px",
-                borderRadius: "15px",
+        <ConfigProvider
+          theme={{
+            token: {
+              colorTextLabel: "#fff",
+              colorTextHeading: "#fff",
+              colorTextSecondary: "#d1d1d1",
+              colorTextPlaceholder: "#000",
+              colorTextDisabled: "#fff",
+            },
+          }}
+        >
+          <Layout style={{ minHeight: "100%" }}>
+            <CustomSider
+              collapsedWidth="0"
+              collapsible={true}
+              onBreakpoint={(broken) => {
+                console.log(broken);
               }}
-              theme="dark"
-              mode="inline"
-              selectedKeys={[selected]}
-              items={navItems.map((item, index) => ({
-                key: String(index + 1),
-                icon: React.createElement(item.icon),
-                label: <Link to={item.path}>{item.label}</Link>,
-              }))}
-            />
-          </CustomSider>
-          <Layout style={{ background: "var(--main-800)" }}>
-            <Header
-              style={{
-                padding: 0,
-                background: "var(--main-700)",
-                color: "white",
-                height: "auto",
+              collapsed={isCollapsed}
+              onCollapse={(collapsed, type) => {
+                setIsCollapsed((prev) => !prev);
               }}
             >
-              <HeaderWrapper>
-                <IoNotifications size={30} />
-                <UserInfo />
-              </HeaderWrapper>
-            </Header>
-            <Content
-              style={{ margin: "24px 16px 0", background: "var(--main-800)" }}
-            >
-              <Outlet />
-            </Content>
-            <Footer
-              style={{
-                textAlign: "center",
-                background: "var(--main-800)",
-                color: "#fff",
-              }}
-            >
-              42 ft_transcendence ©2023
-            </Footer>
+              <LogoWrapper>
+                <LogoImg src="https://www.pngall.com/wp-content/uploads/2016/05/Ping-Pong-Download-PNG.png" />
+              </LogoWrapper>
+              <Menu
+                style={{
+                  background: "var(--main-600)",
+                  paddingBottom: "20px",
+                  borderRadius: "15px",
+                }}
+                theme="dark"
+                mode="inline"
+                onSelect={(e) => {
+                  setIsCollapsed(true);
+                }}
+                selectedKeys={[selected]}
+                items={navItems.map((item, index) => ({
+                  key: String(index + 1),
+                  icon: React.createElement(item.icon),
+                  label: <Link to={item.path}>{item.label}</Link>,
+                }))}
+              />
+            </CustomSider>
+            <Layout style={{ background: "var(--main-800)" }}>
+              <Header
+                style={{
+                  padding: 0,
+                  background: "var(--main-600)",
+                  color: "white",
+                  height: "auto",
+                }}
+              >
+                <HeaderWrapper>
+                  <IoNotifications size={30} />
+                  <UserInfo />
+                </HeaderWrapper>
+              </Header>
+              <Content
+                style={{ margin: "24px 16px 0", background: "var(--main-800)" }}
+              >
+                <Outlet />
+              </Content>
+              <Footer
+                style={{
+                  textAlign: "center",
+                  background: "var(--main-800)",
+                  color: "#fff",
+                }}
+              >
+                42 ft_transcendence ©2023
+              </Footer>
+            </Layout>
           </Layout>
-        </Layout>
+        </ConfigProvider>
       )}
     </>
   );

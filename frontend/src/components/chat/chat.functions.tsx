@@ -13,7 +13,7 @@ export enum Nav {
 }
 
 export const Colors = {
-	PRIMARY: '#1A1D1F',
+	PRIMARY: 'var(--main-600)',
 	SECONDARY: '#00A551',
 	WHITE: '#FFFFFF',
 }

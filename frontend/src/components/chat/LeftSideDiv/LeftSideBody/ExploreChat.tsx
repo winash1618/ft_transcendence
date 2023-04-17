@@ -56,6 +56,7 @@ const ExploreChat = ({
 			</div>
 			<List
 				itemLayout="horizontal"
+				locale={{ emptyText: "No conversations found" }}
 				dataSource={filteredConversations}
 				renderItem={(conversation) => (
 					<>

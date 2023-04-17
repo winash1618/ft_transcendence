@@ -12,10 +12,10 @@ export const GlobalStyle = createGlobalStyle`
 		--text-gray: #A1A1A1;
 		--text-black: #000;
 		--main-400: #474747; //change this
-		--main-500: #313131; // change this
-		--main-600: #272727; // change this
-		--main-700: #222222; // change this
-		--main-800: #101010;
+		--main-500: #3b3b3b; // change this
+		--main-600: #2D2D2D; // change this
+		--main-700: #262626; // change this
+		--main-800: #1E1E1E;
 		--main-900: #000000;
 	}
     body, html {

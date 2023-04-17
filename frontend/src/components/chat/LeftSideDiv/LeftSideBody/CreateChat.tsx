@@ -68,6 +68,7 @@ const CreateChat = ({
 				<Col span={24}>
 					<Form.Item
 						label="Channel Name"
+						style={{color: "#fff"}}
 						name="channelName"
 						rules={[{ required: true, message: 'Please enter a channel name' }]}>
 						<Input />

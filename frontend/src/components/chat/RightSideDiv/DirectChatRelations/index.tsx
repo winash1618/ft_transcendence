@@ -141,6 +141,7 @@ const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
       </FriendTitle>
       <List
         itemLayout="horizontal"
+        locale={{ emptyText: "No friends found" }}
         dataSource={results}
         renderItem={(result) => (
           <DirectItem>

@@ -226,6 +226,7 @@ const GroupChatRelations = ({
       {GroupNav === GNav.GROUPS ? (
         <List
           itemLayout="horizontal"
+          locale={{ emptyText: "No conversations found" }}
           dataSource={results}
           renderItem={(result) => (
             <GroupItem>
