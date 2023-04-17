@@ -188,10 +188,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = this.gatewaySession.getUserSocket(client.data.userID.id);
     if (!user) return;
     user.leave(data.conversationID);
-    this.server.to(data.conversationID).emit('conversationLeft');
+    this.server.to(data.conversationID).emit('conversationLeft', {
+      conversationID: data.conversationID,
+      leftUserID: client.data.userID.id,
+    });
   }
 
-  @SubscribeMessage('protectRoom')
+  @SubscribeMessage('addPassword')
   async protectRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
@@ -202,7 +205,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.data.userID.id,
     );
 
-    this.server.to(data.conversationID).emit('conversationProtected');
+    this.server.to(data.conversationID).emit('conversationProtected', conversation.id);
   }
 
   @SubscribeMessage('sendMessage')
@@ -240,7 +243,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.data.userID.id,
     );
 
-    this.server.to(data.conversationID).emit('adminMade', participant);
+    this.server.to(data.conversationID).emit('adminMade', {
+      conversationID: data.conversationID,
+      admin: participant.user_id
+    });
   }
 
   @SubscribeMessage('addParticipant')
@@ -254,10 +260,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         user_id: data.userID,
         role: Role.USER,
         conversation_status: 'ACTIVE',
-      });
+      },
+      client.data.userID.id,
+    );
 
     this.joinConversations(data.userID, data.conversationID);
-    this.server.to(data.conversationID).emit('participantAdded', participant);
+    this.server.to(data.conversationID).emit('participantAdded', {
+      conversationID: data.conversationID,
+      participant: participant.user_id
+    });
   }
 
   @SubscribeMessage('removeParticipant')
@@ -269,12 +280,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await this.participantService.removeParticipantFromConversation(
         data.conversationID,
         data.userID,
+        client.data.userID.id,
       );
+
+    await this.conversationService.promoteOldestUserToAdmin(
+      data.conversationID,
+    );
 
     const user = this.gatewaySession.getUserSocket(data.userID);
     if (!user) return;
     user.leave(data.conversationID);
-    this.server.to(data.conversationID).emit('participantRemoved', participant);
+    this.server.to(data.conversationID).emit('participantRemoved', {
+      conversationID: data.conversationID,
+      removedUserID: participant.user_id
+    });
   }
 
   @SubscribeMessage('banUser')
@@ -290,7 +309,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(data.userID);
       if (!user) return;
       user.leave(data.conversationID);
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server.to(data.conversationID).emit('userBanned', {
+        conversationID: data.conversationID,
+        bannedUserID: participant.user_id
+      });
     } catch (e) {
       client.emit('error', 'Unauthorized access from banUser');
     }
@@ -307,7 +329,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
 
       this.joinConversations(data.userID, data.conversationID);
-      // await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server.to(data.conversationID).emit('userUnbanned', {
+        conversationID: data.conversationID,
+        unbannedUserID: participant.user_id,
+      });
     } catch (e) {
       client.emit('error', 'Unauthorized access from unbanUser');
     }
@@ -326,7 +351,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(data.userID);
       if (!user) return;
       user.leave(data.conversationID);
-      this.server.to(data.conversationID).emit('userKicked', participant);
+      this.server.to(data.conversationID).emit('userKicked', {
+        conversationID: data.conversationID,
+        kickedUserID: participant.user_id,
+      });
     } catch (e) {
       client.emit('error', 'Unauthorized access from kickUser');
     }
@@ -343,7 +371,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           data.conversationID,
         );
 
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server.to(data.conversationID).emit('passwordRemoved');
     } catch (e) {
       client.emit('error', 'Unauthorized access from removePassword');
     }

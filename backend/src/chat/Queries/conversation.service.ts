@@ -197,6 +197,9 @@ export class ConversationService {
         participants: {
           some: {
             user_id: userID,
+            conversation_status: {
+              notIn: [Status.BANNED, Status.KICKED, Status.DELETED]
+            },
           },
         },
       },
@@ -207,14 +210,14 @@ export class ConversationService {
         id: true,
         title: true,
         privacy: true,
-				participants: {
-					select: {
-						role: true,
-					},
-					where: {
-						user_id: userID,
-					},
-				}
+        participants: {
+          select: {
+            role: true,
+          },
+          where: {
+            user_id: userID,
+          },
+        }
       },
     });
   }
@@ -278,13 +281,16 @@ export class ConversationService {
               },
             },
           },
+          select: {
+            id: true,
+            username: true,
+          },
         },
       },
     });
   }
 
   async checkConversationExists(conversationID: string) {
-    console.log(conversationID)
     const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationID,
