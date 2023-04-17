@@ -72,6 +72,7 @@ export class ParticipantService {
 
   async addParticipantToConversation(
     createParticipant: CreateParticipantDto,
+    adminUser?: string,
     password?: string,
   ) {
     try {
@@ -106,6 +107,9 @@ export class ParticipantService {
           'ACTIVE',
         );
       }
+
+      if (this.isUserAdminInConversation(adminUser, conversation.id) === null)
+        throw new NotFoundException('User is not an admin');
 
       return await this.addParticipant(createParticipant);
     } catch (error) {
@@ -218,6 +222,7 @@ export class ParticipantService {
   async removeParticipantFromConversation(
     conversationID: string,
     userID: string,
+    adminUser?: string,
   ) {
     const conversation = await this.conversationService.checkConversationExists(
       conversationID,
@@ -235,6 +240,10 @@ export class ParticipantService {
     if (!participant) {
       throw new NotFoundException('Participant does not exist');
     }
+
+    if (adminUser)
+      if (this.isUserAdminInConversation(adminUser, conversation.id) === null)
+        throw new NotFoundException('User is not an admin');
 
     return await this.prisma.participant.update({
       where: {
@@ -399,7 +408,7 @@ export class ParticipantService {
     // if (this.validationCheck(conversationID, userID))
     //   throw new NotFoundException('Validation check failed');
 
-    if (await this.isUserAdminInConversation(conversationID, adminUser) === false)
+    if (await this.isUserAdminInConversation(conversationID, adminUser) === null)
       throw new NotFoundException('User is not an admin');
 
     return await this.updateParticipantStatus(conversationID, userID, Status.KICKED);
