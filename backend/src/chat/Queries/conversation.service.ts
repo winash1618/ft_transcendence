@@ -49,6 +49,12 @@ export class ConversationService {
           password: createConversation.password,
           privacy: Privacy[createConversation.privacy],
         },
+        select: {
+          id: true,
+          title: true,
+          privacy: true,
+          creator_id: true,
+        }
       });
       return conversation;
     } catch (e) {
@@ -56,11 +62,19 @@ export class ConversationService {
     }
   }
 
-  async protectConversation(conversationID: string, password: string) {
+  async protectConversation(conversationID: string, password: string, admin: string) {
     const conversation = await this.checkConversationExists(conversationID);
 
     if (conversation.privacy === Privacy.PROTECTED) {
       throw new NotFoundException('Conversation is already protected');
+    }
+
+    if (conversation.privacy === Privacy.DIRECT) {
+      throw new NotFoundException('Cannot protect direct conversation');
+    }
+
+    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === false) {
+      throw new NotFoundException('User is not admin');
     }
 
     const hashedPassword = await this.hashPassword(password);
@@ -108,8 +122,11 @@ export class ConversationService {
       throw new NotFoundException('User is blocked');
     }
 
+    if (await this.userService.isUserBlocked(otherUserID, userID)) {
+      throw new NotFoundException('User is blocked');
+    }
+
     const conversation = await this.createConversation(createConversation);
-	console.log(conversation)
 
     await this.participantService.addParticipantToConversation({
       conversation_id: conversation.id,
@@ -304,6 +321,10 @@ export class ConversationService {
       },
     });
 
+    if (!conversation) {
+      throw new NotFoundException('Conversation does not exist');
+    }
+
     return conversation;
   }
 
@@ -387,4 +408,52 @@ export class ConversationService {
       },
     });
   }
+
+  async promoteOldestUserToAdmin(conversationID: string) {
+    // Check if there is an admin in the conversation
+    const admin = await this.prisma.participant.findFirst({
+      where: {
+        conversation_id: conversationID,
+        role: {
+          in: [Role.OWNER, Role.ADMIN],
+        },
+      },
+    });
+
+    if (!admin) {
+      const oldestUser = await this.prisma.participant.findFirst({
+        where: {
+          conversation_id: conversationID,
+          conversation_status: Status['ACTIVE'],
+        },
+        orderBy: {
+          created_at: 'asc',
+        },
+      });
+
+      if (oldestUser) {
+        return await this.prisma.participant.update({
+          where: {
+            id: oldestUser.id,
+          },
+          data: {
+            role: Role.ADMIN,
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            }
+          }
+        });
+      } else {
+        throw new NotFoundException('No users in the conversation');
+      }
+    } else {
+      return ;
+    }
+  }
+
 }

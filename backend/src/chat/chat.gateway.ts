@@ -18,6 +18,9 @@ import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
 import { UsersService } from '../users/users.service';
 import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
+import { createConversationDto } from './dto/GatewayDTO/createConversation.dto';
+import { joinConversationDto } from './dto/GatewayDTO/joinConversation.dto';
+import { DirectMessageDTO } from './dto/GatewayDTO/directMessage.dto';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -25,7 +28,7 @@ import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
     credentials: true,
   },
 })
-// @WebSocketGateway()
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -79,7 +82,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('createConversation')
   async createConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: createConversationDto,
   ) {
     console.log('In createConversation');
 
@@ -113,7 +116,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('joinConversation')
   async joinConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: joinConversationDto,
   ) {
     console.log('In joinConversation');
 
@@ -139,22 +142,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('directMessage')
   async directMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: DirectMessageDTO,
   ) {
     console.log('In directMessage');
     const exists = await this.conversationService.checkDirectConversationExists(
       client.data.userID.id,
       data.userID,
     );
-    console.log(exists);
 
     if (exists !== null) {
       this.server.to(client.data.userID.id).emit('directExists', exists.id);
       return;
     }
-
-    console.log('not exists');
-
     const conversation =
       await this.conversationService.createDirectConversation(
         {
@@ -182,15 +181,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.userID.id,
       );
 
-    await this.sendConversationPublicToAllClients(data.conversationID);
-    await this.sendConversationLeftToAllClients(
-      client.data.userID.id,
+    await this.conversationService.promoteOldestUserToAdmin(
       data.conversationID,
     );
 
     const user = this.gatewaySession.getUserSocket(client.data.userID.id);
     if (!user) return;
     user.leave(data.conversationID);
+    this.server.to(data.conversationID).emit('conversationLeft');
   }
 
   @SubscribeMessage('protectRoom')
@@ -201,9 +199,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const conversation = await this.conversationService.protectConversation(
       data.conversationID,
       data.password,
+      client.data.userID.id,
     );
 
-    await this.sendConversationProtectedToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('conversationProtected');
   }
 
   @SubscribeMessage('sendMessage')
@@ -238,9 +237,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const participant = await this.participantService.makeParticipantAdmin(
       data.conversationID,
       data.userID,
+      client.data.userID.id,
     );
 
-    await this.sendConversationPublicToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('adminMade', participant);
   }
 
   @SubscribeMessage('addParticipant')
@@ -257,7 +257,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
     this.joinConversations(data.userID, data.conversationID);
-    await this.sendConversationPublicToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('participantAdded', participant);
   }
 
   @SubscribeMessage('removeParticipant')
@@ -274,7 +274,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = this.gatewaySession.getUserSocket(data.userID);
     if (!user) return;
     user.leave(data.conversationID);
-    await this.sendConversationPublicToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('participantRemoved', participant);
   }
 
   @SubscribeMessage('banUser')
@@ -326,7 +326,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(data.userID);
       if (!user) return;
       user.leave(data.conversationID);
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server.to(data.conversationID).emit('userKicked', participant);
     } catch (e) {
       client.emit('error', 'Unauthorized access from kickUser');
     }

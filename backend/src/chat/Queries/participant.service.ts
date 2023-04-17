@@ -100,7 +100,11 @@ export class ParticipantService {
       );
 
       if (participant) {
-        throw new NotFoundException('Participant already exists');
+        return await this.updateParticipantStatus(
+          createParticipant.conversation_id,
+          createParticipant.user_id,
+          'ACTIVE',
+        );
       }
 
       return await this.addParticipant(createParticipant);
@@ -215,14 +219,22 @@ export class ParticipantService {
     conversationID: string,
     userID: string,
   ) {
-    // if (!this.validationCheck(conversationID, userID)) {
-    //   throw new NotFoundException('Participant does not exist');
-    // }
+    const conversation = await this.conversationService.checkConversationExists(
+      conversationID,
+    );
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation does not exist');
+    }
 
     const participant = await this.checkParticipantExists(
       conversationID,
       userID,
     );
+
+    if (!participant) {
+      throw new NotFoundException('Participant does not exist');
+    }
 
     return await this.prisma.participant.update({
       where: {
@@ -230,6 +242,14 @@ export class ParticipantService {
       },
       data: {
         conversation_status: Status.DELETED,
+        role: Role.USER,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        conversation_id: true,
+        conversation_status: true,
+        role: true,
       },
     });
   }
@@ -254,6 +274,13 @@ export class ParticipantService {
       },
       data: {
         conversation_status: status,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        conversation_id: true,
+        conversation_status: true,
+        role: true,
       },
     });
   }
@@ -290,7 +317,7 @@ export class ParticipantService {
     });
   }
 
-  async makeParticipantAdmin(conversationID: string, userID: string) {
+  async makeParticipantAdmin(conversationID: string, userID: string, adminUser: string) {
     const conversation = await this.conversationService.checkConversationExists(
       conversationID,
     );
@@ -301,6 +328,9 @@ export class ParticipantService {
       conversationID,
       userID,
     );
+
+    if (await this.isUserAdminInConversation(adminUser, conversationID) === false)
+      throw new NotFoundException('User is not an admin');
 
     if (!participant || participant.conversation_status === Status.DELETED)
       throw new NotFoundException('Participant does not exist');
@@ -366,12 +396,13 @@ export class ParticipantService {
     userID: string,
     adminUser: string,
   ) {
-    if (this.validationCheck(conversationID, userID))
-      throw new NotFoundException('Validation check failed');
+    // if (this.validationCheck(conversationID, userID))
+    //   throw new NotFoundException('Validation check failed');
 
-    await this.updateParticipantStatus(conversationID, userID, Status.KICKED);
+    if (await this.isUserAdminInConversation(conversationID, adminUser) === false)
+      throw new NotFoundException('User is not an admin');
 
-    return await this.removeParticipantFromConversation(conversationID, userID);
+    return await this.updateParticipantStatus(conversationID, userID, Status.KICKED);
   }
 
   async validationCheck(
