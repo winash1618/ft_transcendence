@@ -8,9 +8,10 @@ import { PrismaService } from 'src/database/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GatewaySessionManager } from './gateway.session';
-import { ConversationService } from 'src/chat/Queries/conversation.service';
 import { MessageService } from 'src/chat/Queries/message.service';
-import { ParticipantService } from 'src/chat/Queries/participant.service';
+import { ConversationService } from './Queries/conversation.service';
+import { ParticipantService } from './Queries/participant.service';
+import { ChatController } from './chat.controller';
 
 @Module({
   imports: [
@@ -20,9 +21,9 @@ import { ParticipantService } from 'src/chat/Queries/participant.service';
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
-        }
-      })
+          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN'),
+        },
+      }),
     }),
     AuthModule,
     UsersModule,
@@ -35,6 +36,8 @@ import { ParticipantService } from 'src/chat/Queries/participant.service';
     ConversationService,
     MessageService,
     ParticipantService,
-    PrismaService],
+    PrismaService,
+  ],
+  controllers: [ChatController],
 })
 export class ChatModule {}

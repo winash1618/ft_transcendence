@@ -20,6 +20,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuid4 } from 'uuid';
+import { CreateGameDto } from './dto/create-game.dto';
+import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -39,9 +41,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly gameService: GameService,
     private readonly jwtService: JwtService,
+    private usersService: UsersService,
   ) {}
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     const token = client.handshake.auth.token;
     const userid = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
@@ -49,6 +52,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     console.log('User connected: ', userid);
     client.data.userID = userid;
+    const user = await this.usersService.findOne(client.data.userID['login']);
+    client.data.userID['login'] = user.username;
+    console.log('User connected: ', userid);
 
     this.setUserStatus(client, GameStatus.WAITING);
   }
@@ -260,15 +266,5 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (this.gameRooms[roomID]) {
       this.gameRooms[roomID].startGame(data.mobile);
     }
-    // const gameDTO: CreateGameDto = {
-    //   player_one: this.gameRooms[roomID].gameObj.player1.name.id,
-    //   player_two: this.gameRooms[roomID].gameObj.player2.name.id,
-    //   player_score: this.gameRooms[roomID].gameObj.player1.points,
-    //   opponent_score: this.gameRooms[roomID].gameObj.player2.points,
-    //   winner: '',
-    //   looser: '',
-    // }
-    // console.log(gameDTO);
-    // await this.gameService.storeGameHistory(gameDTO);
   }
 }

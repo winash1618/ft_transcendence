@@ -8,57 +8,57 @@ import moment from 'moment';
 
 @Injectable()
 export class AuthService implements IAuthService {
-	constructor(
-		private jwtService: JwtService,
-		private userService: UsersService
-	) { }
+  constructor(
+    private jwtService: JwtService,
+    private userService: UsersService,
+  ) {}
 
-	getHello(): string {
-		return 'Hello World!';
-	}
+  getHello(): string {
+    return 'Hello World!';
+  }
 
-	async validateUser(userDto: CreateUserDto): Promise<User> {
-		let user = await this.userService.findOne(userDto.login);
-		if (!user) {
-			user = await this.userService.add42User(userDto);
-		}
-		return user;
-	}
+  async validateUser(userDto: CreateUserDto): Promise<User> {
+    let user = await this.userService.findOne(userDto.login);
+    if (!user) {
+      user = await this.userService.add42User(userDto);
+    }
+    return user;
+  }
 
-	async getJwtToken(user): Promise<string> {
-		const payload = {
-			id: user.id,
-			login: user.login,
-		}
-		return this.jwtService.sign(payload);
-	}
+  async getJwtToken(user): Promise<string> {
+    const payload = {
+      id: user.id,
+      login: user.login,
+    };
+    return this.jwtService.sign(payload);
+  }
 
-	async getLongExpiryJwtToken(user): Promise<string> {
-		const payload = {
-			id: user.id,
-			email: user.email,
-			login: user.login,
-		}
-		return this.jwtService.sign(payload, { expiresIn: '3d' });
-	}
+  async getLongExpiryJwtToken(user): Promise<string> {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      login: user.login,
+    };
+    return this.jwtService.sign(payload, { expiresIn: '3d' });
+  }
 
-	public async decodeToken(token: string): Promise<any> {
-		return this.jwtService.decode(token);
-	}
+  public async decodeToken(token: string): Promise<any> {
+    return this.jwtService.decode(token);
+  }
 
-	public async verifyToken(token: string): Promise<any> {
-		return this.jwtService.verify(token);
-	}
+  public async verifyToken(token: string): Promise<any> {
+    return this.jwtService.verify(token);
+  }
 
-	public async validRefreshToken(login: string, pass: string): Promise<User> {
-		const currentDate = Date.now();
-		const user = await this.userService.findOne(login);
-		if (!user) {
-			return null;
-		}
-		let currentUser = {
-			...user,
-		}
-		return currentUser;
-	}
+  public async validRefreshToken(login: string, pass: string): Promise<User> {
+    const currentDate = Date.now();
+    const user = await this.userService.findOne(login);
+    if (!user) {
+      return null;
+    }
+    let currentUser = {
+      ...user,
+    };
+    return currentUser;
+  }
 }

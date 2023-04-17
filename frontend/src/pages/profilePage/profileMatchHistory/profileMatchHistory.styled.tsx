@@ -2,7 +2,7 @@ import { Card, Col, Row } from "antd";
 import styled from "styled-components";
 
 export const ProfileMatchHistoryContainer = styled(Card)`
-  background: var(--main-700);
+  background: var(--main-600);
   margin: 0px 0px;
   height: 100%;
   color: #fff;

@@ -23,7 +23,7 @@ let BALL_SIZE = 12.5;
 let BALL_SPEED = 5;
 let PADDLE_SPEED = 15;
 const GAME_TIME = 30;
-const GAME_POINTS = 11;
+const GAME_POINTS = 2;
 
 export class GameEngine {
   gameID: string;
@@ -328,7 +328,7 @@ export class GameEngine {
           opponent_score: this.gameObj.player2.points,
           winner: '',
           looser: '',
-        });
+        })
       }
     }, GAME_TIME);
   }

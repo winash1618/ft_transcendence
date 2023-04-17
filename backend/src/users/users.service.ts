@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import { User, Prisma, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -27,6 +27,25 @@ export class UsersService {
 
   async findOne(login: string): Promise<User | null> {
     return await this.prisma.user.findUnique({ where: { login } });
+  }
+
+  async getUserByLogin(login: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({ where: { login } });
+  }
+
+  async getUserByIdWithParticipants(id: string) {
+    return this.prisma.user.findMany({
+      where: {
+        id: id,
+      },
+      include: {
+        participant_in: true,
+      },
+    });
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({ where: { id } });
   }
 
   remove(id: number) {
@@ -66,5 +85,58 @@ export class UsersService {
       where: { id },
       data: { username: name },
     });
+  }
+
+  async getUsersApartFromUser(id: string) {
+    return this.prisma.user.findMany({
+      where: {
+        id: {
+          not: id,
+        },
+      },
+    });
+  }
+
+  async checkIfUserExists(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (user) {
+      return true;
+    }
+    return false;
+  }
+
+  async getUserFriends(userID: string) {
+    return this.prisma.user.findMany({
+      where: {
+        friends: {
+          some: {
+            id: userID,
+          },
+        },
+      },
+      select: {
+        username: true,
+        user_status: true,
+      }
+    });
+  }
+
+  async isUserBlocked(blockedUserID: string, blockingUserID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: blockingUserID,
+      },
+      select: {
+        blocked_users: {
+          where: {
+            id: blockedUserID,
+          },
+        },
+      },
+    });
+
+    return user.blocked_users.length > 0;
   }
 }

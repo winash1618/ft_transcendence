@@ -22,13 +22,19 @@ import { WsJwtStrategy } from './Strategy/ws-jwt.strategy';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
         signOptions: {
-            expiresIn: configService.getOrThrow('JWT_EXPIRES_IN')
-          }
-      })
-  })
+          expiresIn: configService.getOrThrow('JWT_EXPIRES_IN'),
+        },
+      }),
+    }),
   ],
-  providers: [UsersService, AuthService, FortyTwoStrategy, JwtStrategy, WsJwtStrategy],
+  providers: [
+    UsersService,
+    AuthService,
+    FortyTwoStrategy,
+    JwtStrategy,
+    WsJwtStrategy,
+  ],
   controllers: [AuthController],
-  exports: [JwtModule]
+  exports: [JwtModule],
 })
 export class AuthModule {}

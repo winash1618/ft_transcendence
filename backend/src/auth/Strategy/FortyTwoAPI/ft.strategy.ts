@@ -8,7 +8,7 @@ import { AuthService } from 'src/auth/auth.service';
 export class FortyTwoStrategy extends PassportStrategy(Strategy) {
   constructor(
     private authService: AuthService,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {
     super({
       clientID: configService.getOrThrow<string>('CLIENT_ID'),
@@ -17,7 +17,12 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(accessToken: string, refreshToken: string, profile: Profile, done: any): Promise<any> {
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+    done: any,
+  ): Promise<any> {
     const user = await this.authService.validateUser({
       login: profile._json.login,
       first_name: profile._json.first_name,

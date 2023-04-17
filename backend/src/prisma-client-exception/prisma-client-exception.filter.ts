@@ -1,4 +1,9 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Prisma } from '@prisma/client';
 import { Response } from 'express';
@@ -10,16 +15,15 @@ export class PrismaClientExceptionFilter<T> extends BaseExceptionFilter {
     const response = ctx.getResponse<Response>();
     const message = exception.message;
 
-    switch(exception.code) {
+    switch (exception.code) {
       case 'P2002':
         response.status(HttpStatus.CONFLICT).json({
           statusCode: HttpStatus.CONFLICT,
           message: message,
-        })
+        });
         break;
       default:
         super.catch(exception, host);
     }
-
   }
 }

@@ -27,5 +27,5 @@ export const CustomSider = styled(Sider)`
   position: absolute !important;
   border-radius: 15px !important;
   z-index: 99999;
-  background: #222222 !important;
+  background: var(--main-600) !important;
 `;

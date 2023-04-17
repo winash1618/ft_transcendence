@@ -1,5 +1,6 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
+import { IsString } from 'class-validator';
 
 export class CreateParticipantDto {
   @IsString()
@@ -10,9 +11,8 @@ export class CreateParticipantDto {
   @ApiProperty()
   conversation_id: string;
 
-  @IsString()
   @ApiProperty()
-  role?: string;
+  role?: Role;
 
   @IsString()
   @ApiProperty()

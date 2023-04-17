@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.service';
+import { PrismaService } from '../../database/prisma.service';
 import { CreateMessageDto, UpdateMessageDto } from '../dto/messages.dto';
 import { ConversationService } from './conversation.service';
 
@@ -8,12 +8,12 @@ export class MessageService {
   constructor(
     private prisma: PrismaService,
     private conversationService: ConversationService,
-    ) {}
+  ) {}
 
   async createMessage(createMessage: CreateMessageDto) {
-    const conversation = await this.conversationService.checkConversationExists(createMessage.conversation_id);
-
-    console.log(conversation);
+    const conversation = await this.conversationService.checkConversationExists(
+      createMessage.conversation_id,
+    );
 
     if (!conversation) {
       throw new Error('Conversation does not exist');
@@ -25,13 +25,20 @@ export class MessageService {
         author_id: createMessage.author_id,
         conversation_id: createMessage.conversation_id,
       },
-      include: {
+      select: {
         author: {
-          include: {
-            user: true,
+          select: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
           },
         },
-        conversation: true,
+        id: true,
+        message: true,
+        conversation_id: true,
       },
     });
   }
@@ -43,6 +50,36 @@ export class MessageService {
       },
       include: {
         author: true,
+      },
+    });
+  }
+
+  async getDisplayMessagesByConversationID(conversationID: string) {
+    if (!this.conversationService.checkConversationExists(conversationID)) {
+      throw new Error('Conversation does not exist');
+    }
+
+    return this.prisma.message.findMany({
+      where: {
+        conversation_id: conversationID,
+      },
+      orderBy: {
+        created_at: 'asc',
+      },
+      select: {
+        author: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
+        id: true,
+        message: true,
+        conversation_id: true,
       },
     });
   }

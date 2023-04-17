@@ -14,6 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
 @ApiTags('users')
+@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
 	constructor(private readonly usersService: UsersService, private readonly jwtService: JwtService) { }
@@ -58,28 +59,35 @@ export class UsersController {
 	// 	return this.usersService.users();
 	// }
 
-	@Get(':login')
-	async findOne(@Param('login') login: string) {
-		const user = await this.usersService.findOne(login);
-		if (!user) {
-			throw new NotFoundException(`User #${login}: not found`);
-		}
-		return user;
-	}
+  @Get(':login')
+  async findOne(@Param('login') login: string) {
+    const user = await this.usersService.findOne(login);
+    if (!user) {
+      throw new NotFoundException(`User #${login}: not found`);
+    }
+    return user;
+  }
 
-	@Delete(':id')
-	remove(@Param('id') id: number) {
-		return this.usersService.remove(+id);
-	}
+  @Delete(':id')
+  remove(@Param('id') id: number) {
+    return this.usersService.remove(+id);
+  }
 
-//   @Patch(':id')
-//   async userStatusUpdate(@Param('id') id: string, @Body() data: { status: string; }) {
-//     return await this.usersService.userStatusUpdate(id, data.status);
-//   }
+  //   @Patch(':id')
+  //   async userStatusUpdate(@Param('id') id: string, @Body() data: { status: string; }) {
+  //     return await this.usersService.userStatusUpdate(id, data.status);
+  //   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':uuid')
-  async updateUserName(@Param('uuid', new ParseUUIDPipe()) uuid: string, @Body() data: { name: string; }) {
+  async updateUserName(
+    @Param('uuid', new ParseUUIDPipe()) uuid: string,
+    @Body() data: { name: string },
+  ) {
     return await this.usersService.updateUserName(uuid, data.name);
+  }
+
+  @Get('friends/:uuid')
+  async getFriends(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
+    return await this.usersService.getUserFriends(uuid);
   }
 }

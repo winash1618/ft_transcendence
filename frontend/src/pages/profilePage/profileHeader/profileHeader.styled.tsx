@@ -3,7 +3,7 @@ import styled from "styled-components";
 const { Text } = Typography;
 
 export const ProfileHeaderContainer = styled.div`
-  background: var(--main-700);
+  background: var(--main-600);
   border-radius: 10px;
   padding: 120px 0px 20px 40px;
   position: relative;
