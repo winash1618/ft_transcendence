@@ -13,28 +13,37 @@ import {
   SettingsContainer,
 } from "./settingsPage.styled";
 import ButtonComponent from "../../components/ButtonComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Popconfirm } from "antd";
 import TwoFactorAuth from "../../components/twoFactorAuth";
 import { axiosPrivate } from "../../api";
-import { SuccessAlert } from "../../components/toastify";
+import { ErrorAlert, SuccessAlert } from "../../components/toastify";
 import { setUserInfo } from "../../store/authReducer";
+import { changeNickName } from "../../store/usersReducer";
+import { NickNameSchema } from "../../utils/schema";
 
 export type SettingsType = {
-  nickname: string;
+  nickName: string;
 };
 
 const SettingsPage = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
+  const { nickNameIsChanged } = useAppSelector((state) => state.users);
   const [showModal, setShowModal] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const {
     handleSubmit,
     formState: { errors },
     control,
-  } = useForm<SettingsType>({ resolver: yupResolver(PlaySchema) });
+  } = useForm<SettingsType>({ resolver: yupResolver(NickNameSchema) });
 
-  const onSubmit: SubmitHandler<SettingsType> = (data) => {};
+  const onSubmit: SubmitHandler<SettingsType> = (data) => {
+    if (data.nickName === userInfo.username) {
+      ErrorAlert("Nickname is the same as the old one", 5000);
+      return ;
+    }
+    dispatch(changeNickName({ id: userInfo.id, name: data.nickName }));
+  };
   const confirmDisable2FA = async () => {
     try {
       const response = await axiosPrivate.get("/disable-2fa");
@@ -45,28 +54,33 @@ const SettingsPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (nickNameIsChanged) {
+      SuccessAlert("Nickname changed successfully", 5000);
+    }
+  }, [nickNameIsChanged]);
   return (
     <SettingsContainer>
       <FormContainer onSubmit={handleSubmit(onSubmit)}>
         <FormTitle>Settings</FormTitle>
         <FormDetails>
           <InputController>
-            <FormInputTitle htmlFor="nickname">Change Nickname</FormInputTitle>
+            <FormInputTitle htmlFor="nickName">Change Nickname</FormInputTitle>
             <Controller
               control={control}
               defaultValue={userInfo.username}
-              name="nickname"
+              name="nickName"
               render={({ field: { onChange, value } }) => (
                 <FormInput
                   onChange={onChange}
                   value={value}
                   placeholder="Enter a new nickname"
-                  id="nickname"
+                  id="nickName"
                 />
               )}
             />
-            {errors.nickname && (
-              <InputAlert>{errors.nickname.message}</InputAlert>
+            {errors.nickName && (
+              <InputAlert>{errors.nickName.message}</InputAlert>
             )}
           </InputController>
           <ButtonComponent
