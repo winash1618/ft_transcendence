@@ -329,7 +329,7 @@ export class ParticipantService {
       userID,
     );
 
-    if (await this.isUserAdminInConversation(adminUser, conversationID) === false)
+    if (await this.isUserAdminInConversation(adminUser, conversationID) === null)
       throw new NotFoundException('User is not an admin');
 
     if (!participant || participant.conversation_status === Status.DELETED)
@@ -399,7 +399,7 @@ export class ParticipantService {
     // if (this.validationCheck(conversationID, userID))
     //   throw new NotFoundException('Validation check failed');
 
-    if (await this.isUserAdminInConversation(conversationID, adminUser) === false)
+    if (await this.isUserAdminInConversation(conversationID, adminUser) === null)
       throw new NotFoundException('User is not an admin');
 
     return await this.updateParticipantStatus(conversationID, userID, Status.KICKED);

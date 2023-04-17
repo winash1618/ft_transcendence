@@ -7,7 +7,7 @@ import {
   GroupTitle,
 } from "./group.styled";
 import { List, Avatar, Dropdown, Menu, MenuProps, Button } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role } from "../../chat.functions";
@@ -30,14 +30,24 @@ const GroupChatRelations = ({
   const [user, setUser] = useState<any>(null);
   /*-----------Handle User Click-------------------------------------------------*/
   const handleUserClick = (participant: any) => {
-    console.log("participant in handleUserClick", participant);
     setUser(participant.user);
   };
   /*-----------Handle User Click-------------------------------------------------*/
   /*-----------Handle Menu Click-------------------------------------------------*/
   const handleMenuClick = (e: any) => {
     if (e.target.textContent === "Make Admin") {
-      socket?.emit("makeAdmin");
+      socket?.emit("makeAdmin", {
+        conversationID: conversation.id,
+        userID: user.id,
+      });
+      setResults(
+        results.map((result) => {
+          if (result.user.id === user.id) {
+            return { ...result, role: Role.ADMIN };
+          }
+          return result;
+        })
+      );
       console.log("Make Admin");
     } else if (e.target.textContent === "Ban") {
       console.log("User Ban", user);
@@ -45,13 +55,17 @@ const GroupChatRelations = ({
         conversationID: conversation.id,
         userID: user.id,
       });
-			setResults(results.filter((result) => result.user.id !== user.id));
+      setResults(results.filter((result) => result.user.id !== user.id));
       console.log("Ban");
     } else if (e.target.textContent === "Mute") {
       socket?.emit("mute", conversation);
       console.log("Mute");
     } else if (e.target.textContent === "Kick") {
-      socket?.emit("kick", conversation);
+      socket?.emit("kickUser", {
+        conversationID: conversation.id,
+        userID: user.id,
+      });
+      setResults(results.filter((result) => result.user.id !== user.id));
       console.log("Kick");
     }
   };
@@ -64,7 +78,7 @@ const GroupChatRelations = ({
       conversationID: conversation.id,
       userID: object.user.id,
     });
-		setResults(results.filter((result) => result.user.id !== object.user.id));
+    setResults(results.filter((result) => result.user.id !== object.user.id));
   };
   /*-----------Handle Unban Click-------------------------------------------------*/
   /*-----------MENU-------------------------------------------------*/
@@ -205,8 +219,12 @@ const GroupChatRelations = ({
                         <DownOutlined className="group-arrow" />
                       </GroupArrow>
                     </Dropdown>
-                  ) : null
-                ) : null}
+                  ) : (
+                    <MinusCircleOutlined />
+                  )
+                ) : (
+                  <MinusCircleOutlined />
+                )}
               </GroupInfo>
             </GroupItem>
           )}
@@ -235,7 +253,7 @@ const GroupChatRelations = ({
           )}
         />
       ) : (
-        <h1>Ban</h1>
+        <h1>Add</h1>
       )}
     </>
   );

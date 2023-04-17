@@ -28,7 +28,7 @@ import { DirectMessageDTO } from './dto/GatewayDTO/directMessage.dto';
     credentials: true,
   },
 })
-@WebSocketGateway()
+// @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
