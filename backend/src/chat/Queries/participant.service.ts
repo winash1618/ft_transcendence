@@ -482,6 +482,7 @@ export class ParticipantService {
         conversation_status: Status['BANNED'],
       },
       select: {
+        role: true,
         user: {
           select: {
             id: true,
