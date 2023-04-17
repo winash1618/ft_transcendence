@@ -351,8 +351,8 @@ export class ParticipantService {
     userID: string,
     adminUser: string,
   ) {
-    if (this.validationCheck(conversationID, userID))
-      throw new NotFoundException('Validation check failed');
+    // if (this.validationCheck(conversationID, userID))
+    //   throw new NotFoundException('Validation check failed');
 
     return await this.updateParticipantStatus(
       conversationID,
@@ -442,6 +442,7 @@ export class ParticipantService {
         conversation_status: Status['BANNED'],
       },
       select: {
+        role: true,
         user: {
           select: {
             id: true,

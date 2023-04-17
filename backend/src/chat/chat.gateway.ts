@@ -92,13 +92,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // add only one participant
     const participant =
-      await this.participantService.addParticipantToConversation({
-        conversation_id: conversation.id,
-        user_id: client.data.userID.id,
-        role: Role['OWNER'],
-        conversation_status: 'ACTIVE',
-      },
-      data.password,
+      await this.participantService.addParticipantToConversation(
+        {
+          conversation_id: conversation.id,
+          user_id: client.data.userID.id,
+          role: Role['OWNER'],
+          conversation_status: 'ACTIVE',
+        },
+        data.password,
       );
 
     await this.joinConversations(client.data.userID.id, conversation.id);
@@ -117,13 +118,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In joinConversation');
 
     const participant =
-      await this.participantService.addParticipantToConversation({
-        conversation_id: data.conversationID,
-        user_id: client.data.userID.id,
-        role: Role.USER,
-        conversation_status: 'ACTIVE',
-      },
-      data.password,
+      await this.participantService.addParticipantToConversation(
+        {
+          conversation_id: data.conversationID,
+          user_id: client.data.userID.id,
+          role: Role.USER,
+          conversation_status: 'ACTIVE',
+        },
+        data.password,
       );
 
     await this.joinConversations(client.data.userID.id, data.conversationID);
@@ -142,16 +144,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In directMessage');
     const exists = await this.conversationService.checkDirectConversationExists(
       client.data.userID.id,
-      data.userID
+      data.userID,
     );
-	console.log(exists)
+    console.log(exists);
 
     if (exists !== null) {
       this.server.to(client.data.userID.id).emit('directExists', exists.id);
       return;
     }
 
-	console.log('not exists')
+    console.log('not exists');
 
     const conversation =
       await this.conversationService.createDirectConversation(
@@ -224,11 +226,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       await this.sendConversationPublicToAllClients(data.conversationID);
-      this.server
-        .to(data.conversationID)
-        .emit('messageCreated', message);
-    }
-    catch (e) {
+      this.server.to(data.conversationID).emit('messageCreated', message);
+    } catch (e) {
       console.log(e);
     }
     // await this.sendMessagesToParticipants(data.conversationID, message);
@@ -307,7 +306,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           client.data.userID.id,
         );
 
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.joinConversations(data.userID, data.conversationID);
+      // await this.sendConversationPublicToAllClients(data.conversationID);
     } catch (e) {
       client.emit('error', 'Unauthorized access from unbanUser');
     }
