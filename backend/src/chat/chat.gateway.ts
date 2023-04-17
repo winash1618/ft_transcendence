@@ -95,13 +95,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // add only one participant
     const participant =
-      await this.participantService.addParticipantToConversation({
-        conversation_id: conversation.id,
-        user_id: client.data.userID.id,
-        role: Role['OWNER'],
-        conversation_status: 'ACTIVE',
-      },
-      data.password,
+      await this.participantService.addParticipantToConversation(
+        {
+          conversation_id: conversation.id,
+          user_id: client.data.userID.id,
+          role: Role['OWNER'],
+          conversation_status: 'ACTIVE',
+        },
+        data.password,
       );
 
     await this.joinConversations(client.data.userID.id, conversation.id);
@@ -120,13 +121,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In joinConversation');
 
     const participant =
-      await this.participantService.addParticipantToConversation({
-        conversation_id: data.conversationID,
-        user_id: client.data.userID.id,
-        role: Role.USER,
-        conversation_status: 'ACTIVE',
-      },
-      data.password,
+      await this.participantService.addParticipantToConversation(
+        {
+          conversation_id: data.conversationID,
+          user_id: client.data.userID.id,
+          role: Role.USER,
+          conversation_status: 'ACTIVE',
+        },
+        data.password,
       );
 
     await this.joinConversations(client.data.userID.id, data.conversationID);
@@ -145,7 +147,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In directMessage');
     const exists = await this.conversationService.checkDirectConversationExists(
       client.data.userID.id,
-      data.userID
+      data.userID,
     );
 
     if (exists !== null) {
@@ -153,7 +155,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit('directExists', exists.id);
       return;
     }
-
     const conversation =
       await this.conversationService.createDirectConversation(
         {
@@ -188,10 +189,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = this.gatewaySession.getUserSocket(client.data.userID.id);
     if (!user) return;
     user.leave(data.conversationID);
-    this.server.to(data.conversationID).emit('conversationLeft');
+    this.server.to(data.conversationID).emit('conversationLeft', {
+      conversationID: data.conversationID,
+      leftUserID: client.data.userID.id,
+    });
   }
 
-  @SubscribeMessage('protectRoom')
+  @SubscribeMessage('addPassword')
   async protectRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
@@ -199,9 +203,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const conversation = await this.conversationService.protectConversation(
       data.conversationID,
       data.password,
+      client.data.userID.id,
     );
 
-    await this.sendConversationProtectedToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('conversationProtected', conversation.id);
   }
 
   @SubscribeMessage('sendMessage')
@@ -224,11 +229,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       await this.sendConversationPublicToAllClients(data.conversationID);
-      this.server
-        .to(data.conversationID)
-        .emit('messageCreated', message);
-    }
-    catch (e) {
+      this.server.to(data.conversationID).emit('messageCreated', message);
+    } catch (e) {
       console.log(e);
     }
     // await this.sendMessagesToParticipants(data.conversationID, message);
@@ -239,9 +241,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const participant = await this.participantService.makeParticipantAdmin(
       data.conversationID,
       data.userID,
+      client.data.userID.id,
     );
 
-    await this.sendConversationPublicToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('adminMade', {
+      conversationID: data.conversationID,
+      admin: participant.user_id
+    });
   }
 
   @SubscribeMessage('addParticipant')
@@ -255,10 +261,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         user_id: data.userID,
         role: Role.USER,
         conversation_status: 'ACTIVE',
-      });
+      },
+      client.data.userID.id,
+    );
 
     this.joinConversations(data.userID, data.conversationID);
-    await this.sendConversationPublicToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('participantAdded', {
+      conversationID: data.conversationID,
+      participant: participant.user_id
+    });
   }
 
   @SubscribeMessage('removeParticipant')
@@ -270,12 +281,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await this.participantService.removeParticipantFromConversation(
         data.conversationID,
         data.userID,
+        client.data.userID.id,
       );
+
+    await this.conversationService.promoteOldestUserToAdmin(
+      data.conversationID,
+    );
 
     const user = this.gatewaySession.getUserSocket(data.userID);
     if (!user) return;
     user.leave(data.conversationID);
-    await this.sendConversationPublicToAllClients(data.conversationID);
+    this.server.to(data.conversationID).emit('participantRemoved', {
+      conversationID: data.conversationID,
+      removedUserID: participant.user_id
+    });
   }
 
   @SubscribeMessage('banUser')
@@ -291,7 +310,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(data.userID);
       if (!user) return;
       user.leave(data.conversationID);
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server.to(data.conversationID).emit('userBanned', {
+        conversationID: data.conversationID,
+        bannedUserID: participant.user_id
+      });
     } catch (e) {
       client.emit('error', 'Unauthorized access from banUser');
     }
@@ -307,7 +329,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           client.data.userID.id,
         );
 
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.joinConversations(data.userID, data.conversationID);
+      this.server.to(data.conversationID).emit('userUnbanned', {
+        conversationID: data.conversationID,
+        unbannedUserID: participant.user_id,
+      });
     } catch (e) {
       client.emit('error', 'Unauthorized access from unbanUser');
     }
@@ -326,7 +352,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(data.userID);
       if (!user) return;
       user.leave(data.conversationID);
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server.to(data.conversationID).emit('userKicked', {
+        conversationID: data.conversationID,
+        kickedUserID: participant.user_id,
+      });
     } catch (e) {
       client.emit('error', 'Unauthorized access from kickUser');
     }
@@ -343,7 +372,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           data.conversationID,
         );
 
-      await this.sendConversationPublicToAllClients(data.conversationID);
+      this.server.to(data.conversationID).emit('passwordRemoved');
     } catch (e) {
       client.emit('error', 'Unauthorized access from removePassword');
     }
