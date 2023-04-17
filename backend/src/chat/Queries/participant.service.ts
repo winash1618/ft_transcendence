@@ -85,15 +85,8 @@ export class ParticipantService {
         throw new NotFoundException('Conversation does not exist');
       }
 
-      if (
-        conversation.privacy === 'PROTECTED' &&
-        !this.conversationService.validatePassword(
-          password,
-          conversation.password,
-        )
-      ) {
-        throw new NotFoundException('Incorrect password');
-      }
+      if (this.isUserAdminInConversation(adminUser, conversation.id) === null)
+        throw new NotFoundException('User is not an admin');
 
       const participant = await this.checkParticipantExists(
         createParticipant.conversation_id,
@@ -108,14 +101,12 @@ export class ParticipantService {
         );
       }
 
-      if (this.isUserAdminInConversation(adminUser, conversation.id) === null)
-        throw new NotFoundException('User is not an admin');
-
       return await this.addParticipant(createParticipant);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
+
 
   async checkParticipantExists(conversationID: string, userID: string) {
     return await this.prisma.participant.findFirst({
