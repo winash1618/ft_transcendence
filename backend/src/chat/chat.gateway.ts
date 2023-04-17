@@ -205,7 +205,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.data.userID.id,
     );
 
-    this.server.to(data.conversationID).emit('conversationProtected', conversation.id);
+    this.server
+      .to(data.conversationID)
+      .emit('conversationProtected', conversation.id);
   }
 
   @SubscribeMessage('sendMessage')
@@ -245,7 +247,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.server.to(data.conversationID).emit('adminMade', {
       conversationID: data.conversationID,
-      admin: participant.user_id
+      admin: participant.user_id,
     });
   }
 
@@ -255,20 +257,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: any,
   ) {
     console.log('In addParticipant');
+
     const participant =
-      await this.participantService.addParticipantToConversation({
-        conversation_id: data.conversationID,
-        user_id: data.userID,
-        role: Role.USER,
-        conversation_status: 'ACTIVE',
-      },
-      client.data.userID.id,
-    );
+      await this.participantService.addParticipantToConversation(
+        {
+          conversation_id: data.conversationID,
+          user_id: data.userID,
+          role: Role.USER,
+          conversation_status: 'ACTIVE',
+        },
+        client.data.userID.id,
+      );
 
     this.joinConversations(data.userID, data.conversationID);
     this.server.to(data.conversationID).emit('participantAdded', {
       conversationID: data.conversationID,
-      participant: participant.user_id
+      participant: participant.user_id,
     });
   }
 
@@ -293,7 +297,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     user.leave(data.conversationID);
     this.server.to(data.conversationID).emit('participantRemoved', {
       conversationID: data.conversationID,
-      removedUserID: participant.user_id
+      removedUserID: participant.user_id,
     });
   }
 
@@ -312,7 +316,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user.leave(data.conversationID);
       this.server.to(data.conversationID).emit('userBanned', {
         conversationID: data.conversationID,
-        bannedUserID: participant.user_id
+        bannedUserID: participant.user_id,
       });
     } catch (e) {
       client.emit('error', 'Unauthorized access from banUser');
@@ -385,14 +389,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.conversationID,
         data.userID,
         1,
-        client.data.userID.id);
+        client.data.userID.id,
+      );
 
       this.server.to(client.id).emit('userMuted', {
         conversationID: data.conversationID,
         mutedUserID: data.userID,
       });
-    }
-    catch (e) {
+    } catch (e) {
       client.emit('error', 'Unauthorized access from muteUser');
     }
   }

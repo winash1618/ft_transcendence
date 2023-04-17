@@ -58,10 +58,13 @@ const GroupChatRelations = ({
       setResults(results.filter((result) => result.user.id !== user.id));
       console.log("Ban");
     } else if (e.target.textContent === "Mute") {
-      socket?.emit("mute", conversation);
+      socket?.emit("muteUser", {
+        conversationID: conversation.id,
+        userID: user.id,
+      });
       console.log("Mute");
     } else if (e.target.textContent === "Kick") {
-      socket?.emit("kickUser", {
+      socket?.emit("removeParticipant", {
         conversationID: conversation.id,
         userID: user.id,
       });
@@ -81,6 +84,17 @@ const GroupChatRelations = ({
     setResults(results.filter((result) => result.user.id !== object.user.id));
   };
   /*-----------Handle Unban Click-------------------------------------------------*/
+  /*-----------Handle Add Click-------------------------------------------------*/
+  const handleAddClick = (object: any) => {
+    console.log("Add");
+    setUser(object.username);
+    socket?.emit("addParticipant", {
+      conversationID: conversation.id,
+      userID: object.id,
+    });
+    setResults(results.filter((result) => result.id !== object.id));
+  };
+  /*-----------Handle Add Click-------------------------------------------------*/
   /*-----------MENU-------------------------------------------------*/
   const items: MenuProps["items"] = [
     {
@@ -167,7 +181,7 @@ const GroupChatRelations = ({
       console.log(conversationID);
       try {
         const result = await axios.get(
-          `http://localhost:3001/chat/${conversationID}/members`,
+          `http://localhost:3001/chat/channel/${conversationID}/addFriends`,
           {
             withCredentials: true,
             headers: {
@@ -175,8 +189,8 @@ const GroupChatRelations = ({
             },
           }
         );
-        setResults(result.data);
-        console.log("Add Members", result.data);
+        setResults(result.data.friends);
+        console.log("Add Members", result.data.friends);
       } catch (err) {
         console.log(err);
       }
@@ -246,17 +260,37 @@ const GroupChatRelations = ({
                     >
                       Unban
                     </Button>
-                  ) : null
-                ) : null}
+                  ) : (
+                    <MinusCircleOutlined />
+                  )
+                ) : (
+                  <MinusCircleOutlined />
+                )}
               </GroupInfo>
             </GroupItem>
           )}
         />
       ) : (
-        <h1>Add</h1>
+        <List
+          itemLayout="horizontal"
+          dataSource={results}
+          renderItem={(result) => (
+            <GroupItem>
+              <GroupInfo>
+                <GroupAvatar src={UserProfilePicture} />
+                <GroupName>{result.username}</GroupName>
+                {conversation.participants[0].role !== Role.USER ? (
+                  <Button type="default" onClick={() => handleAddClick(result)}>
+                    Add
+                  </Button>
+                ) : null}
+              </GroupInfo>
+            </GroupItem>
+          )}
+        />
       )}
     </>
   );
 };
-
+// onClick={() => handleAddClick(result)}
 export default GroupChatRelations;
