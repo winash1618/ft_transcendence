@@ -29,8 +29,9 @@ const GroupChatRelations = ({
 }: GroupChatRelationsProps) => {
   const [user, setUser] = useState<any>(null);
   /*-----------Handle User Click-------------------------------------------------*/
-  const handleUserClick = (participants: any) => {
-    setUser(participants.user);
+  const handleUserClick = (participant: any) => {
+    console.log("participant in handleUserClick", participant);
+    setUser(participant.user);
   };
   /*-----------Handle User Click-------------------------------------------------*/
   /*-----------Handle Menu Click-------------------------------------------------*/
@@ -44,6 +45,7 @@ const GroupChatRelations = ({
         conversationID: conversation.id,
         userID: user.id,
       });
+			setResults(results.filter((result) => result.user.id !== user.id));
       console.log("Ban");
     } else if (e.target.textContent === "Mute") {
       socket?.emit("mute", conversation);
@@ -55,8 +57,14 @@ const GroupChatRelations = ({
   };
   /*-----------Handle Menu Click-------------------------------------------------*/
   /*-----------Handle Unban Click-------------------------------------------------*/
-  const handleUnbanClick = () => {
+  const handleUnbanClick = (object: any) => {
     console.log("unban");
+    setUser(object.user);
+    socket?.emit("unbanUser", {
+      conversationID: conversation.id,
+      userID: object.user.id,
+    });
+		setResults(results.filter((result) => result.user.id !== object.user.id));
   };
   /*-----------Handle Unban Click-------------------------------------------------*/
   /*-----------MENU-------------------------------------------------*/
@@ -88,6 +96,7 @@ const GroupChatRelations = ({
   const [GroupNav, setGroupNav] = useState(GNav.GROUPS);
   const [results, setResults] = useState([]);
   const HandleGroupNavClick = (nav: any) => async () => {
+    console.log("checking", conversation);
     const getToken = async () => {
       try {
         const response = await axios.get("http://localhost:3001/token", {
@@ -213,7 +222,10 @@ const GroupChatRelations = ({
                 <GroupName>{result.user.username}</GroupName>
                 {conversation.participants[0].role !== Role.USER ? (
                   result.role === "USER" ? (
-                    <Button type="primary" onClick={handleUnbanClick}>
+                    <Button
+                      type="primary"
+                      onClick={() => handleUnbanClick(result)}
+                    >
                       Unban
                     </Button>
                   ) : null
