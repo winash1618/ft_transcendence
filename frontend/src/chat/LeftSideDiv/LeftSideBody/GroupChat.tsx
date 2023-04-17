@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { Colors, Conversation, Nav, Role, Status } from "../../chat.functions";
+import { useEffect, useState } from "react";
+import { Colors, Conversation, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { List, Avatar, AutoComplete, Dropdown, Button, Menu } from 'antd';
+import { List, Avatar, AutoComplete, Button, Dropdown, MenuProps } from 'antd';
+import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
+import { DownOutlined } from "@ant-design/icons";
+import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
+
 
 interface GroupChatProps {
+	socket: any;
 	conversations: Conversation[];
 	UserProfilePicture: any;
 	setConversationID: any;
@@ -13,17 +18,20 @@ interface GroupChatProps {
 	setMessages: any;
 	setConversation: any;
 	setStatus: any;
+	conversation: any;
 }
 
 
 const GroupChat = ({
+	socket,
 	conversations,
 	UserProfilePicture,
 	setConversationID,
 	conversationID,
 	setMessages,
 	setConversation,
-	setStatus
+	setStatus,
+	conversation
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -37,8 +45,44 @@ const GroupChat = ({
 		setConversationID(null);
 	}, [conversations]);
 
+	const items: MenuProps["items"] = [
+		{
+			key: "1",
+			label: <div onClick={(e) => handleMenuClick(e)}>Leave conversation</div>,
+		},
+		{
+			key: "2",
+			label: <div onClick={(e) => handleMenuClick(e)}>Add password</div>,
+			disabled: !(conversation && conversation.privacy === Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+		},
+		{
+			key: "3",
+			label: <div onClick={(e) => handleMenuClick(e)}>Update password</div>,
+			disabled: !(conversation && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+		},
+		{
+			key: "4",
+			label: <div onClick={(e) => handleMenuClick(e)}>Remove password</div>,
+			disabled: !(conversation && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+		},
+	];
+
+	useEffect(() => {
+		const handleConversationLeft = () => {
+			console.log("handleConversationLeft in GroupChat");
+			setFilteredConversations(conversations.filter(conversation => conversation.id !== conversationID));
+			setMessages([]);
+			setConversationID(null);
+			setMessages([]);
+		};
+		socket?.on('conversationLeft', handleConversationLeft);
+		return () => {
+			socket?.off('conversationLeft', handleConversationLeft);
+		};
+	}, [socket]);
+
 	async function handleSelectedConversation(conversation: any) {
-		console.log("handleSelectedConversation in GroupChat")
+		console.log("handleSelectedConversation in GroupChat", conversation)
 		const current_status = conversation.participants[0].conversation_status;
 		setStatus(conversation.participants[0].conversation_status);
 		if (current_status === Status.ACTIVE || current_status === Status.MUTED) {
@@ -79,6 +123,22 @@ const GroupChat = ({
 		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
 	};
 
+	const handleMenuClick = (e: any) => {
+		if (e.target.outerText === "Leave conversation") {
+			console.log("Leave conversation");
+			socket?.emit("leaveConversation", conversationID);
+		} else if (e.target.outerText === "Add password") {
+			socket?.emit("addPassword", conversationID);
+			console.log("Add password");
+		} else if (e.target.outerText === "Update password") {
+			socket?.emit("updatePassword", conversationID);
+			console.log("Update password");
+		} else if (e.target.outerText === "Remove password") {
+			socket?.emit("removePassword", conversationID);
+			console.log("Remove password");
+		}
+	};
+
 	const options = filteredConversations.map(conversation => ({
 		value: conversation.title,
 		label: conversation.title,
@@ -106,53 +166,51 @@ const GroupChat = ({
 						<List.Item
 							onClick={() => handleSelectedConversation(conversation)}
 							style={{
-								backgroundColor: (conversationID === conversation.id) ? Colors.SECONDARY : Colors.PRIMARY,
-								transition: 'background-color 0.3s ease-in-out',
+								border: (conversationID !== conversation.id) ? Colors.PRIMARY : Colors.SECONDARY + ' 1px solid',
+								transition: 'border 0.2s ease-in-out',
 								cursor: 'pointer',
-								paddingLeft: '20px',
-								borderRadius: '10px',
+								paddingLeft: '.5rem',
+								borderRadius: '.5rem',
 								color: 'white',
-								marginBottom: '10px'
+								marginBottom: '.65rem',
+								padding: '.75rem'
 							}}
 						>
 							<List.Item.Meta
 								avatar={<Avatar src={UserProfilePicture} />}
 								title={
-									<span style={{ color: 'white' }}>
-										{conversation.title}
-										{
-											conversation.privacy === 'PUBLIC'
-												? ' (PUBLIC)' : conversation.privacy === 'PROTECTED'
-													? ' (PROTECTED)' : conversation.privacy === 'PRIVATE'
-														? ' (PRIVATE)' : null
-										}
-										{
-											conversation.participants[0].conversation_status === Status.ACTIVE
-												? ' (ACTIVE)' : conversation.participants[0].conversation_status === Status.BANNED
-													? ' (BANNED)' : conversation.participants[0].conversation_status === Status.MUTED
-														? ' (MUTED)' : conversation.participants[0].conversation_status === Status.KICKED
-															? ' (KICKED)' : null
-										}
+									<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+										<div style={{ width: '10rem' }}>
+											{conversation.title}
+
+										</div>
+										<div style={{ width: '5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+											{
+												conversation.privacy === 'PUBLIC'
+													? <EyeOutlined /> : conversation.privacy === 'PROTECTED'
+														? <LockOutlined /> : conversation.privacy === 'PRIVATE'
+															? <EyeInvisibleOutlined /> : null
+											}
+											{
+												conversation.participants[0].conversation_status === Status.ACTIVE
+													? <CheckCircleOutlined style={{ color: 'green' }} /> : conversation.participants[0].conversation_status === Status.BANNED
+														? <StopOutlined style={{ color: 'red' }} /> : conversation.participants[0].conversation_status === Status.MUTED
+															? <ExclamationCircleOutlined style={{ color: 'yellow' }} /> : conversation.participants[0].conversation_status === Status.KICKED
+																? <ExclamationCircleOutlined style={{ color: 'red' }} /> : null
+											}
+											{
+												<Dropdown menu={{ items }} trigger={["click"]}>
+													<GroupArrow>
+														<DownOutlined className="group-arrow" color="white" />
+													</GroupArrow>
+												</Dropdown>
+											}
+										</div>
 									</span>
 								}
 							/>
 						</List.Item>
-						{
-							conversationID === conversation.id && (<div>
-								<Button
-										type="primary"
-										style={{ marginLeft: "10px", backgroundColor: "red", borderColor: "red" }}
-									>
-										Leave conversation
-									</Button>
-								{conversation.participants[0].role === Role.OWNER && (<Button
-										type="primary"
-										style={{ marginLeft: "10px", backgroundColor: "blue", borderColor: "blue" }}
-									>
-										Add password
-									</Button>)}
-									</div>)
-						}
+
 					</>
 				)}
 			/>

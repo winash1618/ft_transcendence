@@ -16,6 +16,7 @@ interface LeftSideBodyProps {
 	setMessages: any;
 	setConversation: any;
 	setStatus: any;
+	conversation: any;
 }
 
 const LeftSideBody = ({
@@ -29,6 +30,7 @@ const LeftSideBody = ({
 	setMessages,
 	setConversation,
 	setStatus,
+	conversation
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
@@ -47,6 +49,7 @@ const LeftSideBody = ({
 	else if (Navbar === Nav.GROUPS) {
 		return (
 			<GroupChat
+				socket={socket}
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
@@ -54,6 +57,7 @@ const LeftSideBody = ({
 				setMessages={setMessages}
 				setConversation={setConversation}
 				setStatus={setStatus}
+				conversation={conversation}
 			/>
 		);
 	}

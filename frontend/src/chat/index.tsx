@@ -39,6 +39,7 @@ const Chat = ({
 						setMessages={setMessages}
 						setConversation={setConversation}
 						setStatus={setStatus}
+						conversation={conversation}
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>

@@ -22,7 +22,7 @@ import { MessageService } from './Queries/message.service';
 
 @Controller('chat')
 @ApiTags('chat')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class ChatController {
   constructor(
@@ -71,7 +71,6 @@ export class ChatController {
         await this.messageService.getDisplayMessagesByConversationID(
           conversationID,
         );
-      console.log(conversations);
       return conversations;
     } catch (error) {
       throw new NotFoundException(error.message);

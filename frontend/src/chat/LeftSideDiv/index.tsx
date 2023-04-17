@@ -16,6 +16,7 @@ interface LeftSideDivProps {
 	setMessages: any;
 	setConversation: any;
 	setStatus: any;
+	conversation: any;
 }
 
 const LeftSideDiv = ({
@@ -31,6 +32,7 @@ const LeftSideDiv = ({
 	setMessages,
 	setConversation,
 	setStatus,
+	conversation,
 } : LeftSideDivProps) => {
 	useEffect(() => {
 		console.log("left side div useEffect to reset everything when navbar changes");
@@ -58,6 +60,7 @@ const LeftSideDiv = ({
 				setMessages={setMessages}
 				setConversation={setConversation}
 				setStatus={setStatus}
+				conversation={conversation}
 			/>
 		</>
 	);
