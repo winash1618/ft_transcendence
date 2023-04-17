@@ -18,6 +18,9 @@ import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
 import { UsersService } from '../users/users.service';
 import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
+import { createConversationDto } from './dto/GatewayDTO/createConversation.dto';
+import { joinConversationDto } from './dto/GatewayDTO/joinConversation.dto';
+import { DirectMessageDTO } from './dto/GatewayDTO/directMessage.dto';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -79,7 +82,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('createConversation')
   async createConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: createConversationDto,
   ) {
     console.log('In createConversation');
 
@@ -112,7 +115,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('joinConversation')
   async joinConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: joinConversationDto,
   ) {
     console.log('In joinConversation');
 
@@ -137,22 +140,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('directMessage')
   async directMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: DirectMessageDTO,
   ) {
     console.log('In directMessage');
     const exists = await this.conversationService.checkDirectConversationExists(
       client.data.userID.id,
       data.userID
     );
-	console.log(exists)
 
     if (exists !== null) {
 		console.log('exists');
       client.emit('directExists', exists.id);
       return;
     }
-
-	console.log('not exists')
 
     const conversation =
       await this.conversationService.createDirectConversation(
@@ -181,15 +181,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.userID.id,
       );
 
-    await this.sendConversationPublicToAllClients(data.conversationID);
-    await this.sendConversationLeftToAllClients(
-      client.data.userID.id,
+    await this.conversationService.promoteOldestUserToAdmin(
       data.conversationID,
     );
 
     const user = this.gatewaySession.getUserSocket(client.data.userID.id);
     if (!user) return;
     user.leave(data.conversationID);
+    this.server.to(data.conversationID).emit('conversationLeft');
   }
 
   @SubscribeMessage('protectRoom')
@@ -282,6 +281,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('banUser')
   async banUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     try {
+      console.log('In banUser');
       const participant = await this.participantService.banUserFromConversation(
         data.conversationID,
         data.userID,

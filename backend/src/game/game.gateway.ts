@@ -50,7 +50,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       secret: process.env.JWT_SECRET,
     });
 
-    console.log('User connected: ', userid);
     client.data.userID = userid;
     const user = await this.usersService.findOne(client.data.userID['login']);
     client.data.userID['login'] = user.username;

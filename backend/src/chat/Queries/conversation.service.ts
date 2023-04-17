@@ -49,6 +49,12 @@ export class ConversationService {
           password: createConversation.password,
           privacy: Privacy[createConversation.privacy],
         },
+        select: {
+          id: true,
+          title: true,
+          privacy: true,
+          creator_id: true,
+        }
       });
       return conversation;
     } catch (e) {
@@ -108,8 +114,11 @@ export class ConversationService {
       throw new NotFoundException('User is blocked');
     }
 
+    if (await this.userService.isUserBlocked(otherUserID, userID)) {
+      throw new NotFoundException('User is blocked');
+    }
+
     const conversation = await this.createConversation(createConversation);
-	console.log(conversation)
 
     await this.participantService.addParticipantToConversation({
       conversation_id: conversation.id,
@@ -268,11 +277,18 @@ export class ConversationService {
   }
 
   async checkConversationExists(conversationID: string) {
-    return await this.prisma.conversation.findUnique({
+    console.log(conversationID)
+    const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationID,
       },
     });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation does not exist');
+    }
+
+    return conversation;
   }
 
   async checkDirectConversationExists(userID: string, otherUserID: string) {
@@ -297,6 +313,10 @@ export class ConversationService {
         ],
       },
     });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation does not exist');
+    }
 
     return conversation;
   }
@@ -381,4 +401,52 @@ export class ConversationService {
       },
     });
   }
+
+  async promoteOldestUserToAdmin(conversationID: string) {
+    // Check if there is an admin in the conversation
+    const admin = await this.prisma.participant.findFirst({
+      where: {
+        conversation_id: conversationID,
+        role: {
+          in: [Role.OWNER, Role.ADMIN],
+        },
+      },
+    });
+
+    if (!admin) {
+      const oldestUser = await this.prisma.participant.findFirst({
+        where: {
+          conversation_id: conversationID,
+          conversation_status: Status['ACTIVE'],
+        },
+        orderBy: {
+          created_at: 'asc',
+        },
+      });
+
+      if (oldestUser) {
+        return await this.prisma.participant.update({
+          where: {
+            id: oldestUser.id,
+          },
+          data: {
+            role: Role.ADMIN,
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            }
+          }
+        });
+      } else {
+        throw new NotFoundException('No users in the conversation');
+      }
+    } else {
+      return ;
+    }
+  }
+
 }
