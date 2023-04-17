@@ -61,7 +61,7 @@ const MessageDiv = ({
 				UserProfilePicture={UserProfilePicture}
 			/>
 			{
-				(status !== Status.MUTED) && (
+				(conversationID !== null && status !== Status.MUTED) && (
 					<MessageInput
 						message={message}
 						setMessage={setMessage}

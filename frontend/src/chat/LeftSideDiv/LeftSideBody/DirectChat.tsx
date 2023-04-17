@@ -10,8 +10,9 @@ interface DirectChatProp {
 	UserProfilePicture: any;
 	setConversationID: any;
 	conversationID: any;
+	setConversations: any;
 	setMessages: any;
-	Navbar: Nav;
+	socket: any;
 }
 
 
@@ -21,34 +22,84 @@ const DirectChat = ({
 	UserProfilePicture,
 	setConversationID,
 	conversationID,
+	setConversations,
 	setMessages,
-	Navbar,
+	socket,
 }: DirectChatProp) => {
 
 	const dispatch = useAppDispatch();
 	const [filterValue, setFilterValue] = useState('');
+	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 
 	useEffect(() => {
-		console.log("conversations", conversations);
+		console.log("i am in direct useEffect");
+		setFilteredConversations(conversations);
 		setMessages([]);
-		// setConversationID('');
-	}, [conversations, Navbar]);
+		setConversationID(null);
+	}, [conversations]);
 
-	async function handleSelectedConversation(conversation: any) {
-		setConversationID(conversation.id);
-		const getToken = async () => {
+	const getToken = async () => {
+		try {
+			const response = await axios.get("http://localhost:3001/token", {
+				withCredentials: true,
+			});
+			localStorage.setItem("auth", JSON.stringify(response.data));
+			return response.data.token;
+		} catch (err) {
+			dispatch(logOut());
+			window.location.reload();
+			return null;
+		}
+	};
+
+	useEffect(() => {
+		const handleDirectExists = async (object) => {
+			console.log("direct exists", object);
+			setConversationID(object);
+
+			setMessages([]);
+			const token = await getToken();
 			try {
-				const response = await axios.get("http://localhost:3001/token", {
+				const result = await axios.get(`http://localhost:3001/chat/${object}/Messages`, {
 					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
 				});
-				localStorage.setItem("auth", JSON.stringify(response.data));
-				return response.data.token;
+				setMessages(result.data);
 			} catch (err) {
-				dispatch(logOut());
-				window.location.reload();
-				return null;
+				console.log(err);
 			}
 		};
+
+		const handleDirectMessage = async (object) => {
+			setConversationID(object.id);
+			const token = await getToken();
+			try {
+				const result = await axios.get("http://localhost:3001/chat/direct", {
+					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+				console.log("In handdle direct message");
+				setConversations(result.data);
+			} catch (err) {
+				setConversations([]);
+				console.log(err);
+			}
+		};
+		socket?.on('directExists', handleDirectExists);
+		socket?.on('directMessage', handleDirectMessage);
+		return () => {
+			socket?.off('directExists', handleDirectExists);
+			socket?.off('directMessage', handleDirectMessage);
+		};
+	}, [socket]);
+
+	async function handleSelectedConversation(conversation: any) {
+		console.log("i am in direct handleSelectedConversation");
+		setConversationID(conversation.id);
 		setMessages([]);
 		const token = await getToken();
 		try {
@@ -64,9 +115,10 @@ const DirectChat = ({
 		}
 	}
 
-	const filteredConversations = conversations.filter(
-		conversation => conversation.participants[0].user.username.toUpperCase().includes(filterValue.toUpperCase())
-	);
+	const handleAutoCompleteSearch = (value: string) => {
+		setFilterValue(value);
+		setFilteredConversations(conversations.filter(conversation => conversation.participants[0].user.username.toUpperCase().includes(value.toUpperCase())));
+	};
 
 	const options = filteredConversations.map(conversation => ({
 		value: conversation.participants[0].user.username,
@@ -79,7 +131,7 @@ const DirectChat = ({
 				<AutoComplete
 					options={options}
 					value={filterValue}
-					onSearch={setFilterValue}
+					onSearch={handleAutoCompleteSearch}
 					placeholder="Search conversations"
 					filterOption={(inputValue, option) =>
 						option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1

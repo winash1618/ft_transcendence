@@ -193,6 +193,7 @@ export class ConversationService {
 				participants: {
 					select: {
 						role: true,
+						conversation_status: true,
 					},
 					where: {
 						user_id: userID,

@@ -8,7 +8,6 @@ import CreateChat from "./CreateChat";
 interface LeftSideBodyProps {
 	socket: any;
 	Navbar: Nav;
-	status: any;
 	setNavbar: any;
 	conversationID: any;
 	setConversationID: any;
@@ -16,12 +15,12 @@ interface LeftSideBodyProps {
 	UserProfilePicture: any;
 	setMessages: any;
 	setConversation: any;
+	setStatus: any;
 }
 
 const LeftSideBody = ({
 	socket,
 	Navbar,
-	status,
 	setNavbar,
 	conversationID,
 	setConversationID,
@@ -29,6 +28,7 @@ const LeftSideBody = ({
 	UserProfilePicture,
 	setMessages,
 	setConversation,
+	setStatus,
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
@@ -38,8 +38,9 @@ const LeftSideBody = ({
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
 				conversationID={conversationID}
+				setConversations={setConversation}
 				setMessages={setMessages}
-				Navbar={Navbar}
+				socket={socket}
 			/>
 		);
 	}
@@ -51,9 +52,8 @@ const LeftSideBody = ({
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}
-				Navbar={Navbar}
-				status={status}
 				setConversation={setConversation}
+				setStatus={setStatus}
 			/>
 		);
 	}

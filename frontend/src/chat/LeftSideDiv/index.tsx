@@ -7,7 +7,6 @@ interface LeftSideDivProps {
 	user: any;
 	socket: any;
 	Navbar: Nav;
-	status: any;
 	setNavbar: any;
 	conversations: any;
 	conversationID: any;
@@ -16,13 +15,13 @@ interface LeftSideDivProps {
 	setConversations: any;
 	setMessages: any;
 	setConversation: any;
+	setStatus: any;
 }
 
 const LeftSideDiv = ({
 	user,
 	socket,
 	Navbar,
-	status,
 	setNavbar,
 	conversations,
 	conversationID,
@@ -31,12 +30,14 @@ const LeftSideDiv = ({
 	setConversations,
 	setMessages,
 	setConversation,
+	setStatus,
 } : LeftSideDivProps) => {
 	useEffect(() => {
+		console.log("left side div useEffect to reset everything when navbar changes");
 		setMessages([]);
 		setConversations([]);
-		setConversationID("");
-	}, [Navbar]);
+		setConversationID(null);
+	}, [socket, Navbar]);
 	return (
 		<>
 			<LeftSideHeader
@@ -49,7 +50,6 @@ const LeftSideDiv = ({
 			<LeftSideBody
 				socket={socket}
 				Navbar={Navbar}
-				status={status}
 				setNavbar={setNavbar}
 				conversations={conversations}
 				conversationID={conversationID}
@@ -57,6 +57,7 @@ const LeftSideDiv = ({
 				UserProfilePicture={UserProfilePicture}
 				setMessages={setMessages}
 				setConversation={setConversation}
+				setStatus={setStatus}
 			/>
 		</>
 	);

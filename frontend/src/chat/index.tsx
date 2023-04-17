@@ -19,7 +19,7 @@ const Chat = ({
 	const [conversationID, setConversationID] = useState(null);
 	const [conversations, setConversations] = useState([]);
 	const [messages, setMessages] = useState([]);
-	const [status, setStatus] = useState(Status.ACTIVE);
+	const [status, setStatus] = useState(Status.ACTIVE); // you need to set this for if you are selecting any conversation in group 
 	const [conversation, setConversation] = useState(null);
 
 	return (
@@ -30,7 +30,6 @@ const Chat = ({
 						user={user}
 						socket={socket}
 						Navbar={Navbar}
-						status={status}
 						setNavbar={setNavbar}
 						conversations={conversations}
 						conversationID={conversationID}
@@ -39,6 +38,7 @@ const Chat = ({
 						setConversations={setConversations}
 						setMessages={setMessages}
 						setConversation={setConversation}
+						setStatus={setStatus}
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>

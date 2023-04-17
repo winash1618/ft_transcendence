@@ -46,6 +46,7 @@ export interface User {
 export interface Participant {
 	id: number;
 	user: User;
+	conversation_status: 'ACTIVE' | 'BANNED' | 'KICKED' | 'MUTED';
 	role: 'OWNER' | 'ADMIN' | 'USER';
 }
 export interface Conversation {

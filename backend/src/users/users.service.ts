@@ -120,6 +120,7 @@ export class UsersService {
 		id: true,
         username: true,
         user_status: true,
+		login: true,
       }
     });
   }

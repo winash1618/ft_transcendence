@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Colors, Nav, Privacy } from "../../chat.functions";
 import { AutoComplete, Button, Input, List } from "antd";
 
@@ -22,9 +22,11 @@ const ExploreChat = ({
 	const [selectedConversationID, setSelectedConversationID] = React.useState("");
 	const [password, setPassword] = useState('');
 	const [searchKeyword, setSearchKeyword] = useState('');
+	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 
 
 	function handleSelectedConversation(conversation: any) {
+		console.log("handleSelectedConversation in ExploreChat")
 		setSelectedConversationID(conversation.id);
 		if (conversation.privacy === "PUBLIC") {
 			socket?.emit("joinConversation", { conversationID: conversation.id, password: "" });
@@ -33,22 +35,26 @@ const ExploreChat = ({
 	}
 
 	function handleProtectedConversation(conversation: any, password: string) {
+		console.log("handleProtectedConversation in ExploreChat")
 		socket?.emit("joinConversation", { conversationID: conversation.id, password: password });
 		setNavbar(Nav.GROUPS);
 	}
 	const handleSearch = value => {
 		setSearchKeyword(value);
+		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
 	};
 
-	const filteredConversations = conversations.filter(conversation =>
-		conversation.title.toLowerCase().includes(searchKeyword.toLowerCase())
-	);
+	useEffect(() => {
+		console.log("Explore useEffect to reset data");
+		setFilteredConversations(conversations);
+	}, [conversations]);
 
 	return (
 		<>
 			<div style={{ textAlign: 'center' }}>
 				<AutoComplete
 					options={[]}
+					value={searchKeyword}
 					placeholder="Search conversations"
 					onSearch={handleSearch}
 					style={{ width: '80%', marginBottom: '10px' }}

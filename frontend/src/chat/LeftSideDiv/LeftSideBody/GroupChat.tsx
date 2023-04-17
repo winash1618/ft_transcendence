@@ -11,9 +11,8 @@ interface GroupChatProps {
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
-	Navbar: Nav;
-	status: any;
 	setConversation: any;
+	setStatus: any;
 }
 
 
@@ -23,9 +22,8 @@ const GroupChat = ({
 	setConversationID,
 	conversationID,
 	setMessages,
-	Navbar,
-	status,
 	setConversation,
+	setStatus
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -33,13 +31,17 @@ const GroupChat = ({
 	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 
 	useEffect(() => {
-		console.log("conversations", conversations);
+		console.log("Group useEffect to reset data");
 		setFilteredConversations(conversations);
 		setMessages([]);
-	}, [conversations, Navbar]);
+		setConversationID(null);
+	}, [conversations]);
 
 	async function handleSelectedConversation(conversation: any) {
-		if (status === Status.ACTIVE || status === Status.MUTED) {
+		console.log("handleSelectedConversation in GroupChat")
+		const current_status = conversation.participants[0].conversation_status;
+		setStatus(conversation.participants[0].conversation_status);
+		if (current_status === Status.ACTIVE || current_status === Status.MUTED) {
 			setConversationID(conversation.id);
 			setConversation(conversation);
 			const getToken = async () => {
@@ -63,7 +65,7 @@ const GroupChat = ({
 						Authorization: `Bearer ${token}`,
 					},
 				});
-				console.log("Messages Object from Group chat", result.data);
+				console.log("Messages Object from Group chat");
 				setMessages(result.data);
 			} catch (err) {
 				console.log(err);
@@ -72,9 +74,9 @@ const GroupChat = ({
 	}
 
 	const handleAutoCompleteSearch = (value: string) => {
+		console.log("handleAutoCompleteSearch in GroupChat");
 		setFilterValue(value);
 		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
-		console.log("filteredconversation", filteredConversations);
 	};
 
 	const options = filteredConversations.map(conversation => ({
@@ -125,10 +127,10 @@ const GroupChat = ({
 														? ' (PRIVATE)' : null
 										}
 										{
-											status === Status.ACTIVE
-												? ' (ACTIVE)' : status === Status.BANNED
-													? ' (BANNED)' : status === Status.MUTED
-														? ' (MUTED)' : status === Status.KICKED
+											conversation.participants[0].conversation_status === Status.ACTIVE
+												? ' (ACTIVE)' : conversation.participants[0].conversation_status === Status.BANNED
+													? ' (BANNED)' : conversation.participants[0].conversation_status === Status.MUTED
+														? ' (MUTED)' : conversation.participants[0].conversation_status === Status.KICKED
 															? ' (KICKED)' : null
 										}
 									</span>
