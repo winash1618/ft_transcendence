@@ -1,6 +1,6 @@
 import { Button } from "antd";
 import { UserProfilePicture } from "../../../assets";
-import { useAppSelector } from "../../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import {
   ProfileBackground,
   ProfileButtonWrapper,
@@ -11,10 +11,40 @@ import {
   UserName,
   UserRating,
 } from "./profileHeader.styled";
+import { axiosPrivate } from "../../../api";
+import { setUserInfo } from "../../../store/authReducer";
 
 const ProfileHeader = () => {
   const { user } = useAppSelector((state) => state.users);
   const { userInfo } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+
+  const addFriend = async () => {
+    try {
+      const response = await axiosPrivate.post("/users/add-friend", {
+        username: user.username,
+        friend_id: user.id,
+        login: user.login,
+        user_id: userInfo.id,
+      });
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
+
+  const removeFriend = async () => {
+    try {
+      const response = await axiosPrivate.delete(`/users/remove-friend/${user.login}`);
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
   return (
     <ProfileHeaderContainer>
       <ProfileBackground
@@ -38,7 +68,17 @@ const ProfileHeader = () => {
       </ProfileWrapper>
       {userInfo.login !== user.login && (
         <ProfileButtonWrapper>
-          <Button type="primary">Add friend</Button>
+          {userInfo.new_friends?.some(
+            (userItem) => userItem.login === user.login
+          ) ? (
+            <Button onClick={removeFriend} type="primary" danger>
+              Remove friend
+            </Button>
+          ) : (
+            <Button onClick={addFriend} type="primary">
+              Add friend
+            </Button>
+          )}
           <Button type="primary" danger>
             Block
           </Button>

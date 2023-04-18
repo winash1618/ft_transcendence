@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters, ParseUUIDPipe, UseGuards, HttpCode, UseInterceptors, Req, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Res, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
@@ -9,12 +8,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/config/multer.config';
 import { join } from 'path';
 import { Response, Request } from 'express';
-import { readFile } from 'fs/promises';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
 @ApiTags('users')
-@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
 	constructor(private readonly usersService: UsersService, private readonly jwtService: JwtService) { }
@@ -36,7 +33,7 @@ export class UsersController {
   	@UseGuards(JwtAuthGuard)
 	@Post('profile-image')
     @HttpCode(200)
-    @UseInterceptors(FileInterceptor('file', multerConfig))
+    @UseInterceptors(FileInterceptor('image', multerConfig))
     async uploadProfilePhoto(
         @Req() request: Request,
         @UploadedFile(
@@ -49,9 +46,9 @@ export class UsersController {
         )
         image: Express.Multer.File
     ) {
-		const user = this.jwtService.verify(request.headers.authorization.split(' ')[1], { secret: process.env.JWT_SECRET });
-		this.usersService.updateProfilePicture(user.id, image.filename);
-		return { profileImg: image.filename };
+		const decodedToken = this.jwtService.verify(request.headers.authorization.split(' ')[1], { secret: process.env.JWT_SECRET });
+		const user = await this.usersService.updateProfilePicture(decodedToken.id, image.filename);
+		return { user };
     }
 
 	// @Get()

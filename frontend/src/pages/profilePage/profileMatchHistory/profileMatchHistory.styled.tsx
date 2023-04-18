@@ -6,7 +6,7 @@ export const ProfileMatchHistoryContainer = styled(Card)`
   margin: 0px 0px;
   height: 100%;
   color: #fff;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   border-radius: 10px;
   padding: 30px 0px;

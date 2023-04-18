@@ -13,12 +13,13 @@ datasource db {
 model User {
   id                    String          @id @default(uuid())
   login                 String          @unique
-  username              String?
+  username              String?         @unique
   first_name            String?
   profile_picture       String?
   last_name             String?
   secret_code           String?
   is_authenticated      Boolean?
+  new_friends           Friend[]        @relation("newfriends")
   friends               User[]          @relation("friends")
   friends_of            User[]          @relation("friends")
   blocked_users         User[]          @relation("blocked_users")
@@ -30,6 +31,17 @@ model User {
   participant_in        Participant[]
   playerOneHistories GameHistory[] @relation("PlayerOne")
   playerTwoHistories GameHistory[] @relation("PlayerTwo")
+}
+
+model Friend {
+  id                    String          @id @default(uuid())
+  login                 String?         @unique
+  username              String?         @unique
+  user_id               String
+  friend_id             String
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
+  user                  User            @relation("newfriends", fields: [user_id], references: [id])
 }
 
 // Conversation table

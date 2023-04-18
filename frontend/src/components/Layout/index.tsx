@@ -81,7 +81,7 @@ const Navbar: React.FC = () => {
               colorTextLabel: "#fff",
               colorTextHeading: "#fff",
               colorTextSecondary: "#d1d1d1",
-              colorTextPlaceholder: "#000",
+              colorTextPlaceholder: "#8d8d8d",
               colorTextDisabled: "#fff",
             },
           }}

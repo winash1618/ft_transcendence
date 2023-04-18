@@ -44,7 +44,6 @@ export const fetchMatchHistory = createAsyncThunk(
   }
 );
 
-
 export const fetchAllUsers = createAsyncThunk(
   "users/fetchAll",
   async (data, thunkApi) => {
@@ -61,7 +60,9 @@ export const changeNickName = createAsyncThunk(
   "users/changeNickName",
   async (data: { id: string; name: string }, thunkApi) => {
     try {
-      const result = await axiosPrivate.patch(`/users/${data.id}`, { name: data.name });
+      const result = await axiosPrivate.patch(`/users/${data.id}`, {
+        name: data.name,
+      });
       return result.data;
     } catch (error) {
       return thunkApi.rejectWithValue(error);
@@ -72,7 +73,14 @@ export const changeNickName = createAsyncThunk(
 const usersSlide = createSlice({
   name: "Auth",
   initialState,
-  reducers: {},
+  reducers: {
+    resetChangeNickName: (state) => {
+      return {
+        ...state,
+        nickNameIsChanged: false,
+      };
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(fetchUserById.pending, (state) => {
       return {
@@ -82,7 +90,6 @@ const usersSlide = createSlice({
       };
     });
     builder.addCase(fetchUserById.fulfilled, (state, action) => {
-      localStorage.setItem("auth", JSON.stringify(action.payload));
       return {
         ...state,
         user: action.payload,
@@ -144,14 +151,14 @@ const usersSlide = createSlice({
         ...state,
         isLoading: true,
         error: null,
-		nickNameIsChanged: false,
+        nickNameIsChanged: false,
       };
     });
     builder.addCase(changeNickName.fulfilled, (state) => {
       return {
         ...state,
         isLoading: false,
-		nickNameIsChanged: true,
+        nickNameIsChanged: true,
       };
     });
     builder.addCase(changeNickName.rejected, (state, action) => {
@@ -164,6 +171,6 @@ const usersSlide = createSlice({
   },
 });
 
-export const {} = usersSlide.actions;
+export const { resetChangeNickName } = usersSlide.actions;
 
 export default usersSlide.reducer;

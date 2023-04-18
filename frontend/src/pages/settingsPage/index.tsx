@@ -19,8 +19,9 @@ import TwoFactorAuth from "../../components/twoFactorAuth";
 import { axiosPrivate } from "../../api";
 import { ErrorAlert, SuccessAlert } from "../../components/toastify";
 import { setUserInfo } from "../../store/authReducer";
-import { changeNickName } from "../../store/usersReducer";
+import { changeNickName, resetChangeNickName } from "../../store/usersReducer";
 import { NickNameSchema } from "../../utils/schema";
+import ProfilePicture from "../../components/profilePicture";
 
 export type SettingsType = {
   nickName: string;
@@ -29,7 +30,8 @@ export type SettingsType = {
 const SettingsPage = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
   const { nickNameIsChanged } = useAppSelector((state) => state.users);
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showModal2FA, setShowModal2FA] = useState<boolean>(false);
+  const [showModalProfile, setShowModalProfile] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const {
     handleSubmit,
@@ -40,7 +42,7 @@ const SettingsPage = () => {
   const onSubmit: SubmitHandler<SettingsType> = (data) => {
     if (data.nickName === userInfo.username) {
       ErrorAlert("Nickname is the same as the old one", 5000);
-      return ;
+      return;
     }
     dispatch(changeNickName({ id: userInfo.id, name: data.nickName }));
   };
@@ -55,8 +57,10 @@ const SettingsPage = () => {
   };
 
   useEffect(() => {
+    console.log(nickNameIsChanged);
     if (nickNameIsChanged) {
       SuccessAlert("Nickname changed successfully", 5000);
+      dispatch(resetChangeNickName());
     }
   }, [nickNameIsChanged]);
   return (
@@ -97,26 +101,39 @@ const SettingsPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <ButtonComponent style={{ width: "100%" }}>
+              <ButtonComponent style={{ width: "100%", marginBottom: "2rem" }}>
                 Disable 2-factor authentication
               </ButtonComponent>
             </Popconfirm>
           ) : (
             <ButtonComponent
-              style={{ width: "100%" }}
-              onClick={() => setShowModal(true)}
+              style={{ width: "100%", marginBottom: "2rem" }}
+              onClick={() => setShowModal2FA(true)}
             >
               Enable 2-factor authentication
             </ButtonComponent>
           )}
+          <ButtonComponent
+            style={{ width: "100%" }}
+            onClick={() => setShowModalProfile(true)}
+          >
+            Change profile picture
+          </ButtonComponent>
         </FormDetails>
       </FormContainer>
       <Modal
         footer={null}
-        open={showModal}
-        onCancel={() => setShowModal(false)}
+        open={showModal2FA}
+        onCancel={() => setShowModal2FA(false)}
       >
-        <TwoFactorAuth setShowModal={setShowModal} />
+        <TwoFactorAuth setShowModal={setShowModal2FA} />
+      </Modal>
+      <Modal
+        footer={null}
+        open={showModalProfile}
+        onCancel={() => setShowModalProfile(false)}
+      >
+        <ProfilePicture />
       </Modal>
     </SettingsContainer>
   );

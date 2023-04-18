@@ -12,7 +12,7 @@ import {
 } from "./profileMatchHistory.styled";
 import { useAppSelector } from "../../../hooks/reduxHooks";
 import { UserProfilePicture } from "../../../assets";
-import { Col, Tooltip } from "antd";
+import { Tooltip } from "antd";
 
 const ProfileMatchHistory = () => {
   const { matchHistory } = useAppSelector((state) => state.users);

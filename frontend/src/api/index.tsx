@@ -46,7 +46,8 @@ axiosPrivate.interceptors.request.use(async (req) => {
       return req;
     }
   }
-  const token = JSON.parse(data).token;
+  const parsedData = JSON.parse(data);
+  const token = parsedData.token;
   const user = jwt_decode<JwtPayload>(token);
   const isExpired = dayjs.unix(user.exp!).diff(dayjs()) - 5000 < 1;
   if (!isExpired) {
