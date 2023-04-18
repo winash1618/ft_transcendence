@@ -67,7 +67,7 @@ const CreateChat = ({
 			<Row gutter={16}>
 				<Col span={24}>
 					<Form.Item
-						label="Channel Name"
+						label={<div style={{ color: 'white'}}>channel name</div>}
 						name="channelName"
 						rules={[{ required: true, message: 'Please enter a channel name' }]}>
 						<Input />
@@ -76,7 +76,7 @@ const CreateChat = ({
 			</Row>
 			<Row gutter={16}>
 				<Col span={24}>
-					<Form.Item label="Status" name="channelStatus" rules={[{ required: true, message: 'Please select a status' }]}>
+					<Form.Item label={<div style={{ color: 'white'}}>Status</div>} name="channelStatus" rules={[{ required: true, message: 'Please select a status' }]}>
 						<Select onChange={handleStatusChange}>
 							<Option value="PUBLIC">Public</Option>
 							<Option value="PRIVATE">Private</Option>
@@ -90,7 +90,7 @@ const CreateChat = ({
 				<>
 					<Row gutter={16}>
 						<Col span={24}>
-							<Form.Item label="Password" name="password" rules={[{ required: true, message: 'Please enter a password' }]}>
+							<Form.Item label={<div style={{ color: 'white'}}>password</div>} name="password" rules={[{ required: true, message: 'Please enter a password' }]}>
 								<Input.Password value={password} onChange={handlePasswordChange} />
 							</Form.Item>
 						</Col>

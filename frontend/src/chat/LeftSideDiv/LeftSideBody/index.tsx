@@ -67,6 +67,7 @@ const LeftSideBody = ({
 				socket={socket}
 				conversations={conversations}
 				setNavbar={setNavbar}
+				Navbar={Navbar}
 			/>
 		);
 	}

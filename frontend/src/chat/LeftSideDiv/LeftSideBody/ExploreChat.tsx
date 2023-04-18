@@ -6,6 +6,7 @@ interface ExploreChatProps {
 	socket: any;
 	conversations: Conversation[];
 	setNavbar: any;
+	Navbar: Nav;
 }
 
 interface Conversation {
@@ -18,12 +19,13 @@ const ExploreChat = ({
 	socket,
 	conversations,
 	setNavbar,
+	Navbar,
 }: ExploreChatProps) => {
 	const [selectedConversationID, setSelectedConversationID] = React.useState("");
 	const [password, setPassword] = useState('');
 	const [searchKeyword, setSearchKeyword] = useState('');
 	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
-
+	const [menuVisible, setMenuVisible] = useState(false);
 
 	function handleSelectedConversation(conversation: any) {
 		console.log("handleSelectedConversation in ExploreChat")
@@ -32,11 +34,16 @@ const ExploreChat = ({
 			socket?.emit("joinConversation", { conversationID: conversation.id, password: "" });
 			setNavbar(Nav.GROUPS);
 		}
+		else if (conversation.privacy === "PROTECTED") {
+			setMenuVisible(menuVisible === false ? true : false);
+		}
 	}
 
 	function handleProtectedConversation(conversation: any, password: string) {
 		console.log("handleProtectedConversation in ExploreChat")
 		socket?.emit("joinConversation", { conversationID: conversation.id, password: password });
+		setPassword('');
+		setMenuVisible(false);
 		setNavbar(Nav.GROUPS);
 	}
 	const handleSearch = value => {
@@ -47,7 +54,8 @@ const ExploreChat = ({
 	useEffect(() => {
 		console.log("Explore useEffect to reset data");
 		setFilteredConversations(conversations);
-	}, [conversations]);
+		setMenuVisible(false);
+	}, [conversations, Navbar]);
 
 	return (
 		<>
@@ -96,7 +104,8 @@ const ExploreChat = ({
 							/>
 						</List.Item>
 						{selectedConversationID === conversation.id &&
-							conversation.privacy === Privacy.PROTECTED && (
+							conversation.privacy === Privacy.PROTECTED &&
+							menuVisible && (
 								<div style={{ marginTop: "10px", paddingLeft: "20px" }}>
 									<Input
 										placeholder="Enter password"

@@ -3,7 +3,7 @@ import { Colors, Conversation, Privacy, Role, Status } from "../../chat.function
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { List, Avatar, AutoComplete, Button, Dropdown, MenuProps } from 'antd';
+import { List, Avatar, AutoComplete, Button, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
@@ -21,7 +21,6 @@ interface GroupChatProps {
 	conversation: any;
 }
 
-
 const GroupChat = ({
 	socket,
 	conversations,
@@ -37,6 +36,15 @@ const GroupChat = ({
 	const dispatch = useAppDispatch();
 	const [filterValue, setFilterValue] = useState('');
 	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+	const [password, setPassword] = useState('');
+	const [menuVisible, setMenuVisible] = useState(false);
+
+	function handleUpdatePassword(conversation: any, password: string) {
+		console.log("handleProtectedConversation in GroupChat");
+		socket?.emit("addPassword", { conversationID: conversation.id, password: password });
+		setPassword('');
+		setMenuVisible(false);
+	}
 
 	useEffect(() => {
 		console.log("Group useEffect to reset data");
@@ -81,9 +89,14 @@ const GroupChat = ({
 		};
 	}, [socket]);
 
+	useEffect(() => {
+		setMenuVisible(false);
+	}, [conversation]);
+
 	async function handleSelectedConversation(conversation: any) {
 		console.log("handleSelectedConversation in GroupChat", conversation)
 		const current_status = conversation.participants[0].conversation_status;
+		console.log("current_status", current_status);
 		setStatus(conversation.participants[0].conversation_status);
 		if (current_status === Status.ACTIVE || current_status === Status.MUTED) {
 			setConversationID(conversation.id);
@@ -124,14 +137,15 @@ const GroupChat = ({
 	};
 
 	const handleMenuClick = (e: any) => {
+		console.log("handleMenuClick in GroupChat", e.target.outerText);
 		if (e.target.outerText === "Leave conversation") {
 			console.log("Leave conversation");
 			socket?.emit("leaveConversation", conversationID);
 		} else if (e.target.outerText === "Add password") {
-			socket?.emit("addPassword", conversationID);
+			setMenuVisible(menuVisible === false ? true : false);
 			console.log("Add password");
 		} else if (e.target.outerText === "Update password") {
-			socket?.emit("updatePassword", conversationID);
+			setMenuVisible(menuVisible === false ? true : false);
 			console.log("Update password");
 		} else if (e.target.outerText === "Remove password") {
 			socket?.emit("removePassword", conversationID);
@@ -186,17 +200,17 @@ const GroupChat = ({
 										</div>
 										<div style={{ width: '5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 											{
-												conversation.privacy === 'PUBLIC'
+												conversation !== undefined && conversation.privacy === 'PUBLIC'
 													? <EyeOutlined /> : conversation.privacy === 'PROTECTED'
 														? <LockOutlined /> : conversation.privacy === 'PRIVATE'
 															? <EyeInvisibleOutlined /> : null
 											}
 											{
-												conversation.participants[0].conversation_status === Status.ACTIVE
+												conversation && conversation.participants !== undefined && (conversation.participants[0].conversation_status === Status.ACTIVE
 													? <CheckCircleOutlined style={{ color: 'green' }} /> : conversation.participants[0].conversation_status === Status.BANNED
 														? <StopOutlined style={{ color: 'red' }} /> : conversation.participants[0].conversation_status === Status.MUTED
 															? <ExclamationCircleOutlined style={{ color: 'yellow' }} /> : conversation.participants[0].conversation_status === Status.KICKED
-																? <ExclamationCircleOutlined style={{ color: 'red' }} /> : null
+																? <ExclamationCircleOutlined style={{ color: 'red' }} /> : null)
 											}
 											{
 												<Dropdown menu={{ items }} trigger={["click"]}>
@@ -210,7 +224,25 @@ const GroupChat = ({
 								}
 							/>
 						</List.Item>
-
+						{conversationID === conversation.id && menuVisible && (
+							<div style={{ marginTop: "10px", paddingLeft: "20px" }}>
+								<Input
+									placeholder="Enter password"
+									style={{ width: "50%" }}
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+								/>
+								<Button
+									type="primary"
+									style={{ marginLeft: "10px" }}
+									onClick={() =>
+										handleUpdatePassword(conversation, password)
+									}
+								>
+									{conversation.privacy === "PUBLIC" ? "Add password" : "Update password"}
+								</Button>
+							</div>
+						)}
 					</>
 				)}
 			/>
