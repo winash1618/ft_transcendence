@@ -18,6 +18,8 @@ interface LeftSideDivProps {
 	setStatus: any;
 	conversation: any;
 	setResults: any;
+	setGroupResults: any;
+	setGroupNav: any;
 }
 
 const LeftSideDiv = ({
@@ -35,6 +37,8 @@ const LeftSideDiv = ({
 	setStatus,
 	conversation,
 	setResults,
+	setGroupResults,
+	setGroupNav
 } : LeftSideDivProps) => {
 	useEffect(() => {
 		console.log("left side div useEffect to reset everything when navbar changes");
@@ -51,6 +55,7 @@ const LeftSideDiv = ({
 				Navbar={Navbar}
 				setNavbar={setNavbar}
 				setConversations={setConversations}
+				setConversation={setConversation}
 				setResults={setResults}
 			/>
 			<LeftSideBody
@@ -65,6 +70,8 @@ const LeftSideDiv = ({
 				setConversation={setConversation}
 				setStatus={setStatus}
 				conversation={conversation}
+				setGroupResults={setGroupResults}
+				setGroupNav={setGroupNav}
 			/>
 		</>
 	);

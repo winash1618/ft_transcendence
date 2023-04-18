@@ -314,11 +314,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const user = this.gatewaySession.getUserSocket(data.userID);
       if (!user) return;
-      user.leave(data.conversationID);
       this.server.to(data.conversationID).emit('userBanned', {
-        conversationID: data.conversationID,
-        bannedUserID: participant.user_id,
-      });
+		  conversationID: data.conversationID,
+		  bannedUserID: participant.user_id,
+	});
+	user.leave(data.conversationID);
     } catch (e) {
       client.emit('error', 'Unauthorized access from banUser');
     }
@@ -393,7 +393,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.userID.id,
       );
 
-      this.server.to(client.id).emit('userMuted', {
+      this.server.to(data.conversationID).emit('userMuted', {
         conversationID: data.conversationID,
         mutedUserID: data.userID,
       });

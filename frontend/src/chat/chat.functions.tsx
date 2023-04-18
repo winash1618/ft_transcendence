@@ -31,10 +31,10 @@ export const Role = {
 	USER: 'USER',
 };
 
-export const GNav = {
-	GROUPS: 'GROUPS',
-	BLOCKED: 'BLOCKED',
-	ADD: 'ADD',
+export enum GNav  {
+	GROUPS,
+	BLOCKED,
+	ADD,
 };
 
 export interface User {

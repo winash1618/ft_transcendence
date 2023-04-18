@@ -9,6 +9,10 @@ interface RightSideDivProps {
 	conversationID: string;
 	conversation: any;
 	results: any;
+	groupResults: any;
+	setGroupResults: any;
+	setGroupNav: any;
+	groupNav: any;
 }
 
 const RightSideDiv = ({
@@ -18,6 +22,10 @@ const RightSideDiv = ({
 	conversationID,
 	conversation,
 	results,
+	groupResults,
+	setGroupResults,
+	setGroupNav,
+	groupNav,
 
 }: RightSideDivProps) => {
 	if (Navbar === Nav.DIRECT) {
@@ -38,6 +46,10 @@ const RightSideDiv = ({
 				socket={socket}
 				conversationID = {conversationID}
 				conversation = {conversation}
+				groupResults = {groupResults}
+				setGroupResults = {setGroupResults}
+				setGroupNav = {setGroupNav}
+				groupNav = {groupNav}
 				/>
 			</>
 		);

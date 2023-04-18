@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Colors, Conversation, Nav, Privacy, Role, Status } from "../../chat.functions";
+import { Colors, Conversation, GNav, Nav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
@@ -20,6 +20,8 @@ interface GroupChatProps {
 	setStatus: any;
 	conversation: any;
 	Navbar: Nav;
+	setGroupResults: any;
+	setGroupNav: any;
 }
 
 const GroupChat = ({
@@ -33,6 +35,8 @@ const GroupChat = ({
 	setStatus,
 	conversation,
 	Navbar,
+	setGroupResults,
+	setGroupNav,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -40,42 +44,6 @@ const GroupChat = ({
 	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
-
-	function handleUpdatePassword(conversation: any, password: string) {
-		console.log("handleProtectedConversation in GroupChat");
-		socket?.emit("addPassword", { conversationID: conversation.id, password: password });
-		setPassword('');
-		setMenuVisible(false);
-	}
-
-	useEffect(() => {
-		console.log("Group useEffect to reset data");
-		setFilteredConversations(conversations);
-		setMessages([]);
-		setConversationID(null);
-	}, [conversations]);
-
-	const items: MenuProps["items"] = [
-		{
-			key: "1",
-			label: <div onClick={(e) => handleMenuClick(e)}>Leave conversation</div>,
-		},
-		{
-			key: "2",
-			label: <div onClick={(e) => handleMenuClick(e)}>Add password</div>,
-			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy === Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
-		},
-		{
-			key: "3",
-			label: <div onClick={(e) => handleMenuClick(e)}>Update password</div>,
-			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined &&  conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
-		},
-		{
-			key: "4",
-			label: <div onClick={(e) => handleMenuClick(e)}>Remove password</div>,
-			disabled: !(conversation &&  conversation !== undefined && conversation.participants !== undefined && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
-		},
-	];
 
 	useEffect(() => {
 		const handleConversationLeft = () => {
@@ -93,29 +61,66 @@ const GroupChat = ({
 
 	useEffect(() => {
 		setMenuVisible(false);
+		setGroupResults([]);
 	}, [conversation]);
 
+	useEffect(() => {
+		console.log("Group useEffect to reset data");
+		setFilteredConversations(conversations);
+		setMessages([]);
+		setConversationID(null);
+	}, [conversations]);
+
+	function handleUpdatePassword(conversation: any, password: string) {
+		console.log("handleProtectedConversation in GroupChat");
+		socket?.emit("addPassword", { conversationID: conversation.id, password: password });
+		setPassword('');
+		setMenuVisible(false);
+	}
+
+	const items: MenuProps["items"] = [
+		{
+			key: "1",
+			label: <div onClick={(e) => handleMenuClick(e)}>Leave conversation</div>,
+		},
+		{
+			key: "2",
+			label: <div onClick={(e) => handleMenuClick(e)}>Add password</div>,
+			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy === Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+		},
+		{
+			key: "3",
+			label: <div onClick={(e) => handleMenuClick(e)}>Update password</div>,
+			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+		},
+		{
+			key: "4",
+			label: <div onClick={(e) => handleMenuClick(e)}>Remove password</div>,
+			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+		},
+	];
+	const getToken = async () => {
+		try {
+			const response = await axios.get("http://localhost:3001/token", {
+				withCredentials: true,
+			});
+			localStorage.setItem("auth", JSON.stringify(response.data));
+			return response.data.token;
+		} catch (err) {
+			dispatch(logOut());
+			window.location.reload();
+			return null;
+		}
+	};
+
+
 	async function handleSelectedConversation(conversation: any) {
-		console.log("handleSelectedConversation in GroupChat", conversation)
+		console.log("handleSelectedConversation in GroupChat")
 		const current_status = conversation.participants[0].conversation_status;
-		console.log("current_status", current_status);
 		setStatus(conversation.participants[0].conversation_status);
 		if (current_status === Status.ACTIVE || current_status === Status.MUTED) {
 			setConversationID(conversation.id);
 			setConversation(conversation);
-			const getToken = async () => {
-				try {
-					const response = await axios.get("http://localhost:3001/token", {
-						withCredentials: true,
-					});
-					localStorage.setItem("auth", JSON.stringify(response.data));
-					return response.data.token;
-				} catch (err) {
-					dispatch(logOut());
-					window.location.reload();
-					return null;
-				}
-			};
 			const token = await getToken();
 			try {
 				const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
@@ -126,6 +131,22 @@ const GroupChat = ({
 				});
 				console.log("Messages Object from Group chat");
 				setMessages(result.data);
+			} catch (err) {
+				console.log(err);
+			}
+			try {
+				const result = await axios.get(
+				`http://localhost:3001/chat/${conversation.id}/members`,
+				{
+					withCredentials: true,
+					headers: {
+					Authorization: `Bearer ${token}`,
+					},
+				}
+				);
+				setGroupNav(GNav.GROUPS);
+				setGroupResults(result.data);
+				console.log("Group members", result.data);
 			} catch (err) {
 				console.log(err);
 			}
@@ -142,7 +163,7 @@ const GroupChat = ({
 		console.log("handleMenuClick in GroupChat", e.target.outerText);
 		if (e.target.outerText === "Leave conversation") {
 			console.log("Leave conversation");
-			socket?.emit("leaveConversation", {conversationID: conversationID});
+			socket?.emit("leaveConversation", { conversationID: conversationID });
 		} else if (e.target.outerText === "Add password") {
 			setMenuVisible(menuVisible === false ? true : false);
 			console.log("Add password");
@@ -150,7 +171,8 @@ const GroupChat = ({
 			setMenuVisible(menuVisible === false ? true : false);
 			console.log("Update password");
 		} else if (e.target.outerText === "Remove password") {
-			socket?.emit("removePassword", {conversationID: conversationID});
+			console.log("Remove password");
+			socket?.emit("removePassword", { conversationID: conversationID });
 		}
 	};
 

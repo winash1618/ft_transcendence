@@ -16,6 +16,7 @@ interface LeftSideHeaderProps {
 	Navbar: Nav;
 	setNavbar: (nav: Nav) => void;
 	setConversations: (conversations: any) => void;
+	setConversation: (conversation: any) => void;
 	setResults: (results: any) => void;
 }
 
@@ -25,6 +26,7 @@ function LeftSideHeader({
 	Navbar,
 	setNavbar,
 	setConversations,
+	setConversation,
 	setResults,
 }: LeftSideHeaderProps) {
 	const dispatch = useAppDispatch();
@@ -80,18 +82,47 @@ function LeftSideHeader({
 		const handleConversationJoined = async (object: any) => {
 			setConversationsObject();
 		};
+		const handleUserBan = async (object: any) => {
+			if (object.bannedUserID === user.id) {
+				setConversationsObject();
+			}
+		};
+		const handleUserUnbanned = async (object: any) => {
+			if (object.unbannedUserID === user.id) {
+				setConversationsObject();
+			}
+		};
+		const handleUserKicked = async (object: any) => {
+			if (object.kickedUserID === user.id) {
+				setConversationsObject();
+			}
+		};
+		const handleUserMuted = async (object: any) => {
+			if (object != null && object.mutedUserID !== null && object.mutedUserID === user.id) {
+				setConversationsObject();
+			}
+		};
 
+		socket?.on('userMuted', handleUserMuted);
+		socket?.on('userKicked', handleUserKicked);
+		socket?.on('userUnbanned', handleUserUnbanned);
+		socket?.on('userBanned', handleUserBan);
 		socket?.on('conversationJoined', handleConversationJoined);
 		socket?.on('conversationLeft', handleConversationLeft);
 		socket?.on('conversationProtected', handlePasswordAdded);
 		socket?.on('passwordRemoved', handlePasswordRemoved);
+
 		return () => {
+			socket?.off('userMuted', handleUserMuted);
+			socket?.off('userKicked', handleUserKicked);
+			socket?.off('userUnbanned', handleUserUnbanned);
+			socket?.off('userBanned', handleUserBan);
 			socket?.off('conversationJoined', handleConversationJoined);
 			socket?.off('conversationLeft', handleConversationLeft);
 			socket?.off('conversationProtected', handlePasswordAdded);
 			socket?.off('passwordRemoved', handlePasswordRemoved);
 		};
-	}, [socket]);
+	}, [socket, user]);
 
 	const handleNavbarClick = async (nav: Nav) => {
 		setConversations([]);
@@ -136,6 +167,7 @@ function LeftSideHeader({
 					},
 				});
 				setConversations(result.data);
+				setConversation(null);
 			} catch (err) {
 				setConversations([]);
 				console.log(err);

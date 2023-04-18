@@ -17,6 +17,8 @@ interface LeftSideBodyProps {
 	setConversation: any;
 	setStatus: any;
 	conversation: any;
+	setGroupResults: any;
+	setGroupNav: any;
 }
 
 const LeftSideBody = ({
@@ -30,7 +32,9 @@ const LeftSideBody = ({
 	setMessages,
 	setConversation,
 	setStatus,
-	conversation
+	conversation,
+	setGroupResults,
+	setGroupNav
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
@@ -60,6 +64,8 @@ const LeftSideBody = ({
 				setStatus={setStatus}
 				conversation={conversation}
 				Navbar={Navbar}
+				setGroupResults={setGroupResults}
+				setGroupNav={setGroupNav}
 			/>
 		);
 	}
