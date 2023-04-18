@@ -188,11 +188,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const user = this.gatewaySession.getUserSocket(client.data.userID.id);
     if (!user) return;
-    user.leave(data.conversationID);
     this.server.to(data.conversationID).emit('conversationLeft', {
-      conversationID: data.conversationID,
-      leftUserID: client.data.userID.id,
+		conversationID: data.conversationID,
+		leftUserID: client.data.userID.id,
     });
+	user.leave(data.conversationID);
   }
 
   @SubscribeMessage('addPassword')
