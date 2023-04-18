@@ -8,6 +8,7 @@ interface RightSideDivProps {
 	Navbar: Nav;
 	conversationID: string;
 	conversation: any;
+	results: any;
 }
 
 const RightSideDiv = ({
@@ -16,6 +17,7 @@ const RightSideDiv = ({
 	Navbar,
 	conversationID,
 	conversation,
+	results,
 
 }: RightSideDivProps) => {
 	if (Navbar === Nav.DIRECT) {
@@ -24,6 +26,7 @@ const RightSideDiv = ({
 				<DirectChatRelations
 				user={user}
 				socket={socket}
+				results={results}
 				/>
 			</>
 		);

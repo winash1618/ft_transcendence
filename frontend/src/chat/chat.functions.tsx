@@ -39,6 +39,7 @@ export const GNav = {
 
 export interface User {
 	id: number;
+	login: string;
 	username: string;
 	avatar: string;
 }

@@ -13,6 +13,7 @@ interface DirectChatProp {
 	setConversations: any;
 	setMessages: any;
 	socket: any;
+	Navbar: Nav;
 }
 
 
@@ -25,6 +26,7 @@ const DirectChat = ({
 	setConversations,
 	setMessages,
 	socket,
+	Navbar,
 }: DirectChatProp) => {
 
 	const dispatch = useAppDispatch();
@@ -32,11 +34,11 @@ const DirectChat = ({
 	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 
 	useEffect(() => {
-		console.log("i am in direct useEffect");
+		console.log("i am in direct useEffect", conversations);
 		setFilteredConversations(conversations);
 		setMessages([]);
 		setConversationID(null);
-	}, [conversations]);
+	}, [conversations, setMessages, setConversationID]);
 
 	const getToken = async () => {
 		try {
@@ -73,6 +75,7 @@ const DirectChat = ({
 		};
 
 		const handleDirectMessage = async (object) => {
+			console.log("In handdle direct message");
 			setConversationID(object.id);
 			const token = await getToken();
 			try {
@@ -82,20 +85,22 @@ const DirectChat = ({
 						Authorization: `Bearer ${token}`,
 					},
 				});
-				console.log("In handdle direct message");
 				setConversations(result.data);
+				setFilteredConversations(result.data);
+				setMessages([]);
 			} catch (err) {
 				setConversations([]);
 				console.log(err);
 			}
 		};
+
 		socket?.on('directExists', handleDirectExists);
 		socket?.on('directMessage', handleDirectMessage);
 		return () => {
 			socket?.off('directExists', handleDirectExists);
 			socket?.off('directMessage', handleDirectMessage);
 		};
-	}, [socket]);
+	}, [socket, setConversations, setMessages, setConversationID]);
 
 	async function handleSelectedConversation(conversation: any) {
 		console.log("i am in direct handleSelectedConversation");
@@ -146,13 +151,14 @@ const DirectChat = ({
 					<List.Item
 						onClick={() => handleSelectedConversation(conversation)}
 						style={{
-							backgroundColor: (conversationID === conversation.id) ? Colors.SECONDARY : Colors.PRIMARY,
-							transition: 'background-color 0.3s ease-in-out',
+							border: (conversationID !== conversation.id) ? Colors.PRIMARY : Colors.SECONDARY + ' 1px solid',
+							transition: 'border 0.2s ease-in-out',
 							cursor: 'pointer',
-							paddingLeft: '20px',
-							borderRadius: '10px',
+							paddingLeft: '.5rem',
+							borderRadius: '.5rem',
 							color: 'white',
-							marginBottom: '10px'
+							marginBottom: '.65rem',
+							padding: '.75rem'
 						}}
 					>
 						<List.Item.Meta

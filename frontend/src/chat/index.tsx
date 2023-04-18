@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LeftSideContainer, MessageBoxContainer, ParentContainer, RightSideContainer } from "./chat.styled";
-import { Nav, Status } from "./chat.functions";
+import { Nav, Status, User } from "./chat.functions";
 import { UserProfilePicture } from "../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
@@ -21,6 +21,7 @@ const Chat = ({
 	const [messages, setMessages] = useState([]);
 	const [status, setStatus] = useState(Status.ACTIVE); // you need to set this for if you are selecting any conversation in group 
 	const [conversation, setConversation] = useState(null);
+	const [results, setResults] = useState<User[]>([]);
 
 	return (
 		<>
@@ -40,6 +41,7 @@ const Chat = ({
 						setConversation={setConversation}
 						setStatus={setStatus}
 						conversation={conversation}
+						setResults={setResults}
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>
@@ -61,6 +63,7 @@ const Chat = ({
 						Navbar={Navbar}
 						conversationID={conversationID}
 						conversation={conversation}
+						results={results}
 					/>
 				</RightSideContainer>
 			</ParentContainer>

@@ -22,6 +22,7 @@ interface LeftSideHeaderProps {
 	Navbar: Nav;
 	setNavbar: (nav: Nav) => void;
 	setConversations: (conversations: any) => void;
+	setResults: (results: any) => void;
 }
 
 function LeftSideHeader({
@@ -30,24 +31,34 @@ function LeftSideHeader({
 	Navbar,
 	setNavbar,
 	setConversations,
+	setResults,
 }: LeftSideHeaderProps) {
 	const dispatch = useAppDispatch();
+
+	useEffect(() => {
+		console.log("i am in leftsideheader useEffect");
+		if (user && user !== undefined) {
+			handleNavbarClick(Navbar);
+		}
+	}, [Navbar, user]);
+
+	const getToken = async () => {
+		try {
+			const response = await axios.get("http://localhost:3001/token", {
+				withCredentials: true,
+			});
+			localStorage.setItem("auth", JSON.stringify(response.data));
+			return response.data.token;
+		} catch (err) {
+			dispatch(logOut());
+			window.location.reload();
+			return null;
+		}
+	};
 	const handleNavbarClick = async (nav: Nav) => {
 		setConversations([]);
-		const getToken = async () => {
-			try {
-				const response = await axios.get("http://localhost:3001/token", {
-					withCredentials: true,
-				});
-				localStorage.setItem("auth", JSON.stringify(response.data));
-				return response.data.token;
-			} catch (err) {
-				dispatch(logOut());
-				window.location.reload();
-				return null;
-			}
-		};
 		if (nav === Nav.DIRECT) {
+			console.log("i am in leftside header", user.id)
 			const token = await getToken();
 			try {
 				const result = await axios.get("http://localhost:3001/chat/direct", {
@@ -60,6 +71,20 @@ function LeftSideHeader({
 				setConversations(result.data);
 			} catch (err) {
 				setConversations([]);
+				console.log(err);
+			}
+			try {
+				const result = await axios.get(
+					`http://localhost:3001/users/friends/${user.id}`,
+					{
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
+				setResults(result.data);
+			} catch (err) {
 				console.log(err);
 			}
 		}
@@ -95,10 +120,6 @@ function LeftSideHeader({
 		}
 		setNavbar(nav);
 	};
-
-	useEffect(() => {
-		handleNavbarClick(Navbar);
-	}, [Navbar]);
 
 	return (
 		<>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Colors, Conversation, Privacy, Role, Status } from "../../chat.functions";
+import { Colors, Conversation, Nav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
@@ -19,6 +19,7 @@ interface GroupChatProps {
 	setConversation: any;
 	setStatus: any;
 	conversation: any;
+	Navbar: Nav;
 }
 
 const GroupChat = ({
@@ -30,7 +31,8 @@ const GroupChat = ({
 	setMessages,
 	setConversation,
 	setStatus,
-	conversation
+	conversation,
+	Navbar,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
@@ -51,7 +53,7 @@ const GroupChat = ({
 		setFilteredConversations(conversations);
 		setMessages([]);
 		setConversationID(null);
-	}, [conversations]);
+	}, [conversations, Navbar, setMessages, setConversationID]);
 
 	const items: MenuProps["items"] = [
 		{
@@ -61,17 +63,17 @@ const GroupChat = ({
 		{
 			key: "2",
 			label: <div onClick={(e) => handleMenuClick(e)}>Add password</div>,
-			disabled: !(conversation && conversation.privacy === Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy === Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
 		},
 		{
 			key: "3",
 			label: <div onClick={(e) => handleMenuClick(e)}>Update password</div>,
-			disabled: !(conversation && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined &&  conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
 		},
 		{
 			key: "4",
 			label: <div onClick={(e) => handleMenuClick(e)}>Remove password</div>,
-			disabled: !(conversation && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+			disabled: !(conversation &&  conversation !== undefined && conversation.participants !== undefined && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
 		},
 	];
 

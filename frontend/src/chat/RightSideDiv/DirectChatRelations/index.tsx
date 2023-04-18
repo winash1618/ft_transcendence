@@ -1,9 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { UserProfilePicture } from "../../../assets";
-import { io, Socket } from "socket.io-client";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { logOut, setUserInfo } from "../../../store/authReducer";
-import axios from "../../../api";
 import {
 	DirectItem,
 	DirectInfo,
@@ -13,70 +9,18 @@ import {
 	DirectArrow,
 } from "./direct.styled";
 
-import { List, Avatar, Dropdown, Menu, MenuProps } from "antd";
+import { List, Dropdown, MenuProps } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-
-interface DirectData {
-	id: number;
-	name: string;
-	avatar: string;
-}
-
-interface UserInfo {
-	id: number;
-	login: string;
-	username: string;
-	avatar: string;
-}
+import { User } from "../../chat.functions";
 
 interface DirectChatRelationsProps {
 	user: any;
 	socket: any;
+	results: User[];
 }
 
-
-
-const DirectChatRelations = ({ user, socket }: DirectChatRelationsProps) => {
-	const dispatch = useAppDispatch();
-	const [results, setResults] = useState<UserInfo[]>([]);
+const DirectChatRelations = ({ user, socket, results }: DirectChatRelationsProps) => {
 	const [userClicked, setUserClicked] = useState(null);
-	/*----------------------------------------------------------------------------------------*/
-	const getInfos = async () => {
-		const getToken = async () => {
-			try {
-				const response = await axios.get("http://localhost:3001/token", {
-					withCredentials: true,
-				});
-				localStorage.setItem("auth", JSON.stringify(response.data));
-				return response.data.token;
-			} catch (err) {
-				dispatch(logOut());
-				window.location.reload();
-				return null;
-			}
-		};
-
-		const token = await getToken();
-		try {
-			const result = await axios.get(
-				`http://localhost:3001/users/friends/${user.id}`,
-				{
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
-			setResults(result.data);
-		} catch (err) {
-			console.log(err);
-		}
-	};
-
-	useEffect(() => {
-		getInfos();
-	}, []);
-
 	const handleUserClick = (user: any) => {
 		setUserClicked(user);
 	};
@@ -86,7 +30,6 @@ const DirectChatRelations = ({ user, socket }: DirectChatRelationsProps) => {
 			socket?.emit("directMessage", { userID: userClicked.id, title: userClicked.username });
 			console.log("Chat");
 		} else if (e.target.textContent === "Profile") {
-			console.log(userClicked)
 			console.log("Profile");
 			// redirect when click on profile to profile page http://localhost:3000/profile/user1
 			window.location.href = `http://localhost:3000/profile/${userClicked.login}`;
@@ -100,9 +43,7 @@ const DirectChatRelations = ({ user, socket }: DirectChatRelationsProps) => {
 		{
 			key: "1",
 			label: (
-				<div
-					onClick={(e) => handleMenuClick(e)}
-				>
+				<div onClick={(e) => handleMenuClick(e)} >
 					Chat
 				</div>
 			),
@@ -110,9 +51,7 @@ const DirectChatRelations = ({ user, socket }: DirectChatRelationsProps) => {
 		{
 			key: "2",
 			label: (
-				<div
-					onClick={(e) => handleMenuClick(e)}
-				>
+				<div onClick={(e) => handleMenuClick(e)} >
 					Profile
 				</div>
 			),
@@ -120,9 +59,7 @@ const DirectChatRelations = ({ user, socket }: DirectChatRelationsProps) => {
 		{
 			key: "3",
 			label: (
-				<div
-					onClick={(e) => handleMenuClick(e)}
-				>
+				<div onClick={(e) => handleMenuClick(e)} >
 					Invite
 				</div>
 			),

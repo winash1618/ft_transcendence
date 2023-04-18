@@ -43,6 +43,7 @@ const LeftSideBody = ({
 				setConversations={setConversation}
 				setMessages={setMessages}
 				socket={socket}
+				Navbar={Navbar}
 			/>
 		);
 	}
@@ -58,6 +59,7 @@ const LeftSideBody = ({
 				setConversation={setConversation}
 				setStatus={setStatus}
 				conversation={conversation}
+				Navbar={Navbar}
 			/>
 		);
 	}

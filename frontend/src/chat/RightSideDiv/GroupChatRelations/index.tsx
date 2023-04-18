@@ -73,7 +73,7 @@ const GroupChatRelations = ({
       key: "1",
       label: <div onClick={(e) => handleMenuClick(e)}>Make Admin</div>,
       disabled:
-        conversation && conversation.participants[0].role !== Role.OWNER
+       conversation && conversation !== undefined && conversation.participants && conversation.participants !== undefined && conversation.participants[0].role !== Role.OWNER
           ? true
           : false,
     },
@@ -96,7 +96,6 @@ const GroupChatRelations = ({
   const [GroupNav, setGroupNav] = useState(GNav.GROUPS);
   const [results, setResults] = useState([]);
   const HandleGroupNavClick = (nav: any) => async () => {
-    console.log("checking", conversation);
     const getToken = async () => {
       try {
         const response = await axios.get("http://localhost:3001/token", {
