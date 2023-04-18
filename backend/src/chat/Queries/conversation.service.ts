@@ -145,6 +145,43 @@ export class ConversationService {
     return conversation;
   }
 
+  async muteUser(
+    conversationID: string,
+    userID: string,
+    muteDuration: number,
+    admin: string,
+  ) {
+    if (!(await this.checkConversationExists(conversationID))) {
+      throw new NotFoundException('Conversation does not exist');
+    }
+
+    if (!(await this.participantService.checkParticipantExists(conversationID, userID)) ||
+        !(await this.participantService.checkParticipantExists(conversationID, admin))) {
+      throw new NotFoundException('User is not participant');
+    }
+
+    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === null) {
+      throw new NotFoundException('User is not admin');
+    }
+
+    await this.participantService.updateParticipantStatus(conversationID, userID, Status.MUTED);
+
+    const muteExpiresAt = new Date();
+    muteExpiresAt.setMinutes(muteExpiresAt.getMinutes() + muteDuration);
+
+    // await this.prisma.participant.update({
+    //   where: {
+    //     conversation_id_user_id: {
+    //       conversation_id: conversationID,
+    //       user_id: userID,
+    //     },
+    //   },
+    //   data: {
+    //     mute_expires_at: muteExpiresAt,
+    //   },
+    // });
+  }
+
   async getDirectConversations(userID: string) {
     if (!(await this.userService.checkIfUserExists(userID))) {
       throw new NotFoundException('User does not exist');

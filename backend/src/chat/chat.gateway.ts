@@ -255,6 +255,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
   ) {
+    console.log('In addParticipant');
     const participant =
       await this.participantService.addParticipantToConversation({
         conversation_id: data.conversationID,
@@ -375,6 +376,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(data.conversationID).emit('passwordRemoved');
     } catch (e) {
       client.emit('error', 'Unauthorized access from removePassword');
+    }
+  }
+
+  @SubscribeMessage('muteUser')
+  async muteUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+    try {
+      const conversation = await this.conversationService.muteUser(
+        data.conversationID,
+        data.userID,
+        1,
+        client.data.userID.id);
+
+      this.server.to(client.id).emit('userMuted', {
+        conversationID: data.conversationID,
+        mutedUserID: data.userID,
+      });
+    }
+    catch (e) {
+      client.emit('error', 'Unauthorized access from muteUser');
     }
   }
 
