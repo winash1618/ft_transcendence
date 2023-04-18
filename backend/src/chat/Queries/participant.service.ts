@@ -318,7 +318,7 @@ export class ParticipantService {
       userID,
     );
 
-    if (await this.isUserAdminInConversation(adminUser, conversationID) === false)
+    if (await this.isUserAdminInConversation(adminUser, conversationID) === null)
       throw new NotFoundException('User is not an admin');
 
     if (!participant || participant.conversation_status === Status.DELETED)
