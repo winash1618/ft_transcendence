@@ -6,16 +6,10 @@ import {
 	StyledMdOutlineTravelExplore,
 } from "./LeftSideHeader.styled";
 import { Nav, Colors } from "../../chat.functions";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { Button, Menu } from "antd";
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
-import { HiOutlineUser, HiOutlineUserGroup } from "react-icons/hi";
-import { BiCommentAdd } from "react-icons/bi";
-import { MdOutlineTravelExplore } from "react-icons/md";
-
 interface LeftSideHeaderProps {
 	user: any;
 	socket: any;
@@ -55,6 +49,50 @@ function LeftSideHeader({
 			return null;
 		}
 	};
+
+	const setConversationsObject = async () => {
+		const token = await getToken();
+		try {
+			const result = await axios.get("http://localhost:3001/chat/groups", {
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+			console.log("handleConversationLeft in LeftSideHeader");
+			setConversations(result.data);
+		} catch (err) {
+			setConversations([]);
+			console.log(err);
+		}
+	}
+
+	useEffect(() => {
+		const handleConversationLeft = async (object: any) => {
+			setConversationsObject();
+		};
+		const handlePasswordAdded = async (object: any) => {
+			setConversationsObject();
+		};
+		const handlePasswordRemoved = async (object: any) => {
+			setConversationsObject();
+		};
+		const handleConversationJoined = async (object: any) => {
+			setConversationsObject();
+		};
+
+		socket?.on('conversationJoined', handleConversationJoined);
+		socket?.on('conversationLeft', handleConversationLeft);
+		socket?.on('conversationProtected', handlePasswordAdded);
+		socket?.on('passwordRemoved', handlePasswordRemoved);
+		return () => {
+			socket?.off('conversationJoined', handleConversationJoined);
+			socket?.off('conversationLeft', handleConversationLeft);
+			socket?.off('conversationProtected', handlePasswordAdded);
+			socket?.off('passwordRemoved', handlePasswordRemoved);
+		};
+	}, [socket]);
+
 	const handleNavbarClick = async (nav: Nav) => {
 		setConversations([]);
 		if (nav === Nav.DIRECT) {

@@ -38,7 +38,7 @@ const DirectChat = ({
 		setFilteredConversations(conversations);
 		setMessages([]);
 		setConversationID(null);
-	}, [conversations, setMessages, setConversationID]);
+	}, [conversations]);
 
 	const getToken = async () => {
 		try {

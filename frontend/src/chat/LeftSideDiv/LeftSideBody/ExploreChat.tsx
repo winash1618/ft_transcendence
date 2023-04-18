@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Colors, Nav, Privacy } from "../../chat.functions";
 import { AutoComplete, Button, Input, List } from "antd";
+import { LockOutlined, EyeOutlined, EyeInvisibleOutlined} from '@ant-design/icons';
+
 
 interface ExploreChatProps {
 	socket: any;
@@ -46,6 +48,7 @@ const ExploreChat = ({
 		setMenuVisible(false);
 		setNavbar(Nav.GROUPS);
 	}
+
 	const handleSearch = value => {
 		setSearchKeyword(value);
 		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
@@ -76,29 +79,31 @@ const ExploreChat = ({
 						<List.Item
 							onClick={() => handleSelectedConversation(conversation)}
 							style={{
-								backgroundColor:
-									selectedConversationID === conversation.id
-										? Colors.SECONDARY
-										: Colors.PRIMARY,
-								transition: "background-color 0.3s ease-in-out",
-								cursor: "pointer",
-								paddingLeft: "20px",
-								borderRadius: "10px",
-								color: "white",
-								marginBottom: "10px",
+								border: (selectedConversationID !== conversation.id) ? Colors.PRIMARY : Colors.SECONDARY + ' 1px solid',
+								transition: 'border 0.2s ease-in-out',
+								cursor: 'pointer',
+								paddingLeft: '.5rem',
+								borderRadius: '.5rem',
+								color: 'white',
+								marginBottom: '.65rem',
+								padding: '.75rem'
 							}}
 						>
 							<List.Item.Meta
 								title={
-									<span style={{ color: "white" }}>
-										{conversation.title}{" "}
-										{conversation.privacy === "PUBLIC"
-											? "(PUBLIC)"
-											: conversation.privacy === "PROTECTED"
-												? "(PROTECTED)"
-												: conversation.privacy === "PRIVATE"
-													? "(PRIVATE)"
-													: null}
+									<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+										<div style={{ width: '10rem' }}>
+											{conversation.title}
+										</div>
+										<div style={{ width: '5rem', display: 'flex', justifyContent: 'right' }}>
+											{
+												conversation !== undefined && conversation.privacy === 'PUBLIC'
+													? <EyeOutlined /> : conversation.privacy === 'PROTECTED'
+														? <LockOutlined /> : conversation.privacy === 'PRIVATE'
+															? <EyeInvisibleOutlined /> : null
+											}
+											
+										</div>
 									</span>
 								}
 							/>

@@ -42,6 +42,7 @@ const LeftSideDiv = ({
 		setConversations([]);
 		setConversationID(null);
 	}, [socket, Navbar]);
+
 	return (
 		<>
 			<LeftSideHeader

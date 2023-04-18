@@ -53,7 +53,7 @@ const GroupChat = ({
 		setFilteredConversations(conversations);
 		setMessages([]);
 		setConversationID(null);
-	}, [conversations, Navbar, setMessages, setConversationID]);
+	}, [conversations]);
 
 	const items: MenuProps["items"] = [
 		{
@@ -142,7 +142,7 @@ const GroupChat = ({
 		console.log("handleMenuClick in GroupChat", e.target.outerText);
 		if (e.target.outerText === "Leave conversation") {
 			console.log("Leave conversation");
-			socket?.emit("leaveConversation", conversationID);
+			socket?.emit("leaveConversation", {conversationID: conversationID});
 		} else if (e.target.outerText === "Add password") {
 			setMenuVisible(menuVisible === false ? true : false);
 			console.log("Add password");
@@ -150,8 +150,7 @@ const GroupChat = ({
 			setMenuVisible(menuVisible === false ? true : false);
 			console.log("Update password");
 		} else if (e.target.outerText === "Remove password") {
-			socket?.emit("removePassword", conversationID);
-			console.log("Remove password");
+			socket?.emit("removePassword", {conversationID: conversationID});
 		}
 	};
 
