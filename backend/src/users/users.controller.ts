@@ -95,4 +95,19 @@ export class UsersController {
   async addFriend(@Param('userID') userID: string, @Param('friendID') friendID: string) {
     return await this.usersService.addFriend(userID, friendID);
   }
+
+  @Delete(':userID/unfriend/:friendID')
+  async unfriend(@Param('userID') userID: string, @Param('friendID') friendID: string) {
+    return await this.usersService.unfriend(userID, friendID);
+  }
+
+  @Post(':userID/block/:blockID')
+  async block(@Param('userID') userID: string, @Param('blockID') blockID: string) {
+    return await this.usersService.block(userID, blockID);
+  }
+
+  @Delete(':userID/unblock/:blockID')
+  async unblock(@Param('userID') userID: string, @Param('blockID') blockID: string) {
+    return await this.usersService.unblock(userID, blockID);
+  }
 }
