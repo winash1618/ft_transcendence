@@ -53,6 +53,7 @@ function LeftSideHeader({
 	};
 
 	const setConversationsObject = async () => {
+		console.log("handleConversationLeft in LeftSideHeader");
 		const token = await getToken();
 		try {
 			const result = await axios.get("http://localhost:3001/chat/groups", {
@@ -61,7 +62,7 @@ function LeftSideHeader({
 					Authorization: `Bearer ${token}`,
 				},
 			});
-			console.log("handleConversationLeft in LeftSideHeader");
+			setNavbar(Nav.GROUPS);
 			setConversations(result.data);
 		} catch (err) {
 			setConversations([]);
@@ -102,7 +103,13 @@ function LeftSideHeader({
 				setConversationsObject();
 			}
 		};
+		const handleAdminMade = async (object: any) => {
+			if (object.userID === object.admin) {
+				setConversationsObject();
+			}
+		};
 
+		socket?.on('adminMade', handleAdminMade);
 		socket?.on('userMuted', handleUserMuted);
 		socket?.on('userKicked', handleUserKicked);
 		socket?.on('userUnbanned', handleUserUnbanned);
@@ -113,6 +120,7 @@ function LeftSideHeader({
 		socket?.on('passwordRemoved', handlePasswordRemoved);
 
 		return () => {
+			socket?.off('adminMade', handleAdminMade);
 			socket?.off('userMuted', handleUserMuted);
 			socket?.off('userKicked', handleUserKicked);
 			socket?.off('userUnbanned', handleUserUnbanned);

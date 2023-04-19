@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Nav } from "../../chat.functions";
 import DirectChat from "./DirectChat";
 import GroupChat from "./GroupChat";
@@ -63,7 +62,6 @@ const LeftSideBody = ({
 				setConversation={setConversation}
 				setStatus={setStatus}
 				conversation={conversation}
-				Navbar={Navbar}
 				setGroupResults={setGroupResults}
 				setGroupNav={setGroupNav}
 			/>

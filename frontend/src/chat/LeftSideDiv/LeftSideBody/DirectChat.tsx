@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Nav, Privacy, Colors, Conversation } from "../../chat.functions";
+import { useEffect, useState } from "react";
+import { Nav, Colors, Conversation } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { List, Avatar, AutoComplete } from 'antd';
+import { List, Avatar, Input } from 'antd';
 
 interface DirectChatProp {
 	conversations: Conversation[];
@@ -30,15 +30,13 @@ const DirectChat = ({
 }: DirectChatProp) => {
 
 	const dispatch = useAppDispatch();
-	const [filterValue, setFilterValue] = useState('');
-	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+	const [searchText, setSearchText] = useState("");
 
 	useEffect(() => {
 		console.log("i am in direct useEffect", conversations);
-		setFilteredConversations(conversations);
 		setMessages([]);
 		setConversationID(null);
-	}, [conversations]);
+	}, [conversations, setMessages, setConversationID]);
 
 	const getToken = async () => {
 		try {
@@ -52,6 +50,13 @@ const DirectChat = ({
 			window.location.reload();
 			return null;
 		}
+	};
+
+	const filterResults = (data: Conversation[], searchText: string) => {
+		if (!searchText) {
+			return data;
+		}
+		return data.filter((item) => item.title.toLowerCase().includes(searchText.toLowerCase()));
 	};
 
 	useEffect(() => {
@@ -86,7 +91,6 @@ const DirectChat = ({
 					},
 				});
 				setConversations(result.data);
-				setFilteredConversations(result.data);
 				setMessages([]);
 			} catch (err) {
 				setConversations([]);
@@ -100,7 +104,7 @@ const DirectChat = ({
 			socket?.off('directExists', handleDirectExists);
 			socket?.off('directMessage', handleDirectMessage);
 		};
-	}, [socket, setConversations, setMessages, setConversationID]);
+	}, [socket, setConversations, setMessages, setConversationID ]);
 
 	async function handleSelectedConversation(conversation: any) {
 		console.log("i am in direct handleSelectedConversation");
@@ -120,33 +124,16 @@ const DirectChat = ({
 		}
 	}
 
-	const handleAutoCompleteSearch = (value: string) => {
-		setFilterValue(value);
-		setFilteredConversations(conversations.filter(conversation => conversation.participants[0].user.username.toUpperCase().includes(value.toUpperCase())));
-	};
-
-	const options = filteredConversations.map(conversation => ({
-		value: conversation.participants[0].user.username,
-		label: conversation.participants[0].user.username,
-	}));
-
 	return (
 		<>
-			<div style={{ textAlign: 'center' }}>
-				<AutoComplete
-					options={options}
-					value={filterValue}
-					onSearch={handleAutoCompleteSearch}
-					placeholder="Search conversations"
-					filterOption={(inputValue, option) =>
-						option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-					}
-					style={{ width: '80%', marginBottom: '10px' }}
-				/>
-			</div>
+			<Input.Search
+				placeholder="Search friends"
+				value={searchText}
+				onChange={(e) => setSearchText(e.target.value)}
+			/>
 			<List
 				itemLayout="horizontal"
-				dataSource={filteredConversations}
+				dataSource={filterResults(conversations, searchText)}
 				renderItem={conversation => (
 					<List.Item
 						onClick={() => handleSelectedConversation(conversation)}

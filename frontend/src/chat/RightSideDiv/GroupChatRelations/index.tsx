@@ -6,7 +6,7 @@ import {
 	GroupName,
 	GroupTitle,
 } from "./group.styled";
-import { List, Avatar, Dropdown, Menu, MenuProps, Button } from "antd";
+import { List, Dropdown, MenuProps, Button, Input, Result } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
@@ -26,7 +26,7 @@ interface GroupChatRelationsProps {
 	groupNav: GNav;
 }
 
-interface Result {
+interface ResultObject {
 	user: User;
 	role: any;
 	status: any;
@@ -44,6 +44,7 @@ const GroupChatRelations = ({
 	groupNav,
 }: GroupChatRelationsProps) => {
 	const [user, setUser] = useState<any>(null);
+	const [searchText, setSearchText] = useState("");
 	/*-----------Handle User Click-------------------------------------------------*/
 	const handleUserClick = (participant: any) => {
 		setUser(participant.user);
@@ -111,15 +112,29 @@ const GroupChatRelations = ({
 		setGroupResults(groupResults.filter((result) => result.id !== object.id));
 	};
 	/*-----------Handle Add Click-------------------------------------------------*/
+
+	const filterResults = (data: ResultObject[], searchText: string) => {
+		if (!searchText) {
+			return data;
+		}
+		console.log(data);
+		if (groupNav !== GNav.ADD && conversationID !== null)
+			return data.filter((item) => item.user.username.toLowerCase().includes(searchText.toLowerCase()));
+		return data.filter((item) => item.username.toLowerCase().includes(searchText.toLowerCase()));
+	};
+
 	/*-----------MENU-------------------------------------------------*/
 	const items: MenuProps["items"] = [
 		{
 			key: "1",
 			label: <div onClick={(e) => handleMenuClick(e)}>Make Admin</div>,
-			disabled:
-				conversation && conversation !== undefined && conversation.participants && conversation.participants !== undefined && conversation.participants[0].role !== Role.OWNER
-					? true
-					: false,
+			disabled: conversation
+				&& conversation !== undefined
+				&& conversation.participants
+				&& conversation.participants !== undefined
+				&& conversation.participants[0].role !== Role.OWNER
+				? true
+				: false,
 		},
 		{
 			key: "2",
@@ -229,11 +244,16 @@ const GroupChatRelations = ({
 						size={30}
 					/>
 				</GroupTitle>
+				<Input.Search
+					placeholder="Search friends"
+					value={searchText}
+					onChange={(e) => setSearchText(e.target.value)}
+				/>
 				{groupNav === GNav.GROUPS ? (
 					<List
 						itemLayout="horizontal"
-						dataSource={groupResults}
-						renderItem={(result: Result) => (
+						dataSource={filterResults(groupResults, searchText) as any}
+						renderItem={(result: ResultObject) => (
 							<GroupItem key={result.id} onClick={() => handleUserClick(result)}>
 								<GroupInfo>
 									<GroupAvatar src={UserProfilePicture} />
@@ -258,8 +278,8 @@ const GroupChatRelations = ({
 				) : groupNav === GNav.BLOCKED ? (
 					<List
 						itemLayout="horizontal"
-						dataSource={groupResults}
-						renderItem={(result: Result) => (
+						dataSource={filterResults(groupResults, searchText) as any}
+						renderItem={(result: ResultObject) => (
 							<GroupItem>
 								<GroupInfo>
 									<GroupAvatar src={UserProfilePicture} />
@@ -285,8 +305,8 @@ const GroupChatRelations = ({
 				) : (
 					<List
 						itemLayout="horizontal"
-						dataSource={groupResults}
-						renderItem={(result: Result) => (
+						dataSource={filterResults(groupResults, searchText) as any}
+						renderItem={(result: ResultObject) => (
 							<GroupItem>
 								<GroupInfo>
 									<GroupAvatar src={UserProfilePicture} />
@@ -295,7 +315,7 @@ const GroupChatRelations = ({
 										<Button type="default" onClick={() => handleAddClick(result)}>
 											Add
 										</Button>
-									) : null}
+									) : <MinusCircleOutlined />}
 								</GroupInfo>
 							</GroupItem>
 						)}
@@ -307,5 +327,4 @@ const GroupChatRelations = ({
 	return null;
 };
 
-// onClick={() => handleAddClick(result)}
 export default GroupChatRelations;

@@ -3,7 +3,7 @@ import { Colors, Conversation, GNav, Nav, Privacy, Role, Status } from "../../ch
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { List, Avatar, AutoComplete, Button, Dropdown, MenuProps, Input } from 'antd';
+import { List, Avatar, Button, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
@@ -19,7 +19,6 @@ interface GroupChatProps {
 	setConversation: any;
 	setStatus: any;
 	conversation: any;
-	Navbar: Nav;
 	setGroupResults: any;
 	setGroupNav: any;
 }
@@ -34,21 +33,18 @@ const GroupChat = ({
 	setConversation,
 	setStatus,
 	conversation,
-	Navbar,
 	setGroupResults,
 	setGroupNav,
 }: GroupChatProps) => {
 
 	const dispatch = useAppDispatch();
-	const [filterValue, setFilterValue] = useState('');
-	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
+	const [searchText, setSearchText] = useState("");
 
 	useEffect(() => {
 		const handleConversationLeft = () => {
 			console.log("handleConversationLeft in GroupChat");
-			setFilteredConversations(conversations.filter(conversation => conversation.id !== conversationID));
 			setMessages([]);
 			setConversationID(null);
 			setMessages([]);
@@ -59,6 +55,14 @@ const GroupChat = ({
 		};
 	}, [socket]);
 
+
+	const filterResults = (data: Conversation[], searchText: string) => {
+		if (!searchText) {
+			return data;
+		}
+		return data.filter((item) => item.title.toLowerCase().includes(searchText.toLowerCase()));
+	};
+
 	useEffect(() => {
 		setMenuVisible(false);
 		setGroupResults([]);
@@ -66,7 +70,6 @@ const GroupChat = ({
 
 	useEffect(() => {
 		console.log("Group useEffect to reset data");
-		setFilteredConversations(conversations);
 		setMessages([]);
 		setConversationID(null);
 	}, [conversations]);
@@ -153,12 +156,6 @@ const GroupChat = ({
 		}
 	}
 
-	const handleAutoCompleteSearch = (value: string) => {
-		console.log("handleAutoCompleteSearch in GroupChat");
-		setFilterValue(value);
-		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
-	};
-
 	const handleMenuClick = (e: any) => {
 		console.log("handleMenuClick in GroupChat", e.target.outerText);
 		if (e.target.outerText === "Leave conversation") {
@@ -176,28 +173,16 @@ const GroupChat = ({
 		}
 	};
 
-	const options = filteredConversations.map(conversation => ({
-		value: conversation.title,
-		label: conversation.title,
-	}));
-
 	return (
 		<>
-			<div style={{ textAlign: 'center' }}>
-				<AutoComplete
-					options={options}
-					value={filterValue}
-					onSearch={handleAutoCompleteSearch}
-					placeholder="Search conversations"
-					filterOption={(inputValue, option) =>
-						option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-					}
-					style={{ width: '80%', marginBottom: '10px' }}
-				/>
-			</div>
+			<Input.Search
+				placeholder="Search friends"
+				value={searchText}
+				onChange={(e) => setSearchText(e.target.value)}
+			/>
 			<List
 				itemLayout="horizontal"
-				dataSource={filteredConversations.filter(conversation => conversation)}
+				dataSource={filterResults(conversations, searchText)}
 				renderItem={conversation => (
 					<>
 						<List.Item
@@ -209,7 +194,7 @@ const GroupChat = ({
 								paddingLeft: '.5rem',
 								borderRadius: '.5rem',
 								color: 'white',
-								marginBottom: '.65rem',
+								marginTop: '.65rem',
 								padding: '.75rem'
 							}}
 						>

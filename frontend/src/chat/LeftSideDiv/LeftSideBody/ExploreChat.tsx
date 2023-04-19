@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Colors, Nav, Privacy } from "../../chat.functions";
-import { AutoComplete, Button, Input, List } from "antd";
-import { LockOutlined, EyeOutlined, EyeInvisibleOutlined} from '@ant-design/icons';
+import { Button, Input, List } from "antd";
+import { LockOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
 
 interface ExploreChatProps {
@@ -25,9 +25,15 @@ const ExploreChat = ({
 }: ExploreChatProps) => {
 	const [selectedConversationID, setSelectedConversationID] = React.useState("");
 	const [password, setPassword] = useState('');
-	const [searchKeyword, setSearchKeyword] = useState('');
-	const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
 	const [menuVisible, setMenuVisible] = useState(false);
+	const [searchText, setSearchText] = useState("");
+
+	const filterResults = (data: Conversation[], searchText: string) => {
+		if (!searchText) {
+			return data;
+		}
+		return data.filter((item) => item.title.toLowerCase().includes(searchText.toLowerCase()));
+	};
 
 	function handleSelectedConversation(conversation: any) {
 		console.log("handleSelectedConversation in ExploreChat")
@@ -49,31 +55,21 @@ const ExploreChat = ({
 		setNavbar(Nav.GROUPS);
 	}
 
-	const handleSearch = value => {
-		setSearchKeyword(value);
-		setFilteredConversations(conversations.filter(conversation => conversation.title.toLowerCase().includes(value.toLowerCase())));
-	};
-
 	useEffect(() => {
 		console.log("Explore useEffect to reset data");
-		setFilteredConversations(conversations);
 		setMenuVisible(false);
 	}, [conversations, Navbar]);
 
 	return (
 		<>
-			<div style={{ textAlign: 'center' }}>
-				<AutoComplete
-					options={[]}
-					value={searchKeyword}
-					placeholder="Search conversations"
-					onSearch={handleSearch}
-					style={{ width: '80%', marginBottom: '10px' }}
-				/>
-			</div>
+			<Input.Search
+				placeholder="Search friends"
+				value={searchText}
+				onChange={(e) => setSearchText(e.target.value)}
+			/>
 			<List
 				itemLayout="horizontal"
-				dataSource={filteredConversations}
+				dataSource={filterResults(conversations, searchText)}
 				renderItem={(conversation) => (
 					<>
 						<List.Item
@@ -102,7 +98,7 @@ const ExploreChat = ({
 														? <LockOutlined /> : conversation.privacy === 'PRIVATE'
 															? <EyeInvisibleOutlined /> : null
 											}
-											
+
 										</div>
 									</span>
 								}
