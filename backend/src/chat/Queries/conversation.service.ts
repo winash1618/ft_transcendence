@@ -169,17 +169,17 @@ export class ConversationService {
     const muteExpiresAt = new Date();
     muteExpiresAt.setMinutes(muteExpiresAt.getMinutes() + muteDuration);
 
-    // await this.prisma.participant.update({
-    //   where: {
-    //     conversation_id_user_id: {
-    //       conversation_id: conversationID,
-    //       user_id: userID,
-    //     },
-    //   },
-    //   data: {
-    //     mute_expires_at: muteExpiresAt,
-    //   },
-    // });
+    return await this.prisma.participant.update({
+      where: {
+        conversation_id_user_id: {
+          conversation_id: conversationID,
+          user_id: userID,
+        },
+      },
+      data: {
+        mute_expires_at: muteExpiresAt,
+      },
+    });
   }
 
   async getDirectConversations(userID: string) {

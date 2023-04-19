@@ -381,10 +381,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('muteUser')
   async muteUser(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
     try {
+      const muteDuration: number = 1;
       const conversation = await this.conversationService.muteUser(
         data.conversationID,
         data.userID,
-        1,
+        muteDuration,
         client.data.userID.id);
 
       this.server.to(client.id).emit('userMuted', {
