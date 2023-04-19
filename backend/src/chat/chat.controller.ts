@@ -71,7 +71,6 @@ export class ChatController {
         await this.messageService.getDisplayMessagesByConversationID(
           conversationID,
         );
-      console.log(conversations);
       return conversations;
     } catch (error) {
       throw new NotFoundException(error.message);

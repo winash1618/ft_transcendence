@@ -151,7 +151,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     if (exists !== null) {
-      this.server.to(client.data.userID.id).emit('directExists', exists.id);
+		console.log('exists');
+      client.emit('directExists', exists.id);
       return;
     }
     const conversation =
@@ -167,7 +168,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.joinConversations(client.data.userID.id, conversation.id);
     await this.joinConversations(data.userID, conversation.id);
-    this.server.to(client.data.userID.id).emit('directMessage', conversation);
+    client.emit('directMessage', conversation);
   }
 
   @SubscribeMessage('leaveConversation')
@@ -187,11 +188,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const user = this.gatewaySession.getUserSocket(client.data.userID.id);
     if (!user) return;
-    user.leave(data.conversationID);
     this.server.to(data.conversationID).emit('conversationLeft', {
-      conversationID: data.conversationID,
-      leftUserID: client.data.userID.id,
+		conversationID: data.conversationID,
+		leftUserID: client.data.userID.id,
     });
+	user.leave(data.conversationID);
   }
 
   @SubscribeMessage('addPassword')
@@ -205,7 +206,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.data.userID.id,
     );
 
-    this.server.to(data.conversationID).emit('conversationProtected', conversation.id);
+    this.server
+      .to(data.conversationID)
+      .emit('conversationProtected', conversation.id);
   }
 
   @SubscribeMessage('sendMessage')
@@ -245,7 +248,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.server.to(data.conversationID).emit('adminMade', {
       conversationID: data.conversationID,
-      admin: participant.user_id
+      admin: participant.user_id,
     });
   }
 
@@ -255,20 +258,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: any,
   ) {
     console.log('In addParticipant');
+
     const participant =
-      await this.participantService.addParticipantToConversation({
-        conversation_id: data.conversationID,
-        user_id: data.userID,
-        role: Role.USER,
-        conversation_status: 'ACTIVE',
-      },
-      client.data.userID.id,
-    );
+      await this.participantService.addParticipantToConversation(
+        {
+          conversation_id: data.conversationID,
+          user_id: data.userID,
+          role: Role.USER,
+          conversation_status: 'ACTIVE',
+        },
+        client.data.userID.id,
+      );
 
     this.joinConversations(data.userID, data.conversationID);
     this.server.to(data.conversationID).emit('participantAdded', {
       conversationID: data.conversationID,
-      participant: participant.user_id
+      participant: participant.user_id,
     });
   }
 
@@ -293,7 +298,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     user.leave(data.conversationID);
     this.server.to(data.conversationID).emit('participantRemoved', {
       conversationID: data.conversationID,
-      removedUserID: participant.user_id
+      removedUserID: participant.user_id,
     });
   }
 
@@ -309,11 +314,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const user = this.gatewaySession.getUserSocket(data.userID);
       if (!user) return;
-      user.leave(data.conversationID);
       this.server.to(data.conversationID).emit('userBanned', {
-        conversationID: data.conversationID,
-        bannedUserID: participant.user_id
-      });
+		  conversationID: data.conversationID,
+		  bannedUserID: participant.user_id,
+	});
+	user.leave(data.conversationID);
     } catch (e) {
       client.emit('error', 'Unauthorized access from banUser');
     }
@@ -388,12 +393,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         muteDuration,
         client.data.userID.id);
 
-      this.server.to(client.id).emit('userMuted', {
+      this.server.to(data.conversationID).emit('userMuted', {
         conversationID: data.conversationID,
         mutedUserID: data.userID,
       });
-    }
-    catch (e) {
+    } catch (e) {
       client.emit('error', 'Unauthorized access from muteUser');
     }
   }

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Nav } from "../../chat.functions";
 import DirectChat from "./DirectChat";
 import GroupChat from "./GroupChat";
@@ -8,7 +7,6 @@ import CreateChat from "./CreateChat";
 interface LeftSideBodyProps {
 	socket: any;
 	Navbar: Nav;
-	status: any;
 	setNavbar: any;
 	conversationID: any;
 	setConversationID: any;
@@ -16,12 +14,15 @@ interface LeftSideBodyProps {
 	UserProfilePicture: any;
 	setMessages: any;
 	setConversation: any;
+	setStatus: any;
+	conversation: any;
+	setGroupResults: any;
+	setGroupNav: any;
 }
 
 const LeftSideBody = ({
 	socket,
 	Navbar,
-	status,
 	setNavbar,
 	conversationID,
 	setConversationID,
@@ -29,6 +30,10 @@ const LeftSideBody = ({
 	UserProfilePicture,
 	setMessages,
 	setConversation,
+	setStatus,
+	conversation,
+	setGroupResults,
+	setGroupNav
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
@@ -38,7 +43,9 @@ const LeftSideBody = ({
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
 				conversationID={conversationID}
+				setConversations={setConversation}
 				setMessages={setMessages}
+				socket={socket}
 				Navbar={Navbar}
 			/>
 		);
@@ -46,14 +53,17 @@ const LeftSideBody = ({
 	else if (Navbar === Nav.GROUPS) {
 		return (
 			<GroupChat
+				socket={socket}
 				conversations={conversations}
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}
-				Navbar={Navbar}
-				status={status}
 				setConversation={setConversation}
+				setStatus={setStatus}
+				conversation={conversation}
+				setGroupResults={setGroupResults}
+				setGroupNav={setGroupNav}
 			/>
 		);
 	}
@@ -63,6 +73,7 @@ const LeftSideBody = ({
 				socket={socket}
 				conversations={conversations}
 				setNavbar={setNavbar}
+				Navbar={Navbar}
 			/>
 		);
 	}

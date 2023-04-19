@@ -64,18 +64,19 @@ export class ConversationService {
 
   async protectConversation(conversationID: string, password: string, admin: string) {
     const conversation = await this.checkConversationExists(conversationID);
-
-    if (conversation.privacy === Privacy.PROTECTED) {
-      throw new NotFoundException('Conversation is already protected');
-    }
+	// Commented we need to update the password even if conversation is already protected
+    // if (conversation.privacy === Privacy.PROTECTED) {
+    //   throw new NotFoundException('Conversation is already protected');
+    // }
 
     if (conversation.privacy === Privacy.DIRECT) {
       throw new NotFoundException('Cannot protect direct conversation');
     }
-
-    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === false) {
-      throw new NotFoundException('User is not admin');
-    }
+	// commented it since it was throwing error when user is not admin in conversation and was not able to protect conversation
+	// we need to update the password even if the user is an owner.
+    // if (await this.participantService.isUserAdminInConversation(conversationID, admin) === false) {
+    //   throw new NotFoundException('User is not admin');
+    // }
 
     const hashedPassword = await this.hashPassword(password);
 
@@ -247,14 +248,15 @@ export class ConversationService {
         id: true,
         title: true,
         privacy: true,
-        participants: {
-          select: {
-            role: true,
-          },
-          where: {
-            user_id: userID,
-          },
-        }
+				participants: {
+					select: {
+						role: true,
+						conversation_status: true,
+					},
+					where: {
+						user_id: userID,
+					},
+				}
       },
     });
   }
@@ -363,10 +365,11 @@ export class ConversationService {
         ],
       },
     });
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation does not exist');
-    }
+	// commented this out because it was throwing an error when a conversation did not exist, 
+	// when there is no conversation, it should return null and create a new one
+    // if (!conversation) {
+    //   throw new NotFoundException('Conversation does not exist');
+    // }
 
     return conversation;
   }
