@@ -90,4 +90,9 @@ export class UsersController {
   async getFriends(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
     return await this.usersService.getUserFriends(uuid);
   }
+
+  @Post(':userID/add-friend/:friendID')
+  async addFriend(@Param('userID') userID: string, @Param('friendID') friendID: string) {
+    return await this.usersService.addFriend(userID, friendID);
+  }
 }

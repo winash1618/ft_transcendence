@@ -44,6 +44,41 @@ export class UsersService {
     });
   }
 
+  async addFriend(userID: string, friendID: string) {
+    if (userID === friendID) {
+      throw new Error('You cannot add yourself as a friend');
+    }
+
+    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
+    const friendExists = await this.prisma.user.findUnique({ where: { id: friendID } });
+
+    if (!userExists || !friendExists) {
+      throw new Error('One or both users do not exist');
+    }
+
+    // Update user's friends list
+    await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        friends: {
+          connect: { id: friendID },
+        },
+      },
+    });
+
+    // Update friend's friends list
+    await this.prisma.user.update({
+      where: { id: friendID },
+      data: {
+        friends: {
+          connect: { id: userID },
+        },
+      },
+    });
+
+    return { message: 'Friend added successfully' };
+  }
+
   async getUserById(id: string): Promise<User | null> {
     return await this.prisma.user.findUnique({ where: { id } });
   }

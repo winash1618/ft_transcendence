@@ -64,19 +64,18 @@ export class ConversationService {
 
   async protectConversation(conversationID: string, password: string, admin: string) {
     const conversation = await this.checkConversationExists(conversationID);
-	// Commented we need to update the password even if conversation is already protected
-    // if (conversation.privacy === Privacy.PROTECTED) {
-    //   throw new NotFoundException('Conversation is already protected');
-    // }
+
+    if (!conversation)
+      throw new NotFoundException('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT) {
       throw new NotFoundException('Cannot protect direct conversation');
     }
 	// commented it since it was throwing error when user is not admin in conversation and was not able to protect conversation
 	// we need to update the password even if the user is an owner.
-    // if (await this.participantService.isUserAdminInConversation(conversationID, admin) === false) {
-    //   throw new NotFoundException('User is not admin');
-    // }
+    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === null) {
+      throw new NotFoundException('User is not admin');
+    }
 
     const hashedPassword = await this.hashPassword(password);
 
@@ -96,6 +95,10 @@ export class ConversationService {
 
     if (conversation.privacy !== Privacy.PROTECTED) {
       throw new NotFoundException('Conversation is not protected');
+    }
+
+    if (conversation.password === null) {
+      throw new NotFoundException('Conversation does not have a password');
     }
 
     return await this.prisma.conversation.update({
@@ -164,6 +167,10 @@ export class ConversationService {
     if (await this.participantService.isUserAdminInConversation(conversationID, admin) === null) {
       throw new NotFoundException('User is not admin');
     }
+
+    // if (await this.participantService.isUserMuted(conversationID, userID)) {
+    //   throw new NotFoundException('User is already muted');
+    // }
 
     await this.participantService.updateParticipantStatus(conversationID, userID, Status.MUTED);
 
@@ -365,7 +372,7 @@ export class ConversationService {
         ],
       },
     });
-	// commented this out because it was throwing an error when a conversation did not exist, 
+	// commented this out because it was throwing an error when a conversation did not exist,
 	// when there is no conversation, it should return null and create a new one
     // if (!conversation) {
     //   throw new NotFoundException('Conversation does not exist');
@@ -390,14 +397,6 @@ export class ConversationService {
     });
   }
 
-  // async checkConversationTitleExists(title: string) {
-  //   return this.prisma.conversation.findUnique({
-  //     where: {
-  //       title,
-  //     },
-  //   });
-  // }
-
   async getConversationByUserID(userID: string) {
     return this.prisma.conversation.findMany({
       where: {
@@ -416,40 +415,6 @@ export class ConversationService {
             user: true,
             messages: true,
           },
-        },
-      },
-    });
-  }
-
-  async getConversationByUserIDAndSortedMessages(userID: string) {
-    return this.prisma.conversation.findMany({
-      where: {
-        participants: {
-          some: {
-            user_id: userID,
-            conversation_status: {
-              not: Status['BANNED'],
-            },
-          },
-        },
-      },
-      include: {
-        participants: {
-          include: {
-            user: true,
-            messages: {
-              orderBy: {
-                created_at: 'desc',
-              },
-              take: 1,
-            },
-          },
-        },
-        messages: {
-          orderBy: {
-            created_at: 'desc',
-          },
-          take: 1,
         },
       },
     });

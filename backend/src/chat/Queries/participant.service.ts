@@ -93,6 +93,9 @@ export class ParticipantService {
         createParticipant.user_id,
       );
 
+      if (participant.conversation_status === 'BANNED')
+        throw new NotFoundException('User is banned');
+
       if (participant) {
         return await this.updateParticipantStatus(
           createParticipant.conversation_id,
@@ -370,8 +373,22 @@ export class ParticipantService {
     userID: string,
     adminUser: string,
   ) {
-    // if (this.validationCheck(conversationID, userID))
-    //   throw new NotFoundException('Validation check failed');
+    if (!(await this.conversationService.checkConversationExists(conversationID)))
+      throw new NotFoundException('Conversation does not exist');
+
+    if (await this.isUserAdminInConversation(conversationID, adminUser) === null)
+      throw new NotFoundException('User is not an admin');
+
+    const participant = await this.checkParticipantExists(
+      conversationID,
+      userID,
+    );
+
+    if (!participant || participant.conversation_status === Status.DELETED)
+      throw new NotFoundException('Participant does not exist');
+
+    if (participant.conversation_status === Status.ACTIVE)
+      throw new NotFoundException('Participant is not banned');
 
     return await this.updateParticipantStatus(
       conversationID,
@@ -385,11 +402,31 @@ export class ParticipantService {
     userID: string,
     adminUser: string,
   ) {
-    // if (this.validationCheck(conversationID, userID))
-    //   throw new NotFoundException('Validation check failed');
+    if (!(await this.conversationService.checkConversationExists(conversationID)))
+      throw new NotFoundException('Conversation does not exist');
 
     if (await this.isUserAdminInConversation(conversationID, adminUser) === null)
       throw new NotFoundException('User is not an admin');
+
+    const participant = await this.checkParticipantExists(
+      conversationID,
+      userID,
+    );
+
+    if (!participant || participant.conversation_status === Status.DELETED)
+      throw new NotFoundException('Participant does not exist');
+
+    if (participant.role === Role.OWNER)
+      throw new NotFoundException('Cannot kick owner');
+
+    if (participant.role === Role.ADMIN)
+      throw new NotFoundException('Cannot kick admin');
+
+    if (participant.conversation_status === Status.KICKED)
+      throw new NotFoundException('Participant is already kicked');
+
+    if (participant.conversation_status === Status.BANNED)
+      throw new NotFoundException('Participant is already banned');
 
     return await this.updateParticipantStatus(conversationID, userID, Status.KICKED);
   }
