@@ -27,6 +27,11 @@ export class ConversationService {
   }
 
   async createConversation(createConversation: CreateConversationDto) {
+    try {
+
+    if (await this.checkIfConversationTitleExists(createConversation.title))
+      throw new NotFoundException('Conversation title already exists');
+
     if (
       createConversation.privacy === 'PROTECTED' &&
       (createConversation.password === '' ||
@@ -41,7 +46,6 @@ export class ConversationService {
       );
     }
 
-    try {
       const conversation = await this.prisma.conversation.create({
         data: {
           title: createConversation.title,
@@ -60,6 +64,14 @@ export class ConversationService {
     } catch (e) {
       throw new NotFoundException(e);
     }
+  }
+
+  async checkIfConversationTitleExists(title: string) {
+    return await this.prisma.conversation.findUnique({
+      where: {
+        title: title,
+      },
+    });
   }
 
   async protectConversation(conversationID: string, password: string, admin: string) {

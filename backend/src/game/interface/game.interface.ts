@@ -11,6 +11,7 @@ export interface Game {
 export interface GameSetting {
   speed: number;
   points: number;
+  hasMiddleWall: boolean;
 }
 
 export interface BallMovement {

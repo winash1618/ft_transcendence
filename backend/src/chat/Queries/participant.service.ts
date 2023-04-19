@@ -93,10 +93,10 @@ export class ParticipantService {
         createParticipant.user_id,
       );
 
-      if (participant.conversation_status === 'BANNED')
-        throw new NotFoundException('User is banned');
-
       if (participant) {
+        if (participant.conversation_status === 'BANNED')
+          throw new NotFoundException('User is banned');
+
         return await this.updateParticipantStatus(
           createParticipant.conversation_id,
           createParticipant.user_id,
@@ -109,7 +109,6 @@ export class ParticipantService {
       throw new NotFoundException(error.message);
     }
   }
-
 
   async checkParticipantExists(conversationID: string, userID: string) {
     return await this.prisma.participant.findFirst({
