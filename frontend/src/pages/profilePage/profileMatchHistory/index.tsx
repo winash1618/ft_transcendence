@@ -13,6 +13,7 @@ import {
 import { useAppSelector } from "../../../hooks/reduxHooks";
 import { UserProfilePicture } from "../../../assets";
 import { Tooltip } from "antd";
+import { BASE_URL } from "../../../api";
 
 const ProfileMatchHistory = () => {
   const { matchHistory } = useAppSelector((state) => state.users);
@@ -31,8 +32,8 @@ const ProfileMatchHistory = () => {
                     <ProfilePicture
                       src={
                         match.playerOne.username === user?.username
-                          ? `http://localhost:3001/users/profile-image/${match.playerOne.profile_picture}`
-                          : `http://localhost:3001/users/profile-image/${match.playerTwo.profile_picture}`
+                          ? `${BASE_URL}/users/profile-image/${match.playerOne.profile_picture}`
+                          : `${BASE_URL}/users/profile-image/${match.playerTwo.profile_picture}`
                       }
                       onError={(e) => {
                         e.currentTarget.src = UserProfilePicture;
@@ -81,8 +82,8 @@ const ProfileMatchHistory = () => {
                     <ProfilePicture
                       src={
                         match.playerOne.username === user?.username
-                          ? `http://localhost:3001/users/profile-image/${match.playerTwo.profile_picture}`
-                          : `http://localhost:3001/users/profile-image/${match.playerOne.profile_picture}`
+                          ? `${BASE_URL}/users/profile-image/${match.playerTwo.profile_picture}`
+                          : `${BASE_URL}/users/profile-image/${match.playerOne.profile_picture}`
                       }
                       onError={(e) => {
                         e.currentTarget.src = UserProfilePicture;

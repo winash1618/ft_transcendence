@@ -11,7 +11,7 @@ import {
   UserName,
   UserRating,
 } from "./profileHeader.styled";
-import { axiosPrivate } from "../../../api";
+import { BASE_URL, axiosPrivate } from "../../../api";
 import { setUserInfo } from "../../../store/authReducer";
 
 const ProfileHeader = () => {
@@ -55,7 +55,7 @@ const ProfileHeader = () => {
       />
       <ProfileWrapper>
         <ProfilePicture
-          src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+          src={`${BASE_URL}/users/profile-image/${user?.profile_picture}`}
           onError={(e) => {
             e.currentTarget.src = UserProfilePicture;
           }}

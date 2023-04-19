@@ -13,6 +13,7 @@ import {
   UserName,
 } from "./userInfo.styled";
 import useLogout from "../../../hooks/useLogout";
+import { BASE_URL } from "../../../api";
 
 const UserInfo = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
@@ -44,7 +45,7 @@ const UserInfo = () => {
       <Dropdown menu={{ items }} placement="bottomRight">
         <DropDownLink onClick={(e) => e.preventDefault()}>
           <ProfileImg
-            src={`http://localhost:3001/users/profile-image/${userInfo?.profile_picture}`}
+            src={`${BASE_URL}/users/profile-image/${userInfo?.profile_picture}`}
             onError={(e) => {
               e.currentTarget.src = UserProfilePicture;
             }}

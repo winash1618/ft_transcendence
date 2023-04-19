@@ -10,7 +10,7 @@ import {
   ProfilePictureContainer,
 } from "./profilePicture.styled";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { axiosPrivate } from "../../api";
+import { BASE_URL, axiosPrivate } from "../../api";
 import ImgCrop from "antd-img-crop";
 import Loading from "../loading";
 import ProfileLoading from "./profileLoading";
@@ -40,8 +40,8 @@ const ProfilePicture: React.FC = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const [imageUrl, setImageUrl] = useState<any>({
-    loading: true,
-    image: `http://localhost:3001/users/profile-image/${userInfo?.profile_picture}`,
+    loading: false,
+    image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}`,
     file: null,
   });
 
@@ -69,7 +69,7 @@ const ProfilePicture: React.FC = () => {
       const data = new FormData();
       data.append("image", imageUrl.file.originFileObj);
       const response = await axiosPrivate.post(
-        `http://localhost:3001/users/profile-image`,
+        `${BASE_URL}/users/profile-image`,
         data,
         {
           headers: {
@@ -88,7 +88,7 @@ const ProfilePicture: React.FC = () => {
     if (userInfo?.profile_picture) {
       setImageUrl({
         loading: false,
-        image: `http://localhost:3001/users/profile-image/${userInfo?.profile_picture}`,
+        image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}`,
         file: null,
       });
     }

@@ -29,7 +29,7 @@ const navItems = [
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState(true);
   const [selected, setSelected] = useState<string>("0");
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();

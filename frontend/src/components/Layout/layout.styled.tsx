@@ -28,4 +28,8 @@ export const CustomSider = styled(Sider)`
   border-radius: 15px !important;
   z-index: 99999;
   background: var(--main-600) !important;
+  & .ant-layout-sider-zero-width-trigger {
+    top: 17px;
+    overflow: hidden;
+  }
 `;

@@ -23,7 +23,7 @@ let BALL_SIZE = 12.5;
 let BALL_SPEED = 5;
 let PADDLE_SPEED = 15;
 const GAME_TIME = 30;
-const GAME_POINTS = 2;
+const GAME_POINTS = 50;
 
 export class GameEngine {
   gameID: string;
@@ -292,10 +292,10 @@ export class GameEngine {
       BALL_SIZE = 6.25;
       BALL_SPEED = 2.5;
       PADDLE_SPEED = 7.5;
-      console.log(GAME_HEIGHT, GAME_WIDTH);
     }
+    console.log(GAME_HEIGHT, GAME_WIDTH);
     clearInterval(this.interval);
-    this.initGameObj(0, this.player1, this.player2);
+    this.gameObj = this.initGameObj(0, this.player1, this.player2);
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
 
