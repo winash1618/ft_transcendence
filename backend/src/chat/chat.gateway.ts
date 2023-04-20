@@ -1,13 +1,13 @@
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ConversationService } from './Queries/conversation.service';
@@ -82,31 +82,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: createConversationDto,
   ) {
     console.log('In createConversation');
+    try {
+      const conversation = await this.conversationService.createConversation({
+        title: data.title,
+        creator_id: client.data.userID.id,
+        password: data.password,
+        privacy: data.privacy,
+      });
 
-    const conversation = await this.conversationService.createConversation({
-      title: data.title,
-      creator_id: client.data.userID.id,
-      password: data.password,
-      privacy: data.privacy,
-    });
+      // add only one participant
+      const participant =
+        await this.participantService.addParticipantToConversation(
+          {
+            conversation_id: conversation.id,
+            user_id: client.data.userID.id,
+            role: Role['OWNER'],
+            conversation_status: 'ACTIVE',
+          },
+          data.password,
+        );
 
-    // add only one participant
-    const participant =
-      await this.participantService.addParticipantToConversation(
-        {
-          conversation_id: conversation.id,
-          user_id: client.data.userID.id,
-          role: Role['OWNER'],
-          conversation_status: 'ACTIVE',
-        },
-        data.password,
+      await this.joinConversations(client.data.userID.id, conversation.id);
+      await this.sendConversationCreatedToAllClients(
+        client.data.userID.id,
+        conversation,
       );
-
-    await this.joinConversations(client.data.userID.id, conversation.id);
-    await this.sendConversationCreatedToAllClients(
-      client.data.userID.id,
-      conversation,
-    );
+    }
+    catch (e) {
+      console.log(e);
+      throw new WsException({
+        message: 'Create conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('joinConversation')
@@ -116,22 +124,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In joinConversation');
 
-    const participant =
-      await this.participantService.addParticipantToConversation(
-        {
-          conversation_id: data.conversationID,
-          user_id: client.data.userID.id,
-          role: Role.USER,
-          conversation_status: 'ACTIVE',
-        },
-        data.password,
-      );
+    try {
+      const participant =
+        await this.participantService.addParticipantToConversation(
+          {
+            conversation_id: data.conversationID,
+            user_id: client.data.userID.id,
+            role: Role.USER,
+            conversation_status: 'ACTIVE',
+          },
+          data.password,
+        );
 
-    await this.joinConversations(client.data.userID.id, data.conversationID);
-    await this.sendConversationJoinedToAllClients(
-      client.data.userID.id,
-      data.conversationID,
-    );
+      await this.joinConversations(client.data.userID.id, data.conversationID);
+      this.server.to(data.conversationID).emit('conversationJoined', {
+        conversationID: data.conversationID,
+        leftUserID: client.data.userID.id,
+      });
+    }
+    catch (e) {
+      console.log(e);
+      throw new WsException({
+        message: 'Join conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('directMessage')
@@ -140,30 +157,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: DirectMessageDTO,
   ) {
     console.log('In directMessage');
-    const exists = await this.conversationService.checkDirectConversationExists(
-      client.data.userID.id,
-      data.userID,
-    );
-
-    if (exists !== null) {
-      client.emit('directExists', exists.id);
-      return;
-    }
-
-    const conversation =
-      await this.conversationService.createDirectConversation(
-        {
-          title: data.title,
-          creator_id: client.data.userID.id,
-          privacy: 'DIRECT',
-        },
+    try {
+      const exists = await this.conversationService.checkDirectConversationExists(
         client.data.userID.id,
         data.userID,
       );
 
-    await this.joinConversations(client.data.userID.id, conversation.id);
-    await this.joinConversations(data.userID, conversation.id);
-    client.emit('directMessage', conversation);
+      if (exists !== null) {
+        client.emit('directExists', exists.id);
+        return;
+      }
+
+      const conversation =
+        await this.conversationService.createDirectConversation(
+          {
+            title: data.title,
+            creator_id: client.data.userID.id,
+            privacy: 'DIRECT',
+          },
+          client.data.userID.id,
+          data.userID,
+        );
+
+      await this.joinConversations(client.data.userID.id, conversation.id);
+      await this.joinConversations(data.userID, conversation.id);
+      client.emit('directMessage', conversation);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Direct conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('leaveConversation')
@@ -220,7 +245,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
 
       if (!participant)
-        throw new NotFoundException('Participant not found');
+        throw new Error('Participant not found');
 
       const message = await this.messageService.createMessage({
         message: data.message,
@@ -425,28 +450,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('conversationCreated', conversation);
   }
 
-  private async sendConversationJoinedToAllClients(
-    userID: string,
-    conversationID: string,
-  ) {
-    const conversations = await this.conversationService.getConversationByID(
-      conversationID,
-    );
+  // private async sendConversationJoinedToAllClients(
+  //   userID: string,
+  //   conversationID: string,
+  // ) {
+  //   const conversations = await this.conversationService.getConversationByID(
+  //     conversationID,
+  //   );
 
-    const participants = conversations.participants;
-    participants.forEach(async participant => {
-      const messages = await this.messageService.getMessagesByConversationID(
-        conversationID,
-      );
-      const sockets = this.gatewaySession.getAllUserSockets();
-      if (!sockets || sockets.length === 0) return;
-      sockets.forEach(socket => {
-        this.server.to(socket.id).emit('conversationJoined', {
-          conversationID,
-          participant,
-          messages,
-        });
-      });
-    });
-  }
+  //   const participants = conversations.participants;
+  //   participants.forEach(async participant => {
+  //     const messages = await this.messageService.getMessagesByConversationID(
+  //       conversationID,
+  //     );
+  //     const sockets = this.gatewaySession.getAllUserSockets();
+  //     if (!sockets || sockets.length === 0) return;
+  //     sockets.forEach(socket => {
+  //       this.server.to(socket.id).emit('conversationJoined', {
+  //         conversationID,
+  //         participant,
+  //         messages,
+  //       });
+  //     });
+  //   });
+  // }
 }

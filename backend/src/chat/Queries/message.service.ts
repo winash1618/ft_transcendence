@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateMessageDto, UpdateMessageDto } from '../dto/messages.dto';
 import { ConversationService } from './conversation.service';
@@ -16,7 +16,7 @@ export class MessageService {
     );
 
     if (!conversation) {
-      throw new NotFoundException('Conversation does not exist');
+      throw new Error('Conversation does not exist');
     }
 
     return await this.prisma.message.create({
@@ -56,7 +56,7 @@ export class MessageService {
 
   async getDisplayMessagesByConversationID(conversationID: string) {
     if (!this.conversationService.checkConversationExists(conversationID)) {
-      throw new NotFoundException('Conversation does not exist');
+      throw new Error('Conversation does not exist');
     }
 
     return this.prisma.message.findMany({

@@ -8,4 +8,8 @@ export class joinConversationDto {
   @IsString()
   @IsNotEmpty()
   password?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  privacy: string;
 }

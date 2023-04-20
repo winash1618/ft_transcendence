@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters, ParseUUIDPipe, UseGuards, HttpCode, UseInterceptors, Req, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Res, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseFilters, ParseUUIDPipe, UseGuards, HttpCode, UseInterceptors, Req, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Res, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -63,7 +63,7 @@ export class UsersController {
   async findOne(@Param('login') login: string) {
     const user = await this.usersService.findOne(login);
     if (!user) {
-      throw new NotFoundException(`User #${login}: not found`);
+      throw new Error(`User #${login}: not found`);
     }
     return user;
   }

@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Privacy, Role, Status } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -28,41 +28,50 @@ export class ConversationService {
 
   async createConversation(createConversation: CreateConversationDto) {
     try {
+      if (createConversation.title === '' || createConversation.title === undefined)
+        throw new Error('Conversation title is required');
 
-    if (await this.checkIfConversationTitleExists(createConversation.title))
-      throw new NotFoundException('Conversation title already exists');
+      if (createConversation.privacy === '' || createConversation.privacy === undefined) {
+        createConversation.privacy = 'PUBLIC';
+      }
 
-    if (
-      createConversation.privacy === 'PROTECTED' &&
-      (createConversation.password === '' ||
-        createConversation.password === undefined)
-    ) {
-      throw new NotFoundException('Password is required for Protected conversation');
-    }
+      if (createConversation.title !== '' || createConversation.title !== undefined)
+        if (await this.checkIfConversationTitleExists(createConversation.title))
+          throw new Error('Conversation title already exists');
 
-    if (createConversation.privacy === 'PROTECTED') {
-      createConversation.password = await this.hashPassword(
-        createConversation.password,
-      );
-    }
+      if (
+        (createConversation.privacy === 'PROTECTED' ||
+        createConversation.privacy === 'PRIVATE') &&
+        (createConversation.password === '' ||
+          createConversation.password === undefined)
+      ) {
+        throw new Error('Password is required for Protected conversation');
+      }
 
-      const conversation = await this.prisma.conversation.create({
-        data: {
-          title: createConversation.title,
-          creator_id: createConversation.creator_id,
-          password: createConversation.password,
-          privacy: Privacy[createConversation.privacy],
-        },
-        select: {
-          id: true,
-          title: true,
-          privacy: true,
-          creator_id: true,
-        }
-      });
+      if (createConversation.privacy === 'PROTECTED' ||
+      createConversation.privacy === 'PRIVATE') {
+        createConversation.password = await this.hashPassword(
+          createConversation.password,
+        );
+      }
+
+        const conversation = await this.prisma.conversation.create({
+          data: {
+            title: createConversation.title,
+            creator_id: createConversation.creator_id,
+            password: createConversation.password,
+            privacy: Privacy[createConversation.privacy],
+          },
+          select: {
+            id: true,
+            title: true,
+            privacy: true,
+            creator_id: true,
+          }
+        });
       return conversation;
     } catch (e) {
-      throw new NotFoundException(e);
+      throw new Error(e);
     }
   }
 
@@ -78,15 +87,15 @@ export class ConversationService {
     const conversation = await this.checkConversationExists(conversationID);
 
     if (!conversation)
-      throw new NotFoundException('Conversation does not exist');
+      throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT) {
-      throw new NotFoundException('Cannot protect direct conversation');
+      throw new Error('Cannot protect direct conversation');
     }
 	// commented it since it was throwing error when user is not admin in conversation and was not able to protect conversation
 	// we need to update the password even if the user is an owner.
     if (await this.participantService.isUserAdminInConversation(conversationID, admin) === null) {
-      throw new NotFoundException('User is not admin');
+      throw new Error('User is not admin');
     }
 
     const hashedPassword = await this.hashPassword(password);
@@ -106,11 +115,11 @@ export class ConversationService {
     const conversation = await this.checkConversationExists(conversationID);
 
     if (conversation.privacy !== Privacy.PROTECTED) {
-      throw new NotFoundException('Conversation is not protected');
+      throw new Error('Conversation is not protected');
     }
 
     if (conversation.password === null) {
-      throw new NotFoundException('Conversation does not have a password');
+      throw new Error('Conversation does not have a password');
     }
 
     return await this.prisma.conversation.update({
@@ -131,15 +140,15 @@ export class ConversationService {
   ) {
 
     if (userID === otherUserID) {
-      throw new NotFoundException('Cannot create direct conversation with yourself');
+      throw new Error('Cannot create direct conversation with yourself');
     }
 
     if (await this.userService.isUserBlocked(userID, otherUserID)) {
-      throw new NotFoundException('User is blocked');
+      throw new Error('User is blocked');
     }
 
     if (await this.userService.isUserBlocked(otherUserID, userID)) {
-      throw new NotFoundException('User is blocked');
+      throw new Error('User is blocked');
     }
 
     const conversation = await this.createConversation(createConversation);
@@ -168,20 +177,20 @@ export class ConversationService {
     admin: string,
   ) {
     if (!(await this.checkConversationExists(conversationID))) {
-      throw new NotFoundException('Conversation does not exist');
+      throw new Error('Conversation does not exist');
     }
 
     if (!(await this.participantService.checkParticipantExists(conversationID, userID)) ||
         !(await this.participantService.checkParticipantExists(conversationID, admin))) {
-      throw new NotFoundException('User is not participant');
+      throw new Error('User is not participant');
     }
 
     if (await this.participantService.isUserAdminInConversation(conversationID, admin) === null) {
-      throw new NotFoundException('User is not admin');
+      throw new Error('User is not admin');
     }
 
     // if (await this.participantService.isUserMuted(conversationID, userID)) {
-    //   throw new NotFoundException('User is already muted');
+    //   throw new Error('User is already muted');
     // }
 
     await this.participantService.updateParticipantStatus(conversationID, userID, Status.MUTED);
@@ -204,7 +213,7 @@ export class ConversationService {
 
   async getDirectConversations(userID: string) {
     if (!(await this.userService.checkIfUserExists(userID))) {
-      throw new NotFoundException('User does not exist');
+      throw new Error('User does not exist');
     }
 
     return await this.prisma.conversation.findMany({
@@ -243,7 +252,7 @@ export class ConversationService {
 
   async getChannels(userID: string) {
     if (!this.userService.checkIfUserExists(userID)) {
-      throw new NotFoundException('User does not exist');
+      throw new Error('User does not exist');
     }
 
     return await this.prisma.conversation.findMany({
@@ -282,7 +291,7 @@ export class ConversationService {
 
   async findChannelsThatUserIsNotIn(userID: string) {
     if (!this.userService.checkIfUserExists(userID)) {
-      throw new NotFoundException('User does not exist');
+      throw new Error('User does not exist');
     }
 
     return await this.prisma.conversation.findMany({
@@ -311,17 +320,17 @@ export class ConversationService {
 
   async friendsNotInConversation(userID: string, conversationID: string) {
     if (!this.userService.checkIfUserExists(userID)) {
-      throw new NotFoundException('User does not exist');
+      throw new Error('User does not exist');
     }
 
     if (!this.checkConversationExists(conversationID)) {
-      throw new NotFoundException('Conversation does not exist');
+      throw new Error('Conversation does not exist');
     }
 
     if (
       !this.participantService.isUserAdminInConversation(userID, conversationID)
     ) {
-      throw new NotFoundException('User is not admin of the conversation');
+      throw new Error('User is not admin of the conversation');
     }
 
     return await this.prisma.user.findUnique({
@@ -356,7 +365,7 @@ export class ConversationService {
     });
 
     if (!conversation) {
-      throw new NotFoundException('Conversation does not exist');
+      throw new Error('Conversation does not exist');
     }
 
     return conversation;
@@ -387,7 +396,7 @@ export class ConversationService {
 	// commented this out because it was throwing an error when a conversation did not exist,
 	// when there is no conversation, it should return null and create a new one
     // if (!conversation) {
-    //   throw new NotFoundException('Conversation does not exist');
+    //   throw new Error('Conversation does not exist');
     // }
 
     return conversation;
@@ -472,7 +481,7 @@ export class ConversationService {
           }
         });
       } else {
-        throw new NotFoundException('No users in the conversation');
+        throw new Error('No users in the conversation');
       }
     } else {
       return ;
