@@ -19,6 +19,7 @@ const ProfileMatchHistory = () => {
   const { matchHistory } = useAppSelector((state) => state.users);
   console.log(matchHistory);
   const { user } = useAppSelector((state) => state.users);
+  const { token } = useAppSelector((state) => state.auth);
   return (
     <ProfileMatchHistoryContainer>
       <MatchHistoryTitle>Match History</MatchHistoryTitle>
@@ -32,8 +33,8 @@ const ProfileMatchHistory = () => {
                     <ProfilePicture
                       src={
                         match.playerOne.username === user?.username
-                          ? `${BASE_URL}/users/profile-image/${match.playerOne.profile_picture}`
-                          : `${BASE_URL}/users/profile-image/${match.playerTwo.profile_picture}`
+                          ? `${BASE_URL}/users/profile-image/${match.playerOne.profile_picture}/${token}`
+                          : `${BASE_URL}/users/profile-image/${match.playerTwo.profile_picture}/${token}`
                       }
                       onError={(e) => {
                         e.currentTarget.src = UserProfilePicture;
@@ -82,8 +83,8 @@ const ProfileMatchHistory = () => {
                     <ProfilePicture
                       src={
                         match.playerOne.username === user?.username
-                          ? `${BASE_URL}/users/profile-image/${match.playerTwo.profile_picture}`
-                          : `${BASE_URL}/users/profile-image/${match.playerOne.profile_picture}`
+                          ? `${BASE_URL}/users/profile-image/${match.playerTwo.profile_picture}/${token}`
+                          : `${BASE_URL}/users/profile-image/${match.playerOne.profile_picture}/${token}`
                       }
                       onError={(e) => {
                         e.currentTarget.src = UserProfilePicture;

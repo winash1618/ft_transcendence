@@ -16,7 +16,7 @@ import useLogout from "../../../hooks/useLogout";
 import { BASE_URL } from "../../../api";
 
 const UserInfo = () => {
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, token } = useAppSelector((state) => state.auth);
   const logOut = useLogout();
   const signOut = async () => {
     await logOut();
@@ -45,7 +45,7 @@ const UserInfo = () => {
       <Dropdown menu={{ items }} placement="bottomRight">
         <DropDownLink onClick={(e) => e.preventDefault()}>
           <ProfileImg
-            src={`${BASE_URL}/users/profile-image/${userInfo?.profile_picture}`}
+            src={`${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`}
             onError={(e) => {
               e.currentTarget.src = UserProfilePicture;
             }}

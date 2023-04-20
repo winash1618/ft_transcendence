@@ -3,7 +3,7 @@ import PingPong from "../../components/pingPong";
 import PlayForm from "../../components/playForm";
 import axios from "../../api";
 import { useAppDispatch } from "../../hooks/reduxHooks";
-import { logOut, setUserInfo } from "../../store/authReducer";
+import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 import { io, Socket } from "socket.io-client";
 
 const PingPongPage = () => {
@@ -23,6 +23,7 @@ const PingPongPage = () => {
         });
         localStorage.setItem("auth", JSON.stringify(response.data));
         dispatch(setUserInfo(response.data.user));
+        dispatch(setToken(response.data.token));
         return response.data.token;
       } catch (err) {
         dispatch(logOut());

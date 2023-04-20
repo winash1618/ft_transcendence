@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Socket, io } from "socket.io-client";
 import { useAppDispatch } from "../../hooks/reduxHooks";
-import { logOut, setUserInfo } from "../../store/authReducer";
+import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 import axios from "../../api";
 import Chat from "../../components/chat";
 
@@ -19,6 +19,7 @@ const MessagesPage = () => {
 		  });
 		  localStorage.setItem("auth", JSON.stringify(response.data));
 		  dispatch(setUserInfo(response.data.user));
+		  dispatch(setToken(response.data.token));
 		  setUser(response.data.user);
 		  return response.data.token;
 		} catch (err) {

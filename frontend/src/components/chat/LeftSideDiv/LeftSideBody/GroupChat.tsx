@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Colors, Conversation, GNav, Nav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { logOut } from "../../../store/authReducer";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 import { List, Avatar, Button, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";

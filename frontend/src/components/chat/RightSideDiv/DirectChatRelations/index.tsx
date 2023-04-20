@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UserProfilePicture } from "../../../assets";
+import { UserProfilePicture } from "../../../../assets";
 import {
 	DirectItem,
 	DirectInfo,

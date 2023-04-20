@@ -6,7 +6,7 @@ import { ConfigProvider, Layout, Menu, theme } from "antd";
 import axios, { BASE_URL } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/reduxHooks";
-import { logOut, setUserInfo } from "../../store/authReducer";
+import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 import Loading from "../loading";
 import {
   CustomSider,
@@ -39,6 +39,7 @@ const Navbar: React.FC = () => {
       try {
         const response = await axios.get(`/token`);
         localStorage.setItem("auth", JSON.stringify(response.data));
+        dispatch(setToken(response.data.token));
         dispatch(setUserInfo(response.data.user));
         if (!response.data.user.username) {
           navigate("/set-nickname");

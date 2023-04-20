@@ -8,8 +8,8 @@ import {
 import { Nav, Colors } from "../../chat.functions";
 import { useEffect } from "react";
 import axios from "axios";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
-import { logOut } from "../../../store/authReducer";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 interface LeftSideHeaderProps {
 	user: any;
 	socket: any;

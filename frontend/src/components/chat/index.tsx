@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { LeftSideContainer, MessageBoxContainer, ParentContainer, RightSideContainer } from "./chat.styled";
 import { GNav, Nav, Status, User } from "./chat.functions";
-import { UserProfilePicture } from "../assets";
+import { UserProfilePicture } from "../../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";

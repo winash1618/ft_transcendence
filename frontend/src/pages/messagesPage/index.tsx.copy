@@ -63,6 +63,7 @@ const MessagesPage = () => {
 				localStorage.setItem("auth", JSON.stringify(response.data));
 				setUser(response.data.user);
 				dispatch(setUserInfo(response.data.user));
+		  		dispatch(setToken(response.data.token));
 				return response.data.token;
 			} catch (err) {
 				dispatch(logOut());

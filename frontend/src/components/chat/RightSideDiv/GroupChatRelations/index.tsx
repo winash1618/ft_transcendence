@@ -8,7 +8,7 @@ import {
 } from "./group.styled";
 import { List, Dropdown, MenuProps, Button, Input, Result } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { UserProfilePicture } from "../../../assets";
+import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role, User } from "../../chat.functions";
 import { useState } from "react";

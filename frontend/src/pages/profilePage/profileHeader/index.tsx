@@ -16,17 +16,14 @@ import { setUserInfo } from "../../../store/authReducer";
 
 const ProfileHeader = () => {
   const { user } = useAppSelector((state) => state.users);
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, token } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   const addFriend = async () => {
     try {
-      const response = await axiosPrivate.post("/users/add-friend", {
-        username: user.username,
-        friend_id: user.id,
-        login: user.login,
-        user_id: userInfo.id,
-      });
+      const response = await axiosPrivate.post(
+        `/users/${userInfo?.id}/add-friend/${user?.id}`
+      );
       console.log(response);
       dispatch(setUserInfo(response.data));
     } catch (err) {
@@ -37,7 +34,9 @@ const ProfileHeader = () => {
 
   const removeFriend = async () => {
     try {
-      const response = await axiosPrivate.delete(`/users/remove-friend/${user.login}`);
+      const response = await axiosPrivate.delete(
+        `/users/${userInfo?.id}/unfriend/${user?.id}`
+      );
       console.log(response);
       dispatch(setUserInfo(response.data));
     } catch (err) {
@@ -45,6 +44,33 @@ const ProfileHeader = () => {
       console.log(err);
     }
   };
+
+  const block = async () => {
+    try {
+      const response = await axiosPrivate.post(
+        `/users/${userInfo?.id}/block/${user?.id}`
+      );
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
+
+  const unBlock = async () => {
+    try {
+      const response = await axiosPrivate.delete(
+        `/users/${userInfo?.id}/unblock/${user?.id}`
+      );
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
+
   return (
     <ProfileHeaderContainer>
       <ProfileBackground
@@ -55,7 +81,7 @@ const ProfileHeader = () => {
       />
       <ProfileWrapper>
         <ProfilePicture
-          src={`${BASE_URL}/users/profile-image/${user?.profile_picture}`}
+          src={`${BASE_URL}/users/profile-image/${user?.profile_picture}/${token}`}
           onError={(e) => {
             e.currentTarget.src = UserProfilePicture;
           }}
@@ -68,7 +94,7 @@ const ProfileHeader = () => {
       </ProfileWrapper>
       {userInfo.login !== user.login && (
         <ProfileButtonWrapper>
-          {userInfo.new_friends?.some(
+          {userInfo.friends?.some(
             (userItem) => userItem.login === user.login
           ) ? (
             <Button onClick={removeFriend} type="primary" danger>
@@ -79,9 +105,17 @@ const ProfileHeader = () => {
               Add friend
             </Button>
           )}
-          <Button type="primary" danger>
-            Block
-          </Button>
+          {userInfo.blocked_users?.some(
+            (userItem) => userItem.login === user.login
+          ) ? (
+            <Button onClick={unBlock} type="primary">
+              Unblock
+            </Button>
+          ) : (
+            <Button onClick={block} type="primary" danger>
+              Block
+            </Button>
+          )}
         </ProfileButtonWrapper>
       )}
     </ProfileHeaderContainer>

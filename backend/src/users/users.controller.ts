@@ -1,4 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, UseFilters, ParseUUIDPipe, UseGuards, HttpCode, UseInterceptors, Req, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Res, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  NotFoundException,
+  UseFilters,
+  ParseUUIDPipe,
+  UseGuards,
+  HttpCode,
+  UseInterceptors,
+  Req,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  Res,
+  BadRequestException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -14,52 +35,83 @@ import { JwtService } from '@nestjs/jwt';
 @ApiTags('users')
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
-	constructor(private readonly usersService: UsersService, private readonly jwtService: JwtService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-	@Post()
-	create(@Body() createUserDto: CreateUserDto) {
-		return this.usersService.create(createUserDto);
-	}
-
-    @Get('profile-image/:filename')
-  async getProfilePhoto(
-    @Param('filename') filename: string,
-    @Res() res: Response,
-  ) {
-    const filePath = join(__dirname, '../../../', 'uploads', `${filename}`);
-	return res.sendFile(filePath);
+  @Post()
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 
-  	@UseGuards(JwtAuthGuard)
-	@Post('profile-image')
-    @HttpCode(200)
-    @UseInterceptors(FileInterceptor('image', multerConfig))
-    async uploadProfilePhoto(
-        @Req() request: Request,
-        @UploadedFile(
-            new ParseFilePipe({
-				validators: [
-				  new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
-				  new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
-				],
-			  }),
+  @Get('profile-image/:filename/:token')
+  async getProfilePhoto(
+    @Param('filename') filename: string,
+    @Param('token') token: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const decodedToken = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      if (!decodedToken) {
+        throw new BadRequestException('Invalid token');
+      }
+      const user = await this.usersService.findOne(filename.substring(0, filename.lastIndexOf('.')));
+      if (
+        !user ||
+        user.blocked_users.some(
+          user =>
+            user.id === decodedToken.id,
         )
-        image: Express.Multer.File
-    ) {
-		const decodedToken = this.jwtService.verify(request.headers.authorization.split(' ')[1], { secret: process.env.JWT_SECRET });
-		const user = await this.usersService.updateProfilePicture(decodedToken.id, image.filename);
-		return { user };
+      ) {
+        throw new BadRequestException('Invalid token');
+      }
+      const filePath = join(__dirname, '../../../', 'uploads', `${filename}`);
+      return res.sendFile(filePath);
+    } catch (error) {
+      throw new BadRequestException('Invalid token');
     }
+  }
 
-	// @Get()
-	// findAll() {
-	// 	return this.usersService.users();
-	// }
+  @UseGuards(JwtAuthGuard)
+  @Post('profile-image')
+  @HttpCode(200)
+  @UseInterceptors(FileInterceptor('image', multerConfig))
+  async uploadProfilePhoto(
+    @Req() request: Request,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
+        ],
+      }),
+    )
+    image: Express.Multer.File,
+  ) {
+    const decodedToken = this.jwtService.verify(
+      request.headers.authorization.split(' ')[1],
+      { secret: process.env.JWT_SECRET },
+    );
+    const user = await this.usersService.updateProfilePicture(
+      decodedToken.id,
+      image.filename,
+    );
+    return { user };
+  }
 
+  // @Get()
+  // findAll() {
+  // 	return this.usersService.users();
+  // }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':login')
-  async findOne(@Param('login') login: string) {
+  async findOne(@Req() req, @Param('login') login: string) {
     const user = await this.usersService.findOne(login);
-    if (!user) {
+    if (!user || user.blocked_users.some(user => user.id === req.user.id)) {
       throw new NotFoundException(`User #${login}: not found`);
     }
     return user;
@@ -89,22 +141,34 @@ export class UsersController {
   }
 
   @Post(':userID/add-friend/:friendID')
-  async addFriend(@Param('userID') userID: string, @Param('friendID') friendID: string) {
+  async addFriend(
+    @Param('userID') userID: string,
+    @Param('friendID') friendID: string,
+  ) {
     return await this.usersService.addFriend(userID, friendID);
   }
 
   @Delete(':userID/unfriend/:friendID')
-  async unfriend(@Param('userID') userID: string, @Param('friendID') friendID: string) {
+  async unfriend(
+    @Param('userID') userID: string,
+    @Param('friendID') friendID: string,
+  ) {
     return await this.usersService.unfriend(userID, friendID);
   }
 
   @Post(':userID/block/:blockID')
-  async block(@Param('userID') userID: string, @Param('blockID') blockID: string) {
+  async block(
+    @Param('userID') userID: string,
+    @Param('blockID') blockID: string,
+  ) {
     return await this.usersService.block(userID, blockID);
   }
 
   @Delete(':userID/unblock/:blockID')
-  async unblock(@Param('userID') userID: string, @Param('blockID') blockID: string) {
+  async unblock(
+    @Param('userID') userID: string,
+    @Param('blockID') blockID: string,
+  ) {
     return await this.usersService.unblock(userID, blockID);
   }
 }

@@ -23,12 +23,12 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
-  async findOne(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { login } });
+  async findOne(login: string): Promise<any> {
+    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
   }
 
   async getUserByLogin(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { login } });
+    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
   }
 
   async getUserByIdWithParticipants(id: string) {
@@ -55,13 +55,17 @@ export class UsersService {
     }
 
     // Update user's friends list
-    await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userID },
       data: {
         friends: {
           connect: { id: friendID },
         },
+        blocked_users: {
+          disconnect: { id: friendID },
+        }
       },
+      include: { friends: true, blocked_users: true },
     });
 
     // Update friend's friends list
@@ -74,7 +78,7 @@ export class UsersService {
       },
     });
 
-    return { message: 'Friend added successfully' };
+    return user;
   }
 
   async unfriend(userID: string, friendID: string) {
@@ -87,13 +91,14 @@ export class UsersService {
     }
 
     // Remove the friend connection for both users
-    await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userID },
       data: {
         friends: {
           disconnect: { id: friendID },
         },
       },
+      include: { friends: true, blocked_users: true },
     });
 
     await this.prisma.user.update({
@@ -105,7 +110,7 @@ export class UsersService {
       },
     });
 
-    return { message: 'Friend removed successfully' };
+    return user;
   }
 
   async block(userID: string, blockID: string) {
@@ -118,16 +123,20 @@ export class UsersService {
     }
 
     // Block the user
-    await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userID },
       data: {
         blocked_users: {
           connect: { id: blockID },
         },
+        friends: {
+          disconnect: { id: blockID },
+        }
       },
+      include: { friends: true, blocked_users: true },
     });
 
-    return { message: 'User blocked successfully' };
+    return user;
   }
 
   async unblock(userID: string, blockID: string) {
@@ -140,20 +149,21 @@ export class UsersService {
     }
 
     // Unblock the user
-    await this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userID },
       data: {
         blocked_users: {
           disconnect: { id: blockID },
         },
       },
+      include: { friends: true, blocked_users: true },
     });
 
-    return { message: 'User unblocked successfully' };
+    return user;
   }
 
-  async getUserById(id: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { id } });
+  async getUserById(id: string): Promise<any> {
+    return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, blocked_users: true } });
   }
 
   remove(id: number) {

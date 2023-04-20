@@ -37,11 +37,11 @@ const beforeUpload = (file: RcFile) => {
 
 const ProfilePicture: React.FC = () => {
   const [uploadedFile, setUploadedFile] = useState(false);
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, token } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const [imageUrl, setImageUrl] = useState<any>({
     loading: false,
-    image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}`,
+    image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`,
     file: null,
   });
 
@@ -88,7 +88,7 @@ const ProfilePicture: React.FC = () => {
     if (userInfo?.profile_picture) {
       setImageUrl({
         loading: false,
-        image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}`,
+        image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`,
         file: null,
       });
     }
