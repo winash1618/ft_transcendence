@@ -196,23 +196,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: LeaveConversationDTO,
   ) {
-    const removedParticipant =
-      await this.participantService.removeParticipantFromConversation(
+    try {
+      const removedParticipant =
+        await this.participantService.removeParticipantFromConversation(
+          data.conversationID,
+          client.data.userID.id,
+        );
+
+      await this.conversationService.promoteOldestUserToAdmin(
         data.conversationID,
-        client.data.userID.id,
       );
 
-    await this.conversationService.promoteOldestUserToAdmin(
-      data.conversationID,
-    );
-
-    const user = this.gatewaySession.getUserSocket(client.data.userID.id);
-    if (!user) return;
-    this.server.to(data.conversationID).emit('conversationLeft', {
-		conversationID: data.conversationID,
-		leftUserID: client.data.userID.id,
-    });
-	user.leave(data.conversationID);
+      const user = this.gatewaySession.getUserSocket(client.data.userID.id);
+      if (!user) return;
+      this.server.to(data.conversationID).emit('conversationLeft', {
+      conversationID: data.conversationID,
+      leftUserID: client.data.userID.id,
+      });
+      user.leave(data.conversationID);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Leave conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('addPassword')
@@ -220,15 +228,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: AddPasswordDTO,
   ) {
-    const conversation = await this.conversationService.protectConversation(
-      data.conversationID,
-      data.password,
-      client.data.userID.id,
-    );
+    try {
+      const conversation = await this.conversationService.protectConversation(
+        data.conversationID,
+        data.password,
+        client.data.userID.id,
+      );
 
-    this.server
-      .to(data.conversationID)
-      .emit('conversationProtected', conversation.id);
+      this.server
+        .to(data.conversationID)
+        .emit('conversationProtected', conversation.id);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Add Password failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('sendMessage')
@@ -254,23 +270,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       this.server.to(data.conversationID).emit('messageCreated', message);
-    } catch (e) {
-      console.log(e);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Send Message failed',
+        error: e.message
+      });
     }
   }
 
   @SubscribeMessage('makeAdmin')
   async makeAdmin(@ConnectedSocket() client: Socket, @MessageBody() data: MakeAdminDTO) {
-    const participant = await this.participantService.makeParticipantAdmin(
-      data.conversationID,
-      data.userID,
-      client.data.userID.id,
-    );
+    try {
+      const participant = await this.participantService.makeParticipantAdmin(
+        data.conversationID,
+        data.userID,
+        client.data.userID.id,
+      );
 
-    this.server.to(data.conversationID).emit('adminMade', {
-      conversationID: data.conversationID,
-      admin: participant.user_id,
-    });
+      this.server.to(data.conversationID).emit('adminMade', {
+        conversationID: data.conversationID,
+        admin: participant.user_id,
+      });
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Make Admin failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('addParticipant')
@@ -280,22 +308,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In addParticipant');
 
-    const participant =
-      await this.participantService.addParticipantToConversation(
-        {
-          conversation_id: data.conversationID,
-          user_id: data.userID,
-          role: Role.USER,
-          conversation_status: 'ACTIVE',
-        },
-        client.data.userID.id,
-      );
+    try {
+      const participant =
+        await this.participantService.addParticipantToConversation(
+          {
+            conversation_id: data.conversationID,
+            user_id: data.userID,
+            role: Role.USER,
+            conversation_status: 'ACTIVE',
+          },
+          client.data.userID.id,
+        );
 
-    this.joinConversations(data.userID, data.conversationID);
-    this.server.to(data.conversationID).emit('participantAdded', {
-      conversationID: data.conversationID,
-      participant: participant.user_id,
-    });
+      this.joinConversations(data.userID, data.conversationID);
+      this.server.to(data.conversationID).emit('participantAdded', {
+        conversationID: data.conversationID,
+        participant: participant.user_id,
+      });
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Add Participant failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('removeParticipant')
@@ -303,24 +339,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: RemoveParticipantDTO,
   ) {
-    const participant =
-      await this.participantService.removeParticipantFromConversation(
+    console.log('In removeParticipant');
+
+    try {
+      const participant =
+        await this.participantService.removeParticipantFromConversation(
+          data.conversationID,
+          data.userID,
+          client.data.userID.id,
+        );
+
+      await this.conversationService.promoteOldestUserToAdmin(
         data.conversationID,
-        data.userID,
-        client.data.userID.id,
       );
 
-    await this.conversationService.promoteOldestUserToAdmin(
-      data.conversationID,
-    );
-
-    const user = this.gatewaySession.getUserSocket(data.userID);
-    if (!user) return;
-    user.leave(data.conversationID);
-    this.server.to(data.conversationID).emit('participantRemoved', {
-      conversationID: data.conversationID,
-      removedUserID: participant.user_id,
-    });
+      const user = this.gatewaySession.getUserSocket(data.userID);
+      if (!user) return;
+      user.leave(data.conversationID);
+      this.server.to(data.conversationID).emit('participantRemoved', {
+        conversationID: data.conversationID,
+        removedUserID: participant.user_id,
+      });
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Remove Participant failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('banUser')
@@ -341,7 +387,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
       user.leave(data.conversationID);
     } catch (e) {
-      client.emit('error', 'Unauthorized access from banUser');
+      throw new WsException({
+        message: 'Ban User failed',
+        error: e.message
+      });
     }
   }
 
@@ -361,7 +410,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         unbannedUserID: participant.user_id,
       });
     } catch (e) {
-      client.emit('error', 'Unauthorized access from unbanUser');
+      throw new WsException({
+        message: 'Unban User failed',
+        error: e.message
+      });
     }
   }
 
@@ -383,7 +435,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         kickedUserID: participant.user_id,
       });
     } catch (e) {
-      client.emit('error', 'Unauthorized access from kickUser');
+      throw new WsException({
+        message: 'Kick User failed',
+        error: e.message
+      });
     }
   }
 
@@ -400,7 +455,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.server.to(data.conversationID).emit('passwordRemoved');
     } catch (e) {
-      client.emit('error', 'Unauthorized access from removePassword');
+      throw new WsException({
+        message: 'Remove Password failed',
+        error: e.message
+      });
     }
   }
 
@@ -419,7 +477,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         mutedUserID: data.userID,
       });
     } catch (e) {
-      client.emit('error', 'Unauthorized access from muteUser');
+      throw new WsException({
+        message: 'Mute User failed',
+        error: e.message
+      });
     }
   }
 
