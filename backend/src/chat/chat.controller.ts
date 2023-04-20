@@ -47,7 +47,7 @@ export class ChatController {
     @Param('conversationID', ParseUUIDPipe) conversationID: string,
   ) {
     try {
-      return await this.participantService.getParticipants(conversationID);
+      return await this.participantService.getConversationMembers(conversationID);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -71,7 +71,6 @@ export class ChatController {
         await this.messageService.getDisplayMessagesByConversationID(
           conversationID,
         );
-      console.log(conversations);
       return conversations;
     } catch (error) {
       throw new NotFoundException(error.message);
@@ -107,11 +106,10 @@ export class ChatController {
   ) {
     try {
       const friends = await this.conversationService.friendsNotInConversation(
-        channelID,
         req.user.id,
+        channelID,
       );
 
-      console.log(friends);
       return friends;
     } catch (error) {
       throw new NotFoundException(error.message);

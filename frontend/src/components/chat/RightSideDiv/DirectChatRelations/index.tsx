@@ -1,164 +1,97 @@
-import { useEffect, useRef, useState } from "react";
-import { UserProfilePicture } from "../../../../assets";
-import { io, Socket } from "socket.io-client";
-import { useAppDispatch } from "../../../../hooks/reduxHooks";
-import { logOut, setUserInfo } from "../../../../store/authReducer";
-import axios from "../../../../api";
+import { useState } from "react";
+import { UserProfilePicture } from "../../../assets";
 import {
-  DirectItem,
-  DirectInfo,
-  DirectName,
-  DirectAvatar,
-  FriendTitle,
-  DirectArrow,
+	DirectItem,
+	DirectInfo,
+	DirectName,
+	DirectAvatar,
+	DirectArrow,
+	FriendTitle,
 } from "./direct.styled";
 
-import { List, Avatar, Dropdown, Menu, MenuProps } from "antd";
+import { List, Dropdown, Input } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-
-interface DirectData {
-  id: number;
-  name: string;
-  avatar: string;
-}
-
-interface UserInfo {
-  id: number;
-  login: string;
-  username: string;
-  avatar: string;
-}
+import { User } from "../../chat.functions";
 
 interface DirectChatRelationsProps {
-  user: any;
+	user: any;
+	socket: any;
+	results: User[];
 }
 
-/*-----------------------------------------*/
-const handleMenuClick = (e: any) => {
-  if (e.target.textContent === "Chat") {
-    console.log("Chat");
-  } else if (e.target.textContent === "Profile") {
-    console.log("Profile");
-  } else if (e.target.textContent === "Invite") {
-    console.log("Invite");
-  }
-};
-/*-----------------------------------------*/
+const DirectChatRelations = ({ user, socket, results }: DirectChatRelationsProps) => {
+	const [userClicked, setUserClicked] = useState(null);
+	const [searchText, setSearchText] = useState("");
 
-const DirectChatRelations = ({ user }: DirectChatRelationsProps) => {
-  const dispatch = useAppDispatch();
-  /*----------------------------------------------------------------------------------------*/
-  const getInfos = async () => {
-    const getToken = async () => {
-      try {
-        const response = await axios.get("http://localhost:3001/token", {
-          withCredentials: true,
-        });
-        localStorage.setItem("auth", JSON.stringify(response.data));
-        return response.data.token;
-      } catch (err) {
-        dispatch(logOut());
-        window.location.reload();
-        return null;
-      }
-    };
+	const handleUserClick = (user: User) => {
+		setUserClicked(user);
+	};
 
-    const token = await getToken();
-    try {
-      const result = await axios.get(
-        `http://localhost:3001/users/friends/${user.id}`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setResults(result.data);
-      console.log(result.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  useEffect(() => {
-    getInfos();
-  }, []);
-  /*----------------------------------------------------------------------------------------*/
-  const [results, setResults] = useState<UserInfo[]>([]);
-  /*----------------------------------------------------------------------------------------*/
-  const menu = (
-    <Menu>
-      <Menu.Item key="chat">Chat</Menu.Item>
-      <Menu.Item key="profile">Profile</Menu.Item>
-      <Menu.Item key="invite">Invite</Menu.Item>
-    </Menu>
-  );
+	const handleMenuClick = (e: any) => {
+		if (e.target.textContent === "Chat") {
+			socket?.emit("directMessage", { userID: userClicked.id, title: userClicked.username });
+			console.log("Chat");
+		} else if (e.target.textContent === "Profile") {
+			console.log("Profile");
+			window.location.href = `http://localhost:3000/profile/${userClicked.login}`;
+		} else if (e.target.textContent === "Invite") {
+			console.log("Invite");
+		}
+	};
 
-  const items: MenuProps["items"] = [
-    {
-      key: "1",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Chat
-        </a>
-      ),
-    },
-    {
-      key: "2",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Profile
-        </a>
-      ),
-    },
-    {
-      key: "3",
-      label: (
-        <a
-          onClick={(e) => handleMenuClick(e)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Invite
-        </a>
-      ),
-    },
-  ];
+	const filterResults = (data: User[], searchText: string) => {
+		if (!searchText) {
+			return data;
+		}
+		return data.filter((item) => item.username.toLowerCase().includes(searchText.toLowerCase()));
+	};
 
-  /*----------------------------------------------------------------------------------------*/
-  return (
-    <>
-      <FriendTitle>
-        <h2>All Friends</h2>
-      </FriendTitle>
-      <List
-        itemLayout="horizontal"
+	const items = [
+		{
+			key: "1",
+			label: <div onClick={(e) => handleMenuClick(e)}>Chat</div>,
+		},
+		{
+			key: "2",
+			label: <div onClick={(e) => handleMenuClick(e)}>Profile</div>,
+		},
+		{
+			key: "3",
+			label: <div onClick={(e) => handleMenuClick(e)}>Invite</div>,
+		},
+	];
+
+	return (
+		<>
+			<FriendTitle>
+				<h3>All Friends</h3>
+			</FriendTitle>
+			<Input.Search
+				placeholder="Search friends"
+				value={searchText}
+				onChange={(e) => setSearchText(e.target.value)}
+			/>
+			<List
+				itemLayout="horizontal"
         locale={{ emptyText: "No friends found" }}
-        dataSource={results}
-        renderItem={(result) => (
-          <DirectItem>
-            <DirectInfo>
-              <DirectAvatar src={UserProfilePicture} />
-              <DirectName>{result.username}</DirectName>
-              <Dropdown menu={{ items }} trigger={["click"]}>
-                <DirectArrow>
-                  <DownOutlined className="direct-arrow" />
-                </DirectArrow>
-              </Dropdown>
-            </DirectInfo>
-          </DirectItem>
-        )}
-      />
-    </>
-  );
+				dataSource={filterResults(results, searchText)}
+				renderItem={(result) => (
+					<DirectItem key={result.id} onClick={() => handleUserClick(result)}>
+						<DirectInfo>
+							<DirectAvatar src={UserProfilePicture} />
+							<DirectName>{result.username}</DirectName>
+							<Dropdown menu={{ items }} trigger={["click"]}>
+								<DirectArrow>
+									<DownOutlined className="direct-arrow" />
+								</DirectArrow>
+							</Dropdown>
+						</DirectInfo>
+					</DirectItem>
+				)}
+			/>
+		</>
+	);
 };
+
 
 export default DirectChatRelations;

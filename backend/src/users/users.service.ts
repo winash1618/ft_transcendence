@@ -42,6 +42,116 @@ export class UsersService {
     });
   }
 
+  async addFriend(userID: string, friendID: string) {
+    if (userID === friendID) {
+      throw new Error('You cannot add yourself as a friend');
+    }
+
+    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
+    const friendExists = await this.prisma.user.findUnique({ where: { id: friendID } });
+
+    if (!userExists || !friendExists) {
+      throw new Error('One or both users do not exist');
+    }
+
+    // Update user's friends list
+    await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        friends: {
+          connect: { id: friendID },
+        },
+      },
+    });
+
+    // Update friend's friends list
+    await this.prisma.user.update({
+      where: { id: friendID },
+      data: {
+        friends: {
+          connect: { id: userID },
+        },
+      },
+    });
+
+    return { message: 'Friend added successfully' };
+  }
+
+  async unfriend(userID: string, friendID: string) {
+    // Check if users exist
+    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
+    const friendExists = await this.prisma.user.findUnique({ where: { id: friendID } });
+
+    if (!userExists || !friendExists) {
+      throw new Error('One or both users do not exist');
+    }
+
+    // Remove the friend connection for both users
+    await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        friends: {
+          disconnect: { id: friendID },
+        },
+      },
+    });
+
+    await this.prisma.user.update({
+      where: { id: friendID },
+      data: {
+        friends: {
+          disconnect: { id: userID },
+        },
+      },
+    });
+
+    return { message: 'Friend removed successfully' };
+  }
+
+  async block(userID: string, blockID: string) {
+    // Check if users exist
+    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
+    const blockExists = await this.prisma.user.findUnique({ where: { id: blockID } });
+
+    if (!userExists || !blockExists) {
+      throw new Error('One or both users do not exist');
+    }
+
+    // Block the user
+    await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        blocked_users: {
+          connect: { id: blockID },
+        },
+      },
+    });
+
+    return { message: 'User blocked successfully' };
+  }
+
+  async unblock(userID: string, blockID: string) {
+    // Check if users exist
+    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
+    const blockExists = await this.prisma.user.findUnique({ where: { id: blockID } });
+
+    if (!userExists || !blockExists) {
+      throw new Error('One or both users do not exist');
+    }
+
+    // Unblock the user
+    await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        blocked_users: {
+          disconnect: { id: blockID },
+        },
+      },
+    });
+
+    return { message: 'User unblocked successfully' };
+  }
+
   async getUserById(id: string): Promise<User | null> {
     return await this.prisma.user.findUnique({ where: { id } });
   }
@@ -115,8 +225,10 @@ export class UsersService {
         },
       },
       select: {
+		id: true,
         username: true,
         user_status: true,
+		login: true,
       }
     });
   }

@@ -31,14 +31,15 @@ export const Role = {
 	USER: 'USER',
 };
 
-export const GNav = {
-	GROUPS: 'GROUPS',
-	BLOCKED: 'BLOCKED',
-	ADD: 'ADD',
+export enum GNav  {
+	GROUPS,
+	BLOCKED,
+	ADD,
 };
 
 export interface User {
 	id: number;
+	login: string;
 	username: string;
 	avatar: string;
 }
@@ -46,6 +47,7 @@ export interface User {
 export interface Participant {
 	id: number;
 	user: User;
+	conversation_status: 'ACTIVE' | 'BANNED' | 'KICKED' | 'MUTED';
 	role: 'OWNER' | 'ADMIN' | 'USER';
 }
 export interface Conversation {

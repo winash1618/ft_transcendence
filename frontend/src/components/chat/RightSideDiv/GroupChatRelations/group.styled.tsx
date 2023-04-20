@@ -17,6 +17,7 @@ const GroupTitle = styled.div`
   display: flex;
   justify-content: space-around;
   align-items: center;
+  margin-bottom: 1rem;
 `;
 
 const GroupInfo = styled.div`

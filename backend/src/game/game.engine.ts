@@ -23,7 +23,7 @@ let BALL_SIZE = 12.5;
 let BALL_SPEED = 5;
 let PADDLE_SPEED = 15;
 const GAME_TIME = 30;
-const GAME_POINTS = 50;
+const GAME_POINTS = 5;
 
 export class GameEngine {
   gameID: string;
@@ -35,7 +35,7 @@ export class GameEngine {
   ballMovement: BallMovement;
   interval: any;
 
-  initGameObj(points: number, player1: string, player2: string): GameObject {
+  initGameObj(points: number, player1: string, player2: string, hasMiddleWall: boolean): GameObject {
     return {
       gameStatus: GameStatus.WAITING,
       paddle1: {
@@ -57,8 +57,9 @@ export class GameEngine {
       player1: { points: 0, name: player1 },
       player2: { points: 0, name: player2 },
       gameSetting: {
-        speed: 3,
+        speed: 2,
         points: points,
+        hasMiddleWall: hasMiddleWall,
       },
       remainingTime: GAME_TIME,
       time: 30,
@@ -71,10 +72,11 @@ export class GameEngine {
     player1: SocketData,
     player2: SocketData,
     private gameService: GameService,
+    hasMiddleWall: boolean,
   ) {
     this.gameID = game.gameID;
     this.server = server;
-    this.gameObj = this.initGameObj(7, game.player1, game.player2);
+    this.gameObj = this.initGameObj(7, game.player1, game.player2, hasMiddleWall);
     this.ballMovement = {
       x: 0,
       y: 0,
@@ -99,40 +101,53 @@ export class GameEngine {
     this.player2 = game.player2;
   }
 
-  ballBounce(paddlePosition: number) {
+  ballBounce(paddlePosition: number, isPaddle: boolean = true) {
     const isBallMovingRight = this.ballMovement.x > 0 ? -1 : 1;
-    const paddleTop = paddlePosition - BALL_SIZE;
-    const paddleBottom = paddlePosition + PADDLE_HEIGHT;
-    const paddleHeight = paddleBottom - paddleTop;
-    const conflictPosition = paddleBottom - this.gameObj.ball.y;
-    let yDirection = 0;
-    let radianRatio = 0;
 
-    if (conflictPosition / paddleHeight > 0.5) {
-      yDirection = -1;
-      if (this.gameObj.ball.y === GAME_HEIGHT - BALL_SIZE) {
-        yDirection = 1;
-      }
-      radianRatio = (conflictPosition / paddleHeight - 0.5) * 2;
-    } else {
-      yDirection = 1;
-      if (this.gameObj.ball.y === 0) {
+    if (isPaddle) {
+      // Bounce off a paddle
+      const paddleTop = paddlePosition - BALL_SIZE;
+      const paddleBottom = paddlePosition + PADDLE_HEIGHT;
+      const paddleHeight = paddleBottom - paddleTop;
+      const conflictPosition = paddleBottom - this.gameObj.ball.y;
+      let yDirection = 0;
+      let radianRatio = 0;
+
+      if (conflictPosition / paddleHeight > 0.5) {
         yDirection = -1;
+        if (this.gameObj.ball.y === GAME_HEIGHT - BALL_SIZE) {
+          yDirection = 1;
+        }
+        radianRatio = (conflictPosition / paddleHeight - 0.5) * 2;
+      } else {
+        yDirection = 1;
+        if (this.gameObj.ball.y === 0) {
+          yDirection = -1;
+        }
+        radianRatio = 1 - (conflictPosition / paddleHeight) * 2;
       }
-      radianRatio = 1 - (conflictPosition / paddleHeight) * 2;
-    }
 
-    this.ballMovement.radian = (radianRatio * Math.PI) / 4;
-    this.ballMovement.x =
-      isBallMovingRight *
-      Math.cos(this.ballMovement.radian) *
-      BALL_SPEED *
-      this.gameObj.gameSetting.speed;
-    this.ballMovement.y =
-      yDirection *
-      Math.sin(this.ballMovement.radian) *
-      BALL_SPEED *
-      this.gameObj.gameSetting.speed;
+      this.ballMovement.radian = (radianRatio * Math.PI) / 4;
+      this.ballMovement.x =
+        isBallMovingRight *
+        Math.cos(this.ballMovement.radian) *
+        BALL_SPEED *
+        this.gameObj.gameSetting.speed;
+      this.ballMovement.y =
+        yDirection *
+        Math.sin(this.ballMovement.radian) *
+        BALL_SPEED *
+        this.gameObj.gameSetting.speed;
+    } else {
+      // Bounce off the center wall
+      const angleOfIncidence = Math.atan2(this.ballMovement.y, this.ballMovement.x);
+      const wallNormalAngle = Math.PI; // Wall is vertical, so its surface normal is horizontal (180 degrees)
+
+      const reflectionAngle = 2 * wallNormalAngle - angleOfIncidence;
+
+      this.ballMovement.x = -Math.cos(reflectionAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
+      this.ballMovement.y = -Math.sin(reflectionAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
+    }
   }
 
   ballMove() {
@@ -152,6 +167,13 @@ export class GameEngine {
     const ball = this.gameObj.ball;
     const paddle1 = this.gameObj.paddle1;
     const paddle2 = this.gameObj.paddle2;
+
+    // Add wall properties
+    const wallWidth = 10; // You can adjust the wall width
+    const wallX = (GAME_WIDTH - wallWidth) / 2;
+    const gapSize = 200; // You can adjust the gap size
+    const gapTop = (GAME_HEIGHT - gapSize) / 2;
+    const gapBottom = GAME_HEIGHT - gapSize;
 
     // Check for ball collision with walls
     if (ball.x <= 0) {
@@ -180,6 +202,23 @@ export class GameEngine {
     if (ball.y <= 0) {
       this.ballMovement.y *= -1;
     }
+
+    // Check for ball collision with middle wall
+    if (this.gameObj.gameSetting.hasMiddleWall) {
+      const ballIsInUpperGap = ball.y + BALL_SIZE <= gapTop;
+      const ballIsInLowerGap = ball.y >= gapBottom;
+
+      if (
+        ball.x + BALL_SIZE >= wallX &&
+        ball.x <= wallX + wallWidth &&
+        !(ballIsInUpperGap || ballIsInLowerGap)
+      ) {
+        // Calculate new ball direction after bouncing off the middle wall
+        this.ballBounce(0, false);
+      }
+    }
+
+    // Check for ball collision with paddles
     if (
       paddle1.y <= ball.y + BALL_SIZE &&
       ball.y <= paddle1.y + PADDLE_HEIGHT &&
@@ -201,11 +240,18 @@ export class GameEngine {
   }
 
   resetBall() {
+    const safeDistanceFromWall = 50; // You can adjust the safe distance from the wall
+
     this.gameObj.ball.y = (GAME_HEIGHT - BALL_SIZE) / 2;
-    this.gameObj.ball.x = (GAME_WIDTH - BALL_SIZE) / 2;
+
+    // Choose a random side for the ball to start on
+    const startingSide = Math.random() < 0.5 ? 1 : -1;
+    const centerX = (GAME_WIDTH - BALL_SIZE) / 2;
+    this.gameObj.ball.x = centerX + startingSide * safeDistanceFromWall;
+
     this.ballMovement.radian = (Math.random() * Math.PI) / 4;
     this.ballMovement.x =
-      (Math.random() < 0.5 ? 1 : -1) *
+      startingSide *
       Math.cos(this.ballMovement.radian) *
       BALL_SPEED *
       this.gameObj.gameSetting.speed;
@@ -283,7 +329,7 @@ export class GameEngine {
     }, 1000);
   }
 
-  startGame(mobile: boolean) {
+  startGame(mobile: boolean, hasMiddleWall) {
     if (mobile) {
       GAME_WIDTH = 300;
       GAME_HEIGHT = 500;
@@ -295,7 +341,7 @@ export class GameEngine {
     }
     console.log(GAME_HEIGHT, GAME_WIDTH);
     clearInterval(this.interval);
-    this.gameObj = this.initGameObj(0, this.player1, this.player2);
+    this.gameObj = this.initGameObj(0, this.player1, this.player2, hasMiddleWall);
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
 

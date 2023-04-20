@@ -1,5 +1,4 @@
 
-import { useEffect } from "react";
 import { Button, Input } from "antd";
 import { BsSend } from "react-icons/bs";
 

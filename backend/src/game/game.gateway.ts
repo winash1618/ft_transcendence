@@ -50,7 +50,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       secret: process.env.JWT_SECRET,
     });
 
-    console.log('User connected: ', userid);
     client.data.userID = userid;
     const user = await this.usersService.findOne(client.data.userID['login']);
     client.data.userID['login'] = user.username;
@@ -70,7 +69,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.userSockets.delete(userid);
   }
 
-  createGameRoom(player1: SocketData, player2: SocketData) {
+  createGameRoom(player1: SocketData, player2: SocketData, hasMiddleWall: boolean) {
     const id = uuid4();
     const game: Game = {
       gameID: id,
@@ -85,6 +84,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       player1,
       player2,
       this.gameService,
+      hasMiddleWall,
     );
     gameRoom.startSettings();
     this.gameRooms[id] = gameRoom;
@@ -135,7 +135,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user.status = GameStatus.READY;
       socketData.playerNumber = 2;
       socketData.status = GameStatus.READY;
-      const roomID = this.createGameRoom(user, socketData);
+      const roomID = this.createGameRoom(user, socketData, true);
+      // const roomID = this.createGameRoom(user, socketData, data.middleWall);
       user.gameID = roomID;
       socketData.gameID = roomID;
       this.server.to(client.id).emit('start', {
@@ -198,7 +199,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (this.invitedUser.has(invitedUserID)) {
       const invitedSocketData = this.invitedUser.get(invitedUserID)[1];
       if (invitedSocketData.userID === userID) {
-        const roomID = this.createGameRoom(socketData, invitedSocketData);
+        const roomID = this.createGameRoom(socketData, invitedSocketData, data.hasMiddleWall);
         socketData.gameID = roomID;
         invitedSocketData.gameID = roomID;
         this.server.to(client.id).emit('GameCreated', roomID);
@@ -264,7 +265,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
     if (this.gameRooms[roomID]) {
-      this.gameRooms[roomID].startGame(data.mobile);
+      this.gameRooms[roomID].startGame(data.mobile, true);
+      // this.gameRooms[roomID].startGame(data.mobile, data.hasMiddleWall);
     }
   }
 }

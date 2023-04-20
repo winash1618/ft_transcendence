@@ -67,6 +67,7 @@ export class AuthController {
   @Get('guest')
   async guestLogin(@Res() res: Response) {
     const user = await this.userService.findOne('user1');
+    await this.userService.updateAuthentication(user.id, false);
     const token = await this.authService.getLongExpiryJwtToken(user);
     console.log(token);
 
