@@ -31,13 +31,13 @@ import { UnBanUserDTO } from './dto/GatewayDTO/unBanUser.dto';
 import { KickUserDTO } from './dto/GatewayDTO/kickUser.dto';
 import { MuteUserDTO } from './dto/GatewayDTO/muteUser.dto';
 
-// @WebSocketGateway(8001, {
-//   cors: {
-//     origin: process.env.FRONTEND_BASE_URL,
-//     credentials: true,
-//   },
-// })
-@WebSocketGateway()
+@WebSocketGateway(8001, {
+  cors: {
+    origin: process.env.FRONTEND_BASE_URL,
+    credentials: true,
+  },
+})
+// @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -51,8 +51,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    // const token = client.handshake.auth.token as string;
-    const token = client.handshake.headers.token as string;
+    const token = client.handshake.auth.token as string;
+    // const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });

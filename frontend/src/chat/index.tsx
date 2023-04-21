@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LeftSideContainer, MessageBoxContainer, ParentContainer, RightSideContainer } from "./chat.styled";
 import { GNav, Nav, Status, User } from "./chat.functions";
 import { UserProfilePicture } from "../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";
+import { ErrorAlert } from "../components/toastify";
 
 interface ChatProps {
 	socket: any;
@@ -24,6 +25,15 @@ const Chat = ({
 	const [results, setResults] = useState<User[]>([]);
 	const [groupResults, setGroupResults] = useState<User[]>([]);
 	const [groupNav, setGroupNav] = useState(GNav.GROUPS);
+	useEffect(() => {
+		socket?.on('exception', (error) => {
+			ErrorAlert(error.error, 5000);
+			console.log(error);
+		});
+		return () => {
+			socket?.off('exception');
+		};
+	}, [socket]);
 
 	return (
 		<>
@@ -61,7 +71,7 @@ const Chat = ({
 					)}
 				</MessageBoxContainer>
 				<RightSideContainer>
-					<RightSideDiv 
+					<RightSideDiv
 						socket={socket}
 						user={user}
 						Navbar={Navbar}
