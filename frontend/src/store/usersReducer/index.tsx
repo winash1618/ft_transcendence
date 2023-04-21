@@ -71,7 +71,7 @@ export const changeNickName = createAsyncThunk(
 );
 
 const usersSlide = createSlice({
-  name: "Auth",
+  name: "Users",
   initialState,
   reducers: {
     resetChangeNickName: (state) => {

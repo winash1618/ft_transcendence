@@ -33,3 +33,22 @@ export const CustomSider = styled(Sider)`
     overflow: hidden;
   }
 `;
+
+export const NotificationsWrapper = styled.div`
+  position: relative;
+  display: flex;
+`;
+
+export const NotificationsCounter = styled.h1`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  right: -5px;
+  width: 20px;
+  font-size: 0.8rem;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  top: -5px;
+`;

@@ -69,19 +69,14 @@ let game: GameType = {
 };
 
 const PingPongCanvas = ({
-  player,
-  players,
-  roomID,
   socket,
   mobile,
 }: {
-  player: number;
-  players: any;
   mobile: boolean;
-  roomID: string;
   socket: Socket | null;
 }) => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
+  const { players, player, roomID } = useAppSelector((state) => state.game);
   const { token } = useAppSelector((state) => state.auth);
   const [gameStatus, setGameStatus] = useState<number>(0);
   const [player1Score, setPlayer1Score] = useState<number>(0);
@@ -109,8 +104,8 @@ const PingPongCanvas = ({
         game.paddle2.height = 50;
         game.paddle2.x = 300 - 10;
         game.paddle1.x = 0;
-        game.paddle2.y = (500 / 2) - (50 / 2);
-        game.paddle1.y = (500 / 2) - (50 / 2);
+        game.paddle2.y = 500 / 2 - 50 / 2;
+        game.paddle1.y = 500 / 2 - 50 / 2;
         game.ball.radius = 6.25;
       } else {
         canvaRef.current.width = CANVAS_WIDTH;

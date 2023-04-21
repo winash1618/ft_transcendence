@@ -2,17 +2,14 @@ import { useEffect, useState } from "react";
 import PingPong from "../../components/pingPong";
 import PlayForm from "../../components/playForm";
 import axios from "../../api";
-import { useAppDispatch } from "../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 import { io, Socket } from "socket.io-client";
 
 const PingPongPage = () => {
-  const [isGameStarted, setIsGameStarted] = useState<boolean>(false);
-  const [player, setPlayer] = useState<number>(1);
-  const [players, setPlayers] = useState<any>(null);
+  const { isGameStarted } = useAppSelector((state) => state.game);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [mobile, setMobile] = useState<boolean>(false);
-  const [roomID, setRoomID] = useState<string>("");
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -56,18 +53,11 @@ const PingPongPage = () => {
       {isGameStarted ? (
         <PingPong
           mobile={mobile}
-          player={player}
-          roomID={roomID}
           socket={socket}
-          players={players}
         />
       ) : (
         <PlayForm
-          setIsGameStarted={setIsGameStarted}
-          setPlayer={setPlayer}
-          setPlayers={setPlayers}
           setMobile={setMobile}
-          setRoomID={setRoomID}
           socket={socket}
         />
       )}
