@@ -13,7 +13,7 @@ datasource db {
 model User {
   id                    String          @id @default(uuid())
   login                 String          @unique
-  username              String?
+  username              String?         @unique
   first_name            String?
   profile_picture       String?
   last_name             String?
@@ -21,6 +21,7 @@ model User {
   is_authenticated      Boolean?
   friends               User[]          @relation("friends")
   friends_of            User[]          @relation("friends")
+  friend_requests       String[]
   blocked_users         User[]          @relation("blocked_users")
   blocked_by            User[]          @relation("blocked_users")
   user_status           UserStatus      @default(OFFLINE)

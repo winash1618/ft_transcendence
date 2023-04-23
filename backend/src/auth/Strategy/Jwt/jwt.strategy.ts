@@ -26,6 +26,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!user) {
       throw new UnauthorizedException('Invalid token');
     }
+    if (!user.is_authenticated && !!user.secret_code) {
+      throw new UnauthorizedException('User not authenticated');
+    }
     return user;
   }
 }
