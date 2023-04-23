@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  NotFoundException,
   UseFilters,
   ParseUUIDPipe,
   UseGuards,
@@ -38,7 +37,7 @@ export class ChatController {
       // return await this.conversationService.getDirectConversations('38144271-a29c-401b-b9ab-da7023f0be00');
       return await this.conversationService.getDirectConversations(req.user.id);
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -49,7 +48,7 @@ export class ChatController {
     try {
       return await this.participantService.getConversationMembers(conversationID);
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -58,7 +57,7 @@ export class ChatController {
     try {
       return await this.conversationService.getChannels(req.user.id);
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -73,7 +72,7 @@ export class ChatController {
         );
       return conversations;
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -84,7 +83,7 @@ export class ChatController {
         req.user.id,
       );
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -95,7 +94,7 @@ export class ChatController {
     try {
       return await this.participantService.bannedUsers(channelID);
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -112,7 +111,7 @@ export class ChatController {
 
       return friends;
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new Error(error.message);
     }
   }
 }

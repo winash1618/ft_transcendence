@@ -21,6 +21,7 @@ model User {
   is_authenticated      Boolean?
   friends               User[]          @relation("friends")
   friends_of            User[]          @relation("friends")
+  friend_requests       String[]
   blocked_users         User[]          @relation("blocked_users")
   blocked_by            User[]          @relation("blocked_users")
   user_status           UserStatus      @default(OFFLINE)

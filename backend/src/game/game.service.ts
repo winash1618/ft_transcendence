@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
@@ -68,7 +68,7 @@ export class GameService {
     });
 
     if (!gameHistory) {
-      throw new NotFoundException('No game history found');
+      throw new Error('No game history found');
     }
 
     return gameHistory;

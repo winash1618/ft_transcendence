@@ -1,13 +1,13 @@
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ConversationService } from './Queries/conversation.service';
@@ -82,31 +82,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: createConversationDto,
   ) {
     console.log('In createConversation');
+    try {
+      const conversation = await this.conversationService.createConversation({
+        title: data.title,
+        creator_id: client.data.userID.id,
+        password: data.password,
+        privacy: data.privacy,
+      });
 
-    const conversation = await this.conversationService.createConversation({
-      title: data.title,
-      creator_id: client.data.userID.id,
-      password: data.password,
-      privacy: data.privacy,
-    });
+      // add only one participant
+      const participant =
+        await this.participantService.addParticipantToConversation(
+          {
+            conversation_id: conversation.id,
+            user_id: client.data.userID.id,
+            role: Role['OWNER'],
+            conversation_status: 'ACTIVE',
+          },
+          data.password,
+        );
 
-    // add only one participant
-    const participant =
-      await this.participantService.addParticipantToConversation(
-        {
-          conversation_id: conversation.id,
-          user_id: client.data.userID.id,
-          role: Role['OWNER'],
-          conversation_status: 'ACTIVE',
-        },
-        data.password,
+      await this.joinConversations(client.data.userID.id, conversation.id);
+      await this.sendConversationCreatedToAllClients(
+        client.data.userID.id,
+        conversation,
       );
-
-    await this.joinConversations(client.data.userID.id, conversation.id);
-    await this.sendConversationCreatedToAllClients(
-      client.data.userID.id,
-      conversation,
-    );
+    }
+    catch (e) {
+      console.log(e);
+      throw new WsException({
+        message: 'Create conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('joinConversation')
@@ -116,22 +124,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In joinConversation');
 
-    const participant =
-      await this.participantService.addParticipantToConversation(
-        {
-          conversation_id: data.conversationID,
-          user_id: client.data.userID.id,
-          role: Role.USER,
-          conversation_status: 'ACTIVE',
-        },
-        data.password,
-      );
+    try {
+      const participant =
+        await this.participantService.addParticipantToConversation(
+          {
+            conversation_id: data.conversationID,
+            user_id: client.data.userID.id,
+            role: Role.USER,
+            conversation_status: 'ACTIVE',
+          },
+          data.password,
+        );
 
-    await this.joinConversations(client.data.userID.id, data.conversationID);
-    await this.sendConversationJoinedToAllClients(
-      client.data.userID.id,
-      data.conversationID,
-    );
+      await this.joinConversations(client.data.userID.id, data.conversationID);
+      this.server.to(data.conversationID).emit('conversationJoined', {
+        conversationID: data.conversationID,
+        leftUserID: client.data.userID.id,
+      });
+    }
+    catch (e) {
+      console.log(e);
+      throw new WsException({
+        message: 'Join conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('directMessage')
@@ -140,30 +157,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: DirectMessageDTO,
   ) {
     console.log('In directMessage');
-    const exists = await this.conversationService.checkDirectConversationExists(
-      client.data.userID.id,
-      data.userID,
-    );
-
-    if (exists !== null) {
-      client.emit('directExists', exists.id);
-      return;
-    }
-
-    const conversation =
-      await this.conversationService.createDirectConversation(
-        {
-          title: data.title,
-          creator_id: client.data.userID.id,
-          privacy: 'DIRECT',
-        },
+    try {
+      const exists = await this.conversationService.checkDirectConversationExists(
         client.data.userID.id,
         data.userID,
       );
 
-    await this.joinConversations(client.data.userID.id, conversation.id);
-    await this.joinConversations(data.userID, conversation.id);
-    client.emit('directMessage', conversation);
+      if (exists !== null) {
+        client.emit('directExists', exists.id);
+        return;
+      }
+
+      const conversation =
+        await this.conversationService.createDirectConversation(
+          {
+            title: data.title,
+            creator_id: client.data.userID.id,
+            privacy: 'DIRECT',
+          },
+          client.data.userID.id,
+          data.userID,
+        );
+
+      await this.joinConversations(client.data.userID.id, conversation.id);
+      await this.joinConversations(data.userID, conversation.id);
+      client.emit('directMessage', conversation);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Direct conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('leaveConversation')
@@ -171,23 +196,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: LeaveConversationDTO,
   ) {
-    const removedParticipant =
-      await this.participantService.removeParticipantFromConversation(
+    try {
+      const removedParticipant =
+        await this.participantService.removeParticipantFromConversation(
+          data.conversationID,
+          client.data.userID.id,
+        );
+
+      await this.conversationService.promoteOldestUserToAdmin(
         data.conversationID,
-        client.data.userID.id,
       );
 
-    await this.conversationService.promoteOldestUserToAdmin(
-      data.conversationID,
-    );
-
-    const user = this.gatewaySession.getUserSocket(client.data.userID.id);
-    if (!user) return;
-    this.server.to(data.conversationID).emit('conversationLeft', {
-		conversationID: data.conversationID,
-		leftUserID: client.data.userID.id,
-    });
-	user.leave(data.conversationID);
+      const user = this.gatewaySession.getUserSocket(client.data.userID.id);
+      if (!user) return;
+      this.server.to(data.conversationID).emit('conversationLeft', {
+      conversationID: data.conversationID,
+      leftUserID: client.data.userID.id,
+      });
+      user.leave(data.conversationID);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Leave conversation failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('addPassword')
@@ -195,15 +228,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: AddPasswordDTO,
   ) {
-    const conversation = await this.conversationService.protectConversation(
-      data.conversationID,
-      data.password,
-      client.data.userID.id,
-    );
+    try {
+      const conversation = await this.conversationService.protectConversation(
+        data.conversationID,
+        data.password,
+        client.data.userID.id,
+      );
 
-    this.server
-      .to(data.conversationID)
-      .emit('conversationProtected', conversation.id);
+      this.server
+        .to(data.conversationID)
+        .emit('conversationProtected', conversation.id);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Add Password failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('sendMessage')
@@ -220,7 +261,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
 
       if (!participant)
-        throw new NotFoundException('Participant not found');
+        throw new Error('Participant not found');
 
       const message = await this.messageService.createMessage({
         message: data.message,
@@ -229,23 +270,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       this.server.to(data.conversationID).emit('messageCreated', message);
-    } catch (e) {
-      console.log(e);
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Send Message failed',
+        error: e.message
+      });
     }
   }
 
   @SubscribeMessage('makeAdmin')
   async makeAdmin(@ConnectedSocket() client: Socket, @MessageBody() data: MakeAdminDTO) {
-    const participant = await this.participantService.makeParticipantAdmin(
-      data.conversationID,
-      data.userID,
-      client.data.userID.id,
-    );
+    try {
+      const participant = await this.participantService.makeParticipantAdmin(
+        data.conversationID,
+        data.userID,
+        client.data.userID.id,
+      );
 
-    this.server.to(data.conversationID).emit('adminMade', {
-      conversationID: data.conversationID,
-      admin: participant.user_id,
-    });
+      this.server.to(data.conversationID).emit('adminMade', {
+        conversationID: data.conversationID,
+        admin: participant.user_id,
+      });
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Make Admin failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('addParticipant')
@@ -255,22 +308,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In addParticipant');
 
-    const participant =
-      await this.participantService.addParticipantToConversation(
-        {
-          conversation_id: data.conversationID,
-          user_id: data.userID,
-          role: Role.USER,
-          conversation_status: 'ACTIVE',
-        },
-        client.data.userID.id,
-      );
+    try {
+      const participant =
+        await this.participantService.addParticipantToConversation(
+          {
+            conversation_id: data.conversationID,
+            user_id: data.userID,
+            role: Role.USER,
+            conversation_status: 'ACTIVE',
+          },
+          client.data.userID.id,
+        );
 
-    this.joinConversations(data.userID, data.conversationID);
-    this.server.to(data.conversationID).emit('participantAdded', {
-      conversationID: data.conversationID,
-      participant: participant.user_id,
-    });
+      this.joinConversations(data.userID, data.conversationID);
+      this.server.to(data.conversationID).emit('participantAdded', {
+        conversationID: data.conversationID,
+        participant: participant.user_id,
+      });
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Add Participant failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('removeParticipant')
@@ -278,24 +339,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: RemoveParticipantDTO,
   ) {
-    const participant =
-      await this.participantService.removeParticipantFromConversation(
+    console.log('In removeParticipant');
+
+    try {
+      const participant =
+        await this.participantService.removeParticipantFromConversation(
+          data.conversationID,
+          data.userID,
+          client.data.userID.id,
+        );
+
+      await this.conversationService.promoteOldestUserToAdmin(
         data.conversationID,
-        data.userID,
-        client.data.userID.id,
       );
 
-    await this.conversationService.promoteOldestUserToAdmin(
-      data.conversationID,
-    );
-
-    const user = this.gatewaySession.getUserSocket(data.userID);
-    if (!user) return;
-    user.leave(data.conversationID);
-    this.server.to(data.conversationID).emit('participantRemoved', {
-      conversationID: data.conversationID,
-      removedUserID: participant.user_id,
-    });
+      const user = this.gatewaySession.getUserSocket(data.userID);
+      if (!user) return;
+      user.leave(data.conversationID);
+      this.server.to(data.conversationID).emit('participantRemoved', {
+        conversationID: data.conversationID,
+        removedUserID: participant.user_id,
+      });
+    }
+    catch (e) {
+      throw new WsException({
+        message: 'Remove Participant failed',
+        error: e.message
+      });
+    }
   }
 
   @SubscribeMessage('banUser')
@@ -316,7 +387,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
       user.leave(data.conversationID);
     } catch (e) {
-      client.emit('error', 'Unauthorized access from banUser');
+      throw new WsException({
+        message: 'Ban User failed',
+        error: e.message
+      });
     }
   }
 
@@ -336,7 +410,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         unbannedUserID: participant.user_id,
       });
     } catch (e) {
-      client.emit('error', 'Unauthorized access from unbanUser');
+      throw new WsException({
+        message: 'Unban User failed',
+        error: e.message
+      });
     }
   }
 
@@ -358,7 +435,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         kickedUserID: participant.user_id,
       });
     } catch (e) {
-      client.emit('error', 'Unauthorized access from kickUser');
+      throw new WsException({
+        message: 'Kick User failed',
+        error: e.message
+      });
     }
   }
 
@@ -375,7 +455,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.server.to(data.conversationID).emit('passwordRemoved');
     } catch (e) {
-      client.emit('error', 'Unauthorized access from removePassword');
+      throw new WsException({
+        message: 'Remove Password failed',
+        error: e.message
+      });
     }
   }
 
@@ -394,7 +477,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         mutedUserID: data.userID,
       });
     } catch (e) {
-      client.emit('error', 'Unauthorized access from muteUser');
+      throw new WsException({
+        message: 'Mute User failed',
+        error: e.message
+      });
     }
   }
 
@@ -425,28 +511,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('conversationCreated', conversation);
   }
 
-  private async sendConversationJoinedToAllClients(
-    userID: string,
-    conversationID: string,
-  ) {
-    const conversations = await this.conversationService.getConversationByID(
-      conversationID,
-    );
+  // private async sendConversationJoinedToAllClients(
+  //   userID: string,
+  //   conversationID: string,
+  // ) {
+  //   const conversations = await this.conversationService.getConversationByID(
+  //     conversationID,
+  //   );
 
-    const participants = conversations.participants;
-    participants.forEach(async participant => {
-      const messages = await this.messageService.getMessagesByConversationID(
-        conversationID,
-      );
-      const sockets = this.gatewaySession.getAllUserSockets();
-      if (!sockets || sockets.length === 0) return;
-      sockets.forEach(socket => {
-        this.server.to(socket.id).emit('conversationJoined', {
-          conversationID,
-          participant,
-          messages,
-        });
-      });
-    });
-  }
+  //   const participants = conversations.participants;
+  //   participants.forEach(async participant => {
+  //     const messages = await this.messageService.getMessagesByConversationID(
+  //       conversationID,
+  //     );
+  //     const sockets = this.gatewaySession.getAllUserSockets();
+  //     if (!sockets || sockets.length === 0) return;
+  //     sockets.forEach(socket => {
+  //       this.server.to(socket.id).emit('conversationJoined', {
+  //         conversationID,
+  //         participant,
+  //         messages,
+  //       });
+  //     });
+  //   });
+  // }
 }
