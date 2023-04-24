@@ -1,4 +1,6 @@
 import { GameType } from ".";
+import { CANVAS_HEIGHT } from ".";
+import { CANVAS_WIDTH } from ".";
 
 type BallType = {
   x: number;
@@ -39,7 +41,7 @@ export const draw = (
   setPlayer2Score: any,
 ) => {
   if (!game.pause) {
-    ctx.clearRect(0, 0, 1000, 1000);
+    ctx.clearRect(0, 0, 2000 , 2000);
     drawPaddles(ctx, game.paddle1, game.paddle2);
     drawBall(ctx, game.ball);
   }

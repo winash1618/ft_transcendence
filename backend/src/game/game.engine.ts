@@ -17,13 +17,13 @@ import { GameService } from './game.service';
 
 let GAME_WIDTH = 900;
 let GAME_HEIGHT = 800;
-let PADDLE_WIDTH = 20;
-let PADDLE_HEIGHT = 100;
-let BALL_SIZE = 12.5;
-let BALL_SPEED = 5;
-let PADDLE_SPEED = 15;
+let PADDLE_WIDTH = 0.025 * GAME_WIDTH;
+let PADDLE_HEIGHT = 0.125 * GAME_HEIGHT;
+let BALL_SIZE = 0.015 * GAME_WIDTH;
+let BALL_SPEED = 0.005 * GAME_WIDTH;
+let PADDLE_SPEED = 0.015 * GAME_HEIGHT;
 const GAME_TIME = 30;
-const GAME_POINTS = 5;
+const GAME_POINTS = 1555;
 
 export class GameEngine {
   gameID: string;
@@ -39,7 +39,7 @@ export class GameEngine {
     return {
       gameStatus: GameStatus.WAITING,
       paddle1: {
-        x: 0,
+        x: 0.025 * GAME_WIDTH,
         y: GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2,
         movingUp: false,
         movingDown: false,

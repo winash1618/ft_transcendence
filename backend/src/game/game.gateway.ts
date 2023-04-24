@@ -92,7 +92,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   setUserStatus(client: Socket, status: GameStatus) {
-    const userID = client.data.userID.id;
+    const userID = client.data.userID;
     if (!this.userSockets.has(userID)) {
       const socketData: SocketData = {
         playerNumber: -1,
