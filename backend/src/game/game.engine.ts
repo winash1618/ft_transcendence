@@ -23,7 +23,7 @@ let BALL_SIZE = 0.015 * GAME_WIDTH;
 let BALL_SPEED = 0.005 * GAME_WIDTH;
 let PADDLE_SPEED = 0.015 * GAME_HEIGHT;
 const GAME_TIME = 30;
-const GAME_POINTS = 1555;
+const GAME_POINTS = 20;
 
 export class GameEngine {
   gameID: string;
@@ -294,10 +294,17 @@ export class GameEngine {
     if (this.users.get(client.data.userID) === undefined) {
       return;
     }
-    if (this.users.get(client.data.userID).playerNumber === 1) {
-      this.gameObj.paddle1.y = y;
-    } else if (this.users.get(client.data.userID).playerNumber === 2) {
-      this.gameObj.paddle2.y = y;
+    const playerNumber = this.users.get(client.data.userID).playerNumber;
+    const paddle = playerNumber === 1 ? this.gameObj.paddle1 : this.gameObj.paddle2;
+
+    if (y < paddle.y) {
+      if (paddle.y >= PADDLE_SPEED) {
+        paddle.y -= PADDLE_SPEED;
+      }
+    } else if (y > paddle.y) {
+      if (paddle.y <= GAME_HEIGHT - PADDLE_HEIGHT - PADDLE_SPEED) {
+        paddle.y += PADDLE_SPEED;
+      }
     }
   }
 

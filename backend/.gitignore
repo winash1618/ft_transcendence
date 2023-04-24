@@ -38,3 +38,5 @@ test.ts
 # env files
 .env
 test.ts
+
+/uploads
