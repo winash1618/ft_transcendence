@@ -15,7 +15,7 @@ import axios from "../../api";
 
 /*------------------------------------------------------------------*/
 import { List, Avatar } from "antd";
-import { Nav } from "../../chat/chat.functions";
+import { Nav } from "../../components/chat/chat.functions";
 
 interface LeaderboardData {
   id: number;

@@ -8,13 +8,13 @@ import {
 } from "./group.styled";
 import { List, Dropdown, MenuProps, Button, Input, Result } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { UserProfilePicture } from "../../../assets";
+import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role, User } from "../../chat.functions";
 import { useState } from "react";
 import axios from "axios";
-import { logOut } from "../../../store/authReducer";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
+import { useAppDispatch } from "../../../../hooks/reduxHooks";
 
 interface GroupChatRelationsProps {
 	socket: any;
@@ -252,6 +252,7 @@ const GroupChatRelations = ({
 				{groupNav === GNav.GROUPS ? (
 					<List
 						itemLayout="horizontal"
+						locale={{ emptyText: "No groups found" }}
 						dataSource={filterResults(groupResults, searchText) as any}
 						renderItem={(result: ResultObject) => (
 							<GroupItem key={result.id} onClick={() => handleUserClick(result)}>

@@ -1,35 +1,65 @@
 import React, { useEffect, useState } from "react";
-import { UserOutlined } from "@ant-design/icons";
 import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
-import { Layout, Menu } from "antd";
+import {
+  Badge,
+  ConfigProvider,
+  Dropdown,
+  Layout,
+  Menu,
+  MenuProps,
+  theme,
+} from "antd";
 import axios, { BASE_URL } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../../hooks/reduxHooks";
-import { logOut, setUserInfo } from "../../store/authReducer";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
+import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 import Loading from "../loading";
 import {
   CustomSider,
   HeaderWrapper,
   LogoImg,
   LogoWrapper,
+  NotificationsCounter,
+  NotificationsWrapper,
 } from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
+import ButtonComponent from "../ButtonComponent";
+import { Socket, io } from "socket.io-client";
+import { setSocket } from "../../store/gameReducer";
+const { darkAlgorithm } = theme;
 
 const { Content, Footer, Header } = Layout;
 
 const navItems = [
-  { icon: HomeOutlined, path: "/", label: "Home" },
-  { icon: UserOutlined, path: "/leaderboard", label: "Leaderboard" },
+  { icon: HomeOutlined, path: "/", label: "Leaderboard" },
   { icon: PlayCircleOutlined, path: "/pingpong", label: "Play ping pong" },
   { icon: MessageOutlined, path: "/messages", label: "Messages" },
 ];
 
+const NotificationMenu: React.FC = ({
+  onDecline,
+  onAccept,
+}: {
+  onDecline: any;
+  onAccept: any;
+}) => {
+  return (
+    <div>
+      <ButtonComponent onClick={onAccept}>Accept</ButtonComponent>
+      <ButtonComponent onClick={onDecline}>Decline</ButtonComponent>
+    </div>
+  );
+};
+
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState(true);
+  const { socket } = useAppSelector((state) => state.game);
   const [selected, setSelected] = useState<string>("0");
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [items, setItems] = useState<MenuProps["items"]>([]);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -37,8 +67,40 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const getToken = async () => {
       try {
+        const response = await axios.get("/token", {
+          withCredentials: true,
+        });
+        localStorage.setItem("auth", JSON.stringify(response.data));
+        dispatch(setUserInfo(response.data.user));
+        dispatch(setToken(response.data.token));
+        return response.data.token;
+      } catch (err) {
+        dispatch(logOut());
+        window.location.reload();
+        return null;
+      }
+    };
+    const getSocket = async () => {
+      const socket = io(process.env.REACT_APP_SOCKET_URL, {
+        withCredentials: true,
+        auth: async (cb) => {
+          const token = await getToken();
+          cb({
+            token,
+          });
+        },
+      });
+      dispatch(setSocket(socket));
+    };
+    getSocket();
+  }, [dispatch]);
+
+  useEffect(() => {
+    const getToken = async () => {
+      try {
         const response = await axios.get(`/token`);
         localStorage.setItem("auth", JSON.stringify(response.data));
+        dispatch(setToken(response.data.token));
         dispatch(setUserInfo(response.data.user));
         if (!response.data.user.username) {
           navigate("/set-nickname");
@@ -70,71 +132,101 @@ const Navbar: React.FC = () => {
     }
   }, [location]);
 
+  useEffect(() => {
+    socket?.on("Invited", (data) => {
+      console.log(data);
+    })
+  }, [socket])
+
   return (
     <>
       {isLoadingPage ? (
         <Loading />
       ) : (
-        <Layout style={{ minHeight: "100%" }}>
-          <CustomSider
-            collapsedWidth="0"
-            collapsible={true}
-            onBreakpoint={(broken) => {
-              console.log(broken);
-            }}
-            onCollapse={(collapsed, type) => {
-              console.log(collapsed, type);
-            }}
-          >
-            <LogoWrapper>
-              <LogoImg src="https://www.pngall.com/wp-content/uploads/2016/05/Ping-Pong-Download-PNG.png" />
-            </LogoWrapper>
-            <Menu
-              style={{
-                background: "var(--main-700)",
-                paddingBottom: "20px",
-                borderRadius: "15px",
+        <ConfigProvider
+          theme={{
+            token: {
+              colorTextLabel: "#fff",
+              colorTextHeading: "#fff",
+              colorTextSecondary: "#d1d1d1",
+              colorTextPlaceholder: "#8d8d8d",
+              colorTextDisabled: "#fff",
+            },
+          }}
+        >
+          <Layout style={{ minHeight: "100%" }}>
+            <CustomSider
+              collapsedWidth="0"
+              collapsible={true}
+              onBreakpoint={(broken) => {
+                console.log(broken);
               }}
-              theme="dark"
-              mode="inline"
-              selectedKeys={[selected]}
-              items={navItems.map((item, index) => ({
-                key: String(index + 1),
-                icon: React.createElement(item.icon),
-                label: <Link to={item.path}>{item.label}</Link>,
-              }))}
-            />
-          </CustomSider>
-          <Layout style={{ background: "var(--main-800)" }}>
-            <Header
-              style={{
-                padding: 0,
-                background: "var(--main-700)",
-                color: "white",
-                height: "auto",
+              collapsed={isCollapsed}
+              onCollapse={(collapsed, type) => {
+                setIsCollapsed((prev) => !prev);
               }}
             >
-              <HeaderWrapper>
-                <IoNotifications size={30} />
-                <UserInfo />
-              </HeaderWrapper>
-            </Header>
-            <Content
-              style={{ margin: "24px 16px 0", background: "var(--main-800)" }}
-            >
-              <Outlet />
-            </Content>
-            <Footer
-              style={{
-                textAlign: "center",
-                background: "var(--main-800)",
-                color: "#fff",
-              }}
-            >
-              42 ft_transcendence ©2023
-            </Footer>
+              <LogoWrapper>
+                <LogoImg src="https://www.pngall.com/wp-content/uploads/2016/05/Ping-Pong-Download-PNG.png" />
+              </LogoWrapper>
+              <Menu
+                style={{
+                  background: "var(--main-600)",
+                  paddingBottom: "20px",
+                  borderRadius: "15px",
+                }}
+                theme="dark"
+                mode="inline"
+                onSelect={(e) => {
+                  setIsCollapsed(true);
+                }}
+                selectedKeys={[selected]}
+                items={navItems.map((item, index) => ({
+                  key: String(index + 1),
+                  icon: React.createElement(item.icon),
+                  label: <Link to={item.path}>{item.label}</Link>,
+                }))}
+              />
+            </CustomSider>
+            <Layout style={{ background: "var(--main-800)" }}>
+              <Header
+                style={{
+                  padding: 0,
+                  background: "var(--main-600)",
+                  color: "white",
+                  height: "auto",
+                }}
+              >
+                <HeaderWrapper>
+                  <Dropdown
+                    disabled={items.length === 0}
+                    menu={{ items }}
+                    trigger={["click"]}
+                  >
+                    <Badge count={items.length} overflowCount={9}>
+                      <IoNotifications size={30} />
+                    </Badge>
+                  </Dropdown>
+                  <UserInfo />
+                </HeaderWrapper>
+              </Header>
+              <Content
+                style={{ margin: "24px 16px 0", background: "var(--main-800)" }}
+              >
+                <Outlet />
+              </Content>
+              <Footer
+                style={{
+                  textAlign: "center",
+                  background: "var(--main-800)",
+                  color: "#fff",
+                }}
+              >
+                42 ft_transcendence ©2023
+              </Footer>
+            </Layout>
           </Layout>
-        </Layout>
+        </ConfigProvider>
       )}
     </>
   );

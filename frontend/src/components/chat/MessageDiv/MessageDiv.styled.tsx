@@ -4,7 +4,7 @@ import styled from "styled-components";
 export const MessageSendDiv = styled.div`
   display: flex;
   margin: 1em;
-  background: #1A1D1F;
+  background: var(--main-600);
   width: 100%;
   height: 85%;
 `;
@@ -15,7 +15,7 @@ export const MessageParent = styled.div`
   flex-direction: column;
   width: 100%;
   height: auto;
-  background: #1A1D1F;
+  background: var(--main-600);
   color: white;
   padding: 1em;
 `;

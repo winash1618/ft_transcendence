@@ -13,9 +13,9 @@ export const ParentContainer = styled.div`
 
 export const LeftSideContainer = styled.div`
   display: flex;
-  color: #1A1D1F;
+  color: var(--main-600);
   flex-direction: column;
-  background-color: #1A1D1F;
+  background-color: var(--main-600);
   border-radius: 15px;
   margin: auto;
   width: 23%;
@@ -31,7 +31,7 @@ export const LeftSideContainer = styled.div`
 export const MessageBoxContainer = styled.div`
   display: flex;
   flex-direction: column;
-  background-color: #1A1D1F;
+  background-color: var(--main-600);
   justify-content: center;
   align-items: center;
   border-radius: 15px;
@@ -49,10 +49,9 @@ export const RightSideContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
   width: 18%;
   height: 100%;
-  background-color: #1A1D1F;
+  background-color: var(--main-600);
   border-radius: 15px;
   padding: 10px;
   overscroll-behavior: contain;

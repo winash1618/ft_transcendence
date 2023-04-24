@@ -19,7 +19,7 @@ const ButtonStyling = styled(Button)<StyledButtonProp>`
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
-  background: var(--main-400);
+  background: var(--main-600) !important;
   padding: 0 4rem;
   border-radius: 5px;
   text-transform: capitalize;

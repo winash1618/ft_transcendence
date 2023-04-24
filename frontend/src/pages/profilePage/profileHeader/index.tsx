@@ -1,6 +1,6 @@
 import { Button } from "antd";
 import { UserProfilePicture } from "../../../assets";
-import { useAppSelector } from "../../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import {
   ProfileBackground,
   ProfileButtonWrapper,
@@ -11,10 +11,66 @@ import {
   UserName,
   UserRating,
 } from "./profileHeader.styled";
+import { BASE_URL, axiosPrivate } from "../../../api";
+import { setUserInfo } from "../../../store/authReducer";
 
 const ProfileHeader = () => {
   const { user } = useAppSelector((state) => state.users);
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, token } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+
+  const addFriend = async () => {
+    try {
+      const response = await axiosPrivate.post(
+        `/users/${userInfo?.id}/add-friend/${user?.id}`
+      );
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
+
+  const removeFriend = async () => {
+    try {
+      const response = await axiosPrivate.delete(
+        `/users/${userInfo?.id}/unfriend/${user?.id}`
+      );
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
+
+  const block = async () => {
+    try {
+      const response = await axiosPrivate.post(
+        `/users/${userInfo?.id}/block/${user?.id}`
+      );
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
+
+  const unBlock = async () => {
+    try {
+      const response = await axiosPrivate.delete(
+        `/users/${userInfo?.id}/unblock/${user?.id}`
+      );
+      console.log(response);
+      dispatch(setUserInfo(response.data));
+    } catch (err) {
+      console.log("test");
+      console.log(err);
+    }
+  };
+
   return (
     <ProfileHeaderContainer>
       <ProfileBackground
@@ -25,7 +81,7 @@ const ProfileHeader = () => {
       />
       <ProfileWrapper>
         <ProfilePicture
-          src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+          src={`${BASE_URL}/users/profile-image/${user?.profile_picture}/${token}`}
           onError={(e) => {
             e.currentTarget.src = UserProfilePicture;
           }}
@@ -38,10 +94,28 @@ const ProfileHeader = () => {
       </ProfileWrapper>
       {userInfo.login !== user.login && (
         <ProfileButtonWrapper>
-          <Button type="primary">Add friend</Button>
-          <Button type="primary" danger>
-            Block
-          </Button>
+          {userInfo.friends?.some(
+            (userItem) => userItem.login === user.login
+          ) ? (
+            <Button onClick={removeFriend} type="primary" danger>
+              Remove friend
+            </Button>
+          ) : (
+            <Button onClick={addFriend} type="primary">
+              Add friend
+            </Button>
+          )}
+          {userInfo.blocked_users?.some(
+            (userItem) => userItem.login === user.login
+          ) ? (
+            <Button onClick={unBlock} type="primary">
+              Unblock
+            </Button>
+          ) : (
+            <Button onClick={block} type="primary" danger>
+              Block
+            </Button>
+          )}
         </ProfileButtonWrapper>
       )}
     </ProfileHeaderContainer>

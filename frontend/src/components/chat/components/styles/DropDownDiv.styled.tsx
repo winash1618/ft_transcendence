@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const DropdownMenu = styled.div`
   position: relative;
-  background-color: #1a1d1f;
+  background-color: var(--main-600);
   border-top: none;
   border-radius: 0 0 10px 10px;
   width: 100%;
@@ -25,7 +25,7 @@ export const DropdownItem = styled.a`
   padding: 12px 16px;
   text-decoration: none;
   display: block;
-  background-color: #1a1d1f;
+  background-color: var(--main-600);
   color: white;
 
   &:hover {

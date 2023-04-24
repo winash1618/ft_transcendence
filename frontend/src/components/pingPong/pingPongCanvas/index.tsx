@@ -2,7 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import { UserProfilePicture } from "../../../assets";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import { draw } from "./pingPongCanvas.functions";
 import {
   GameProfileImg,
@@ -13,6 +13,7 @@ import {
   StyledCanvas,
 } from "./pingPongCanvas.styled";
 import { PingPongContainer } from "../pingPong.styled";
+import { BASE_URL } from "../../../api";
 
 export let CANVAS_WIDTH = 900;
 export let CANVAS_HEIGHT = 800;
@@ -68,19 +69,15 @@ let game: GameType = {
 };
 
 const PingPongCanvas = ({
-  player,
-  players,
-  roomID,
   socket,
   mobile,
 }: {
-  player: number;
-  players: any;
   mobile: boolean;
-  roomID: string;
   socket: Socket | null;
 }) => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
+  const { players, player, roomID } = useAppSelector((state) => state.game);
+  const { token } = useAppSelector((state) => state.auth);
   const [gameStatus, setGameStatus] = useState<number>(0);
   const [player1Score, setPlayer1Score] = useState<number>(0);
   const [player2Score, setPlayer2Score] = useState<number>(0);
@@ -254,7 +251,7 @@ const PingPongCanvas = ({
       <ScoreWrapper>
         <ScoreUserInfoWrapper style={{ marginRight: "30px" }}>
           <GameProfileImg
-            src={`http://localhost:3001/users/profile-image/${players.player1.profile_picture}`}
+            src={`${BASE_URL}/users/profile-image/${players.player1.profile_picture}/${token}`}
             onError={(e) => {
               e.currentTarget.src = UserProfilePicture;
             }}
@@ -268,7 +265,7 @@ const PingPongCanvas = ({
         <ScoreUserInfoWrapper style={{ marginLeft: "30px" }}>
           {players.player2.login}
           <GameProfileImg
-            src={`http://localhost:3001/users/profile-image/${players.player2.profile_picture}`}
+            src={`${BASE_URL}/users/profile-image/${players.player2.profile_picture}/${token}`}
             onError={(e) => {
               e.currentTarget.src = UserProfilePicture;
             }}

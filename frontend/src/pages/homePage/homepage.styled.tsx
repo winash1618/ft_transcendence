@@ -8,7 +8,7 @@ import styled from 'styled-components';
 // display: flex;
 // flex-direction: row;
 // height: 100vh;
-// color: #1a1d1f;
+// color: var(--main-600);
 // background-color: ${({ backgroundColor }) => backgroundColor};
 // `;
 
