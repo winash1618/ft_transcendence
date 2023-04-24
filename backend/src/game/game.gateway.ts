@@ -92,7 +92,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   setUserStatus(client: Socket, status: GameStatus) {
-    const userID = client.data.userID;
+    const userID = client.data.userID.id;
     if (!this.userSockets.has(userID)) {
       const socketData: SocketData = {
         playerNumber: -1,
@@ -118,9 +118,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (
       this.users.find(
-        (user) => user.userID['id'] === socketData.userID['id'],
+        (user) => user.userID === socketData.userID['id'],
       ) ||
-      this.mobile.find((user) => user.userID['id'] === socketData.userID['id'])
+      this.mobile.find((user) => user.userID === socketData.userID['id'])
     ) {
       this.server.to(client.id).emit('error');
       return;
@@ -165,8 +165,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       } else {
         this.mobile.push(socketData);
       }
-      console.log(this.mobile);
-      console.log(this.users);
+      // console.log(this.mobile);
+      // console.log(this.users);
     }
   }
 
