@@ -1,14 +1,11 @@
 import { PingPongContainer } from "./pingPong.styled";
 import CountDown from "./countdown";
 import PingPongCanvas from "./pingPongCanvas";
-import { Socket } from "socket.io-client";
 
 const PingPong = ({
   mobile,
-  socket,
 }: {
   mobile: boolean;
-  socket: Socket | null;
 }) => {
   return (
     <PingPongContainer>
@@ -16,7 +13,6 @@ const PingPong = ({
         element={
           <PingPongCanvas
             mobile={mobile}
-            socket={socket}
           />
         }
       />

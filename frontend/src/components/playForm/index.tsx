@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import { Checkbox, Spin } from "antd";
 import { ErrorAlert } from "../toastify";
-import { useAppDispatch } from "../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { setGameInfo } from "../../store/gameReducer";
 
 export type PlayType = {
@@ -26,12 +26,11 @@ export type PlayType = {
 
 const PlayForm = ({
   setMobile,
-  socket,
 }: {
   setMobile: any;
-  socket: Socket | null;
 }) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const { socket } = useAppSelector((state) => state.game);
   const dispatch = useAppDispatch();
   const {
     handleSubmit,

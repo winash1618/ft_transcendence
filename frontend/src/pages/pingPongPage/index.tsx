@@ -5,10 +5,10 @@ import axios from "../../api";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 import { io, Socket } from "socket.io-client";
+import { setSocket } from "../../store/gameReducer";
 
 const PingPongPage = () => {
-  const { isGameStarted } = useAppSelector((state) => state.game);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const { isGameStarted, socket } = useAppSelector((state) => state.game);
   const [mobile, setMobile] = useState<boolean>(false);
   const dispatch = useAppDispatch();
 
@@ -38,7 +38,7 @@ const PingPongPage = () => {
           });
         },
       });
-      setSocket(socket);
+      dispatch(setSocket(socket));
     };
     getSocket();
   }, [dispatch]);
@@ -53,12 +53,10 @@ const PingPongPage = () => {
       {isGameStarted ? (
         <PingPong
           mobile={mobile}
-          socket={socket}
         />
       ) : (
         <PlayForm
           setMobile={setMobile}
-          socket={socket}
         />
       )}
     </>

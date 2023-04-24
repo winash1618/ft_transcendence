@@ -69,13 +69,12 @@ let game: GameType = {
 };
 
 const PingPongCanvas = ({
-  socket,
   mobile,
 }: {
   mobile: boolean;
-  socket: Socket | null;
 }) => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
+  const { socket } = useAppSelector((state) => state.game);
   const { players, player, roomID } = useAppSelector((state) => state.game);
   const { token } = useAppSelector((state) => state.auth);
   const [gameStatus, setGameStatus] = useState<number>(0);
