@@ -68,11 +68,7 @@ let game: GameType = {
   },
 };
 
-const PingPongCanvas = ({
-  mobile,
-}: {
-  mobile: boolean;
-}) => {
+const PingPongCanvas = () => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
   const { socket } = useAppSelector((state) => state.game);
   const { players, player, roomID } = useAppSelector((state) => state.game);

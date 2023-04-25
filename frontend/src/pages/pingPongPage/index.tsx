@@ -9,7 +9,6 @@ import { setSocket } from "../../store/gameReducer";
 
 const PingPongPage = () => {
   const { isGameStarted, socket } = useAppSelector((state) => state.game);
-  const [mobile, setMobile] = useState<boolean>(false);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -48,19 +47,7 @@ const PingPongPage = () => {
       socket?.disconnect();
     };
   }, [socket]);
-  return (
-    <>
-      {isGameStarted ? (
-        <PingPong
-          mobile={mobile}
-        />
-      ) : (
-        <PlayForm
-          setMobile={setMobile}
-        />
-      )}
-    </>
-  );
+  return <>{isGameStarted ? <PingPong /> : <PlayForm />}</>;
 };
 
 export default PingPongPage;
