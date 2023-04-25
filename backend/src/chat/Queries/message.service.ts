@@ -13,7 +13,7 @@ export class MessageService {
     private participantService: ParticipantService,
   ) {}
 
-  async createMessage(createMessage: CreateMessageDto) {
+  async createMessage(createMessage: CreateMessageDto, userID: string) {
     const conversation = await this.conversationService.checkConversationExists(
       createMessage.conversation_id,
     );
@@ -24,7 +24,7 @@ export class MessageService {
 
     const participant = await this.participantService.checkParticipantExists(
       createMessage.conversation_id,
-      createMessage.author_id,
+      userID,
     );
 
     if (!participant)

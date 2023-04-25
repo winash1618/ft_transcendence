@@ -84,9 +84,6 @@ export class ParticipantService {
         throw new Error('Conversation does not exist');
       }
 
-      if (await this.isUserAdminInConversation(createParticipant.user_id, conversation.id) === false)
-        throw new Error('User is not an admin');
-
       const participant = await this.checkParticipantExists(
         createParticipant.conversation_id,
         createParticipant.user_id,
@@ -110,8 +107,6 @@ export class ParticipantService {
   }
 
   async checkParticipantExists(conversationID: string, userID: string) {
-    if (await this.userService.checkIfUserExists(userID) === false)
-      throw new Error('User does not exist');
     return await this.prisma.participant.findFirst({
       where: {
         conversation_id: conversationID,
