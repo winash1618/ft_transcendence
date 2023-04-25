@@ -36,7 +36,7 @@ model User {
 // Conversation table
 model Conversation {
   id                    String          @id @default(uuid())
-  title                 String?         @unique
+  title                 String?
   password              String?
   creator_id            String
   privacy               Privacy

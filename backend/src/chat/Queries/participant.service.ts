@@ -10,6 +10,7 @@ import {
   UpdateParticipantDto,
 } from '../dto/participants.dto';
 import { ConversationService } from './conversation.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ParticipantService {
@@ -17,6 +18,7 @@ export class ParticipantService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => ConversationService))
     private conversationService: ConversationService,
+    private userService: UsersService,
   ) {}
 
   async addParticipant(createParticipant: CreateParticipantDto) {
@@ -70,8 +72,7 @@ export class ParticipantService {
   }
 
   async addParticipantToConversation(
-    createParticipant: CreateParticipantDto,
-    password?: string,
+    createParticipant: CreateParticipantDto
   ) {
     try {
       const conversation =
@@ -83,15 +84,7 @@ export class ParticipantService {
         throw new Error('Conversation does not exist');
       }
 
-      if (conversation.privacy === 'PRIVATE' || conversation.privacy === 'PROTECTED') {
-        if (!password) {
-          throw new Error('Password is required');
-        }
-        if (await this.conversationService.validatePassword(password, conversation.password) === false)
-          throw new Error('Incorrect password');
-      }
-
-      if (this.isUserAdminInConversation(createParticipant.user_id, conversation.id) === null)
+      if (await this.isUserAdminInConversation(createParticipant.user_id, conversation.id) === false)
         throw new Error('User is not an admin');
 
       const participant = await this.checkParticipantExists(
@@ -117,6 +110,8 @@ export class ParticipantService {
   }
 
   async checkParticipantExists(conversationID: string, userID: string) {
+    if (await this.userService.checkIfUserExists(userID) === false)
+      throw new Error('User does not exist');
     return await this.prisma.participant.findFirst({
       where: {
         conversation_id: conversationID,
@@ -223,25 +218,8 @@ export class ParticipantService {
     userID: string,
     adminUser?: string,
   ) {
-    const conversation = await this.conversationService.checkConversationExists(
-      conversationID,
-    );
-
-    if (!conversation) {
-      throw new Error('Conversation does not exist');
-    }
-
-    const participant = await this.checkParticipantExists(
-      conversationID,
-      userID,
-    );
-
-    if (!participant) {
-      throw new Error('Participant does not exist');
-    }
-
     if (adminUser)
-      if (this.isUserAdminInConversation(adminUser, conversation.id) === null)
+      if (await this.isUserAdminInConversation(adminUser, conversationID) === false)
         throw new Error('User is not an admin');
 
     return await this.updateParticipantStatus(
@@ -315,9 +293,13 @@ export class ParticipantService {
   }
 
   async makeParticipantAdmin(conversationID: string, userID: string, adminUser: string) {
+    if (conversationID === undefined || userID === undefined || adminUser === undefined)
+      throw new Error('Missing parameters');
+
     const conversation = await this.conversationService.checkConversationExists(
       conversationID,
     );
+
     if (!conversation)
       throw new Error('Conversation does not exist');
 
@@ -326,11 +308,19 @@ export class ParticipantService {
       userID,
     );
 
-    if (await this.isUserAdminInConversation(adminUser, conversationID) === null)
-      throw new Error('User is not an admin');
+    const admin = await this.checkParticipantExists(
+      conversationID,
+      adminUser,
+    );
+
+    if (!admin || admin.conversation_status === Status.DELETED)
+      throw new Error('User does not exist.');
 
     if (!participant || participant.conversation_status === Status.DELETED)
       throw new Error('Participant does not exist');
+
+    if (await this.isUserAdminInConversation(adminUser, conversationID) === false)
+      throw new Error('User is not an admin');
 
     if (participant.role === Role.ADMIN)
       throw new Error('Participant is already an admin');
@@ -343,29 +333,6 @@ export class ParticipantService {
     userID: string,
     adminUser: string,
   ) {
-    if (!this.validationCheck(conversationID, userID, adminUser))
-      throw new Error('Validation check failed');
-
-    const participant = await this.checkParticipantExists(
-      conversationID,
-      userID,
-    );
-
-    if (!participant || participant.conversation_status === Status.DELETED)
-      throw new Error('Participant does not exist');
-
-    if (participant.role === Role.OWNER)
-      throw new Error('Cannot ban owner');
-
-    if (participant.role === Role.ADMIN)
-      throw new Error('Cannot ban admin');
-
-    if (participant.conversation_status === Status.BANNED)
-      throw new Error('Participant is already banned');
-
-    if (participant.conversation_status === Status.KICKED)
-      throw new Error('Participant is already kicked');
-
     return await this.updateParticipantStatus(
       conversationID,
       userID,
@@ -381,7 +348,7 @@ export class ParticipantService {
     if (!(await this.conversationService.checkConversationExists(conversationID)))
       throw new Error('Conversation does not exist');
 
-    if (await this.isUserAdminInConversation(conversationID, adminUser) === null)
+    if (await this.isUserAdminInConversation(conversationID, adminUser) === false)
       throw new Error('User is not an admin');
 
     const participant = await this.checkParticipantExists(
@@ -410,7 +377,7 @@ export class ParticipantService {
     if (!(await this.conversationService.checkConversationExists(conversationID)))
       throw new Error('Conversation does not exist');
 
-    if (await this.isUserAdminInConversation(conversationID, adminUser) === null)
+    if (await this.isUserAdminInConversation(conversationID, adminUser) === false)
       throw new Error('User is not an admin');
 
     const participant = await this.checkParticipantExists(
@@ -483,7 +450,7 @@ export class ParticipantService {
         adminUser,
         conversationID,
       );
-      if (!isAdmin) throw new Error('User is not an admin');
+      if (isAdmin === false) throw new Error('User is not an admin');
     }
 
     return true;
