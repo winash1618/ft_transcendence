@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Colors, Conversation, GNav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
-import { logOut } from "../../../store/authReducer";
 import { List, Button, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { Picture } from "../../chat.styled";
+import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 
 interface GroupChatProps {
 	socket: any;

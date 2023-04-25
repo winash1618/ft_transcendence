@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Nav, Colors, Conversation } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
-import { logOut } from "../../../store/authReducer";
 import { List, Input } from 'antd';
 import { Picture } from "../../chat.styled";
+import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 
 interface DirectChatProp {
 	conversations: Conversation[];

@@ -1,5 +1,5 @@
 
-import { useAppSelector } from "../../../hooks/reduxHooks";
+import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { PictureLeft, PictureRight } from "../../chat.styled";
 import { MessageParent, MessageSendDiv } from "../MessageDiv.styled";
 import { Col, Row } from "antd";
@@ -18,7 +18,7 @@ function MessageInbox(
 		messageEndRef,
 		UserProfilePicture,
 	}: MessageInboxProps) {
-	const { user } = useAppSelector((state) => state.users);
+	const { user } = useAppSelector ((state) => state.users);
 	return (
 		<>
 			<MessageSendDiv>

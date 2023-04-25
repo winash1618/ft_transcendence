@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios, { axiosPrivate } from "../../api";
+import { axiosPrivate } from "../../api";
 
 interface UsersState {
   users: [];

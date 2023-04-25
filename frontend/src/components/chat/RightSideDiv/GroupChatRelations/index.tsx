@@ -12,8 +12,8 @@ import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role, User } from "../../chat.functions";
 import { useState } from "react";
 import axios from "axios";
-import { logOut } from "../../../store/authReducer";
-import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
 import { Picture } from "../../chat.styled";
 
 interface GroupChatRelationsProps {
