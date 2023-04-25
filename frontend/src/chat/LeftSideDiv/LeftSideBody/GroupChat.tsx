@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
-import { Colors, Conversation, GNav, Nav, Privacy, Role, Status } from "../../chat.functions";
+import { useCallback, useEffect, useState } from "react";
+import { Colors, Conversation, GNav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { List, Avatar, Button, Dropdown, MenuProps, Input } from 'antd';
+import { List, Button, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { Picture } from "../../chat.styled";
-
 
 interface GroupChatProps {
 	socket: any;
@@ -43,18 +42,19 @@ const GroupChat = ({
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
 
+	const handleConversationLeft = useCallback(() => {
+		console.log("handleConversationLeft in GroupChat");
+		setMessages([]);
+		setConversationID(null);
+	}, [setMessages, setConversationID]);
+
 	useEffect(() => {
-		const handleConversationLeft = () => {
-			console.log("handleConversationLeft in GroupChat");
-			setMessages([]);
-			setConversationID(null);
-			setMessages([]);
-		};
 		socket?.on('conversationLeft', handleConversationLeft);
 		return () => {
 			socket?.off('conversationLeft', handleConversationLeft);
 		};
-	}, [socket]);
+	}, [socket, handleConversationLeft]);
+
 
 
 	const filterResults = (data: Conversation[], searchText: string) => {
@@ -64,17 +64,21 @@ const GroupChat = ({
 		return data.filter((item) => item.title.toLowerCase().includes(searchText.toLowerCase()));
 	};
 
+	const resetGroupResults = useCallback(() => {
+		console.log("resetGroupResults in GroupChat");
+		setGroupResults([]);
+	}, [setGroupResults]);
+
 	useEffect(() => {
 		setMenuVisible(false);
-		setGroupResults([]);
-	}, [conversation]);
+		resetGroupResults()
+	}, [conversation, resetGroupResults, setMenuVisible]);
 
 	useEffect(() => {
 		console.log("Group useEffect to reset data");
-		setMessages([]);
-		setConversationID(null);
-		setGroupResults([]);
-	}, [conversations]);
+		handleConversationLeft();
+		resetGroupResults()
+	}, [conversations, handleConversationLeft, resetGroupResults]);
 
 	function handleUpdatePassword(conversation: any, password: string) {
 		console.log("handleProtectedConversation in GroupChat");

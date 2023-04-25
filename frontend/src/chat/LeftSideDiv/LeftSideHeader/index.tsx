@@ -6,7 +6,7 @@ import {
 	StyledMdOutlineTravelExplore,
 } from "./LeftSideHeader.styled";
 import { Nav, Colors } from "../../chat.functions";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import axios from "axios";
 import { useAppDispatch } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
@@ -30,108 +30,6 @@ function LeftSideHeader({
 	setResults,
 }: LeftSideHeaderProps) {
 	const dispatch = useAppDispatch();
-
-	useEffect(() => {
-		console.log("i am in leftsideheader useEffect");
-		if (user && user !== undefined) {
-			handleNavbarClick(Navbar);
-		}
-	}, [Navbar, user]);
-
-	const getToken = async () => {
-		try {
-			const response = await axios.get("http://localhost:3001/token", {
-				withCredentials: true,
-			});
-			localStorage.setItem("auth", JSON.stringify(response.data));
-			return response.data.token;
-		} catch (err) {
-			dispatch(logOut());
-			window.location.reload();
-			return null;
-		}
-	};
-
-	const setConversationsObject = async () => {
-		console.log("handleConversationLeft in LeftSideHeader");
-		const token = await getToken();
-		try {
-			const result = await axios.get("http://localhost:3001/chat/groups", {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-			setNavbar(Nav.GROUPS);
-			setConversations(result.data);
-		} catch (err) {
-			setConversations([]);
-			console.log(err);
-		}
-	}
-
-	useEffect(() => {
-		const handleConversationLeft = async (object: any) => {
-			setConversationsObject();
-		};
-		const handlePasswordAdded = async (object: any) => {
-			setConversationsObject();
-		};
-		const handlePasswordRemoved = async (object: any) => {
-			setConversationsObject();
-		};
-		const handleConversationJoined = async (object: any) => {
-			setConversationsObject();
-		};
-		const handleUserBan = async (object: any) => {
-			if (object.bannedUserID === user.id) {
-				setConversationsObject();
-			}
-		};
-		const handleUserUnbanned = async (object: any) => {
-			if (object.unbannedUserID === user.id) {
-				setConversationsObject();
-			}
-		};
-		const handleUserKicked = async (object: any) => {
-			if (object.kickedUserID === user.id) {
-				setConversationsObject();
-			}
-		};
-		const handleUserMuted = async (object: any) => {
-			if (object != null && object.mutedUserID !== null && object.mutedUserID === user.id) {
-				setConversationsObject();
-			}
-		};
-		const handleAdminMade = async (object: any) => {
-			if (object.userID === object.admin) {
-				setConversationsObject();
-			}
-		};
-
-		socket?.on('adminMade', handleAdminMade);
-		socket?.on('userMuted', handleUserMuted);
-		socket?.on('userKicked', handleUserKicked);
-		socket?.on('userUnbanned', handleUserUnbanned);
-		socket?.on('userBanned', handleUserBan);
-		socket?.on('conversationJoined', handleConversationJoined);
-		socket?.on('conversationLeft', handleConversationLeft);
-		socket?.on('conversationProtected', handlePasswordAdded);
-		socket?.on('passwordRemoved', handlePasswordRemoved);
-
-		return () => {
-			socket?.off('adminMade', handleAdminMade);
-			socket?.off('userMuted', handleUserMuted);
-			socket?.off('userKicked', handleUserKicked);
-			socket?.off('userUnbanned', handleUserUnbanned);
-			socket?.off('userBanned', handleUserBan);
-			socket?.off('conversationJoined', handleConversationJoined);
-			socket?.off('conversationLeft', handleConversationLeft);
-			socket?.off('conversationProtected', handlePasswordAdded);
-			socket?.off('passwordRemoved', handlePasswordRemoved);
-		};
-	}, [socket, user]);
-
 	const handleNavbarClick = async (nav: Nav) => {
 		setConversations([]);
 		if (nav === Nav.DIRECT) {
@@ -198,6 +96,111 @@ function LeftSideHeader({
 		}
 		setNavbar(nav);
 	};
+
+	const getToken = useCallback(async () => {
+		try {
+			const response = await axios.get("http://localhost:3001/token", {
+				withCredentials: true,
+			});
+			localStorage.setItem("auth", JSON.stringify(response.data));
+			return response.data.token;
+		} catch (err) {
+			dispatch(logOut());
+			window.location.reload();
+			return null;
+		}
+	}, [dispatch]);
+
+
+	const setConversationsObject = async () => {
+		console.log("handleConversationLeft in LeftSideHeader");
+		const token = await getToken();
+		try {
+			const result = await axios.get("http://localhost:3001/chat/groups", {
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+			setNavbar(Nav.GROUPS);
+			setConversations(result.data);
+		} catch (err) {
+			setConversations([]);
+			console.log(err);
+		}
+	}
+
+	const handleNavbarClickhandler = useCallback(handleNavbarClick, [user, setNavbar, setConversations, setConversation, setResults, getToken]);
+	const handleSetConversationObject = useCallback(setConversationsObject, [setNavbar, setConversations, getToken]);
+
+	useEffect(() => {
+		console.log("i am in leftsideheader useEffect");
+		if (user && user !== undefined) {
+			handleNavbarClickhandler(Navbar);
+		}
+	}, [Navbar, user, handleNavbarClickhandler]);
+
+	useEffect(() => {
+		const handleConversationLeft = async (object: any) => {
+			handleSetConversationObject();
+		};
+		const handlePasswordAdded = async (object: any) => {
+			handleSetConversationObject();
+		};
+		const handlePasswordRemoved = async (object: any) => {
+			handleSetConversationObject();
+		};
+		const handleConversationJoined = async (object: any) => {
+			handleSetConversationObject();
+		};
+		const handleUserBan = async (object: any) => {
+			if (object.bannedUserID === user.id) {
+				handleSetConversationObject();
+			}
+		};
+		const handleUserUnbanned = async (object: any) => {
+			if (object.unbannedUserID === user.id) {
+				handleSetConversationObject();
+			}
+		};
+		const handleUserKicked = async (object: any) => {
+			if (object.kickedUserID === user.id) {
+				handleSetConversationObject();
+			}
+		};
+		const handleUserMuted = async (object: any) => {
+			if (object != null && object.mutedUserID !== null && object.mutedUserID === user.id) {
+				handleSetConversationObject();
+			}
+		};
+		const handleAdminMade = async (object: any) => {
+			if (object.userID === object.admin) {
+				handleSetConversationObject();
+			}
+		};
+
+		socket?.on('adminMade', handleAdminMade);
+		socket?.on('userMuted', handleUserMuted);
+		socket?.on('userKicked', handleUserKicked);
+		socket?.on('userUnbanned', handleUserUnbanned);
+		socket?.on('userBanned', handleUserBan);
+		socket?.on('conversationJoined', handleConversationJoined);
+		socket?.on('conversationLeft', handleConversationLeft);
+		socket?.on('conversationProtected', handlePasswordAdded);
+		socket?.on('passwordRemoved', handlePasswordRemoved);
+
+		return () => {
+			socket?.off('adminMade', handleAdminMade);
+			socket?.off('userMuted', handleUserMuted);
+			socket?.off('userKicked', handleUserKicked);
+			socket?.off('userUnbanned', handleUserUnbanned);
+			socket?.off('userBanned', handleUserBan);
+			socket?.off('conversationJoined', handleConversationJoined);
+			socket?.off('conversationLeft', handleConversationLeft);
+			socket?.off('conversationProtected', handlePasswordAdded);
+			socket?.off('passwordRemoved', handlePasswordRemoved);
+		};
+	}, [socket, user, handleSetConversationObject]);
 
 	return (
 		<>

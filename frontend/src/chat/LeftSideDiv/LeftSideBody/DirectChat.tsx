@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Nav, Colors, Conversation } from "../../chat.functions";
 import axios from "axios";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
@@ -31,11 +31,16 @@ const DirectChat = ({
 	const dispatch = useAppDispatch();
 	const [searchText, setSearchText] = useState("");
 
-	useEffect(() => {
-		console.log("i am in direct useEffect", conversations);
+	const resetState = useCallback(() => {
+		console.log("handleConversationLeft in DirectChat");
+		console.log("---------------------------------");
 		setMessages([]);
 		setConversationID(null);
-	}, [conversations, setMessages, setConversationID]);
+	}, [setMessages, setConversationID]);
+	useEffect(() => {
+		console.log("i am in direct useEffect", conversations);
+		resetState();
+	}, [conversations, resetState]);
 
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
@@ -44,67 +49,7 @@ const DirectChat = ({
 		return data.filter((item) => item.title.toLowerCase().includes(searchText.toLowerCase()));
 	};
 
-	useEffect(() => {
-		const getToken = async () => {
-			try {
-				const response = await axios.get("http://localhost:3001/token", {
-					withCredentials: true,
-				});
-				localStorage.setItem("auth", JSON.stringify(response.data));
-				return response.data.token;
-			} catch (err) {
-				dispatch(logOut());
-				window.location.reload();
-				return null;
-			}
-		};
-		const handleDirectExists = async (object) => {
-			console.log("direct exists", object);
-			setConversationID(object);
-
-			setMessages([]);
-			const token = await getToken();
-			try {
-				const result = await axios.get(`http://localhost:3001/chat/${object}/Messages`, {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				setMessages(result.data);
-			} catch (err) {
-				console.log(err);
-			}
-		};
-
-		const handleDirectMessage = async (object) => {
-			console.log("In handdle direct message");
-			setConversationID(object.id);
-			const token = await getToken();
-			try {
-				const result = await axios.get("http://localhost:3001/chat/direct", {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				setConversations(result.data);
-				setMessages([]);
-			} catch (err) {
-				setConversations([]);
-				console.log(err);
-			}
-		};
-
-		socket?.on('directExists', handleDirectExists);
-		socket?.on('directMessage', handleDirectMessage);
-		return () => {
-			socket?.off('directExists', handleDirectExists);
-			socket?.off('directMessage', handleDirectMessage);
-		};
-	}, [dispatch, socket, setConversations, setMessages, setConversationID]);
-
-	const getToken = async () => {
+	const getToken = useCallback(async () => {
 		try {
 			const response = await axios.get("http://localhost:3001/token", {
 				withCredentials: true,
@@ -116,7 +61,58 @@ const DirectChat = ({
 			window.location.reload();
 			return null;
 		}
-	};
+	}, [dispatch]);
+	
+	const handleDirectExists = useCallback(async (object, token) => {
+		console.log("direct exists", object);
+		setConversationID(object);
+	
+		setMessages([]);
+		try {
+			const result = await axios.get(`http://localhost:3001/chat/${object}/Messages`, {
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+			setMessages(result.data);
+		} catch (err) {
+			console.log(err);
+		}
+	}, [setConversationID, setMessages]);
+	
+	const handleDirectMessage = useCallback(async (object, token) => {
+		console.log("In handdle direct message");
+		setConversationID(object.id);
+		try {
+			const result = await axios.get("http://localhost:3001/chat/direct", {
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+			setConversations(result.data);
+			setMessages([]);
+		} catch (err) {
+			setConversations([]);
+			console.log(err);
+		}
+	}, [setConversations, setMessages, setConversationID]);
+	
+	useEffect(() => {
+		const getTokenAndHandleSocketEvents = async () => {
+			const token = await getToken();
+			socket?.on('directExists', (object) => handleDirectExists(object, token));
+			socket?.on('directMessage', (object) => handleDirectMessage(object, token));
+		};
+	
+		getTokenAndHandleSocketEvents();
+	
+		return () => {
+			socket?.off('directExists', handleDirectExists);
+			socket?.off('directMessage', handleDirectMessage);
+		};
+	}, [getToken, handleDirectExists, handleDirectMessage, socket]);
 
 	async function handleSelectedConversation(conversation: any) {
 		console.log("i am in direct handleSelectedConversation");

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Nav } from "../chat.functions";
 import LeftSideBody from "./LeftSideBody";
 import LeftSideHeader from "./LeftSideHeader";
@@ -40,12 +40,16 @@ const LeftSideDiv = ({
 	setGroupResults,
 	setGroupNav
 } : LeftSideDivProps) => {
-	useEffect(() => {
-		console.log("left side div useEffect to reset everything when navbar changes");
+	const resetState = useCallback(() => {
 		setMessages([]);
 		setConversations([]);
 		setConversationID(null);
-	}, [socket, Navbar]);
+	  }, [setMessages, setConversations, setConversationID]);
+	
+	  useEffect(() => {
+		console.log("left side div useEffect to reset everything when navbar changes");
+		resetState();
+	  }, [socket, Navbar, resetState]); 
 
 	return (
 		<>
@@ -76,5 +80,5 @@ const LeftSideDiv = ({
 		</>
 	);
 };
-
+ 
 export default LeftSideDiv;

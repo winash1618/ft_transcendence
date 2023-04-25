@@ -3,7 +3,6 @@ import { Colors, Nav, Privacy } from "../../chat.functions";
 import { Button, Input, List } from "antd";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
-
 interface ExploreChatProps {
 	socket: any;
 	conversations: Conversation[];

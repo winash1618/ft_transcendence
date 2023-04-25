@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Nav } from "../../chat.functions";
 import { Form, Input, Button, Select, Row, Col } from 'antd';
 const { Option } = Select;
+
 interface CreateChatProps {
 	socket: any;
 	setNavbar: any;

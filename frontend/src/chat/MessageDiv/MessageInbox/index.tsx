@@ -1,8 +1,8 @@
 
 import { useAppSelector } from "../../../hooks/reduxHooks";
-import { Picture, PictureLeft, PictureRight } from "../../chat.styled";
+import { PictureLeft, PictureRight } from "../../chat.styled";
 import { MessageParent, MessageSendDiv } from "../MessageDiv.styled";
-import { Avatar, Col, Row } from "antd";
+import { Col, Row } from "antd";
 
 interface MessageInboxProps {
 	userObject: any;

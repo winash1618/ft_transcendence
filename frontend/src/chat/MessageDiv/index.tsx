@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MessageInbox from "./MessageInbox";
 import MessageInput from "./MessageInput";
 import { UserProfilePicture } from "../../assets";
@@ -37,17 +37,19 @@ const MessageDiv = ({
 		}
 	};
 
+	const handleMessageCreated = useCallback((object) => {
+		if (object.conversation_id === conversationID) {
+			setMessages((messages) => [...messages, object]);
+		}
+	}, [conversationID, setMessages]);
+
 	useEffect(() => {
-		const handleMessageCreated = (object) => {
-			if (object.conversation_id === conversationID) {
-				setMessages((messages) => [...messages, object]);
-			}
-		};
 		socket?.on('messageCreated', handleMessageCreated);
 		return () => {
 			socket?.off('messageCreated', handleMessageCreated);
 		};
-	}, [socket, conversationID, setMessages]);
+	}, [socket, handleMessageCreated]);
+
 
 	useEffect(() => {
 		messageEndRef.current.scrollIntoView({ behavior: "smooth" });

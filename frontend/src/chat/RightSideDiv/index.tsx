@@ -26,7 +26,6 @@ const RightSideDiv = ({
 	setGroupResults,
 	setGroupNav,
 	groupNav,
-
 }: RightSideDivProps) => {
 	if (Navbar === Nav.DIRECT) {
 		return (

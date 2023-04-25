@@ -1,12 +1,11 @@
 import {
 	GroupArrow,
-	GroupAvatar,
 	GroupInfo,
 	GroupItem,
 	GroupName,
 	GroupTitle,
 } from "./group.styled";
-import { List, Dropdown, MenuProps, Button, Input, Result } from "antd";
+import { List, Dropdown, MenuProps, Button, Input } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
@@ -226,6 +225,7 @@ const GroupChatRelations = ({
 		}
 		setGroupNav(nav);
 	};
+
 	if (conversation !== undefined && conversation !== null) {
 		return (
 			<>
