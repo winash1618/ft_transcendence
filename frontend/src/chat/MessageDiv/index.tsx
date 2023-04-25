@@ -55,7 +55,7 @@ const MessageDiv = ({
 	return (
 		<>
 			<MessageInbox
-				user={user}
+				userObject={user}
 				messages={messages}
 				messageEndRef={messageEndRef}
 				UserProfilePicture={UserProfilePicture}

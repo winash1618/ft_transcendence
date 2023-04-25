@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Colors, Conversation, GNav, Nav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
 import { List, Avatar, Button, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Picture } from "../../chat.styled";
 
 
 interface GroupChatProps {
@@ -36,7 +37,7 @@ const GroupChat = ({
 	setGroupResults,
 	setGroupNav,
 }: GroupChatProps) => {
-
+	const { user } = useAppSelector((state) => state.users);
 	const dispatch = useAppDispatch();
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
@@ -72,6 +73,7 @@ const GroupChat = ({
 		console.log("Group useEffect to reset data");
 		setMessages([]);
 		setConversationID(null);
+		setGroupResults([]);
 	}, [conversations]);
 
 	function handleUpdatePassword(conversation: any, password: string) {
@@ -199,7 +201,13 @@ const GroupChat = ({
 							}}
 						>
 							<List.Item.Meta
-								avatar={<Avatar src={UserProfilePicture} />}
+								avatar={<Picture
+									src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+									onError={(e) => {
+									  e.currentTarget.src = UserProfilePicture;
+									}}
+									alt="A profile photo of the current user"
+								  />}
 								title={
 									<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 										<div style={{ width: '10rem' }}>

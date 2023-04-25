@@ -1,9 +1,11 @@
 
+import { useAppSelector } from "../../../hooks/reduxHooks";
+import { Picture, PictureLeft, PictureRight } from "../../chat.styled";
 import { MessageParent, MessageSendDiv } from "../MessageDiv.styled";
 import { Avatar, Col, Row } from "antd";
 
 interface MessageInboxProps {
-	user: any;
+	userObject: any;
 	messages: any;
 	messageEndRef: any;
 	UserProfilePicture: any;
@@ -11,18 +13,19 @@ interface MessageInboxProps {
 
 function MessageInbox(
 	{
-		user,
+		userObject,
 		messages,
 		messageEndRef,
 		UserProfilePicture,
 	}: MessageInboxProps) {
+	const { user } = useAppSelector((state) => state.users);
 	return (
 		<>
 			<MessageSendDiv>
 				<MessageParent>
 					{(
 						messages.map((message) => {
-							if (message.author.user.id === user.id) {
+							if (message.author.user.id === userObject.id) {
 								return (
 									<Row key={message.id} justify="end" style={{ marginBottom: '1em', marginTop: '1em' }}>
 										<Col xs={24} sm={18} md={12} lg={8}>
@@ -41,10 +44,12 @@ function MessageInbox(
 												<div style={{ width: '100%', marginRight: '10px' }}>
 													{message.message}
 												</div>
-												<Avatar
-													src={UserProfilePicture}
-													alt=""
-													size={{ xs: 24, sm: 32, md: 40, lg: 48, xl: 56, xxl: 64 }}
+												<PictureRight
+													src={`http://localhost:3001/users/profile-image/${userObject?.profile_picture}`}
+													onError={(e) => {
+														e.currentTarget.src = UserProfilePicture;
+													}}
+													alt="A profile photo of the current user"
 												/>
 											</div>
 										</Col>
@@ -66,11 +71,12 @@ function MessageInbox(
 													padding: '1em',
 												}}
 											>
-												<Avatar
-													src={UserProfilePicture}
-													alt=""
-													size={{ xs: 24, sm: 32, md: 40, lg: 48, xl: 56, xxl: 64 }}
-													style={{ marginRight: '10px' }}
+												<PictureLeft
+													src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+													onError={(e) => {
+														e.currentTarget.src = UserProfilePicture;
+													}}
+													alt="A profile photo of the current user"
 												/>
 												<div style={{ width: '100%' }}>
 													{message.message}

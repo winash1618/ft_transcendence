@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Nav, Colors, Conversation } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch } from "../../../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import { logOut } from "../../../store/authReducer";
-import { List, Avatar, Input } from 'antd';
+import { List, Input } from 'antd';
+import { Picture } from "../../chat.styled";
 
 interface DirectChatProp {
 	conversations: Conversation[];
@@ -16,8 +17,6 @@ interface DirectChatProp {
 	Navbar: Nav;
 }
 
-
-
 const DirectChat = ({
 	conversations,
 	UserProfilePicture,
@@ -28,7 +27,7 @@ const DirectChat = ({
 	socket,
 	Navbar,
 }: DirectChatProp) => {
-
+	const { user } = useAppSelector((state) => state.users);
 	const dispatch = useAppDispatch();
 	const [searchText, setSearchText] = useState("");
 
@@ -38,20 +37,6 @@ const DirectChat = ({
 		setConversationID(null);
 	}, [conversations, setMessages, setConversationID]);
 
-	const getToken = async () => {
-		try {
-			const response = await axios.get("http://localhost:3001/token", {
-				withCredentials: true,
-			});
-			localStorage.setItem("auth", JSON.stringify(response.data));
-			return response.data.token;
-		} catch (err) {
-			dispatch(logOut());
-			window.location.reload();
-			return null;
-		}
-	};
-
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
 			return data;
@@ -60,6 +45,19 @@ const DirectChat = ({
 	};
 
 	useEffect(() => {
+		const getToken = async () => {
+			try {
+				const response = await axios.get("http://localhost:3001/token", {
+					withCredentials: true,
+				});
+				localStorage.setItem("auth", JSON.stringify(response.data));
+				return response.data.token;
+			} catch (err) {
+				dispatch(logOut());
+				window.location.reload();
+				return null;
+			}
+		};
 		const handleDirectExists = async (object) => {
 			console.log("direct exists", object);
 			setConversationID(object);
@@ -104,7 +102,21 @@ const DirectChat = ({
 			socket?.off('directExists', handleDirectExists);
 			socket?.off('directMessage', handleDirectMessage);
 		};
-	}, [socket, setConversations, setMessages, setConversationID ]);
+	}, [dispatch, socket, setConversations, setMessages, setConversationID]);
+
+	const getToken = async () => {
+		try {
+			const response = await axios.get("http://localhost:3001/token", {
+				withCredentials: true,
+			});
+			localStorage.setItem("auth", JSON.stringify(response.data));
+			return response.data.token;
+		} catch (err) {
+			dispatch(logOut());
+			window.location.reload();
+			return null;
+		}
+	};
 
 	async function handleSelectedConversation(conversation: any) {
 		console.log("i am in direct handleSelectedConversation");
@@ -144,12 +156,18 @@ const DirectChat = ({
 							paddingLeft: '.5rem',
 							borderRadius: '.5rem',
 							color: 'white',
-							marginBottom: '.65rem',
+							marginTop: '.65rem',
 							padding: '.75rem'
 						}}
 					>
 						<List.Item.Meta
-							avatar={<Avatar src={UserProfilePicture} />}
+							avatar={<Picture
+								src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+								onError={(e) => {
+								  e.currentTarget.src = UserProfilePicture;
+								}}
+								alt="A profile photo of the current user"
+							  />}
 							title={<span style={{ color: 'white' }}>{conversation.participants[0].user.username}</span>}
 						/>
 					</List.Item>

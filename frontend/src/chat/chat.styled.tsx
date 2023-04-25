@@ -64,3 +64,23 @@ export const RightSideContainer = styled.div`
     margin-top: 20px;
   }
 `;
+
+export const Picture = styled.img`
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+`;
+
+export const PictureLeft = styled.img`
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 1rem;
+  border-radius: 50%;
+`;
+
+export const PictureRight = styled.img`
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 1rem;
+  border-radius: 50%;
+`;
