@@ -27,5 +27,28 @@ export const CustomSider = styled(Sider)`
   position: absolute !important;
   border-radius: 15px !important;
   z-index: 99999;
-  background: #222222 !important;
+  background: var(--main-600) !important;
+  & .ant-layout-sider-zero-width-trigger {
+    top: 17px;
+    overflow: hidden;
+  }
+`;
+
+export const NotificationsWrapper = styled.div`
+  position: relative;
+  display: flex;
+`;
+
+export const NotificationsCounter = styled.h1`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  right: -5px;
+  width: 20px;
+  font-size: 0.8rem;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  top: -5px;
 `;

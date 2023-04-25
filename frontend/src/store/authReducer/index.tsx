@@ -17,6 +17,7 @@ interface AuthState {
     isLoading: boolean;
     doneForgot: boolean;
     userInfo: any;
+    token: string | null;
     error: any;
     isAuthenticated: boolean;
 }
@@ -25,6 +26,7 @@ const initialState: AuthState = {
   isLoading: false,
   doneForgot: false,
   userInfo: userInf,
+  token: null,
   error: {},
   isAuthenticated: false,
 };
@@ -73,6 +75,12 @@ const authSlide = createSlice({
       return {
         ...state,
         userInfo: action.payload,
+      };
+    },
+    setToken: (state, action) => {
+      return {
+        ...state,
+        token: action.payload,
       };
     },
   },
@@ -133,6 +141,7 @@ export const {
   resetError,
   logOut,
   setUserInfo,
+  setToken,
 } = authSlide.actions;
 
 export default authSlide.reducer;

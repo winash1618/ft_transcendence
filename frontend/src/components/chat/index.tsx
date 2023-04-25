@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { LeftSideContainer, MessageBoxContainer, ParentContainer, RightSideContainer } from "./chat.styled";
 import { GNav, Nav, Status, User } from "./chat.functions";
-import { UserProfilePicture } from "../assets";
+import { UserProfilePicture } from "../../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";
-import { ErrorAlert } from "../components/toastify";
+import { ErrorAlert } from "../toastify/index";
 
 interface ChatProps {
 	socket: any;
@@ -20,7 +20,7 @@ const Chat = ({
 	const [conversationID, setConversationID] = useState(null);
 	const [conversations, setConversations] = useState([]);
 	const [messages, setMessages] = useState([]);
-	const [status, setStatus] = useState(Status.ACTIVE); // you need to set this for if you are selecting any conversation in group 
+	const [status, setStatus] = useState(Status.ACTIVE); // you need to set this for if you are selecting any conversation in group
 	const [conversation, setConversation] = useState(null);
 	const [results, setResults] = useState<User[]>([]);
 	const [groupResults, setGroupResults] = useState<User[]>([]);

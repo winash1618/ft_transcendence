@@ -16,6 +16,8 @@ import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import { Checkbox, Spin } from "antd";
 import { ErrorAlert } from "../toastify";
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
+import { setGameInfo } from "../../store/gameReducer";
 
 export type PlayType = {
   map: number;
@@ -23,21 +25,13 @@ export type PlayType = {
 };
 
 const PlayForm = ({
-  setIsGameStarted,
-  setPlayer,
-  setPlayers,
   setMobile,
-  socket,
-  setRoomID,
 }: {
-  setIsGameStarted: any;
-  setPlayer: any;
-  setPlayers: any;
   setMobile: any;
-  socket: Socket | null;
-  setRoomID: any;
 }) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const { socket } = useAppSelector((state) => state.game);
+  const dispatch = useAppDispatch();
   const {
     handleSubmit,
     formState: { errors },
@@ -46,28 +40,22 @@ const PlayForm = ({
 
   useEffect(() => {
     socket?.on("start", (data) => {
-      setIsGameStarted(true);
-      setPlayer(data.playerNo);
+      dispatch(setGameInfo({ ...data, isGameStarted: true }));
       setMobile(data.mobile);
-      setPlayers(data.players);
-      setRoomID(data.roomID);
     });
     socket?.on("error", (data) => {
       ErrorAlert("You are already in the queue", 5000);
     });
     return () => {
       socket?.off("start", (data) => {
-        setIsGameStarted(true);
-        setPlayer(data.playerNo);
+        dispatch(setGameInfo({ ...data, isGameStarted: true }));
         setMobile(data.mobile);
-        setPlayers(data.players);
-        setRoomID(data.roomID);
       });
       socket?.off("error", (data) => {
         ErrorAlert("You are already in the queue", 5000);
       });
     };
-  }, [socket, setIsGameStarted, setPlayer, setRoomID]);
+  }, [socket, dispatch]);
 
   const onSubmit: SubmitHandler<PlayType> = (data) => {
     setIsSearching(true);

@@ -35,8 +35,8 @@ const MessagesPage = () => {
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [conversationID, setConversationID] = useState(null);
 	const [messageNavButtonColor, setMessageNavButtonColor] = useState("#ffffff");
-	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("#1A1D1F");
-	const [contactDivColor, setContactDivColor] = useState("#1A1D1F");
+	const [messageNavButtonColorNotUsed, setMessageNavButtonColorNotUsed] = useState("var(--main-600)");
+	const [contactDivColor, setContactDivColor] = useState("var(--main-600)");
 	const [isFormVisible, setIsFormVisible] = useState(false);
 	// const [isInGroup, setIsInGroup] = useState(false);
 	const [navBar, setNavBar] = useState(Nav.INBOX);
@@ -63,6 +63,7 @@ const MessagesPage = () => {
 				localStorage.setItem("auth", JSON.stringify(response.data));
 				setUser(response.data.user);
 				dispatch(setUserInfo(response.data.user));
+		  		dispatch(setToken(response.data.token));
 				return response.data.token;
 			} catch (err) {
 				dispatch(logOut());
@@ -284,7 +285,7 @@ const MessagesPage = () => {
 		setParticipantID(null);
 		socket?.emit('getDirectConversations');
 		setMessageNavButtonColor("#ffffff");
-		setMessageNavButtonColorNotUsed("#1A1D1F");
+		setMessageNavButtonColorNotUsed("var(--main-600)");
 	};
 
 	const handleMessageNavNotUsedClick = () => {
@@ -297,7 +298,7 @@ const MessagesPage = () => {
 		setMessages([]);
 		setParticipantID(null);
 		socket?.emit('getGroupConversations');
-		setMessageNavButtonColor("#1A1D1F");
+		setMessageNavButtonColor("var(--main-600)");
 		setMessageNavButtonColorNotUsed("#ffffff");
 	};
 

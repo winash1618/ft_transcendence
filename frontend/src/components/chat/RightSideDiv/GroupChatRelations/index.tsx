@@ -7,7 +7,7 @@ import {
 } from "./group.styled";
 import { List, Dropdown, MenuProps, Button, Input } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { UserProfilePicture } from "../../../assets";
+import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role, User } from "../../chat.functions";
 import { useState } from "react";
@@ -254,6 +254,7 @@ const GroupChatRelations = ({
 				{groupNav === GNav.GROUPS ? (
 					<List
 						itemLayout="horizontal"
+						locale={{ emptyText: "No groups found" }}
 						dataSource={filterResults(groupResults, searchText) as any}
 						renderItem={(result: ResultObject) => (
 							<GroupItem key={result.id} onClick={() => handleUserClick(result)}>

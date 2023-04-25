@@ -39,14 +39,22 @@ export class AuthController {
   @UseGuards(FtAuthGuard)
   @Get()
   async redirectUri(@Req() req, @Res() res: Response) {
-    await this.userService.updateAuthentication(req.user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(
-      req.user as User,
-    );
-    console.log(token);
+    try {
+      if (!req.user) {
+        return res.redirect('/guest');
+      }
+      await this.userService.updateAuthentication(req.user.id, false);
+      const token = await this.authService.getLongExpiryJwtToken(
+        req.user as User,
+      );
+      console.log(token);
 
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(process.env.FRONTEND_BASE_URL);
+      res.cookie('auth', token, { httpOnly: true });
+      return res.redirect(process.env.FRONTEND_BASE_URL);
+    }
+    catch (err) {
+      console.log(err);
+    }
   }
 
   @UseGuards(FtAuthGuard)

@@ -29,6 +29,7 @@ import { UsersService } from 'src/users/users.service';
     credentials: true,
   },
 })
+// @WebSocketGateway()
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -45,6 +46,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
+    // const token = client.handshake.headers.token as string;
     const token = client.handshake.auth.token;
     const userid = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
@@ -172,13 +174,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('Invite')
   inviteUser(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+    console.log('Inviting user');
     const userID = client.data.userID;
     const invitedUserID = data;
     const socketData: SocketData = this.setUserStatus(
       client,
       GameStatus.WAITING,
     );
-    if (this.userSockets.has(invitedUserID)) {
+    if (Array.from(this.users.keys()).some(user => user['id'] === invitedUserID)) {
+      console.log('User is invited');
       const invitedSocketData = this.userSockets.get(invitedUserID);
       if (invitedSocketData.status === GameStatus.WAITING) {
         this.invitedUser.set(invitedUserID, [socketData, invitedSocketData]);
@@ -196,7 +200,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userID = client.data.userID;
     const invitedUserID = data;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
-    if (this.invitedUser.has(invitedUserID)) {
+    if (Array.from(this.users.keys()).some(user => user['id'] === invitedUserID)) {
       const invitedSocketData = this.invitedUser.get(invitedUserID)[1];
       if (invitedSocketData.userID === userID) {
         const roomID = this.createGameRoom(socketData, invitedSocketData, data.hasMiddleWall);

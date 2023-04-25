@@ -2,7 +2,7 @@ import { Card, Col, Row } from "antd";
 import styled from "styled-components";
 
 export const ProfilePersonalInfoContainer = styled(Card)`
-  background: var(--main-700);
+  background: var(--main-600);
   border-radius: 10px;
   padding: 30px 0px;
   height: 100%;

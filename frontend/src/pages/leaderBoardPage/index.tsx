@@ -13,9 +13,9 @@
 // import { logOut, setUserInfo } from "../../store/authReducer";
 // import axios from "../../api";
 
-// /*------------------------------------------------------------------*/
-// import { List, Avatar } from "antd";
-// import { Nav } from "../../chat/chat.functions";
+/*------------------------------------------------------------------*/
+import { List, Avatar } from "antd";
+import { Nav } from "../../components/chat/chat.functions";
 
 // interface LeaderboardData {
 //   id: number;
@@ -169,16 +169,16 @@
 // export default LeaderBoardPage;
 import { useRef, useEffect } from 'react';
 function Canvas() {
-	
+
 	useEffect(() => {
 		function handleResize() {
 		  const width = window.innerWidth;
 		  const height = window.innerHeight;
 		  console.log(`Window size changed: width=${width}, height=${height}`);
 		}
-	
+
 		window.addEventListener('resize', handleResize);
-	
+
 		return () => {
 		  window.removeEventListener('resize', handleResize);
 		};

@@ -13,7 +13,6 @@ import {
   ProfileContainer,
   ProfileInfoContainer,
 } from "./profilePage.styled";
-import { Col } from "antd";
 
 const ProfilePage = () => {
   const { isLoading, error } = useAppSelector((state) => state.users);

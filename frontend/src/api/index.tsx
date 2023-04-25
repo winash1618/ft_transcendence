@@ -3,14 +3,14 @@ import jwt_decode, { JwtPayload } from "jwt-decode";
 import dayjs from "dayjs";
 import localStorage from "redux-persist/es/storage";
 import { router } from "../router";
-import { logOut, setUserInfo } from "../store/authReducer";
+import { logOut, setToken, setUserInfo } from "../store/authReducer";
 import { ToolkitStore } from "@reduxjs/toolkit/dist/configureStore";
 
 let store = null;
 
 export const injectStore = (storeParam: ToolkitStore) => {
   store = storeParam;
-}
+};
 
 export const BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -33,6 +33,7 @@ axiosPrivate.interceptors.request.use(async (req) => {
       });
       localStorage.setItem("auth", JSON.stringify(response.data));
       store.dispatch(setUserInfo(response.data.user));
+      store.dispatch(setToken(response.data.token));
       req.headers.Authorization = `Bearer ${response.data.token}`;
       return req;
     } catch (err) {
@@ -46,7 +47,8 @@ axiosPrivate.interceptors.request.use(async (req) => {
       return req;
     }
   }
-  const token = JSON.parse(data).token;
+  const parsedData = JSON.parse(data);
+  const token = parsedData.token;
   const user = jwt_decode<JwtPayload>(token);
   const isExpired = dayjs.unix(user.exp!).diff(dayjs()) - 5000 < 1;
   if (!isExpired) {
@@ -59,6 +61,7 @@ axiosPrivate.interceptors.request.use(async (req) => {
     });
     localStorage.setItem("auth", JSON.stringify(response.data));
     store.dispatch(setUserInfo(response.data.user));
+    store.dispatch(setToken(response.data.token));
     req.headers.Authorization = `Bearer ${response.data.token}`;
     return req;
   } catch (err) {

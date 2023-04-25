@@ -188,6 +188,7 @@ const GroupChat = ({
 			/>
 			<List
 				itemLayout="horizontal"
+				locale={{ emptyText: "No conversations found" }}
 				dataSource={filterResults(conversations, searchText)}
 				renderItem={conversation => (
 					<>

@@ -20,6 +20,7 @@ CREATE TABLE "User" (
     "last_name" TEXT,
     "secret_code" TEXT,
     "is_authenticated" BOOLEAN,
+    "friend_requests" TEXT[],
     "user_status" "UserStatus" NOT NULL DEFAULT 'OFFLINE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -96,7 +97,7 @@ CREATE TABLE "_blocked_users" (
 CREATE UNIQUE INDEX "User_login_key" ON "User"("login");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Conversation_title_key" ON "Conversation"("title");
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Participant_conversation_id_user_id_key" ON "Participant"("conversation_id", "user_id");
