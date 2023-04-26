@@ -303,13 +303,31 @@ export class ConversationService {
         privacy: {
           in: [Privacy.PUBLIC, Privacy.PROTECTED],
         },
-        participants: {
-          every: {
-            user_id: {
-              not: userID,
+        OR: [
+          {
+            participants: {
+              every: {
+                user_id: {
+                  not: userID,
+                },
+              },
             },
           },
-        },
+          {
+            participants: {
+              some: {
+                AND: [
+                  { user_id: userID },
+                  {
+                    conversation_status: {
+                      notIn: ['ACTIVE', 'MUTED', 'BANNED'],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
       },
       orderBy: {
         updated_at: 'desc',
