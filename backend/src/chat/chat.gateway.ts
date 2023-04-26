@@ -48,7 +48,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private conversationService: ConversationService,
     private participantService: ParticipantService,
     private messageService: MessageService,
-    private userService: UsersService,
+    // usePipes(new ValidationPipe()),
     private jwtService: JwtService,
   ) {}
 
@@ -85,7 +85,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In createConversation');
     try {
-      // await this.createConversationValidation(data);
+      await this.createConversationValidation(data);
 
       const errors = await validate(data);
       console.log(errors)
@@ -96,8 +96,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           error: errors[0].toString(),
         });
       }
-
-      return ;
 
       const conversation = await this.conversationService.createConversation({
         title: data.title,
