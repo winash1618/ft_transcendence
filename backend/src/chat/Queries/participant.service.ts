@@ -311,6 +311,9 @@ export class ParticipantService {
     if (!admin || admin.conversation_status === Status.DELETED)
       throw new Error('User does not exist.');
 
+    if (admin.role !== Role.OWNER)
+      throw new Error('User is not an owner.');
+
     if (!participant || participant.conversation_status === Status.DELETED)
       throw new Error('Participant does not exist');
 

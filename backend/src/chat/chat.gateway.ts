@@ -33,13 +33,13 @@ import { UnBanUserDTO } from './dto/GatewayDTO/unBanUser.dto';
 import { KickUserDTO } from './dto/GatewayDTO/kickUser.dto';
 import { MuteUserDTO } from './dto/GatewayDTO/muteUser.dto';
 
-// @WebSocketGateway(8001, {
-//   cors: {
-//     origin: process.env.FRONTEND_BASE_URL,
-//     credentials: true,
-//   },
-// })
-@WebSocketGateway()
+@WebSocketGateway(8001, {
+  cors: {
+    origin: process.env.FRONTEND_BASE_URL,
+    credentials: true,
+  },
+})
+// @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -53,8 +53,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    // const token = client.handshake.auth.token as string;
-    const token = client.handshake.headers.token as string;
+    const token = client.handshake.auth.token as string;
+    // const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
@@ -336,11 +336,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const check = await this.addRemoveParticipantValidation(data, client.data.userID.id, 'Added');
 
-      if (check && check.conversation_status === Status.ACTIVE)
-        throw new Error('User already in conversation');
+      if (check) {
+        if (check && check.conversation_status === Status.ACTIVE)
+          throw new Error('User already in conversation');
 
-      if (check.conversation_status === Status.BANNED)
-        throw new Error('User is banned from conversation');
+        if (check.conversation_status === Status.BANNED)
+          throw new Error('User is banned from conversation');
+      }
 
       const participant =
         await this.participantService.addParticipantToConversation(
@@ -359,6 +361,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
     catch (e) {
+      console.log(e);
       throw new WsException({
         message: 'Add Participant failed',
         error: e.message
@@ -385,8 +388,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (check.conversation_status !== Status.ACTIVE)
         throw new Error('User is not in conversation');
 
-      if (check.role === Role.ADMIN || check.role === Role.OWNER)
-        throw new Error('User is admin.');
+      if (check.role === Role.OWNER)
+        throw new Error('User is channel Owner.');
 
       const participant =
         await this.participantService.removeParticipantFromConversation(
@@ -464,34 +467,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       throw new WsException({
         message: 'Unban User failed',
-        error: e.message
-      });
-    }
-  }
-
-  @SubscribeMessage('kickUser')
-  async kickUser(@ConnectedSocket() client: Socket, @MessageBody() data: KickUserDTO) {
-    try {
-      console.log('In kickUser');
-
-      await this.kickUserValidation(data, client.data.userID.id);
-
-      const participant = await this.participantService.updateParticipantStatus(
-        data.conversationID,
-        data.userID,
-        Status.KICKED,
-      );
-
-      const user = this.gatewaySession.getUserSocket(data.userID);
-      if (!user) return;
-      user.leave(data.conversationID);
-      this.server.to(data.conversationID).emit('userKicked', {
-        conversationID: data.conversationID,
-        kickedUserID: participant.user_id,
-      });
-    } catch (e) {
-      throw new WsException({
-        message: 'Kick User failed',
         error: e.message
       });
     }
@@ -655,7 +630,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (participant.conversation_status === Status.BANNED)
         throw new Error('You are banned from this conversation');
 
-      throw new Error('You are already in this conversation');
+      if (participant.conversation_status === Status.ACTIVE || participant.conversation_status === Status.MUTED)
+        throw new Error('You are already in this conversation');
     }
 
     if (conversation.privacy === Privacy.PROTECTED) {
@@ -773,8 +749,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!userExists)
       throw new Error('Participant does not exist');
 
-    if (userExists.role === Role.ADMIN)
-      throw new Error('You cannot ban an admin');
+    if (userExists.role !== Role.OWNER)
+      throw new Error('You cannot ban an owner');
 
     if (userExists.conversation_status === Status.BANNED)
       throw new Error('Participant is already banned');
@@ -900,8 +876,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!participant || participant.conversation_status !== Status.ACTIVE)
       throw new Error('You are not in this conversation');
 
-    if (participant.role === Role.USER)
-      throw new Error('You are not an admin of this conversation');
+    if (participant.role !== Role.OWNER)
+      throw new Error('You are not an owner of this conversation');
 
     return true;
   }

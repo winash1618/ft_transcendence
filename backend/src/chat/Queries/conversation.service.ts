@@ -69,20 +69,23 @@ export class ConversationService {
       throw new Error('Conversation is already protected');
     }
 
-    if (!(await this.participantService.checkParticipantExists(conversationID, admin))) {
-      throw new Error('User is not participant');
-    }
+    const participant = await this.participantService.checkParticipantExists(conversationID, admin)
 
-    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === false) {
-      throw new Error('User is not admin');
-    }
+    if (!participant)
+      throw new Error('User is not a participant of this conversation');
+
+    if (participant.role !== Role.OWNER)
+      throw new Error('User is OWNER.');
+
+    if (participant.conversation_status !== Status.ACTIVE)
+      throw new Error('User is not active in this conversation');
 
     if (password == '' || password == null || password == undefined)
     throw new Error('Password is required');
 
-  // const regex = new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$");
-  // if (!regex.test(password))
-  //   throw new Error('Password is invalid');
+    const regex = new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$");
+    if (!regex.test(password))
+      throw new Error('Password is invalid');
 
     const hashedPassword = await this.hashPassword(password);
 
