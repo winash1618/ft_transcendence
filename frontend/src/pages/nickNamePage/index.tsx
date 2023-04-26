@@ -12,7 +12,7 @@ import {
 import { NickNameSchema } from "../../utils/schema";
 import ButtonComponent from "../../components/ButtonComponent";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { changeNickName } from "../../store/usersReducer";
+import { changeNickName, resetChangeNickName } from "../../store/usersReducer";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -45,6 +45,7 @@ const NickNamePage = () => {
 
   useEffect(() => {
     if (nickNameIsChanged) {
+      dispatch(resetChangeNickName());
       navigate("/");
     }
   }, [nickNameIsChanged]);

@@ -9,29 +9,30 @@ const AchievementsPage = () => {
   const achievements = [
     {
       id: 1,
-      title: "Achievement 1",
-      description: "Description 1",
-      image: <FontAwesomeIcon icon={faTrophy} />,
+      title: "Winner",
+      description: "Win your first game to unlock this achievement",
+      image: <FontAwesomeIcon size="3x" icon={faTrophy} />,
     },
     {
       id: 2,
-      title: "Achievement 1",
-      description: "Description 1",
-      image: <FontAwesomeIcon icon={faTrophy} />,
+      title: "Overlord",
+      description: "Win 10 games to unlock this achievement",
+      image: <FontAwesomeIcon size="3x" icon={faTrophy} />,
     },
     {
       id: 3,
-      title: "Achievement 1",
-      description: "Description 1",
-      image: <FontAwesomeIcon icon={faTrophy} />,
+      title: "Legendary",
+      description: "Win 3 game consecutively to unlock this achievement",
+      image: <FontAwesomeIcon size="3x" icon={faTrophy} />,
     },
   ];
   return (
-    <Row>
+    <Row style={{padding: "30px"}} gutter={[64, 64]}>
       {achievements.map((achievement) => (
         <AchievementsWrapper key={achievement.id}>
           <AchievementsCard
             title={achievement.title}
+            image={achievement.image}
             description={achievement.description}
           />
         </AchievementsWrapper>

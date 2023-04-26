@@ -147,6 +147,7 @@ const Navbar: React.FC = () => {
           theme={{
             token: {
               colorTextLabel: "#fff",
+              colorTextDescription: "#cccccc",
               colorTextHeading: "#fff",
               colorTextSecondary: "#d1d1d1",
               colorTextPlaceholder: "#8d8d8d",

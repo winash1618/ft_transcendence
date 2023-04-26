@@ -208,13 +208,8 @@ const PingPongCanvas = () => {
       setPlayer2Score(data);
     });
     if (roomID.length > 0) {
-      if (mobile) {
-        setCanvasWidth(300);
-        setCanvasHeight(500);
-      }
       socket?.emit("StartGame", {
         roomID,
-        mobile,
       });
     }
     return () => {
