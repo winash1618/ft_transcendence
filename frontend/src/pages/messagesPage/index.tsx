@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Socket, io } from "socket.io-client";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { logOut, setToken, setUserInfo } from "../../store/authReducer";
-import axios from "../../api";
+import axios, { BASE_URL } from "../../api";
 import Chat from "../../components/chat";
 
 
@@ -14,7 +14,7 @@ const MessagesPage = () => {
 	useEffect(() => {
 	  const getToken = async () => {
 		try {
-		  const response = await axios.get("/token", {
+		  const response = await axios.get(`${BASE_URL}/token`, {
 			withCredentials: true,
 		  });
 		  localStorage.setItem("auth", JSON.stringify(response.data));
