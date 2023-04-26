@@ -1,4 +1,6 @@
 import { UseGuards } from '@nestjs/common';
+import { validate } from 'class-validator';
+import { ValidationPipe } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -31,13 +33,13 @@ import { UnBanUserDTO } from './dto/GatewayDTO/unBanUser.dto';
 import { KickUserDTO } from './dto/GatewayDTO/kickUser.dto';
 import { MuteUserDTO } from './dto/GatewayDTO/muteUser.dto';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
-})
-// @WebSocketGateway()
+// @WebSocketGateway(8001, {
+//   cors: {
+//     origin: process.env.FRONTEND_BASE_URL,
+//     credentials: true,
+//   },
+// })
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -51,8 +53,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
+    // const token = client.handshake.auth.token as string;
+    const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
@@ -83,7 +85,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In createConversation');
     try {
-      await this.createConversationValidation(data, client.data.userID.id);
+      // await this.createConversationValidation(data);
+
+      const errors = await validate(data);
+      console.log(errors)
+      if (errors.length > 0) {
+        // If there are any validation errors, throw a WsException with the first error message
+        throw new WsException({
+          message: 'Create conversation failed',
+          error: errors[0].toString(),
+        });
+      }
+
+      return ;
 
       const conversation = await this.conversationService.createConversation({
         title: data.title,
@@ -587,28 +601,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private async createConversationValidation(
     data: createConversationDto,
-    user: string,
   ): Promise<boolean> {
-    if (data.privacy == '' || data.privacy == null || data.privacy == undefined)
-      throw new Error('Privacy is required');
-
-    if (data.privacy !== Privacy.PUBLIC && data.privacy !== Privacy.PRIVATE && data.privacy !== Privacy.PROTECTED)
-      throw new Error('Privacy is invalid');
-    else {
-      if (data.privacy === Privacy.PROTECTED)
-        if (data.password == '' || data.password == null || data.password == undefined)
-          throw new Error('Password is required');
-
-      const regex = new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$");
-      if (!regex.test(data.password))
-        throw new Error('Password is invalid');
+    if (!Object.values(Privacy).includes(data.privacy as Privacy)) {
+      throw new Error('Privacy is invalid or not provided');
     }
 
-    if (data.title == '' || data.title == null || data.title == undefined)
-      throw new Error('Title is required');
+    if (data.privacy === Privacy.PROTECTED || data.privacy === Privacy.PRIVATE) {
+      if (!data.password) {
+        throw new Error('Password is required to protect the conversations');
+      }
 
-    if ((await this.conversationService.validateChannelTitle(data.title) === false))
+      const regex = new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$");
+      if (!regex.test(data.password)) {
+        throw new Error('Password is invalid');
+      }
+    }
+
+    if (!data.title || data.title.trim() === '') {
+      throw new Error('Title is required');
+    }
+
+    if ((await this.conversationService.validateChannelTitle(data.title) === false)) {
       throw new Error('Title is invalid');
+    }
 
     return true;
   }
