@@ -1,4 +1,5 @@
 
+import { BASE_URL } from "../../../../api";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { PictureLeft, PictureRight } from "../../chat.styled";
 import { MessageParent, MessageSendDiv } from "../MessageDiv.styled";
@@ -18,7 +19,7 @@ function MessageInbox(
 		messageEndRef,
 		UserProfilePicture,
 	}: MessageInboxProps) {
-	const { user } = useAppSelector ((state) => state.users);
+	const { userInfo, token } = useAppSelector((state) => state.auth);
 	return (
 		<>
 			<MessageSendDiv>
@@ -45,7 +46,7 @@ function MessageInbox(
 													{message.message}
 												</div>
 												<PictureRight
-													src={`http://localhost:3001/users/profile-image/${userObject?.profile_picture}`}
+													src={`${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`}
 													onError={(e) => {
 														e.currentTarget.src = UserProfilePicture;
 													}}
@@ -72,7 +73,7 @@ function MessageInbox(
 												}}
 											>
 												<PictureLeft
-													src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+													src={`${BASE_URL}/users/profile-image/${message.author.user.profile_picture}/${token}`}
 													onError={(e) => {
 														e.currentTarget.src = UserProfilePicture;
 													}}

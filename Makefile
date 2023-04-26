@@ -1,4 +1,4 @@
-DOCKER-COMPOSE := docker-compose -f docker-compose.yml
+DOCKER-COMPOSE := docker-compose -f docker-compose.prod.yml
 
 all: up
 

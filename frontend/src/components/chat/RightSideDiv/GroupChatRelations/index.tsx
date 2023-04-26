@@ -15,6 +15,7 @@ import axios from "axios";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
 import { logOut } from "../../../../store/authReducer";
 import { Picture } from "../../chat.styled";
+import { BASE_URL } from "../../../../api";
 
 interface GroupChatRelationsProps {
 	socket: any;
@@ -156,7 +157,7 @@ const GroupChatRelations = ({
 	const HandleGroupNavClick = (nav: any) => async () => {
 		const getToken = async () => {
 			try {
-				const response = await axios.get("http://localhost:3001/token", {
+				const response = await axios.get(`${BASE_URL}/token`, {
 					withCredentials: true,
 				});
 				localStorage.setItem("auth", JSON.stringify(response.data));
@@ -171,7 +172,7 @@ const GroupChatRelations = ({
 			const token = await getToken();
 			try {
 				const result = await axios.get(
-					`http://localhost:3001/chat/${conversationID}/members`,
+					`${BASE_URL}/chat/${conversationID}/members`,
 					{
 						withCredentials: true,
 						headers: {
@@ -180,7 +181,7 @@ const GroupChatRelations = ({
 					}
 				);
 				setGroupResults(result.data);
-				console.log("Group members", result.data);
+				console.log("Group members");
 			} catch (err) {
 				console.log(err);
 			}
@@ -190,7 +191,7 @@ const GroupChatRelations = ({
 			console.log(conversationID);
 			try {
 				const result = await axios.get(
-					`http://localhost:3001/chat/channel/${conversationID}/banned`,
+					`${BASE_URL}/chat/channel/${conversationID}/banned`,
 					{
 						withCredentials: true,
 						headers: {
@@ -209,7 +210,7 @@ const GroupChatRelations = ({
 			console.log(conversationID);
 			try {
 				const result = await axios.get(
-					`http://localhost:3001/chat/channel/${conversationID}/addFriends`,
+					`${BASE_URL}/chat/channel/${conversationID}/addFriends`,
 					{
 						withCredentials: true,
 						headers: {
@@ -260,7 +261,7 @@ const GroupChatRelations = ({
 							<GroupItem key={result.id} onClick={() => handleUserClick(result)}>
 								<GroupInfo>
 									<Picture
-										src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+										src={`/users/profile-image/${user?.profile_picture}`}
 										onError={(e) => {
 											e.currentTarget.src = UserProfilePicture;
 										}}
@@ -292,7 +293,7 @@ const GroupChatRelations = ({
 							<GroupItem>
 								<GroupInfo>
 									<Picture
-										src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+										src={`/users/profile-image/${user?.profile_picture}`}
 										onError={(e) => {
 											e.currentTarget.src = UserProfilePicture;
 										}}
@@ -325,7 +326,7 @@ const GroupChatRelations = ({
 							<GroupItem>
 								<GroupInfo>
 									<Picture
-										src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+										src={`/users/profile-image/${user?.profile_picture}`}
 										onError={(e) => {
 											e.currentTarget.src = UserProfilePicture;
 										}}

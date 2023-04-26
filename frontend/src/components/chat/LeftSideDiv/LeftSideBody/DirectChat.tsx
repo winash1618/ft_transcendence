@@ -5,6 +5,7 @@ import { List, Input } from 'antd';
 import { Picture } from "../../chat.styled";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
 import { logOut } from "../../../../store/authReducer";
+import { BASE_URL } from "../../../../api";
 
 interface DirectChatProp {
 	conversations: Conversation[];
@@ -27,18 +28,16 @@ const DirectChat = ({
 	socket,
 	Navbar,
 }: DirectChatProp) => {
-	const { user } = useAppSelector((state) => state.users);
-	const dispatch = useAppDispatch();
 	const [searchText, setSearchText] = useState("");
+	const { userInfo, token } = useAppSelector((state) => state.auth);
 
 	const resetState = useCallback(() => {
 		console.log("handleConversationLeft in DirectChat");
-		console.log("---------------------------------");
 		setMessages([]);
 		setConversationID(null);
 	}, [setMessages, setConversationID]);
 	useEffect(() => {
-		console.log("i am in direct useEffect", conversations);
+		console.log("i am in direct useEffect");
 		resetState();
 	}, [conversations, resetState]);
 
@@ -49,27 +48,13 @@ const DirectChat = ({
 		return data.filter((item) => item.title.toLowerCase().includes(searchText.toLowerCase()));
 	};
 
-	const getToken = useCallback(async () => {
-		try {
-			const response = await axios.get("http://localhost:3001/token", {
-				withCredentials: true,
-			});
-			localStorage.setItem("auth", JSON.stringify(response.data));
-			return response.data.token;
-		} catch (err) {
-			dispatch(logOut());
-			window.location.reload();
-			return null;
-		}
-	}, [dispatch]);
-	
 	const handleDirectExists = useCallback(async (object, token) => {
-		console.log("direct exists", object);
+		console.log("direct exists");
 		setConversationID(object);
-	
+
 		setMessages([]);
 		try {
-			const result = await axios.get(`http://localhost:3001/chat/${object}/Messages`, {
+			const result = await axios.get(`${BASE_URL}/chat/${object}/Messages`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -80,12 +65,12 @@ const DirectChat = ({
 			console.log(err);
 		}
 	}, [setConversationID, setMessages]);
-	
+
 	const handleDirectMessage = useCallback(async (object, token) => {
 		console.log("In handdle direct message");
 		setConversationID(object.id);
 		try {
-			const result = await axios.get("http://localhost:3001/chat/direct", {
+			const result = await axios.get(`${BASE_URL}/chat/direct`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -98,29 +83,27 @@ const DirectChat = ({
 			console.log(err);
 		}
 	}, [setConversations, setMessages, setConversationID]);
-	
+
 	useEffect(() => {
 		const getTokenAndHandleSocketEvents = async () => {
-			const token = await getToken();
 			socket?.on('directExists', (object) => handleDirectExists(object, token));
 			socket?.on('directMessage', (object) => handleDirectMessage(object, token));
 		};
-	
+
 		getTokenAndHandleSocketEvents();
-	
+
 		return () => {
 			socket?.off('directExists', handleDirectExists);
 			socket?.off('directMessage', handleDirectMessage);
 		};
-	}, [getToken, handleDirectExists, handleDirectMessage, socket]);
+	}, [handleDirectExists, handleDirectMessage, socket]);
 
 	async function handleSelectedConversation(conversation: any) {
 		console.log("i am in direct handleSelectedConversation");
 		setConversationID(conversation.id);
 		setMessages([]);
-		const token = await getToken();
 		try {
-			const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
+			const result = await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -158,12 +141,12 @@ const DirectChat = ({
 					>
 						<List.Item.Meta
 							avatar={<Picture
-								src={`http://localhost:3001/users/profile-image/${user?.profile_picture}`}
+								src={`${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`}
 								onError={(e) => {
-								  e.currentTarget.src = UserProfilePicture;
+									e.currentTarget.src = UserProfilePicture;
 								}}
 								alt="A profile photo of the current user"
-							  />}
+							/>}
 							title={<span style={{ color: 'white' }}>{conversation.participants[0].user.username}</span>}
 						/>
 					</List.Item>

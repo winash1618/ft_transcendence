@@ -46,6 +46,7 @@ export class MessageService {
               select: {
                 id: true,
                 username: true,
+				profile_picture: true,
               },
             },
           },
@@ -87,6 +88,7 @@ export class MessageService {
               select: {
                 id: true,
                 username: true,
+                profile_picture: true,
               },
             },
           },
