@@ -28,59 +28,31 @@ export class ConversationService {
 
   async createConversation(createConversation: CreateConversationDto) {
     try {
-      if (createConversation.title === '' || createConversation.title === undefined)
-        throw new Error('Conversation title is required');
-
-      if (createConversation.privacy === '' || createConversation.privacy === undefined) {
-        createConversation.privacy = 'PUBLIC';
-      }
-
-      if (createConversation.title !== '' || createConversation.title !== undefined)
-        if (await this.checkIfConversationTitleExists(createConversation.title))
-          throw new Error('Conversation title already exists');
-
-      if (
-        (createConversation.privacy === 'PROTECTED' ||
-        createConversation.privacy === 'PRIVATE') &&
-        (createConversation.password === '' ||
-          createConversation.password === undefined)
-      ) {
-        throw new Error('Password is required for Protected conversation');
-      }
-
-      if (createConversation.privacy === 'PROTECTED' ||
-      createConversation.privacy === 'PRIVATE') {
+      if (createConversation.password) {
         createConversation.password = await this.hashPassword(
           createConversation.password,
         );
       }
 
-        const conversation = await this.prisma.conversation.create({
-          data: {
-            title: createConversation.title,
-            creator_id: createConversation.creator_id,
-            password: createConversation.password,
-            privacy: Privacy[createConversation.privacy],
-          },
-          select: {
-            id: true,
-            title: true,
-            privacy: true,
-            creator_id: true,
-          }
-        });
+      const conversation = await this.prisma.conversation.create({
+        data: {
+          title: createConversation.title,
+          creator_id: createConversation.creator_id,
+          password: createConversation.password,
+          privacy: Privacy[createConversation.privacy],
+        },
+        select: {
+          id: true,
+          title: true,
+          privacy: true,
+          creator_id: true,
+        }
+      });
+
       return conversation;
     } catch (e) {
       throw new Error(e);
     }
-  }
-
-  async checkIfConversationTitleExists(title: string) {
-    return await this.prisma.conversation.findUnique({
-      where: {
-        title: title,
-      },
-    });
   }
 
   async protectConversation(conversationID: string, password: string, admin: string) {
@@ -92,11 +64,28 @@ export class ConversationService {
     if (conversation.privacy === Privacy.DIRECT) {
       throw new Error('Cannot protect direct conversation');
     }
-	// commented it since it was throwing error when user is not admin in conversation and was not able to protect conversation
-	// we need to update the password even if the user is an owner.
-    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === null) {
-      throw new Error('User is not admin');
+
+    if (conversation.privacy === Privacy.PROTECTED) {
+      throw new Error('Conversation is already protected');
     }
+
+    const participant = await this.participantService.checkParticipantExists(conversationID, admin)
+
+    if (!participant)
+      throw new Error('User is not a participant of this conversation');
+
+    if (participant.role !== Role.OWNER)
+      throw new Error('User is OWNER.');
+
+    if (participant.conversation_status !== Status.ACTIVE)
+      throw new Error('User is not active in this conversation');
+
+    if (password == '' || password == null || password == undefined)
+    throw new Error('Password is required');
+
+    const regex = new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$");
+    if (!regex.test(password))
+      throw new Error('Password is invalid');
 
     const hashedPassword = await this.hashPassword(password);
 
@@ -112,16 +101,6 @@ export class ConversationService {
   }
 
   async removePasswordFromConversation(conversationID: string) {
-    const conversation = await this.checkConversationExists(conversationID);
-
-    if (conversation.privacy !== Privacy.PROTECTED) {
-      throw new Error('Conversation is not protected');
-    }
-
-    if (conversation.password === null) {
-      throw new Error('Conversation does not have a password');
-    }
-
     return await this.prisma.conversation.update({
       where: {
         id: conversationID,
@@ -138,19 +117,6 @@ export class ConversationService {
     userID: string,
     otherUserID: string,
   ) {
-
-    if (userID === otherUserID) {
-      throw new Error('Cannot create direct conversation with yourself');
-    }
-
-    if (await this.userService.isUserBlocked(userID, otherUserID)) {
-      throw new Error('User is blocked');
-    }
-
-    if (await this.userService.isUserBlocked(otherUserID, userID)) {
-      throw new Error('User is blocked');
-    }
-
     const conversation = await this.createConversation(createConversation);
 
     await this.participantService.addParticipantToConversation({
@@ -163,7 +129,7 @@ export class ConversationService {
     await this.participantService.addParticipantToConversation({
       conversation_id: conversation.id,
       user_id: otherUserID,
-      role: Role['MEMBER'],
+      role: Role['OWNER'],
       conversation_status: 'ACTIVE',
     });
 
@@ -180,20 +146,30 @@ export class ConversationService {
       throw new Error('Conversation does not exist');
     }
 
-    if (!(await this.participantService.checkParticipantExists(conversationID, userID)) ||
-        !(await this.participantService.checkParticipantExists(conversationID, admin))) {
+    const participant = await this.participantService.checkParticipantExists(
+      conversationID,
+      admin,
+    );
+
+    if (!participant)
       throw new Error('User is not participant');
-    }
 
-    if (await this.participantService.isUserAdminInConversation(conversationID, admin) === null) {
+    if (participant.role === Role['USER'])
       throw new Error('User is not admin');
-    }
 
-    // if (await this.participantService.isUserMuted(conversationID, userID)) {
-    //   throw new Error('User is already muted');
-    // }
+    const user = await this.participantService.checkParticipantExists(
+      conversationID,
+      userID,
+    );
 
-    await this.participantService.updateParticipantStatus(conversationID, userID, Status.MUTED);
+    if (!user)
+      throw new Error('User is not participant');
+
+    if (user.role === Role['ADMIN'] || user.role === Role['OWNER'])
+      throw new Error('Cannot mute admin');
+
+    if (user.conversation_status === Status.MUTED)
+      throw new Error('User is already muted');
 
     const muteExpiresAt = new Date();
     muteExpiresAt.setMinutes(muteExpiresAt.getMinutes() + muteDuration);
@@ -206,7 +182,38 @@ export class ConversationService {
         },
       },
       data: {
+        conversation_status: Status.MUTED,
         mute_expires_at: muteExpiresAt,
+      },
+    });
+  }
+
+  async unmuteUser(conversationID: string, userID: string) {
+    if (!(await this.checkConversationExists(conversationID))) {
+      throw new Error('Conversation does not exist');
+    }
+
+    const user = await this.participantService.checkParticipantExists(
+      conversationID,
+      userID,
+    );
+
+    if (!user)
+      throw new Error('User is not participant');
+
+    if (user.conversation_status === Status.ACTIVE)
+      throw new Error('User is not muted');
+
+    return await this.prisma.participant.update({
+      where: {
+        conversation_id_user_id: {
+          conversation_id: conversationID,
+          user_id: userID,
+        },
+      },
+      data: {
+        conversation_status: Status.ACTIVE,
+        mute_expires_at: null,
       },
     });
   }
@@ -299,13 +306,31 @@ export class ConversationService {
         privacy: {
           in: [Privacy.PUBLIC, Privacy.PROTECTED],
         },
-        participants: {
-          every: {
-            user_id: {
-              not: userID,
+        OR: [
+          {
+            participants: {
+              every: {
+                user_id: {
+                  not: userID,
+                },
+              },
             },
           },
-        },
+          {
+            participants: {
+              some: {
+                AND: [
+                  { user_id: userID },
+                  {
+                    conversation_status: {
+                      notIn: ['ACTIVE', 'MUTED', 'BANNED'],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
       },
       orderBy: {
         updated_at: 'desc',
@@ -372,6 +397,30 @@ export class ConversationService {
   }
 
   async checkDirectConversationExists(userID: string, otherUserID: string) {
+
+    if (userID === 'undefined' || otherUserID === 'undefined')
+      throw new Error('User does not exist');
+
+    if (!(await this.userService.checkIfUserExists(otherUserID))) {
+      throw new Error('User does not exist');
+    }
+
+    if (!(await this.userService.checkIfUserExists(userID))) {
+      throw new Error('User does not exist');
+    }
+
+    if (userID === otherUserID) {
+      throw new Error('Cannot create direct conversation with yourself');
+    }
+
+    if (await this.userService.isUserBlocked(userID, otherUserID)) {
+      throw new Error('User is blocked');
+    }
+
+    if (await this.userService.isUserBlocked(otherUserID, userID)) {
+      throw new Error('User is blocked');
+    }
+
     const conversation = await this.prisma.conversation.findFirst({
       where: {
         privacy: 'DIRECT',
@@ -393,11 +442,10 @@ export class ConversationService {
         ],
       },
     });
-	// commented this out because it was throwing an error when a conversation did not exist,
-	// when there is no conversation, it should return null and create a new one
-    // if (!conversation) {
-    //   throw new Error('Conversation does not exist');
-    // }
+
+    if (conversation) {
+      throw new Error('Conversation already exists.');
+    }
 
     return conversation;
   }
@@ -449,8 +497,13 @@ export class ConversationService {
         role: {
           in: [Role.OWNER, Role.ADMIN],
         },
+        conversation_status: {
+          notIn: [Status.BANNED, Status.KICKED, Status.DELETED]
+        }
       },
     });
+
+    console.log(admin);
 
     if (!admin) {
       const oldestUser = await this.prisma.participant.findFirst({
@@ -481,11 +534,27 @@ export class ConversationService {
           }
         });
       } else {
-        throw new Error('No users in the conversation');
+        return ;
       }
     } else {
       return ;
     }
   }
 
+  async validateChannelTitle(title: string) {
+    const conversation = await this.prisma.conversation.findMany({
+      where: {
+        title: title,
+        privacy: {
+          not: 'DIRECT',
+        },
+      },
+    });
+
+    if (conversation.length > 0) {
+      return false;
+    }
+
+    return true;
+  }
 }

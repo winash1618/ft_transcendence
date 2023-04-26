@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
-import { Colors, Conversation, GNav, Nav, Privacy, Role, Status } from "../../chat.functions";
+import { useCallback, useEffect, useState } from "react";
+import { Colors, Conversation, GNav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { useAppDispatch } from "../../../../hooks/reduxHooks";
-import { logOut } from "../../../../store/authReducer";
-import { List, Avatar, Button, Dropdown, MenuProps, Input } from 'antd';
+import { List, Button, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
-
+import { Picture } from "../../chat.styled";
+import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
+import { logOut } from "../../../../store/authReducer";
+import { BASE_URL } from "../../../../api";
 
 interface GroupChatProps {
 	socket: any;
@@ -36,24 +37,25 @@ const GroupChat = ({
 	setGroupResults,
 	setGroupNav,
 }: GroupChatProps) => {
-
+	const { user } = useAppSelector((state) => state.users);
 	const dispatch = useAppDispatch();
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
 
+	const handleConversationLeft = useCallback(() => {
+		console.log("handleConversationLeft in GroupChat");
+		setMessages([]);
+		setConversationID(null);
+	}, [setMessages, setConversationID]);
+
 	useEffect(() => {
-		const handleConversationLeft = () => {
-			console.log("handleConversationLeft in GroupChat");
-			setMessages([]);
-			setConversationID(null);
-			setMessages([]);
-		};
 		socket?.on('conversationLeft', handleConversationLeft);
 		return () => {
 			socket?.off('conversationLeft', handleConversationLeft);
 		};
-	}, [socket]);
+	}, [socket, handleConversationLeft]);
+
 
 
 	const filterResults = (data: Conversation[], searchText: string) => {
@@ -63,16 +65,21 @@ const GroupChat = ({
 		return data.filter((item) => item.title.toLowerCase().includes(searchText.toLowerCase()));
 	};
 
+	const resetGroupResults = useCallback(() => {
+		console.log("resetGroupResults in GroupChat");
+		setGroupResults([]);
+	}, [setGroupResults]);
+
 	useEffect(() => {
 		setMenuVisible(false);
-		setGroupResults([]);
-	}, [conversation]);
+		resetGroupResults()
+	}, [conversation, resetGroupResults, setMenuVisible]);
 
 	useEffect(() => {
 		console.log("Group useEffect to reset data");
-		setMessages([]);
-		setConversationID(null);
-	}, [conversations]);
+		handleConversationLeft();
+		resetGroupResults()
+	}, [conversations, handleConversationLeft, resetGroupResults]);
 
 	function handleUpdatePassword(conversation: any, password: string) {
 		console.log("handleProtectedConversation in GroupChat");
@@ -104,7 +111,7 @@ const GroupChat = ({
 	];
 	const getToken = async () => {
 		try {
-			const response = await axios.get("http://localhost:3001/token", {
+			const response = await axios.get(`${BASE_URL}/token`, {
 				withCredentials: true,
 			});
 			localStorage.setItem("auth", JSON.stringify(response.data));
@@ -126,7 +133,7 @@ const GroupChat = ({
 			setConversation(conversation);
 			const token = await getToken();
 			try {
-				const result = await axios.get(`http://localhost:3001/chat/${conversation.id}/Messages`, {
+				const result = await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -139,7 +146,7 @@ const GroupChat = ({
 			}
 			try {
 				const result = await axios.get(
-				`http://localhost:3001/chat/${conversation.id}/members`,
+				`${BASE_URL}/chat/${conversation.id}/members`,
 				{
 					withCredentials: true,
 					headers: {
@@ -149,7 +156,7 @@ const GroupChat = ({
 				);
 				setGroupNav(GNav.GROUPS);
 				setGroupResults(result.data);
-				console.log("Group members", result.data);
+				console.log("Group members");
 			} catch (err) {
 				console.log(err);
 			}
@@ -157,7 +164,7 @@ const GroupChat = ({
 	}
 
 	const handleMenuClick = (e: any) => {
-		console.log("handleMenuClick in GroupChat", e.target.outerText);
+		console.log("handleMenuClick in GroupChat ", e.target.outerText);
 		if (e.target.outerText === "Leave conversation") {
 			console.log("Leave conversation");
 			socket?.emit("leaveConversation", { conversationID: conversationID });
@@ -200,7 +207,6 @@ const GroupChat = ({
 							}}
 						>
 							<List.Item.Meta
-								avatar={<Avatar src={UserProfilePicture} />}
 								title={
 									<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 										<div style={{ width: '10rem' }}>

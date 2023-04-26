@@ -25,6 +25,7 @@ const Chat = ({
 	const [results, setResults] = useState<User[]>([]);
 	const [groupResults, setGroupResults] = useState<User[]>([]);
 	const [groupNav, setGroupNav] = useState(GNav.GROUPS);
+
 	useEffect(() => {
 		socket?.on('exception', (error) => {
 			ErrorAlert(error.error, 5000);

@@ -12,7 +12,6 @@ import {
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { BASE_URL, axiosPrivate } from "../../api";
 import ImgCrop from "antd-img-crop";
-import Loading from "../loading";
 import ProfileLoading from "./profileLoading";
 import { SuccessAlert } from "../toastify";
 import { setUserInfo } from "../../store/authReducer";

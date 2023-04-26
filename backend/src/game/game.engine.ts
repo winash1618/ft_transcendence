@@ -23,7 +23,7 @@ let BALL_SIZE = 0.015 * GAME_WIDTH;
 let BALL_SPEED = 0.005 * GAME_WIDTH;
 let PADDLE_SPEED = 0.015 * GAME_HEIGHT;
 const GAME_TIME = 30;
-const GAME_POINTS = 20;
+const GAME_POINTS = 11;
 
 export class GameEngine {
   gameID: string;

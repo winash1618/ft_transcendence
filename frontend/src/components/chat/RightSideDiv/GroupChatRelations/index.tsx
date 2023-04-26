@@ -1,20 +1,21 @@
 import {
 	GroupArrow,
-	GroupAvatar,
 	GroupInfo,
 	GroupItem,
 	GroupName,
 	GroupTitle,
 } from "./group.styled";
-import { List, Dropdown, MenuProps, Button, Input, Result } from "antd";
+import { List, Dropdown, MenuProps, Button, Input } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role, User } from "../../chat.functions";
 import { useState } from "react";
 import axios from "axios";
+import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
 import { logOut } from "../../../../store/authReducer";
-import { useAppDispatch } from "../../../../hooks/reduxHooks";
+import { Picture } from "../../chat.styled";
+import { BASE_URL } from "../../../../api";
 
 interface GroupChatRelationsProps {
 	socket: any;
@@ -43,11 +44,12 @@ const GroupChatRelations = ({
 	setGroupNav,
 	groupNav,
 }: GroupChatRelationsProps) => {
-	const [user, setUser] = useState<any>(null);
+	const { user } = useAppSelector((state) => state.users);
+	const [userObject, setUserObject] = useState<any>(null);
 	const [searchText, setSearchText] = useState("");
 	/*-----------Handle User Click-------------------------------------------------*/
 	const handleUserClick = (participant: any) => {
-		setUser(participant.user);
+		setUserObject(participant.user);
 	};
 	/*-----------Handle User Click-------------------------------------------------*/
 	/*-----------Handle Menu Click-------------------------------------------------*/
@@ -55,11 +57,11 @@ const GroupChatRelations = ({
 		if (e.target.textContent === "Make Admin") {
 			socket?.emit("makeAdmin", {
 				conversationID: conversation.id,
-				userID: user.id,
+				userID: userObject.id,
 			});
 			setGroupResults(
 				groupResults.map((result) => {
-					if (result.user.id === user.id) {
+					if (result.user.id === userObject.id) {
 						return { ...result, role: Role.ADMIN };
 					}
 					return result;
@@ -67,25 +69,25 @@ const GroupChatRelations = ({
 			);
 			console.log("Make Admin");
 		} else if (e.target.textContent === "Ban") {
-			console.log("User Ban", user);
+			console.log("User Ban", userObject);
 			socket?.emit("banUser", {
 				conversationID: conversation.id,
-				userID: user.id,
+				userID: userObject.id,
 			});
-			setGroupResults(groupResults.filter((result) => result.user.id !== user.id));
+			setGroupResults(groupResults.filter((result) => result.user.id !== userObject.id));
 			console.log("Ban");
 		} else if (e.target.textContent === "Mute") {
 			socket?.emit("muteUser", {
 				conversationID: conversation.id,
-				userID: user.id,
+				userID: userObject.id,
 			});
 			console.log("Mute");
 		} else if (e.target.textContent === "Kick") {
 			socket?.emit("removeParticipant", {
 				conversationID: conversation.id,
-				userID: user.id,
+				userID: userObject.id,
 			});
-			setGroupResults(groupResults.filter((result) => result.user.id !== user.id));
+			setGroupResults(groupResults.filter((result) => result.user.id !== userObject.id));
 			console.log("Kick");
 		}
 	};
@@ -93,7 +95,7 @@ const GroupChatRelations = ({
 	/*-----------Handle Unban Click-------------------------------------------------*/
 	const handleUnbanClick = (object: any) => {
 		console.log("unban");
-		setUser(object.user);
+		setUserObject(object.user);
 		socket?.emit("unbanUser", {
 			conversationID: conversation.id,
 			userID: object.user.id,
@@ -104,7 +106,7 @@ const GroupChatRelations = ({
 	/*-----------Handle Add Click-------------------------------------------------*/
 	const handleAddClick = (object: any) => {
 		console.log("Add");
-		setUser(object.username);
+		setUserObject(object.username);
 		socket?.emit("addParticipant", {
 			conversationID: conversation.id,
 			userID: object.id,
@@ -155,7 +157,7 @@ const GroupChatRelations = ({
 	const HandleGroupNavClick = (nav: any) => async () => {
 		const getToken = async () => {
 			try {
-				const response = await axios.get("http://localhost:3001/token", {
+				const response = await axios.get(`${BASE_URL}/token`, {
 					withCredentials: true,
 				});
 				localStorage.setItem("auth", JSON.stringify(response.data));
@@ -170,7 +172,7 @@ const GroupChatRelations = ({
 			const token = await getToken();
 			try {
 				const result = await axios.get(
-					`http://localhost:3001/chat/${conversationID}/members`,
+					`${BASE_URL}/chat/${conversationID}/members`,
 					{
 						withCredentials: true,
 						headers: {
@@ -179,7 +181,7 @@ const GroupChatRelations = ({
 					}
 				);
 				setGroupResults(result.data);
-				console.log("Group members", result.data);
+				console.log("Group members");
 			} catch (err) {
 				console.log(err);
 			}
@@ -189,7 +191,7 @@ const GroupChatRelations = ({
 			console.log(conversationID);
 			try {
 				const result = await axios.get(
-					`http://localhost:3001/chat/channel/${conversationID}/banned`,
+					`${BASE_URL}/chat/channel/${conversationID}/banned`,
 					{
 						withCredentials: true,
 						headers: {
@@ -208,7 +210,7 @@ const GroupChatRelations = ({
 			console.log(conversationID);
 			try {
 				const result = await axios.get(
-					`http://localhost:3001/chat/channel/${conversationID}/addFriends`,
+					`${BASE_URL}/chat/channel/${conversationID}/addFriends`,
 					{
 						withCredentials: true,
 						headers: {
@@ -224,6 +226,7 @@ const GroupChatRelations = ({
 		}
 		setGroupNav(nav);
 	};
+
 	if (conversation !== undefined && conversation !== null) {
 		return (
 			<>
@@ -257,7 +260,13 @@ const GroupChatRelations = ({
 						renderItem={(result: ResultObject) => (
 							<GroupItem key={result.id} onClick={() => handleUserClick(result)}>
 								<GroupInfo>
-									<GroupAvatar src={UserProfilePicture} />
+									<Picture
+										src={`/users/profile-image/${user?.profile_picture}`}
+										onError={(e) => {
+											e.currentTarget.src = UserProfilePicture;
+										}}
+										alt="A profile photo of the current user"
+									/>
 									<GroupName>{result.user.username}</GroupName>
 									{conversation.participants[0].role !== Role.USER ? (
 										result.role === "USER" ? (
@@ -283,7 +292,13 @@ const GroupChatRelations = ({
 						renderItem={(result: ResultObject) => (
 							<GroupItem>
 								<GroupInfo>
-									<GroupAvatar src={UserProfilePicture} />
+									<Picture
+										src={`/users/profile-image/${user?.profile_picture}`}
+										onError={(e) => {
+											e.currentTarget.src = UserProfilePicture;
+										}}
+										alt="A profile photo of the current user"
+									/>
 									<GroupName>{result.user.username}</GroupName>
 									{conversation.participants[0].role !== Role.USER ? (
 										result.role === "USER" ? (
@@ -310,7 +325,13 @@ const GroupChatRelations = ({
 						renderItem={(result: ResultObject) => (
 							<GroupItem>
 								<GroupInfo>
-									<GroupAvatar src={UserProfilePicture} />
+									<Picture
+										src={`/users/profile-image/${user?.profile_picture}`}
+										onError={(e) => {
+											e.currentTarget.src = UserProfilePicture;
+										}}
+										alt="A profile photo of the current user"
+									/>
 									<GroupName>{result.username}</GroupName>
 									{conversation.participants[0].role !== Role.USER ? (
 										<Button type="default" onClick={() => handleAddClick(result)}>
