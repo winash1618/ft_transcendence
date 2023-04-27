@@ -285,4 +285,60 @@ export class UsersService {
 
     return user.blocked_users.length > 0;
   }
+
+  async getTotalGamesWon(userID: string) {
+    const gamesWon =  await this.prisma.user.findUnique({
+		where: {
+			id: userID,
+		},
+      select: {
+        id: true,
+        username: true,
+        user_status: true,
+        login: true,
+        profile_picture: true,
+        playerOneHistories: {
+          select: {
+            id: true,
+            winner: true,
+			looser: true,
+			player_score: true,
+			opponent_score: true,
+          },
+          where: {
+            winner: userID,
+          },
+        },
+      },
+    });
+	return gamesWon.playerOneHistories.length;
+
+  }
+
+  async getTotalGamesPlayed(userID: string) {
+	const user = await this.prisma.user.findUnique({
+	  where: { id: userID },
+	  select: {
+		playerOneHistories: {
+		  select: {
+			id: true,
+		  },
+		},
+	  },
+	});
+
+	return user.playerOneHistories.length;
+  }
+
+  async getPlayers() {
+	return await this.prisma.user.findMany({
+	  select: {
+		id: true,
+		username: true,
+		user_status: true,
+		login: true,
+		profile_picture: true,
+	  },
+  });
+}
 }
