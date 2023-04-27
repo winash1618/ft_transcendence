@@ -21,7 +21,6 @@ interface DirectChatRelationsProps {
 }
 
 const DirectChatRelations = ({
-  user,
   socket,
   results,
 }: DirectChatRelationsProps) => {
@@ -44,7 +43,7 @@ const DirectChatRelations = ({
       console.log("Profile");
       window.location.href = `http://localhost:3000/profile/${userClicked.login}`;
     } else if (e.target.textContent === "Invite") {
-      socketNew?.emit("Invite", userClicked);
+      socketNew?.emit("Invite", userClicked.id);
     }
   };
 

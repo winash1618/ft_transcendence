@@ -50,7 +50,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const userid = this.jwtService.verify(token, {
 			secret: process.env.JWT_SECRET,
 		});
-
 		client.data.userID = userid;
 		const user = await this.usersService.findOne(client.data.userID['login']);
 		client.data.userID['login'] = user.username;
@@ -167,12 +166,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			client,
 			GameStatus.WAITING,
 		);
-		if (Array.from(this.users.keys()).some(user => user['id'] === invitedUserID)) {
-			console.log('User is invited');
-			const invitedSocketData = this.userSockets.get(invitedUserID);
+		const checkUser = Array.from(this.userSockets.keys()).find(user => user['id'] === invitedUserID)
+		if (!!checkUser) {
+			const invitedSocketData = this.userSockets.get(checkUser);
 			if (invitedSocketData.status === GameStatus.WAITING) {
 				this.invitedUser.set(invitedUserID, [socketData, invitedSocketData]);
-				this.server.to(client.id).emit('Invited', invitedUserID);
 				this.server.to(invitedSocketData.client.id).emit('Invited', userID);
 			}
 		}

@@ -71,7 +71,7 @@ const PlayForm = () => {
                 onChange={onChange}
                 options={[
                   { value: 1, label: "Default" },
-                  { value: 2, label: "Power up" },
+                  { value: 2, label: "Wall map" },
                 ]}
                 value={value}
                 placeholder="Choose a map to play with"

@@ -96,6 +96,17 @@ const Navbar: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    socket?.on("Invited", (data) => {
+		console.log('test');
+      setItems((prev) => [...prev, { key: data.id, label: `You have been invited by ${data.login} to play a game` }])
+    });
+    return () => {
+      socket?.off("Invited");
+      socket?.disconnect();
+    };
+  }, [socket]);
+
+  useEffect(() => {
     const getToken = async () => {
       try {
         const response = await axios.get(`/token`);
@@ -135,8 +146,8 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     socket?.on("Invited", (data) => {
       console.log(data);
-    })
-  }, [socket])
+    });
+  }, [socket]);
 
   return (
     <>
