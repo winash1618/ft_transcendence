@@ -1,21 +1,15 @@
-import {
-	GroupArrow,
-	GroupInfo,
-	GroupItem,
-	GroupName,
-	GroupTitle,
-} from "./group.styled";
-import { List, Dropdown, MenuProps, Button, Input } from "antd";
+import { GroupTitle } from "./group.styled";
+import { List, Dropdown, MenuProps, Input } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role, User } from "../../chat.functions";
 import { useState } from "react";
 import axios from "axios";
-import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
-import { logOut } from "../../../../store/authReducer";
+import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { Picture } from "../../chat.styled";
 import { BASE_URL } from "../../../../api";
+import { IoMdAddCircleOutline } from "react-icons/io";
 
 interface GroupChatRelationsProps {
 	socket: any;
@@ -33,6 +27,7 @@ interface ResultObject {
 	status: any;
 	id: string;
 	username: string;
+	profile_picture: string;
 }
 
 const GroupChatRelations = ({
@@ -44,9 +39,9 @@ const GroupChatRelations = ({
 	setGroupNav,
 	groupNav,
 }: GroupChatRelationsProps) => {
-	const { user } = useAppSelector((state) => state.users);
 	const [userObject, setUserObject] = useState<any>(null);
 	const [searchText, setSearchText] = useState("");
+	const { token } = useAppSelector((state) => state.auth);
 	/*-----------Handle User Click-------------------------------------------------*/
 	const handleUserClick = (participant: any) => {
 		setUserObject(participant.user);
@@ -134,7 +129,7 @@ const GroupChatRelations = ({
 				&& conversation !== undefined
 				&& conversation.participants
 				&& conversation.participants !== undefined
-				&& conversation.participants[0].role !== Role.OWNER
+				&& (conversation.participants[0].role !== Role.OWNER || conversation.participants[0].role !== Role.ADMIN)
 				? true
 				: false,
 		},
@@ -153,23 +148,8 @@ const GroupChatRelations = ({
 	];
 	/*----------------------------------------------------------------*/
 	/*----------------------------------------------------------------*/
-	const dispatch = useAppDispatch();
 	const HandleGroupNavClick = (nav: any) => async () => {
-		const getToken = async () => {
-			try {
-				const response = await axios.get(`${BASE_URL}/token`, {
-					withCredentials: true,
-				});
-				localStorage.setItem("auth", JSON.stringify(response.data));
-				return response.data.token;
-			} catch (err) {
-				dispatch(logOut());
-				window.location.reload();
-				return null;
-			}
-		};
 		if (nav === GNav.GROUPS && conversationID !== null) {
-			const token = await getToken();
 			try {
 				const result = await axios.get(
 					`${BASE_URL}/chat/${conversationID}/members`,
@@ -187,7 +167,6 @@ const GroupChatRelations = ({
 			}
 		}
 		if (nav === GNav.BLOCKED && conversationID !== null) {
-			const token = await getToken();
 			console.log(conversationID);
 			try {
 				const result = await axios.get(
@@ -206,7 +185,6 @@ const GroupChatRelations = ({
 			}
 		}
 		if (nav === GNav.ADD && conversationID !== null) {
-			const token = await getToken();
 			console.log(conversationID);
 			try {
 				const result = await axios.get(
@@ -258,31 +236,45 @@ const GroupChatRelations = ({
 						locale={{ emptyText: "No groups found" }}
 						dataSource={filterResults(groupResults, searchText) as any}
 						renderItem={(result: ResultObject) => (
-							<GroupItem key={result.id} onClick={() => handleUserClick(result)}>
-								<GroupInfo>
-									<Picture
-										src={`/users/profile-image/${user?.profile_picture}`}
+
+							<List.Item
+								onClick={() => handleUserClick(result)}
+								style={{
+									border: Colors.SECONDARY + ' 1px solid',
+									cursor: 'pointer',
+									paddingLeft: '.5rem',
+									borderRadius: '.5rem',
+									color: 'white',
+									marginTop: '.65rem',
+									padding: '.75rem'
+								}}
+							>
+								<List.Item.Meta
+									avatar={<Picture
+										src={`${BASE_URL}/users/profile-image/${result.user.profile_picture}/${token}`}
 										onError={(e) => {
 											e.currentTarget.src = UserProfilePicture;
 										}}
 										alt="A profile photo of the current user"
-									/>
-									<GroupName>{result.user.username}</GroupName>
-									{conversation.participants[0].role !== Role.USER ? (
-										result.role === "USER" ? (
-											<Dropdown menu={{ items }} trigger={["click"]}>
-												<GroupArrow>
-													<DownOutlined className="group-arrow" />
-												</GroupArrow>
-											</Dropdown>
-										) : (
-											<MinusCircleOutlined />
-										)
-									) : (
-										<MinusCircleOutlined />
-									)}
-								</GroupInfo>
-							</GroupItem>
+									/>}
+									title={
+										<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+											{result.user.username}
+											{conversation.participants[0].role !== Role.USER ? (
+												(result.role === "USER" || result.role === "ADMIN") ? (
+													<Dropdown menu={{ items }} trigger={["click"]}>
+														<DownOutlined className="group-arrow" />
+													</Dropdown>
+												) : (
+													<MinusCircleOutlined />
+												)
+											) : (
+												<MinusCircleOutlined />
+											)}
+										</span>
+									}
+								/>
+							</List.Item>
 						)}
 					/>
 				) : groupNav === GNav.BLOCKED ? (
@@ -290,32 +282,42 @@ const GroupChatRelations = ({
 						itemLayout="horizontal"
 						dataSource={filterResults(groupResults, searchText) as any}
 						renderItem={(result: ResultObject) => (
-							<GroupItem>
-								<GroupInfo>
-									<Picture
-										src={`/users/profile-image/${user?.profile_picture}`}
+							<List.Item
+								onClick={() => handleUserClick(result)}
+								style={{
+									border: Colors.SECONDARY + ' 1px solid',
+									cursor: 'pointer',
+									paddingLeft: '.5rem',
+									borderRadius: '.5rem',
+									color: 'white',
+									marginTop: '.65rem',
+									padding: '.75rem'
+								}}
+							>
+								<List.Item.Meta
+									avatar={<Picture
+										src={`${BASE_URL}/users/profile-image/${result.user.profile_picture}/${token}`}
 										onError={(e) => {
 											e.currentTarget.src = UserProfilePicture;
 										}}
 										alt="A profile photo of the current user"
-									/>
-									<GroupName>{result.user.username}</GroupName>
-									{conversation.participants[0].role !== Role.USER ? (
-										result.role === "USER" ? (
-											<Button
-												type="primary"
-												onClick={() => handleUnbanClick(result)}
-											>
-												Unban
-											</Button>
-										) : (
-											<MinusCircleOutlined />
-										)
-									) : (
-										<MinusCircleOutlined />
-									)}
-								</GroupInfo>
-							</GroupItem>
+									/>}
+									title={
+										<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+											{result.user.username}
+											{conversation.participants[0].role !== Role.USER ? (
+												(result.role === "USER" || result.role === "ADMIN") ? (
+													<IoMdAddCircleOutline size={24} color="green" onClick={() => handleUnbanClick(result)}/>
+												) : (
+													<MinusCircleOutlined />
+												)
+											) : (
+												<MinusCircleOutlined />
+											)}
+										</span>
+									}
+								/>
+							</List.Item>
 						)}
 					/>
 				) : (
@@ -323,23 +325,36 @@ const GroupChatRelations = ({
 						itemLayout="horizontal"
 						dataSource={filterResults(groupResults, searchText) as any}
 						renderItem={(result: ResultObject) => (
-							<GroupItem>
-								<GroupInfo>
-									<Picture
-										src={`/users/profile-image/${user?.profile_picture}`}
+							<List.Item
+								onClick={() => handleUserClick(result)}
+								style={{
+									border: Colors.SECONDARY + ' 1px solid',
+									cursor: 'pointer',
+									paddingLeft: '.5rem',
+									borderRadius: '.5rem',
+									color: 'white',
+									marginTop: '.65rem',
+									padding: '.75rem'
+								}}
+							>
+								<List.Item.Meta
+									avatar={<Picture
+										src={`${BASE_URL}/users/profile-image/${result.profile_picture}/${token}`}
 										onError={(e) => {
 											e.currentTarget.src = UserProfilePicture;
 										}}
 										alt="A profile photo of the current user"
-									/>
-									<GroupName>{result.username}</GroupName>
-									{conversation.participants[0].role !== Role.USER ? (
-										<Button type="default" onClick={() => handleAddClick(result)}>
-											Add
-										</Button>
-									) : <MinusCircleOutlined />}
-								</GroupInfo>
-							</GroupItem>
+									/>}
+									title={
+										<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+											{result.username}
+											{conversation.participants[0].role !== Role.USER ? (
+												<IoMdAddCircleOutline size={24} color="green" onClick={() => handleAddClick(result)}/>
+											) : <MinusCircleOutlined />}
+										</span>
+									}
+								/>
+							</List.Item>
 						)}
 					/>
 				)}

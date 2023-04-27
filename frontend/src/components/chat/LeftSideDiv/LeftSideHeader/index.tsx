@@ -34,80 +34,80 @@ function LeftSideHeader({
 	const handleNavbarClick = useCallback(async (nav: Nav) => {
 		setConversations([]);
 		if (nav === Nav.DIRECT) {
-		  console.log("i am in leftside header", user.id);
-		  const token = await getToken();
-		  try {
-			const result = await axios.get(`${BASE_URL}/chat/direct`, {
-			  withCredentials: true,
-			  headers: {
-				Authorization: `Bearer ${token}`,
-			  },
-			});
-			setConversations(result.data);
-		  } catch (err) {
-			setConversations([]);
-			console.log(err);
-		  }
-		  try {
-			const result = await axios.get(
-			  `${BASE_URL}/users/friends/${user.id}`,
-			  {
-				withCredentials: true,
-				headers: {
-				  Authorization: `Bearer ${token}`,
-				},
-			  }
-			);
-			setResults(result.data);
-		  } catch (err) {
-			console.log(err);
-		  }
+			console.log("i am in leftside header", user.id);
+			const token = await getToken();
+			try {
+				const result = await axios.get(`${BASE_URL}/chat/direct`, {
+					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+				setConversations(result.data);
+			} catch (err) {
+				setConversations([]);
+				console.log(err);
+			}
+			try {
+				const result = await axios.get(
+					`${BASE_URL}/users/friends/${user.id}`,
+					{
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
+				setResults(result.data);
+			} catch (err) {
+				console.log(err);
+			}
 		} else if (nav === Nav.GROUPS) {
-		  const token = await getToken();
-		  try {
-			const result = await axios.get(`${BASE_URL}/chat/groups`, {
-			  withCredentials: true,
-			  headers: {
-				Authorization: `Bearer ${token}`,
-			  },
-			});
-			setConversations(result.data);
-			setConversation(null);
-		  } catch (err) {
-			setConversations([]);
-			console.log(err);
-		  }
+			const token = await getToken();
+			try {
+				const result = await axios.get(`${BASE_URL}/chat/groups`, {
+					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+				setConversations(result.data);
+				setConversation(null);
+			} catch (err) {
+				setConversations([]);
+				console.log(err);
+			}
 		} else if (nav === Nav.EXPLORE) {
-		  const token = await getToken();
-		  try {
-			const result = await axios.get(`${BASE_URL}/chat/explore`, {
-			  withCredentials: true,
-			  headers: {
-				Authorization: `Bearer ${token}`,
-			  },
-			});
-			setConversations(result.data);
-		  } catch (err) {
-			setConversations([]);
-			console.log(err);
-		  }
+			const token = await getToken();
+			try {
+				const result = await axios.get(`${BASE_URL}/chat/explore`, {
+					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+				setConversations(result.data);
+			} catch (err) {
+				setConversations([]);
+				console.log(err);
+			}
 		}
 		setNavbar(nav);
-	  }, [setConversations, setResults, setNavbar, user]);
+	}, [setConversations, setResults, setNavbar, user]);
 
 	const getToken = async () => {
 		try {
-		  const response = await axios.get(`${BASE_URL}/token`, {
-			withCredentials: true,
-		  });
-		  localStorage.setItem("auth", JSON.stringify(response.data));
-		  return response.data.token;
+			const response = await axios.get(`${BASE_URL}/token`, {
+				withCredentials: true,
+			});
+			localStorage.setItem("auth", JSON.stringify(response.data));
+			return response.data.token;
 		} catch (err) {
-		  dispatch(logOut());
-		  window.location.reload();
-		  return null;
+			dispatch(logOut());
+			window.location.reload();
+			return null;
 		}
-	  };
+	};
 
 
 	const setConversationsObject = async () => {

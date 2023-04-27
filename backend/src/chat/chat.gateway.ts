@@ -749,7 +749,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!userExists)
       throw new Error('Participant does not exist');
 
-    if (userExists.role !== Role.OWNER)
+    if (userExists.role === Role.OWNER)
       throw new Error('You cannot ban an owner');
 
     if (userExists.conversation_status === Status.BANNED)

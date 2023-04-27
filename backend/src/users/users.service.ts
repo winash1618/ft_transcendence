@@ -24,11 +24,17 @@ export class UsersService {
   }
 
   async findOne(login: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { login },
+      include: { friends: true, blocked_users: true },
+    });
   }
 
   async getUserByLogin(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { login },
+      include: { friends: true, blocked_users: true },
+    });
   }
 
   async getUserByIdWithParticipants(id: string) {
@@ -47,8 +53,12 @@ export class UsersService {
       throw new Error('You cannot add yourself as a friend');
     }
 
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const friendExists = await this.prisma.user.findUnique({ where: { id: friendID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const friendExists = await this.prisma.user.findUnique({
+      where: { id: friendID },
+    });
 
     if (!userExists || !friendExists) {
       throw new Error('One or both users do not exist');
@@ -63,7 +73,7 @@ export class UsersService {
         },
         blocked_users: {
           disconnect: { id: friendID },
-        }
+        },
       },
       include: { friends: true, blocked_users: true },
     });
@@ -83,8 +93,12 @@ export class UsersService {
 
   async unfriend(userID: string, friendID: string) {
     // Check if users exist
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const friendExists = await this.prisma.user.findUnique({ where: { id: friendID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const friendExists = await this.prisma.user.findUnique({
+      where: { id: friendID },
+    });
 
     if (!userExists || !friendExists) {
       throw new Error('One or both users do not exist');
@@ -115,8 +129,12 @@ export class UsersService {
 
   async block(userID: string, blockID: string) {
     // Check if users exist
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const blockExists = await this.prisma.user.findUnique({ where: { id: blockID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const blockExists = await this.prisma.user.findUnique({
+      where: { id: blockID },
+    });
 
     if (!userExists || !blockExists) {
       throw new Error('One or both users do not exist');
@@ -131,7 +149,7 @@ export class UsersService {
         },
         friends: {
           disconnect: { id: blockID },
-        }
+        },
       },
       include: { friends: true, blocked_users: true },
     });
@@ -141,8 +159,12 @@ export class UsersService {
 
   async unblock(userID: string, blockID: string) {
     // Check if users exist
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const blockExists = await this.prisma.user.findUnique({ where: { id: blockID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const blockExists = await this.prisma.user.findUnique({
+      where: { id: blockID },
+    });
 
     if (!userExists || !blockExists) {
       throw new Error('One or both users do not exist');
@@ -163,7 +185,10 @@ export class UsersService {
   }
 
   async getUserById(id: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { id },
+      include: { friends: true, blocked_users: true },
+    });
   }
 
   remove(id: number) {
@@ -235,11 +260,12 @@ export class UsersService {
         },
       },
       select: {
-		id: true,
+        id: true,
         username: true,
         user_status: true,
-		login: true,
-      }
+        login: true,
+        profile_picture: true,
+      },
     });
   }
 
