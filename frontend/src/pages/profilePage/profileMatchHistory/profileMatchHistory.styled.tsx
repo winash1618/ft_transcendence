@@ -12,16 +12,19 @@ export const ProfileMatchHistoryContainer = styled(Card)`
   padding: 30px 0px;
   border: none;
   max-width: 600px;
-   & .ant-card-body {
+  & .ant-card-body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
     justify-content: center;
+  }
+  @media (max-width: 603px) {
+    padding: 0;
   }
 `;
 
-export const HistoryInfoWrapper = styled.table`
-`
+export const HistoryInfoWrapper = styled.table``;
 
 export const PlayerName = styled.h1`
   font-size: 1.3rem;
@@ -34,7 +37,7 @@ export const PlayerName = styled.h1`
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
-`
+`;
 
 export const PlayerInfo = styled.div`
   display: flex;
@@ -53,7 +56,7 @@ export const PlayerNameWrapper = styled.div`
   @media (max-width: 603px) {
     width: 60px;
   }
-`
+`;
 
 export const ProfilePicture = styled.img`
   width: 60px;
@@ -87,8 +90,7 @@ export const PlayerProfileWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 5px;
-`
-
+`;
 
 export const MatchHistoryTitle = styled.h1`
   font-size: 2rem;
