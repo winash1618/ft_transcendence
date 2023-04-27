@@ -100,7 +100,7 @@ const LeftSideDiv = ({
 			socket?.off('directExists', handleDirectExists);
 			socket?.off('directMessage', handleDirectMessage);
 		};
-	}, [handleDirectExists, handleDirectMessage, socket]);
+	}, [handleDirectExists, handleDirectMessage, socket, token]);
 	return (
 		<>
 			<LeftSideHeader

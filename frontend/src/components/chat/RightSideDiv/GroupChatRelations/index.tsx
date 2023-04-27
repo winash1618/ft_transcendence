@@ -129,7 +129,7 @@ const GroupChatRelations = ({
 				&& conversation !== undefined
 				&& conversation.participants
 				&& conversation.participants !== undefined
-				&& (conversation.participants[0].role !== Role.OWNER || conversation.participants[0].role !== Role.ADMIN)
+				&& (conversation.participants[0].role !== Role.OWNER)
 				? true
 				: false,
 		},

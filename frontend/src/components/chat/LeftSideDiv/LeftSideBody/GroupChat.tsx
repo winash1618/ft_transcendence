@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Colors, Conversation, GNav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { List, Button, Dropdown, MenuProps, Input } from 'antd';
+import { List, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { BASE_URL } from "../../../../api";
-import { GrAddCircle, GrCircleAlert, GrUpdate } from "react-icons/gr";
 import { IoMdAddCircleOutline } from "react-icons/io";
 
 interface GroupChatProps {
