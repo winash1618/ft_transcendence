@@ -65,40 +65,15 @@ const Navbar: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const getToken = async () => {
-      try {
-        const response = await axios.get("/token", {
-          withCredentials: true,
-        });
-        localStorage.setItem("auth", JSON.stringify(response.data));
-        dispatch(setUserInfo(response.data.user));
-        dispatch(setToken(response.data.token));
-        return response.data.token;
-      } catch (err) {
-        dispatch(logOut());
-        window.location.reload();
-        return null;
-      }
-    };
-    const getSocket = async () => {
-      const socket = io(process.env.REACT_APP_SOCKET_URL, {
-        withCredentials: true,
-        auth: async (cb) => {
-          const token = await getToken();
-          cb({
-            token,
-          });
-        },
-      });
-      dispatch(setSocket(socket));
-    };
-    getSocket();
-  }, [dispatch]);
-
-  useEffect(() => {
     socket?.on("Invited", (data) => {
-		console.log('test');
-      setItems((prev) => [...prev, { key: data.id, label: `You have been invited by ${data.login} to play a game` }])
+      console.log("test");
+      setItems((prev) => [
+        ...prev,
+        {
+          key: data.id,
+          label: `You have been invited by ${data.login} to play a game`,
+        },
+      ]);
     });
     return () => {
       socket?.off("Invited");
@@ -110,6 +85,7 @@ const Navbar: React.FC = () => {
     const getToken = async () => {
       try {
         const response = await axios.get(`/token`);
+		console.log(response);
         localStorage.setItem("auth", JSON.stringify(response.data));
         dispatch(setToken(response.data.token));
         dispatch(setUserInfo(response.data.user));
@@ -123,12 +99,31 @@ const Navbar: React.FC = () => {
           navigate("/authenticate");
         }
         setIsLoadingPage(false);
+		return response.data.token;
       } catch (err) {
         dispatch(logOut());
+
+        console.log("test");
         window.location.replace(`${BASE_URL}/42/login`);
       }
     };
-    getToken();
+    const getSocket = async () => {
+      try {
+        const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
+          withCredentials: true,
+          auth: async (cb) => {
+            const token = await getToken();
+            cb({
+              token,
+            });
+          },
+        });
+        dispatch(setSocket(socket));
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getSocket();
   }, [dispatch, setIsLoadingPage, navigate]);
 
   useEffect(() => {

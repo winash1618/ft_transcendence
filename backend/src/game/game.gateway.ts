@@ -23,7 +23,7 @@ import { v4 as uuid4 } from 'uuid';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UsersService } from 'src/users/users.service';
 
-@WebSocketGateway(8001, {
+@WebSocketGateway(8002, {
 	cors: {
 		origin: process.env.FRONTEND_BASE_URL,
 		credentials: true,

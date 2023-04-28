@@ -28,7 +28,7 @@ const PingPongPage = () => {
       }
     };
     const getSocket = async () => {
-      const socket = io(process.env.REACT_APP_SOCKET_URL, {
+      const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
         withCredentials: true,
         auth: async (cb) => {
           const token = await getToken();
