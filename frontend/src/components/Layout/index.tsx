@@ -19,10 +19,11 @@ import Loading from "../loading";
 import {
   CustomSider,
   HeaderWrapper,
+  InviteButtonsWrapper,
+  InviteDescription,
+  InviteWrapper,
   LogoImg,
   LogoWrapper,
-  NotificationsCounter,
-  NotificationsWrapper,
 } from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
@@ -66,12 +67,27 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     socket?.on("Invited", (data) => {
-      console.log("test");
+		console.log(data);
       setItems((prev) => [
         ...prev,
         {
           key: data.id,
-          label: `You have been invited by ${data.login} to play a game`,
+          label: (
+            <InviteWrapper>
+              <InviteDescription>You have been invited by {data.login} to play a game</InviteDescription>
+              <InviteButtonsWrapper>
+                <ButtonComponent>Accept</ButtonComponent>
+                <ButtonComponent
+                  onClick={setItems((prev) => {
+					console.log(prev);
+                    return prev.filter((item) => item.key !== data.id)}
+                  )}
+                >
+                  Decline
+                </ButtonComponent>
+              </InviteButtonsWrapper>
+            </InviteWrapper>
+          ),
         },
       ]);
     });
@@ -85,7 +101,7 @@ const Navbar: React.FC = () => {
     const getToken = async () => {
       try {
         const response = await axios.get(`/token`);
-		console.log(response);
+        console.log(response);
         localStorage.setItem("auth", JSON.stringify(response.data));
         dispatch(setToken(response.data.token));
         dispatch(setUserInfo(response.data.user));
@@ -99,7 +115,7 @@ const Navbar: React.FC = () => {
           navigate("/authenticate");
         }
         setIsLoadingPage(false);
-		return response.data.token;
+        return response.data.token;
       } catch (err) {
         dispatch(logOut());
 

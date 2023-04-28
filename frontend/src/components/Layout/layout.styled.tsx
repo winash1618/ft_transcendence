@@ -52,3 +52,18 @@ export const NotificationsCounter = styled.h1`
   background-color: red;
   top: -5px;
 `;
+
+export const InviteWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+`;
+
+export const InviteDescription = styled.p`
+	font-size: 1.1rem;
+`
+
+export const InviteButtonsWrapper = styled.div`
+	display: flex;
+`

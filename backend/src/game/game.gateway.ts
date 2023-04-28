@@ -171,6 +171,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const invitedSocketData = this.userSockets.get(checkUser);
 			if (invitedSocketData.status === GameStatus.WAITING) {
 				this.invitedUser.set(invitedUserID, [socketData, invitedSocketData]);
+				console.log(invitedSocketData.client.id);
 				this.server.to(invitedSocketData.client.id).emit('Invited', userID);
 			}
 		}
