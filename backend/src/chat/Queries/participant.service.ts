@@ -10,7 +10,7 @@ import {
   UpdateParticipantDto,
 } from '../dto/participants.dto';
 import { ConversationService } from './conversation.service';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../users/users.service';
 
 @Injectable()
 export class ParticipantService {

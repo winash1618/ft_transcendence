@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UsePipes } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { ValidationPipe } from '@nestjs/common';
 import {
@@ -18,20 +18,21 @@ import { MessageService } from './Queries/message.service';
 import { Participant, Privacy, Role, Status } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
-import { UsersService } from '../users/users.service';
-import { sendMessageDto } from './dto/GatewayDTO/sendMessage.dto';
-import { createConversationDto } from './dto/GatewayDTO/createConversation.dto';
-import { joinConversationDto } from './dto/GatewayDTO/joinConversation.dto';
-import { DirectMessageDTO } from './dto/GatewayDTO/directMessage.dto';
-import { LeaveConversationDTO } from './dto/GatewayDTO/leaveConversation.dto';
-import { AddPasswordDTO } from './dto/GatewayDTO/addPassword.dto';
-import { MakeAdminDTO } from './dto/GatewayDTO/makeAdmin.dto';
-import { AddParticipantDTO } from './dto/GatewayDTO/addParticipant.dto';
-import { RemoveParticipantDTO } from './dto/GatewayDTO/removeParticipant.dto';
-import { BanUserDTO } from './dto/GatewayDTO/banUser.dto';
-import { UnBanUserDTO } from './dto/GatewayDTO/unBanUser.dto';
-import { KickUserDTO } from './dto/GatewayDTO/kickUser.dto';
-import { MuteUserDTO } from './dto/GatewayDTO/muteUser.dto';
+import {
+  sendMessageDto,
+  createConversationDto,
+  joinConversationDto,
+  DirectMessageDTO,
+  LeaveConversationDTO,
+  AddPasswordDTO,
+  MakeAdminDTO,
+  AddParticipantDTO,
+  RemoveParticipantDTO,
+  BanUserDTO,
+  UnBanUserDTO,
+  KickUserDTO,
+  MuteUserDTO,
+} from './dto/GatewayDTO/index.dto';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -78,6 +79,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.gatewaySession.removeUserSocket(client.data.userID.id);
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('createConversation')
   async createConversation(
     @ConnectedSocket() client: Socket,
