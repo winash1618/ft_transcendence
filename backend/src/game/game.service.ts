@@ -3,6 +3,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { GameHistory } from '@prisma/client';
+import { GameStatus } from './interface/game.interface';
 
 @Injectable()
 export class GameService {

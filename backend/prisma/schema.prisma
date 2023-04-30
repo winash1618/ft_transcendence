@@ -21,7 +21,6 @@ model User {
   is_authenticated      Boolean?
   friends               User[]          @relation("friends")
   friends_of            User[]          @relation("friends")
-  friend_requests       String[]
   blocked_users         User[]          @relation("blocked_users")
   blocked_by            User[]          @relation("blocked_users")
   user_status           UserStatus      @default(OFFLINE)
@@ -29,8 +28,21 @@ model User {
   updated_at            DateTime        @default(now())
 
   participant_in        Participant[]
-  playerOneHistories GameHistory[] @relation("PlayerOne")
-  playerTwoHistories GameHistory[] @relation("PlayerTwo")
+  playerOneHistories    GameHistory[]   @relation("PlayerOne")
+  playerTwoHistories    GameHistory[]   @relation("PlayerTwo")
+  sentInvites           Invitations[]   @relation("sentInvites")
+  receivedInvites       Invitations[]   @relation("receivedInvites")
+}
+
+model Invitations {
+  id                    String          @id @default(uuid())
+  type                  InviteType      @default(FRIEND)
+  sender                User            @relation("sentInvites", fields: [senderId], references: [id])
+  senderId              String
+  receiver              User            @relation("receivedInvites", fields: [receiverId], references: [id])
+  receiverId            String
+  status                InviteStatus    @default(PENDING)
+  createdAt             DateTime        @default(now())
 }
 
 // Conversation table
@@ -115,4 +127,16 @@ enum UserStatus {
   ONLINE
   OFFLINE
   IN_GAME
+}
+
+enum InviteType {
+  FRIEND
+  GAME
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
 }

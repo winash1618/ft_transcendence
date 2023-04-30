@@ -80,4 +80,4 @@ export interface SocketData {
 
 export type UserMap = Map<string, SocketData>;
 
-export type InvitationMap = Map<string, SocketData[]>;
+export type InvitationMap = Map<string, string[]>;

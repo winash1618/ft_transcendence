@@ -10,6 +10,12 @@ CREATE TYPE "Status" AS ENUM ('ACTIVE', 'BANNED', 'KICKED', 'MUTED', 'DELETED');
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ONLINE', 'OFFLINE', 'IN_GAME');
 
+-- CreateEnum
+CREATE TYPE "InviteType" AS ENUM ('FRIEND', 'GAME');
+
+-- CreateEnum
+CREATE TYPE "InviteStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -20,12 +26,23 @@ CREATE TABLE "User" (
     "last_name" TEXT,
     "secret_code" TEXT,
     "is_authenticated" BOOLEAN,
-    "friend_requests" TEXT[],
     "user_status" "UserStatus" NOT NULL DEFAULT 'OFFLINE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Invitations" (
+    "id" TEXT NOT NULL,
+    "type" "InviteType" NOT NULL DEFAULT 'FRIEND',
+    "senderId" TEXT NOT NULL,
+    "receiverId" TEXT NOT NULL,
+    "status" "InviteStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Invitations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -113,6 +130,12 @@ CREATE UNIQUE INDEX "_blocked_users_AB_unique" ON "_blocked_users"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_blocked_users_B_index" ON "_blocked_users"("B");
+
+-- AddForeignKey
+ALTER TABLE "Invitations" ADD CONSTRAINT "Invitations_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Invitations" ADD CONSTRAINT "Invitations_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "Conversation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

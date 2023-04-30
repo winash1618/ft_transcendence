@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -259,4 +259,123 @@ export class UsersService {
 
     return user.blocked_users.length > 0;
   }
+
+  async checkIfUserSentThreeInvites(senderId: string, receiverId: string): Promise<boolean> {
+    const sentInvitesCount = await this.prisma.invitations.count({
+      where: {
+        type: 'GAME',
+        senderId: senderId,
+        receiverId: receiverId,
+      },
+    });
+
+    return sentInvitesCount >= 3;
+  }
+
+  async createInvite(
+    createInviteDto: any,
+    senderId: string
+  ) {
+    const { type, receiverId } = createInviteDto;
+
+    return await this.prisma.invitations.create({
+      data: {
+        type,
+        senderId,
+        receiverId,
+        status: 'PENDING',
+      },
+    });
+  }
+
+  async getInvite(id: string) {
+    return await this.prisma.invitations.findUnique({
+      where: { id },
+    });
+  }
+
+  async acceptInvite(
+    id: string,
+    receiverId: string
+  ) {
+    const invite = await this.prisma.invitations.findUnique({
+      where: { id },
+    });
+
+    if (invite.receiverId !== receiverId) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invite.type === 'FRIEND') {
+      await this.prisma.user.update({
+        where: { id: invite.senderId },
+        data: { friends: { connect: { id: receiverId } } },
+      });
+      await this.prisma.user.update({
+        where: { id: receiverId },
+        data: { friends: { connect: { id: invite.senderId } } },
+      });
+    }
+
+    // Delete all the invitation by sender for game
+    if (invite.type === 'GAME') {
+      await this.prisma.invitations.deleteMany({
+        where: {
+          senderId: invite.senderId,
+          type: 'GAME',
+        },
+      });
+
+      return invite;
+    }
+
+    return await this.prisma.invitations.update({
+      where: { id },
+      data: { status: 'ACCEPTED' },
+    });
+  }
+
+  async rejectInvite(
+    id: string,
+    receiverId: string
+  ) {
+    const invite = await this.prisma.invitations.findUnique({
+      where: { id },
+    });
+
+    if (invite.receiverId !== receiverId) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invite.type === 'GAME') {
+      await this.prisma.invitations.deleteMany({
+        where: {
+          senderId: invite.senderId,
+          type: 'GAME',
+        },
+      });
+
+      return invite;
+    }
+
+    return await this.prisma.invitations.update({
+      where: { id },
+      data: { status: 'REJECTED' },
+    });
+  }
+
+  async updateUserStatus(id: string, status: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { user_status: UserStatus[status] },
+    });
+  }
+
+  async fetchUserStatus(id: string) {
+    return await this.prisma.user.findUnique({
+      where: { id },
+      select: { user_status: true },
+    });
+  }
+
 }
