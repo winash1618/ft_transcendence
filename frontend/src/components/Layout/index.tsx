@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
@@ -24,6 +24,9 @@ import {
   InviteWrapper,
   LogoImg,
   LogoWrapper,
+  NotificationsLi,
+  NotificationsUl,
+  NotificationsWrapper,
 } from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
@@ -40,54 +43,26 @@ const navItems = [
   { icon: MessageOutlined, path: "/messages", label: "Messages" },
 ];
 
-const NotificationMenu: React.FC = ({
-  onDecline,
-  onAccept,
-}: {
-  onDecline: any;
-  onAccept: any;
-}) => {
-  return (
-    <div>
-      <ButtonComponent onClick={onAccept}>Accept</ButtonComponent>
-      <ButtonComponent onClick={onDecline}>Decline</ButtonComponent>
-    </div>
-  );
-};
-
 const Navbar: React.FC = () => {
-  const [isLoadingPage, setIsLoadingPage] = useState(true);
+  const [isLoadingPage, setIsLoadingPage] = useState<boolean>(true);
+  const { userInfo } = useAppSelector((state) => state.auth);
+  const [open, setOpen] = useState<boolean>(false);
   const { socket } = useAppSelector((state) => state.game);
   const [selected, setSelected] = useState<string>("0");
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [items, setItems] = useState<MenuProps["items"]>([]);
+  const [items, setItems] = useState<any[]>([]);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
 
   useEffect(() => {
     socket?.on("Invited", (data) => {
-		console.log(data);
+      console.log(data);
       setItems((prev) => [
         ...prev,
         {
           key: data.id,
-          label: (
-            <InviteWrapper>
-              <InviteDescription>You have been invited by {data.login} to play a game</InviteDescription>
-              <InviteButtonsWrapper>
-                <ButtonComponent>Accept</ButtonComponent>
-                <ButtonComponent
-                  onClick={setItems((prev) => {
-					console.log(prev);
-                    return prev.filter((item) => item.key !== data.id)}
-                  )}
-                >
-                  Decline
-                </ButtonComponent>
-              </InviteButtonsWrapper>
-            </InviteWrapper>
-          ),
+          login: data.login,
         },
       ]);
     });
@@ -154,12 +129,6 @@ const Navbar: React.FC = () => {
     }
   }, [location]);
 
-  useEffect(() => {
-    socket?.on("Invited", (data) => {
-      console.log(data);
-    });
-  }, [socket]);
-
   return (
     <>
       {isLoadingPage ? (
@@ -221,15 +190,63 @@ const Navbar: React.FC = () => {
                 }}
               >
                 <HeaderWrapper>
-                  <Dropdown
-                    disabled={items.length === 0}
-                    menu={{ items }}
-                    trigger={["click"]}
-                  >
-                    <Badge count={items.length} overflowCount={9}>
-                      <IoNotifications size={30} />
-                    </Badge>
-                  </Dropdown>
+                  <NotificationsWrapper>
+                    <a
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        pointerEvents: items.length === 0 ? "none" : "all",
+                      }}
+                      onClick={() => setOpen((prev) => !prev)}
+                    >
+                      <Badge count={items.length} overflowCount={9}>
+                        <IoNotifications size={30} />
+                      </Badge>
+                    </a>
+                    {open && (
+                      <NotificationsUl>
+                        {items.map((item) => (
+                          <NotificationsLi key={item.key}>
+                            <InviteWrapper>
+                              <InviteDescription>
+                                You have been invited by{" "}
+                                {item.login.length > 8
+                                  ? item.login.substring(0, 8) + "..."
+                                  : item.login}{" "}
+                                to play a game
+                              </InviteDescription>
+                              <InviteButtonsWrapper>
+                                <ButtonComponent
+                                  onClick={() => {
+                                    socket.emit("Accept", userInfo?.id);
+                                    setItems((prevItem) => {
+                                      return prevItem.filter(
+                                        (itemTmp) => itemTmp.key !== item.key
+                                      );
+                                    });
+                                  }}
+                                >
+                                  Accept
+                                </ButtonComponent>
+                                <ButtonComponent
+                                  onClick={() => {
+                                    socket.emit("Decline", userInfo?.id);
+                                    setItems((prevItem) => {
+                                      return prevItem.filter(
+                                        (itemTmp) => itemTmp.key !== item.key
+                                      );
+                                    });
+                                  }}
+                                >
+                                  Decline
+                                </ButtonComponent>
+                              </InviteButtonsWrapper>
+                            </InviteWrapper>
+                          </NotificationsLi>
+                        ))}
+                      </NotificationsUl>
+                    )}
+                  </NotificationsWrapper>
                   <UserInfo />
                 </HeaderWrapper>
               </Header>

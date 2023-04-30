@@ -159,7 +159,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('Invite')
 	inviteUser(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-		console.log('Inviting user');
 		const userID = client.data.userID;
 		const invitedUserID = data;
 		const socketData: SocketData = this.setUserStatus(
@@ -175,6 +174,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				this.server.to(invitedSocketData.client.id).emit('Invited', userID);
 			}
 		}
+	}
+
+	@SubscribeMessage('Decline')
+	declineInvitation(
+		@MessageBody() data: any,
+		@ConnectedSocket() client: Socket,
+	) {
+		console.log("Declining invitation");
+		const invitedUserID = data;
+		console.log(this.invitedUser);
+		console.log(invitedUserID);
+		this.invitedUser.delete(invitedUserID);
 	}
 
 	@SubscribeMessage('Accept')
