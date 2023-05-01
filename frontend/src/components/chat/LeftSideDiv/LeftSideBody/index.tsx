@@ -43,10 +43,7 @@ const LeftSideBody = ({
 				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
 				conversationID={conversationID}
-				setConversations={setConversation}
 				setMessages={setMessages}
-				socket={socket}
-				Navbar={Navbar}
 			/>
 		);
 	}
@@ -55,7 +52,6 @@ const LeftSideBody = ({
 			<GroupChat
 				socket={socket}
 				conversations={conversations}
-				UserProfilePicture={UserProfilePicture}
 				setConversationID={setConversationID}
 				conversationID={conversationID}
 				setMessages={setMessages}

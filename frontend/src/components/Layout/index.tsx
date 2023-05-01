@@ -32,7 +32,7 @@ import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
 import ButtonComponent from "../ButtonComponent";
 import { Socket, io } from "socket.io-client";
-import { setSocket } from "../../store/gameReducer";
+import { setGameInfo, setSocket } from "../../store/gameReducer";
 const { darkAlgorithm } = theme;
 
 const { Content, Footer, Header } = Layout;
@@ -65,6 +65,10 @@ const Navbar: React.FC = () => {
           login: data.login,
         },
       ]);
+    });
+    socket?.on("start", (data) => {
+      dispatch(setGameInfo({ ...data, isGameStarted: true }));
+      navigate('/pingpong')
     });
     return () => {
       socket?.off("Invited");
@@ -121,13 +125,16 @@ const Navbar: React.FC = () => {
     const getNotifications = async () => {
       try {
         const response = await axios.get(`/notifications`);
-        setItems(response.data);
+        setItems((prev) => [
+          ...prev,
+          response.data.map((item) => ({ key: item.id, login: item.login })),
+        ]);
       } catch (err) {
         console.log(err);
       }
-    }
+    };
     getNotifications();
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (location.pathname === "/") {

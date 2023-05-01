@@ -2,11 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import MessageInbox from "./MessageInbox";
 import MessageInput from "./MessageInput";
 import { UserProfilePicture } from "../../../assets";
-import { Status } from "../chat.functions";
 
 interface MessageDivProps {
 	user: any;
-	status: any;
 	socket: any;
 	messages: any;
 	setMessages: any;
@@ -15,7 +13,6 @@ interface MessageDivProps {
 
 const MessageDiv = ({
 	user,
-	status,
 	socket,
 	messages,
 	setMessages,
@@ -50,7 +47,6 @@ const MessageDiv = ({
 		};
 	}, [socket, handleMessageCreated]);
 
-
 	useEffect(() => {
 		messageEndRef.current.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
@@ -63,7 +59,7 @@ const MessageDiv = ({
 				UserProfilePicture={UserProfilePicture}
 			/>
 			{
-				(conversationID !== null && status !== Status.MUTED) && (
+				(conversationID !== null) && (
 					<MessageInput
 						message={message}
 						setMessage={setMessage}

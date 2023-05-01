@@ -223,4 +223,40 @@ export class UsersController {
   async GetUserStatus(@Param('userID') userID: string) {
     return await this.usersService.fetchUserStatus(userID);
   }
+  @Get('/leaderboard/:uuid')
+  async getLeaderboard(@Param('uuid') uuid: string) {
+	try {
+	  const getPlayers = await this.usersService.getPlayers();
+	  const rankList = [];
+	  await Promise.all(
+		getPlayers.map(async (player) => {
+		  const totalGamesPlayed = await this.usersService.getTotalGamesPlayed(
+			player.id
+		  );
+		  const totalGamesWon = await this.usersService.getTotalGamesWon(
+			player.id
+		  );
+		  console.log(totalGamesPlayed, totalGamesWon);
+		  rankList.push({
+			rank: 0,
+			profile_picture: player.profile_picture,
+			login: player.login,
+			rating:
+			  800 +
+			  totalGamesWon * 10 -
+			  (totalGamesPlayed - totalGamesWon) * 8,
+		  });
+		})
+	  );
+	  rankList.sort((a, b) => b.rating - a.rating);
+	  rankList.forEach((player, index) => {
+		player.rank = index + 1;
+	  });
+	  return rankList;
+	} catch (error) {
+	  console.error(error);
+	}
+  }
+  
+
 }
