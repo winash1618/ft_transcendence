@@ -19,6 +19,7 @@ import {
   FileTypeValidator,
   Res,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -33,6 +34,7 @@ import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
 @ApiTags('users')
+@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
   constructor(
@@ -75,12 +77,11 @@ export class UsersController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('profile-image')
   @HttpCode(200)
   @UseInterceptors(FileInterceptor('image', multerConfig))
   async uploadProfilePhoto(
-    @Req() request: Request,
+    @Req() request,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -107,7 +108,6 @@ export class UsersController {
   // 	return this.usersService.users();
   // }
 
-  @UseGuards(JwtAuthGuard)
   @Get(':login')
   async findOne(@Req() req, @Param('login') login: string) {
     const user = await this.usersService.findOne(login);
@@ -140,12 +140,45 @@ export class UsersController {
     return await this.usersService.getUserFriends(uuid);
   }
 
-  @Post(':userID/add-friend/:friendID')
-  async addFriend(
-    @Param('userID') userID: string,
-    @Param('friendID') friendID: string,
-  ) {
-    return await this.usersService.addFriend(userID, friendID);
+  @Post()
+  async createInvite(
+    @Body() createInviteDto: any,
+    @Req() req,
+    @Res() res: Response
+  ): Promise<void> {
+    try {
+      const invitation = await this.usersService.createInvite(createInviteDto, req.user.id);
+      res.status(201).json(invitation);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  }
+
+  @Put(':id/accept')
+  async acceptInvite(
+    @Param('id') id: string,
+    @Req() req,
+    @Res() res: Response
+  ): Promise<void> {
+    try {
+      const invitation = await this.usersService.acceptInvite(id, req.user.id);
+      res.status(200).json(invitation);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  }
+  @Put(':id/reject')
+  async rejectInvite(
+    @Param('id') id: string,
+    @Req() req,
+    @Res() res: Response
+  ): Promise<void> {
+    try {
+      const invitation = await this.usersService.rejectInvite(id, req.user.id);
+      res.status(200).json(invitation);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
   }
 
   @Delete(':userID/unfriend/:friendID')
@@ -170,5 +203,10 @@ export class UsersController {
     @Param('blockID') blockID: string,
   ) {
     return await this.usersService.unblock(userID, blockID);
+  }
+
+  @Get(':userID/status')
+  async GetUserStatus(@Param('userID') userID: string) {
+    return await this.usersService.fetchUserStatus(userID);
   }
 }
