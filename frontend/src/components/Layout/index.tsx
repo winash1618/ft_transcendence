@@ -118,6 +118,18 @@ const Navbar: React.FC = () => {
   }, [dispatch, setIsLoadingPage, navigate]);
 
   useEffect(() => {
+    const getNotifications = async () => {
+      try {
+        const response = await axios.get(`/notifications`);
+        setItems(response.data);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    getNotifications();
+  }, [])
+
+  useEffect(() => {
     if (location.pathname === "/") {
       setSelected("1");
     } else if (location.pathname === "/pingpong") {

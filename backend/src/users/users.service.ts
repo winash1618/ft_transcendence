@@ -24,11 +24,11 @@ export class UsersService {
   }
 
   async findOne(login: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
   }
 
   async getUserByLogin(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
   }
 
   async getUserByIdWithParticipants(id: string) {
@@ -163,7 +163,7 @@ export class UsersService {
   }
 
   async getUserById(id: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, sentInvites: true, blocked_users: true } });
   }
 
   remove(id: number) {
@@ -278,7 +278,7 @@ export class UsersService {
   ) {
     const { type, receiverId } = createInviteDto;
 
-    return await this.prisma.invitations.create({
+    await this.prisma.invitations.create({
       data: {
         type,
         senderId,
@@ -286,6 +286,7 @@ export class UsersService {
         status: 'PENDING',
       },
     });
+    return await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });
   }
 
   async getInvite(id: string) {

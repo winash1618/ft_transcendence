@@ -32,9 +32,9 @@ import { join } from 'path';
 import { Response, Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 
+// dont add @UseGuards(JwtAuthGuard) here because get profile picture does not need it
 @Controller('users')
 @ApiTags('users')
-@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
   constructor(
@@ -42,6 +42,7 @@ export class UsersController {
     private readonly jwtService: JwtService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -77,6 +78,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('profile-image')
   @HttpCode(200)
   @UseInterceptors(FileInterceptor('image', multerConfig))
@@ -108,6 +110,7 @@ export class UsersController {
   // 	return this.usersService.users();
   // }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':login')
   async findOne(@Req() req, @Param('login') login: string) {
     const user = await this.usersService.findOne(login);
@@ -117,6 +120,7 @@ export class UsersController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.usersService.remove(+id);
@@ -127,6 +131,7 @@ export class UsersController {
   //     return await this.usersService.userStatusUpdate(id, data.status);
   //   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':uuid')
   async updateUserName(
     @Param('uuid', new ParseUUIDPipe()) uuid: string,
@@ -135,12 +140,14 @@ export class UsersController {
     return await this.usersService.updateUserName(uuid, data.name);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('friends/:uuid')
   async getFriends(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
     return await this.usersService.getUserFriends(uuid);
   }
 
-  @Post()
+  @UseGuards(JwtAuthGuard)
+  @Post('create-invite')
   async createInvite(
     @Body() createInviteDto: any,
     @Req() req,
@@ -154,6 +161,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id/accept')
   async acceptInvite(
     @Param('id') id: string,
@@ -167,6 +175,8 @@ export class UsersController {
       res.status(400).json({ message: error.message });
     }
   }
+
+  @UseGuards(JwtAuthGuard)
   @Put(':id/reject')
   async rejectInvite(
     @Param('id') id: string,
@@ -181,6 +191,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':userID/unfriend/:friendID')
   async unfriend(
     @Param('userID') userID: string,
@@ -189,6 +200,7 @@ export class UsersController {
     return await this.usersService.unfriend(userID, friendID);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':userID/block/:blockID')
   async block(
     @Param('userID') userID: string,
@@ -197,6 +209,7 @@ export class UsersController {
     return await this.usersService.block(userID, blockID);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':userID/unblock/:blockID')
   async unblock(
     @Param('userID') userID: string,
@@ -205,6 +218,7 @@ export class UsersController {
     return await this.usersService.unblock(userID, blockID);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':userID/status')
   async GetUserStatus(@Param('userID') userID: string) {
     return await this.usersService.fetchUserStatus(userID);
