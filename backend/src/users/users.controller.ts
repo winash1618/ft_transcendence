@@ -169,7 +169,7 @@ export class UsersController {
     @Res() res: Response
   ): Promise<void> {
     try {
-      const invitation = await this.usersService.acceptInvite(id, req.user.id);
+      const invitation = await this.usersService.acceptInvite(id);
       res.status(200).json(invitation);
     } catch (error) {
       res.status(400).json({ message: error.message });

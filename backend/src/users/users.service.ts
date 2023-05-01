@@ -24,25 +24,11 @@ export class UsersService {
   }
 
   async findOne(login: string): Promise<any> {
-<<<<<<< HEAD
     return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
   }
 
   async getUserByLogin(login: string): Promise<User | null> {
     return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
-=======
-    return await this.prisma.user.findUnique({
-      where: { login },
-      include: { friends: true, blocked_users: true },
-    });
-  }
-
-  async getUserByLogin(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
-      where: { login },
-      include: { friends: true, blocked_users: true },
-    });
->>>>>>> origin/asharaf_chat
   }
 
   async getUserByIdWithParticipants(id: string) {
@@ -193,14 +179,7 @@ export class UsersService {
   }
 
   async getUserById(id: string): Promise<any> {
-<<<<<<< HEAD
     return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, sentInvites: true, blocked_users: true } });
-=======
-    return await this.prisma.user.findUnique({
-      where: { id },
-      include: { friends: true, blocked_users: true },
-    });
->>>>>>> origin/asharaf_chat
   }
 
   remove(id: number) {
@@ -316,7 +295,7 @@ export class UsersService {
   ) {
     const { type, receiverId } = createInviteDto;
 
-    await this.prisma.invitations.create({
+    const invite = await this.prisma.invitations.create({
       data: {
         type,
         senderId,
@@ -324,6 +303,9 @@ export class UsersService {
         status: 'PENDING',
       },
     });
+    if (type === 'GAME') {
+      return invite;
+    }
     return await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });
   }
 
@@ -335,23 +317,18 @@ export class UsersService {
 
   async acceptInvite(
     id: string,
-    receiverId: string
   ) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
 
-    if (invite.receiverId !== receiverId) {
-      throw new NotFoundException('Invitation not found');
-    }
-
     if (invite.type === 'FRIEND') {
       await this.prisma.user.update({
         where: { id: invite.senderId },
-        data: { friends: { connect: { id: receiverId } } },
+        data: { friends: { connect: { id: invite.receiverId } } },
       });
       await this.prisma.user.update({
-        where: { id: receiverId },
+        where: { id: invite.receiverId },
         data: { friends: { connect: { id: invite.senderId } } },
       });
     }

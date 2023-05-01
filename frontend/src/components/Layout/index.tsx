@@ -62,13 +62,14 @@ const Navbar: React.FC = () => {
         ...prev,
         {
           key: data.id,
+          inviteId: data.inviteId,
           login: data.login,
         },
       ]);
     });
     socket?.on("start", (data) => {
       dispatch(setGameInfo({ ...data, isGameStarted: true }));
-      navigate('/pingpong')
+      navigate("/pingpong");
     });
     return () => {
       socket?.off("Invited");
@@ -237,7 +238,9 @@ const Navbar: React.FC = () => {
                               <InviteButtonsWrapper>
                                 <ButtonComponent
                                   onClick={() => {
-                                    socket.emit("Accept", userInfo?.id);
+                                    socket.emit("Accept", {
+                                      inviteID: item.inviteId,
+                                    });
                                     setItems((prevItem) => {
                                       return prevItem.filter(
                                         (itemTmp) => itemTmp.key !== item.key
@@ -249,7 +252,9 @@ const Navbar: React.FC = () => {
                                 </ButtonComponent>
                                 <ButtonComponent
                                   onClick={() => {
-                                    socket.emit("Decline", userInfo?.id);
+                                    socket.emit("Reject", {
+                                      inviteID: item.inviteId,
+                                    });
                                     setItems((prevItem) => {
                                       return prevItem.filter(
                                         (itemTmp) => itemTmp.key !== item.key

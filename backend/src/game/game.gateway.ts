@@ -94,7 +94,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   setUserStatus(client: Socket, status: GameStatus) {
-    const userID = client.data.userID;
+    const userID: any = client.data.userID;
     console.log('setting user id: ', userID)
     if (!this.gatewaySession.getUserSocket(userID)) {
       const socketData: SocketData = {
@@ -104,10 +104,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userID: userID,
         status: status,
       };
-      this.gatewaySession.setUserSocket(userID, socketData);
+      this.gatewaySession.setUserSocket(userID.id, socketData);
       return socketData;
     }
-    const socketData = this.gatewaySession.getUserSocket(userID);
+    let socketData = this.gatewaySession.getUserSocket(userID);
     socketData.status = status;
     return socketData;
   }
@@ -130,7 +130,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.usersQueue.splice(0, 1);
     } else {
       socketData.status = GameStatus.READY;
-        this.usersQueue.push(socketData.userID);
+	  console.log(socketData);
+        this.usersQueue.push(socketData.userID.id);
     }
   }
 
@@ -150,11 +151,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         console.log('User sent three invites')
         new Error('You have already sent three invites to this user');
       }
-      const invitedSocketData = this.userSockets.get(invitedUserID);
-      await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID.id}, userID);
-      this.server.to(client.id).emit('Invited', invitedUserID);
-      if (invitedSocketData && invitedSocketData.status === GameStatus.WAITING)
-        this.server.to(invitedSocketData.client.id).emit('Invited', userID);
+		const invitedSocketData = this.gatewaySession.getUserSocket(invitedUserID.id);
+		const invite = await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID.id}, userID);
+		console.log(invite);
+		if (invitedSocketData && invitedSocketData.status === GameStatus.WAITING)
+		{
+			this.server.to(invitedSocketData.client.id).emit('Invited', { ...invitedUserID, inviteId: invite.id});
+		}
     }
   }
 
@@ -172,10 +175,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!sender || sender.status !== GameStatus.WAITING)
       return;
     if (sender && sender.status === GameStatus.WAITING) {
-      const invite = await this.usersService.acceptInvite(data.inviteID, userID);
+      const invite = await this.usersService.acceptInvite(data.inviteID);
       if (invite) {
         const invitedSocketData = this.userSockets.get(invite.senderId);
-        this.initGameRoom(socketData, invitedSocketData.userID, data);
+        this.initGameRoom(socketData, checkInvite.senderId, data);
       }
     }
   }
@@ -245,6 +248,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.disconnect();
       return;
     }
+	console.log(socketData.gameID, "socket game id", roomID, "room id");
     if (socketData.status === GameStatus.READY) {
       if (socketData.gameID === roomID) {
         client.join(roomID);

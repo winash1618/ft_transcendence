@@ -37,7 +37,7 @@ const DirectChatRelations = ({
 			console.log("Profile");
 			window.location.href = `http://localhost:3000/profile/${userClicked.login}`;
 		} else if (e.target.textContent === "Invite") {
-			socketNew?.emit("Invite", userClicked.id);
+			socketNew?.emit("Invite", userClicked);
 		}
 		console.log("click", results);
 	};
