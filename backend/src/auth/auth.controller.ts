@@ -40,9 +40,9 @@ export class AuthController {
   @Get()
   async redirectUri(@Req() req, @Res() res: Response) {
     try {
-      // if (!req.user) {
-      //   return res.redirect('/guest');
-      // }
+      if (!req.user) {
+        return res.redirect('/guest');
+      }
       await this.userService.updateAuthentication(req.user.id, false);
       const token = await this.authService.getLongExpiryJwtToken(
         req.user as User,
