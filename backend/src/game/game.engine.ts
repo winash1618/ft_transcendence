@@ -336,8 +336,7 @@ export class GameEngine {
     }, 1000);
   }
 
-  startGame(hasMiddleWall) {
-    console.log(GAME_HEIGHT, GAME_WIDTH);
+  startGame(hasMiddleWall: boolean) {
     clearInterval(this.interval);
     this.gameObj = this.initGameObj(0, this.player1, this.player2, hasMiddleWall);
     this.gameObj.gameStatus = GameStatus.PLAYING;

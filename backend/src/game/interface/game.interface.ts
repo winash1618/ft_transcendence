@@ -74,7 +74,7 @@ export interface SocketData {
   playerNumber: number;
   client: Socket;
   gameID: string;
-  userID: string;
+  userID: any;
   status: GameStatus;
 }
 

@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { Colors, Conversation, GNav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { List, Button, Dropdown, MenuProps, Input } from 'antd';
+import { List, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { Picture } from "../../chat.styled";
-import { useAppDispatch, useAppSelector } from "../../../../hooks/reduxHooks";
-import { logOut } from "../../../../store/authReducer";
+import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { BASE_URL } from "../../../../api";
+import { IoMdAddCircleOutline } from "react-icons/io";
 
 interface GroupChatProps {
 	socket: any;
 	conversations: Conversation[];
-	UserProfilePicture: any;
 	setConversationID: any;
 	conversationID: any;
 	setMessages: any;
@@ -27,7 +25,6 @@ interface GroupChatProps {
 const GroupChat = ({
 	socket,
 	conversations,
-	UserProfilePicture,
 	setConversationID,
 	conversationID,
 	setMessages,
@@ -37,11 +34,10 @@ const GroupChat = ({
 	setGroupResults,
 	setGroupNav,
 }: GroupChatProps) => {
-	const { user } = useAppSelector((state) => state.users);
-	const dispatch = useAppDispatch();
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
+	const { token } = useAppSelector((state) => state.auth);
 
 	const handleConversationLeft = useCallback(() => {
 		console.log("handleConversationLeft in GroupChat");
@@ -96,33 +92,31 @@ const GroupChat = ({
 		{
 			key: "2",
 			label: <div onClick={(e) => handleMenuClick(e)}>Add password</div>,
-			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy === Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+			disabled: !(conversation
+				&& conversation !== undefined
+				&& conversation.participants !== undefined
+				&& conversation.privacy === Privacy.PUBLIC
+				&& (conversation.participants[0].role === Role.OWNER || conversation.participants[0].role === Role.ADMIN)),
 		},
 		{
 			key: "3",
 			label: <div onClick={(e) => handleMenuClick(e)}>Update password</div>,
-			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+			disabled: !(conversation
+				&& conversation !== undefined
+				&& conversation.participants !== undefined
+				&& conversation.privacy !== Privacy.PUBLIC
+				&& (conversation.participants[0].role === Role.OWNER || conversation.participants[0].role === Role.ADMIN)),
 		},
 		{
 			key: "4",
 			label: <div onClick={(e) => handleMenuClick(e)}>Remove password</div>,
-			disabled: !(conversation && conversation !== undefined && conversation.participants !== undefined && conversation.privacy !== Privacy.PUBLIC && conversation.participants[0].role === Role.OWNER),
+			disabled: !(conversation
+				&& conversation !== undefined
+				&& conversation.participants !== undefined
+				&& conversation.privacy !== Privacy.PUBLIC
+				&& (conversation.participants[0].role === Role.OWNER || conversation.participants[0].role === Role.ADMIN)),
 		},
 	];
-	const getToken = async () => {
-		try {
-			const response = await axios.get(`${BASE_URL}/token`, {
-				withCredentials: true,
-			});
-			localStorage.setItem("auth", JSON.stringify(response.data));
-			return response.data.token;
-		} catch (err) {
-			dispatch(logOut());
-			window.location.reload();
-			return null;
-		}
-	};
-
 
 	async function handleSelectedConversation(conversation: any) {
 		console.log("handleSelectedConversation in GroupChat")
@@ -131,7 +125,6 @@ const GroupChat = ({
 		if (current_status === Status.ACTIVE || current_status === Status.MUTED) {
 			setConversationID(conversation.id);
 			setConversation(conversation);
-			const token = await getToken();
 			try {
 				const result = await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
 					withCredentials: true,
@@ -146,13 +139,13 @@ const GroupChat = ({
 			}
 			try {
 				const result = await axios.get(
-				`${BASE_URL}/chat/${conversation.id}/members`,
-				{
-					withCredentials: true,
-					headers: {
-					Authorization: `Bearer ${token}`,
-					},
-				}
+					`${BASE_URL}/chat/${conversation.id}/members`,
+					{
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
 				);
 				setGroupNav(GNav.GROUPS);
 				setGroupResults(result.data);
@@ -240,23 +233,17 @@ const GroupChat = ({
 							/>
 						</List.Item>
 						{conversationID === conversation.id && menuVisible && (
-							<div style={{ marginTop: "10px", paddingLeft: "20px" }}>
+							<div style={{ display: "flex", justifyContent: 'space-between', alignItems: 'center', marginTop: "0.5rem", paddingRight: "0.5rem", paddingLeft: "0.5rem" }}>
 								<Input
 									placeholder="Enter password"
-									style={{ width: "50%" }}
+									style={{ width: "85%" }}
 									value={password}
+									type="password"
 									onChange={(e) => setPassword(e.target.value)}
 								/>
-								<Button
-									type="primary"
-									style={{ marginLeft: "10px" }}
-									onClick={() =>
-										handleUpdatePassword(conversation, password)
-									}
-								>
-									{conversation.privacy === "PUBLIC" ? "Add password" : "Update password"}
-								</Button>
+								<IoMdAddCircleOutline size={24} color="green" onClick={() => handleUpdatePassword(conversation, password)}/>
 							</div>
+
 						)}
 					</>
 				)}

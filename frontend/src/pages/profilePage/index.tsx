@@ -13,6 +13,7 @@ import {
   ProfileContainer,
   ProfileInfoContainer,
 } from "./profilePage.styled";
+import ProfileAchievements from "./profileAchievements";
 
 const ProfilePage = () => {
   const { isLoading, error } = useAppSelector((state) => state.users);
@@ -23,7 +24,6 @@ const ProfilePage = () => {
   useEffect(() => {
     dispatch(fetchUserById(login));
     dispatch(fetchMatchHistory(userInfo?.id));
-    console.log(userInfo?.id);
   }, [dispatch, location]);
 
   return (
@@ -37,11 +37,14 @@ const ProfilePage = () => {
           <ProfileHeader />
           <ProfileCenterContainer>
             <ProfileInfoContainer gutter={[64, 64]}>
-              <CustomCol xs={24} lg={12}>
+              <CustomCol sm={24} lg={12} xl={8}>
                 <ProfilePersonalInfo />
               </CustomCol>
-              <CustomCol xs={24} lg={12}>
+              <CustomCol sm={24} lg={12} xl={8}>
                 <ProfileMatchHistory />
+              </CustomCol>
+			  <CustomCol sm={24} lg={12} xl={8}>
+                <ProfileAchievements />
               </CustomCol>
             </ProfileInfoContainer>
           </ProfileCenterContainer>

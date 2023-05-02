@@ -13,7 +13,11 @@ export const ProfilePersonalInfoContainer = styled(Card)`
     display: flex;
     flex-direction: column;
     align-items: center;
+	width: 100%;
     justify-content: center;
+  }
+  @media (max-width: 603px) {
+    padding: 0;
   }
 `;
 
@@ -23,12 +27,11 @@ export const PersonalTitle = styled.h1`
 `;
 
 export const CustomRow = styled(Row)`
-	margin: 30px;
-	@media (max-width: 500px)
-	{
-		margin: 10px;
-	}
-`
+  margin: 30px;
+  @media (max-width: 603px) {
+    margin: 10px;
+  }
+`;
 
 export const PersonalInfo = styled.p`
   font-size: 0.9rem;
@@ -37,8 +40,8 @@ export const PersonalInfo = styled.p`
 `;
 
 export const CustomCol = styled(Col)`
-	width: 240px;
-`
+  width: 240px;
+`;
 
 export const OnlineStatusWrapper = styled.div`
   display: flex;

@@ -9,7 +9,7 @@ export const ProfileContainer = styled.div`
 `;
 
 export const ProfileInfoContainer = styled(Row)`
-  max-width: 1200px;
+  max-width: 1500px;
   margin-top: 50px;
   align-items: stretch;
   @media (max-width: 991px) {
@@ -26,6 +26,9 @@ export const CustomCol = styled(Col)`
     width: 385px;
   }
   height: 470px;
+  @media (max-width: 603px) {
+    height: 350px;
+  }
 `;
 
 export const ProfileCenterContainer = styled.div`

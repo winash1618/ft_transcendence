@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
@@ -19,16 +19,20 @@ import Loading from "../loading";
 import {
   CustomSider,
   HeaderWrapper,
+  InviteButtonsWrapper,
+  InviteDescription,
+  InviteWrapper,
   LogoImg,
   LogoWrapper,
-  NotificationsCounter,
+  NotificationsLi,
+  NotificationsUl,
   NotificationsWrapper,
 } from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
 import ButtonComponent from "../ButtonComponent";
 import { Socket, io } from "socket.io-client";
-import { setSocket } from "../../store/gameReducer";
+import { setGameInfo, setSocket } from "../../store/gameReducer";
 const { darkAlgorithm } = theme;
 
 const { Content, Footer, Header } = Layout;
@@ -39,66 +43,45 @@ const navItems = [
   { icon: MessageOutlined, path: "/messages", label: "Messages" },
 ];
 
-const NotificationMenu: React.FC = ({
-  onDecline,
-  onAccept,
-}: {
-  onDecline: any;
-  onAccept: any;
-}) => {
-  return (
-    <div>
-      <ButtonComponent onClick={onAccept}>Accept</ButtonComponent>
-      <ButtonComponent onClick={onDecline}>Decline</ButtonComponent>
-    </div>
-  );
-};
-
 const Navbar: React.FC = () => {
-  const [isLoadingPage, setIsLoadingPage] = useState(true);
+  const [isLoadingPage, setIsLoadingPage] = useState<boolean>(true);
+  const { userInfo } = useAppSelector((state) => state.auth);
+  const [open, setOpen] = useState<boolean>(false);
   const { socket } = useAppSelector((state) => state.game);
   const [selected, setSelected] = useState<string>("0");
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [items, setItems] = useState<MenuProps["items"]>([]);
+  const [items, setItems] = useState<any[]>([]);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
 
   useEffect(() => {
-    const getToken = async () => {
-      try {
-        const response = await axios.get("/token", {
-          withCredentials: true,
-        });
-        localStorage.setItem("auth", JSON.stringify(response.data));
-        dispatch(setUserInfo(response.data.user));
-        dispatch(setToken(response.data.token));
-        return response.data.token;
-      } catch (err) {
-        dispatch(logOut());
-        window.location.reload();
-        return null;
-      }
-    };
-    const getSocket = async () => {
-      const socket = io(process.env.REACT_APP_SOCKET_URL, {
-        withCredentials: true,
-        auth: async (cb) => {
-          const token = await getToken();
-          cb({
-            token,
-          });
+    socket?.on("Invited", (data) => {
+      console.log(data);
+      setItems((prev) => [
+        ...prev,
+        {
+          key: data.id,
+          inviteId: data.inviteId,
+          login: data.login,
         },
-      });
-      dispatch(setSocket(socket));
+      ]);
+    });
+    socket?.on("start", (data) => {
+      dispatch(setGameInfo({ ...data, isGameStarted: true }));
+      navigate("/pingpong");
+    });
+    return () => {
+      socket?.off("Invited");
+      socket?.disconnect();
     };
-    getSocket();
-  }, [dispatch]);
+  }, [socket]);
 
   useEffect(() => {
     const getToken = async () => {
       try {
         const response = await axios.get(`/token`);
+        console.log(response);
         localStorage.setItem("auth", JSON.stringify(response.data));
         dispatch(setToken(response.data.token));
         dispatch(setUserInfo(response.data.user));
@@ -112,13 +95,47 @@ const Navbar: React.FC = () => {
           navigate("/authenticate");
         }
         setIsLoadingPage(false);
+        return response.data.token;
       } catch (err) {
         dispatch(logOut());
+
+        console.log("test");
         window.location.replace(`${BASE_URL}/42/login`);
       }
     };
-    getToken();
+    const getSocket = async () => {
+      try {
+        const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
+          withCredentials: true,
+          auth: async (cb) => {
+            const token = await getToken();
+            cb({
+              token,
+            });
+          },
+        });
+        dispatch(setSocket(socket));
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getSocket();
   }, [dispatch, setIsLoadingPage, navigate]);
+
+  useEffect(() => {
+    const getNotifications = async () => {
+      try {
+        const response = await axios.get(`/notifications`);
+        setItems((prev) => [
+          ...prev,
+          response.data.map((item) => ({ key: item.id, login: item.login })),
+        ]);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getNotifications();
+  }, []);
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -132,12 +149,6 @@ const Navbar: React.FC = () => {
     }
   }, [location]);
 
-  useEffect(() => {
-    socket?.on("Invited", (data) => {
-      console.log(data);
-    })
-  }, [socket])
-
   return (
     <>
       {isLoadingPage ? (
@@ -147,6 +158,7 @@ const Navbar: React.FC = () => {
           theme={{
             token: {
               colorTextLabel: "#fff",
+              colorTextDescription: "#cccccc",
               colorTextHeading: "#fff",
               colorTextSecondary: "#d1d1d1",
               colorTextPlaceholder: "#8d8d8d",
@@ -198,15 +210,67 @@ const Navbar: React.FC = () => {
                 }}
               >
                 <HeaderWrapper>
-                  <Dropdown
-                    disabled={items.length === 0}
-                    menu={{ items }}
-                    trigger={["click"]}
-                  >
-                    <Badge count={items.length} overflowCount={9}>
-                      <IoNotifications size={30} />
-                    </Badge>
-                  </Dropdown>
+                  <NotificationsWrapper>
+                    <a
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        pointerEvents: items.length === 0 ? "none" : "all",
+                      }}
+                      onClick={() => setOpen((prev) => !prev)}
+                    >
+                      <Badge count={items.length} overflowCount={9}>
+                        <IoNotifications size={30} />
+                      </Badge>
+                    </a>
+                    {open && (
+                      <NotificationsUl>
+                        {items.map((item) => (
+                          <NotificationsLi key={item.key}>
+                            <InviteWrapper>
+                              <InviteDescription>
+                                You have been invited by{" "}
+                                {item.login.length > 8
+                                  ? item.login.substring(0, 8) + "..."
+                                  : item.login}{" "}
+                                to play a game
+                              </InviteDescription>
+                              <InviteButtonsWrapper>
+                                <ButtonComponent
+                                  onClick={() => {
+                                    socket.emit("Accept", {
+                                      inviteID: item.inviteId,
+                                    });
+                                    setItems((prevItem) => {
+                                      return prevItem.filter(
+                                        (itemTmp) => itemTmp.key !== item.key
+                                      );
+                                    });
+                                  }}
+                                >
+                                  Accept
+                                </ButtonComponent>
+                                <ButtonComponent
+                                  onClick={() => {
+                                    socket.emit("Reject", {
+                                      inviteID: item.inviteId,
+                                    });
+                                    setItems((prevItem) => {
+                                      return prevItem.filter(
+                                        (itemTmp) => itemTmp.key !== item.key
+                                      );
+                                    });
+                                  }}
+                                >
+                                  Decline
+                                </ButtonComponent>
+                              </InviteButtonsWrapper>
+                            </InviteWrapper>
+                          </NotificationsLi>
+                        ))}
+                      </NotificationsUl>
+                    )}
+                  </NotificationsWrapper>
                   <UserInfo />
                 </HeaderWrapper>
               </Header>

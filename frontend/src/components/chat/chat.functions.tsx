@@ -42,6 +42,7 @@ export interface User {
 	login: string;
 	username: string;
 	avatar: string;
+	profile_picture: string;
 }
 
 export interface Participant {

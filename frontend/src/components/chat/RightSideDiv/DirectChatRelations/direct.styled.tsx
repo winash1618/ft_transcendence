@@ -1,16 +1,5 @@
 import styled from "styled-components";
 
-// const DirectItem = styled.div`
-//   border: 1px solid green;
-//   color: white;
-//   padding: 0.5em;
-//   border-radius: 5px;
-//   margin-bottom: 1em;
-//   display: flex;
-//   align-items: center;
-//   justify-content: space-between;
-// `;
-
 const DirectItem = styled.div`
   color: white;
   border-radius: 5px;

@@ -63,7 +63,6 @@ const Chat = ({
 					{(status === Status.ACTIVE || status === Status.MUTED) && (
 						<MessageDiv
 							user={user}
-							status={status}
 							socket={socket}
 							messages={messages}
 							setMessages={setMessages}
@@ -74,7 +73,6 @@ const Chat = ({
 				<RightSideContainer>
 					<RightSideDiv
 						socket={socket}
-						user={user}
 						Navbar={Navbar}
 						conversationID={conversationID}
 						conversation={conversation}

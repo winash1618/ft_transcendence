@@ -68,11 +68,7 @@ let game: GameType = {
   },
 };
 
-const PingPongCanvas = ({
-  mobile,
-}: {
-  mobile: boolean;
-}) => {
+const PingPongCanvas = () => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
   const { socket } = useAppSelector((state) => state.game);
   const { players, player, roomID } = useAppSelector((state) => state.game);
@@ -212,13 +208,8 @@ const PingPongCanvas = ({
       setPlayer2Score(data);
     });
     if (roomID.length > 0) {
-      if (mobile) {
-        setCanvasWidth(300);
-        setCanvasHeight(500);
-      }
       socket?.emit("StartGame", {
         roomID,
-        mobile,
       });
     }
     return () => {

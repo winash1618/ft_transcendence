@@ -1,21 +1,21 @@
 import {
-  WebSocketGateway,
-  SubscribeMessage,
-  MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  WebSocketServer,
-  ConnectedSocket,
+	WebSocketGateway,
+	SubscribeMessage,
+	MessageBody,
+	OnGatewayConnection,
+	OnGatewayDisconnect,
+	WebSocketServer,
+	ConnectedSocket,
 } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
 import {
-  SocketData,
-  UserMap,
-  GameStatus,
-  Game,
-  KeyPress,
-  InvitationMap,
+	SocketData,
+	UserMap,
+	GameStatus,
+	Game,
+	KeyPress,
+	InvitationMap,
 } from './interface/game.interface';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
@@ -31,11 +31,11 @@ import { MoveMouseDto } from './dto/moveMouse.dto';
 import { MoveDto } from './dto/Move.dto';
 import { StartGameDto } from './dto/StartGame.dto';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
+@WebSocketGateway(8002, {
+	cors: {
+		origin: process.env.FRONTEND_BASE_URL,
+		credentials: true,
+	},
 })
 // @WebSocketGateway()
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -53,20 +53,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private usersService: UsersService,
   ) {}
 
-  async handleConnection(client: Socket) {
-    // const token = client.handshake.headers.token as string;
-    const token = client.handshake.auth.token;
-    const userid = this.jwtService.verify(token, {
-      secret: process.env.JWT_SECRET,
-    });
+	async handleConnection(client: Socket) {
+		// const token = client.handshake.headers.token as string;
+		const token = client.handshake.auth.token;
+		const userid = this.jwtService.verify(token, {
+			secret: process.env.JWT_SECRET,
+		});
+		client.data.userID = userid;
+		const user = await this.usersService.findOne(client.data.userID['login']);
+		client.data.userID['login'] = user.username;
+		console.log('User connected: ', userid);
 
-    client.data.userID = userid;
-    const user = await this.usersService.findOne(client.data.userID['login']);
-    client.data.userID['login'] = user.username;
-    // console.log('User connected: ', userid);
-
-    this.setUserStatus(client, GameStatus.WAITING);
-  }
+		this.setUserStatus(client, GameStatus.WAITING);
+	}
 
   handleDisconnect(client: any) {
     const token = client.handshake.auth.token;
@@ -101,7 +100,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   setUserStatus(client: Socket, status: GameStatus) {
-    const userID = client.data.userID;
+    const userID: any = client.data.userID;
     console.log('setting user id: ', userID)
     if (!this.gatewaySession.getUserSocket(userID)) {
       const socketData: SocketData = {
@@ -111,10 +110,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userID: userID,
         status: status,
       };
-      this.gatewaySession.setUserSocket(userID, socketData);
+      this.gatewaySession.setUserSocket(userID.id, socketData);
       return socketData;
     }
-    const socketData = this.gatewaySession.getUserSocket(userID);
+    let socketData = this.gatewaySession.getUserSocket(userID);
     socketData.status = status;
     return socketData;
   }
@@ -179,7 +178,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!sender || sender.status !== GameStatus.WAITING)
       return;
     if (sender && sender.status === GameStatus.WAITING) {
-      const invite = await this.usersService.acceptInvite(data.inviteID, userID);
+      const invite = await this.usersService.acceptInvite(data.inviteID);
       if (invite) {
         const invitedSocketData = this.userSockets.get(invite.senderId);
         this.initGameRoom(socketData, invitedSocketData.userID, data.hasMiddleWall);
@@ -231,6 +230,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.disconnect();
       return;
     }
+	console.log(socketData.gameID, "socket game id", roomID, "room id");
     if (socketData.status === GameStatus.READY) {
       if (socketData.gameID === roomID) {
         client.join(roomID);

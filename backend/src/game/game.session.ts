@@ -23,6 +23,10 @@ export class GatewaySessionManager {
     return Array.from(this.mobileSessions.values());
   }
 
+  getAllUserKeys(): any[] {
+    return Array.from(this.sessions.keys());
+  }
+
   setUserSocket(userId: string, socket: SocketData): void {
     this.sessions.set(userId, socket);
   }
