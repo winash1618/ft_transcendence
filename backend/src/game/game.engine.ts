@@ -67,7 +67,7 @@ export class GameEngine {
   }
 
   constructor(
-    game: Game,
+    game: any,
     server: Server,
     player1: SocketData,
     player2: SocketData,
@@ -336,17 +336,7 @@ export class GameEngine {
     }, 1000);
   }
 
-  startGame(mobile: boolean, hasMiddleWall) {
-    if (mobile) {
-      GAME_WIDTH = 300;
-      GAME_HEIGHT = 500;
-      PADDLE_WIDTH = 10;
-      PADDLE_HEIGHT = 50;
-      BALL_SIZE = 6.25;
-      BALL_SPEED = 2.5;
-      PADDLE_SPEED = 7.5;
-    }
-
+  startGame(hasMiddleWall) {
     console.log(GAME_HEIGHT, GAME_WIDTH);
     clearInterval(this.interval);
     this.gameObj = this.initGameObj(0, this.player1, this.player2, hasMiddleWall);

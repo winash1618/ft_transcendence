@@ -188,7 +188,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('disable-2fa')
   async disable2FA(@Req() req, @Res() res: Response): Promise<Response> {
-    const user = await this.userService.updateSecretCode(req.user.id, null);
-    return res.status(HttpStatus.ACCEPTED).json({ user });
+    try {
+      const user = await this.userService.updateSecretCode(req.user.id, null);
+      return res.status(HttpStatus.ACCEPTED).json({ user });
+    }
+    catch (err) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: err.message });
+    }
   }
 }

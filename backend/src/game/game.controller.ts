@@ -24,12 +24,18 @@ export class GameController {
   async getGameHistory(
     @Req() req,
     @Param('id') id: string,
+    @Res() res: Response,
   ) {
-    const gameHistory = await this.gameService.getGameHistory(id);
-    const user = await this.usersService.getUserById(id);
-    if (user.blocked_users.some(user => user.id === req.user.id)) {
-      throw new NotFoundException(`Game history not found`);
+    try {
+      const gameHistory = await this.gameService.getGameHistory(id);
+      const user = await this.usersService.getUserById(id);
+      if (user.blocked_users.some(user => user.id === req.user.id)) {
+        throw new NotFoundException(`Game history not found`);
+      }
+      return res.status(200).json(gameHistory);
     }
-    return gameHistory;
+    catch {
+      return res.status(404).json({ error: 'Game history not found' });
+    }
   }
 }

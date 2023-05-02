@@ -100,4 +100,33 @@ export class GameService {
     });
     return gameHistory;
   }
+
+  async createGameRoom(player1ID: string, player2ID: string) {
+    const gameRoom = await this.prisma.gameHistory.create({
+      data: {
+        player_one: player1ID,
+        player_two: player2ID,
+        player_score: 0,
+        opponent_score: 0,
+        winner: null,
+        looser: null,
+      },
+    });
+
+    return gameRoom;
+  }
+
+  async checkGameRoomExists(roomID: string) {
+    const gameRoom = await this.prisma.gameHistory.findUnique({
+      where: {
+        id: roomID,
+      },
+    });
+
+    if (!gameRoom) {
+      throw new Error('Game room does not exist');
+    }
+
+    return gameRoom;
+  }
 }

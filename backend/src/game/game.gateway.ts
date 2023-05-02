@@ -23,6 +23,13 @@ import { v4 as uuid4 } from 'uuid';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UsersService } from 'src/users/users.service';
 import { GatewaySessionManager } from './game.session';
+import { RegisterDto } from './dto/Register.dto';
+import { InviteDto } from './dto/Invite.dto';
+import { AcceptDto } from './dto/Accept.dto';
+import { RejectDto } from './dto/Reject.dto';
+import { MoveMouseDto } from './dto/moveMouse.dto';
+import { MoveDto } from './dto/Move.dto';
+import { StartGameDto } from './dto/StartGame.dto';
 
 @WebSocketGateway(8001, {
   cors: {
@@ -36,7 +43,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private gameRooms: GameEngine[] = [];
   private usersQueue: string[] = [];
-  private mobileQueue: string[] = [];
   private invitedUser: InvitationMap = new Map<string, string[]>();
   private userSockets: UserMap = new Map<string, SocketData>();
 
@@ -69,7 +75,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
     // console.log('User disconnected: ', userid);
     this.gatewaySession.removeUserSocket(userid);
-    this.gatewaySession.removeMobileSocket(userid);
   }
 
   createGameRoom(player1: SocketData, player2: SocketData, hasMiddleWall: boolean) {
@@ -117,48 +122,43 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('Register')
   async registerUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: RegisterDto,
   ) {
     console.log('In register user')
     let socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
 
-    if ( this.usersQueue.includes(socketData.userID) ||
-      this.mobileQueue.includes(socketData.userID)
+    if ( this.usersQueue.includes(socketData.userID)
     ) {
       this.server.to(client.id).emit('error');
       return;
     }
-    if ((this.usersQueue.length >= 1 && !data.mobile) || (this.mobileQueue.length >= 1 && data.mobile)) {
-      this.initGameRoom(socketData, this.usersQueue[0], data);
+    if (this.usersQueue.length >= 1) {
+      this.initGameRoom(socketData, this.usersQueue[0], data.hasMiddleWall);
       this.usersQueue.splice(0, 1);
     } else {
       socketData.status = GameStatus.READY;
-      if (!data.mobile) {
-        this.usersQueue.push(socketData.userID);
-      } else {
-        this.mobileQueue.push(socketData.userID);
-      }
+      this.usersQueue.push(socketData.userID);
     }
   }
 
   @SubscribeMessage('Invite')
-  async inviteUser(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  async inviteUser(@MessageBody() data: InviteDto, @ConnectedSocket() client: Socket) {
     console.log('Inviting user');
     const userID = client.data.userID.id;
-    const invitedUserID = data;
-    console.log('userid - ',userID, 'invited - ', invitedUserID)
+    const invitedUserID = data.username;
+    if (!(await this.usersService.checkIfUserExists(invitedUserID)))
+      throw new Error('User does not exist');
     const socketData: SocketData = this.setUserStatus(
       client,
       GameStatus.WAITING,
     );
-    if (await this.usersService.checkIfUserExists(invitedUserID.id)) {
+    if (await this.usersService.checkIfUserExists(invitedUserID)) {
       console.log('User is invited');
-      if ((await this.usersService.checkIfUserSentThreeInvites(userID, invitedUserID.id))) {
-        console.log('User sent three invites')
+      if ((await this.usersService.checkIfUserSentThreeInvites(userID, invitedUserID))) {
         new Error('You have already sent three invites to this user');
       }
       const invitedSocketData = this.userSockets.get(invitedUserID);
-      await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID.id}, userID);
+      await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID}, userID);
       this.server.to(client.id).emit('Invited', invitedUserID);
       if (invitedSocketData && invitedSocketData.status === GameStatus.WAITING)
         this.server.to(invitedSocketData.client.id).emit('Invited', userID);
@@ -167,11 +167,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('Accept')
   async acceptInvitation(
-    @MessageBody() data: any,
+    @MessageBody() data: AcceptDto,
     @ConnectedSocket() client: Socket,
   ) {
     const userID = client.data.userID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
+    if (!(await this.usersService.checkIfUserExists(data.inviteID)))
+      throw new Error('User does not exist');
     const checkInvite = await this.usersService.getInvite(data.inviteID);
     if (!checkInvite)
       return;
@@ -182,18 +184,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const invite = await this.usersService.acceptInvite(data.inviteID, userID);
       if (invite) {
         const invitedSocketData = this.userSockets.get(invite.senderId);
-        this.initGameRoom(socketData, invitedSocketData.userID, data);
+        this.initGameRoom(socketData, invitedSocketData.userID, data.hasMiddleWall);
       }
     }
   }
 
   @SubscribeMessage('Reject')
   async rejectInvitation(
-    @MessageBody() data: any,
+    @MessageBody() data: RejectDto,
     @ConnectedSocket() client: Socket,
   ) {
     const userID = client.data.userID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
+    if (!(await this.usersService.checkIfUserExists(data.inviteID)))
+      throw new Error('User does not exist');
     const invite = await this.usersService.rejectInvite(data.inviteID, userID);
     if (invite) {
       const invitedSocketData = this.userSockets.get(invite.senderId);
@@ -201,31 +205,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('JoinGame')
-  joinGame(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    const roomID = data;
-    const userID = client.data.userID;
-    const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
-
-    if (!this.gameRooms[roomID]) {
-      console.log('disconnected');
-      client.disconnect();
-      return;
-    }
-    const gameRoom = this.gameRooms[roomID];
-    if (socketData.status === GameStatus.READY) {
-      if (socketData.gameID == roomID) {
-        client.join(roomID);
-      }
-    }
-    this.server.to(client.id).emit('GameJoined', {
-      playerNumber: socketData.playerNumber,
-      gameRoom: gameRoom.gameObj,
-    });
-  }
-
   @SubscribeMessage('moveMouse')
-  handleMoveMouse(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  handleMoveMouse(@MessageBody() data: MoveMouseDto, @ConnectedSocket() client: Socket) {
     const roomId = data.roomID;
     if (roomId in this.gameRooms)
       this.gameRooms[roomId].moveMouse(data.y, client);
@@ -233,7 +214,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 
   @SubscribeMessage('move')
-  handleMove(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  handleMove(@MessageBody() data: MoveDto, @ConnectedSocket() client: Socket) {
     const roomId = data.roomID;
     const keyStatus: KeyPress = data.key;
     const isPressed = data.isPressed;
@@ -242,7 +223,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('StartGame')
-  async startGame(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  async startGame(@MessageBody() data: StartGameDto, @ConnectedSocket() client: Socket) {
     console.log('start game');
     const roomID = data.roomID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
@@ -258,18 +239,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
     if (this.gameRooms[roomID]) {
-      this.gameRooms[roomID].startGame(data.mobile, true);
-      // this.gameRooms[roomID].startGame(data.mobile, data.hasMiddleWall);
+      this.gameRooms[roomID].startGame(true);
+      // this.gameRooms[roomID].startGame(data.hasMiddleWall);
     }
   }
 
-  private initGameRoom(currentUser: SocketData, player1: string, data: any) {
+  private initGameRoom(currentUser: SocketData, player1: string, middleWall: boolean = false) {
     let user = this.gatewaySession.getUserSocket(player1);
     if (!(user.status === GameStatus.WAITING || user.status === GameStatus.QUEUED))
       new Error('User is in a game');
-    if (data.mobile) {
-      user = this.gatewaySession.getUserSocket(this.mobileQueue[0]);
-    }
     user.playerNumber = 1;
     user.status = GameStatus.READY;
     currentUser.playerNumber = 2;
@@ -280,7 +258,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     currentUser.gameID = roomID;
     this.server.to(currentUser.client.id).emit('start', {
       playerNo: 2,
-      mobile: data.mobile,
       players: {
         player1: user.userID,
         player2: currentUser.userID,
@@ -289,7 +266,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
     this.server.to(user.client.id).emit('start', {
       playerNo: 1,
-      mobile: data.mobile,
       players: {
         player1: user.userID,
         player2: currentUser.userID,
