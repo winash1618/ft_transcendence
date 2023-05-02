@@ -146,23 +146,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('Inviting user');
     const userID = client.data.userID.id;
     const invitedUserID = data.username;
-    if (!(await this.usersService.checkIfUserExists(invitedUserID)))
+    if (await this.usersService.checkIfUserExists(invitedUserID) == null)
       throw new Error('User does not exist');
     const socketData: SocketData = this.setUserStatus(
       client,
       GameStatus.WAITING,
     );
-    if (await this.usersService.checkIfUserExists(invitedUserID)) {
-      console.log('User is invited');
-      if ((await this.usersService.checkIfUserSentThreeInvites(userID, invitedUserID))) {
-        new Error('You have already sent three invites to this user');
-      }
-      const invitedSocketData = this.userSockets.get(invitedUserID);
-      await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID}, userID);
-      this.server.to(client.id).emit('Invited', invitedUserID);
-      if (invitedSocketData && invitedSocketData.status === GameStatus.WAITING)
-        this.server.to(invitedSocketData.client.id).emit('Invited', userID);
+    console.log('User is invited');
+    if ((await this.usersService.checkIfUserSentThreeInvites(userID, invitedUserID))) {
+      new Error('You have already sent three invites to this user');
     }
+    const invitedSocketData = this.userSockets.get(invitedUserID);
+    await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID}, userID);
+    this.server.to(client.id).emit('Invited', invitedUserID);
+    if (invitedSocketData && invitedSocketData.status === GameStatus.WAITING)
+      this.server.to(invitedSocketData.client.id).emit('Invited', userID);
   }
 
   @SubscribeMessage('Accept')
