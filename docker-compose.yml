@@ -39,7 +39,6 @@ services:
     command: >
       bash -c "npm install
       && npm i -g @nestjs/cli
-      && npx prisma migrate dev --name init
       && npm run start:dev"
     networks:
       - transcendence

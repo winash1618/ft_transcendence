@@ -72,7 +72,8 @@ export class ParticipantService {
   }
 
   async addParticipantToConversation(
-    createParticipant: CreateParticipantDto
+    createParticipant: CreateParticipantDto,
+    password?: string,
   ) {
     try {
       const conversation =
@@ -84,6 +85,15 @@ export class ParticipantService {
         throw new Error('Conversation does not exist');
       }
 
+      if (password) {
+        if (conversation.privacy !== 'PUBLIC') {
+          if (password === '' || password === null || password === undefined)
+            throw new Error('Password is required');
+          if (await this.conversationService.validatePassword(password,conversation.id) === null)
+            throw new Error('Invalid password');
+        }
+      }
+
       const participant = await this.checkParticipantExists(
         createParticipant.conversation_id,
         createParticipant.user_id,
@@ -92,6 +102,9 @@ export class ParticipantService {
       if (participant) {
         if (participant.conversation_status === 'BANNED')
           throw new Error('User is banned');
+
+        if (participant.conversation_status === 'ACTIVE' || participant.conversation_status === 'MUTED')
+          throw new Error('User is already in the conversation');
 
         return await this.updateParticipantStatus(
           createParticipant.conversation_id,
@@ -297,6 +310,9 @@ export class ParticipantService {
 
     if (!conversation)
       throw new Error('Conversation does not exist');
+
+    if (conversation.privacy === 'DIRECT')
+      throw new Error('Admin does not exist in direct conversations');
 
     const participant = await this.checkParticipantExists(
       conversationID,

@@ -77,7 +77,7 @@ export class ConversationService {
     if (participant.role !== Role.OWNER)
       throw new Error('User is OWNER.');
 
-    if (participant.conversation_status !== Status.ACTIVE)
+      if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('User is not active in this conversation');
 
     if (password == '' || password == null || password == undefined)

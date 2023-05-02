@@ -30,7 +30,7 @@ export class MessageService {
     if (!participant)
       throw new Error('Participant is not in the conversation');
 
-    if (participant.conversation_status !== Status.ACTIVE)
+      if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('Participant is not active in the conversation');
 
     return await this.prisma.message.create({

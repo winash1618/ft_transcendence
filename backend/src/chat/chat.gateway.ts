@@ -34,13 +34,13 @@ import {
   MuteUserDTO,
 } from './dto/GatewayDTO/index.dto';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
-})
-// @WebSocketGateway()
+// @WebSocketGateway(8001, {
+//   cors: {
+//     origin: process.env.FRONTEND_BASE_URL,
+//     credentials: true,
+//   },
+// })
+@WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -49,13 +49,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private conversationService: ConversationService,
     private participantService: ParticipantService,
     private messageService: MessageService,
-    // usePipes(new ValidationPipe()),
     private jwtService: JwtService,
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
+    // const token = client.handshake.auth.token as string;
+    const token = client.handshake.headers.token as string;
     const userID = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });
@@ -88,16 +87,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In createConversation');
     try {
       await this.createConversationValidation(data);
-
-      const errors = await validate(data);
-      console.log(errors)
-      if (errors.length > 0) {
-        // If there are any validation errors, throw a WsException with the first error message
-        throw new WsException({
-          message: 'Create conversation failed',
-          error: errors[0].toString(),
-        });
-      }
 
       const conversation = await this.conversationService.createConversation({
         title: data.title,
@@ -132,6 +121,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('joinConversation')
   async joinConversation(
     @ConnectedSocket() client: Socket,
@@ -149,7 +139,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             user_id: client.data.userID.id,
             role: Role.USER,
             conversation_status: 'ACTIVE',
-          }
+          },
+          data.password
         );
 
       await this.joinConversations(client.data.userID.id, data.conversationID);
@@ -167,6 +158,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('directMessage')
   async directMessage(
     @ConnectedSocket() client: Socket,
@@ -202,6 +194,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('leaveConversation')
   async leaveConversation(
     @ConnectedSocket() client: Socket,
@@ -237,6 +230,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('addPassword')
   async protectRoom(
     @ConnectedSocket() client: Socket,
@@ -261,6 +255,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('sendMessage')
   async sendMessage(
     @ConnectedSocket() client: Socket,
@@ -306,6 +301,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('makeAdmin')
   async makeAdmin(@ConnectedSocket() client: Socket, @MessageBody() data: MakeAdminDTO) {
     try {
@@ -328,6 +324,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('addParticipant')
   async addParticipant(
     @ConnectedSocket() client: Socket,
@@ -371,6 +368,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('removeParticipant')
   async removeParticipant(
     @ConnectedSocket() client: Socket,
@@ -381,17 +379,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const check = await this.addRemoveParticipantValidation(data, client.data.userID.id, 'REMOVE');
 
-      if (!check)
-        throw new Error('User not in conversation');
+      console.log('check', check);
 
-      if (check.conversation_status === 'BANNED')
-        throw new Error('User is banned');
+      if (check) {
+        if (check.conversation_status === 'BANNED')
+          throw new Error('User is banned');
 
-      if (check.conversation_status !== Status.ACTIVE)
-        throw new Error('User is not in conversation');
+        if (check.conversation_status !== Status.ACTIVE && check.conversation_status !== Status.MUTED)
+          throw new Error('User is not in conversation');
 
-      if (check.role === Role.OWNER)
-        throw new Error('User is channel Owner.');
+        if (check.role === Role.OWNER)
+          throw new Error('User is channel Owner.');
+      }
+
 
       const participant =
         await this.participantService.removeParticipantFromConversation(
@@ -420,6 +420,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('banUser')
   async banUser(@ConnectedSocket() client: Socket, @MessageBody() data: BanUserDTO) {
     try {
@@ -448,6 +449,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('unbanUser')
   async unbanUser(@ConnectedSocket() client: Socket, @MessageBody() data: UnBanUserDTO) {
     try {
@@ -474,6 +476,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('removePassword')
   async removePassword(
     @ConnectedSocket() client: Socket,
@@ -498,6 +501,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('muteUser')
   async muteUser(@ConnectedSocket() client: Socket, @MessageBody() data: MuteUserDTO) {
     try {
@@ -577,23 +581,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private async createConversationValidation(
     data: createConversationDto,
   ): Promise<boolean> {
-    if (!Object.values(Privacy).includes(data.privacy as Privacy)) {
-      throw new Error('Privacy is invalid or not provided');
-    }
-
     if (data.privacy === Privacy.PROTECTED || data.privacy === Privacy.PRIVATE) {
       if (!data.password) {
         throw new Error('Password is required to protect the conversations');
       }
-
-      const regex = new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$");
-      if (!regex.test(data.password)) {
-        throw new Error('Password is invalid');
-      }
-    }
-
-    if (!data.title || data.title.trim() === '') {
-      throw new Error('Title is required');
     }
 
     if ((await this.conversationService.validateChannelTitle(data.title) === false)) {
@@ -607,9 +598,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     data: joinConversationDto,
     user: string,
   ): Promise<boolean> {
-    if (data.conversationID == '' || data.conversationID == null || data.conversationID == undefined)
-      throw new Error('Conversation ID is required');
-
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
@@ -669,10 +657,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant)
-      throw new Error('You are not in this conversation');
-
-    if (participant.conversation_status !== Status.ACTIVE)
+    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('You are not in this conversation');
 
     return true;
@@ -683,12 +668,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     user: string,
     event: string,
   ): Promise<Participant> {
-    if (data.conversationID == '' || data.conversationID == null || data.conversationID == undefined)
-      throw new Error('Conversation ID is required');
-
-    if (data.userID == '' || data.userID == null || data.userID == undefined)
-      throw new Error('Participant ID is required');
-
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
@@ -719,12 +698,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     data: BanUserDTO,
     user: string,
   ): Promise<boolean> {
-    if (data.conversationID == '' || data.conversationID == null || data.conversationID == undefined)
-      throw new Error('Conversation ID is required');
-
-    if (data.userID == '' || data.userID == null || data.userID == undefined)
-      throw new Error('Participant ID is required');
-
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
@@ -740,24 +713,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant || participant.conversation_status !== Status.ACTIVE)
+    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('You are not in this conversation');
 
     if (participant.role === Role.USER)
       throw new Error('You are not an admin of this conversation');
+
+    if (user === data.userID)
+      throw new Error('You cannot ban yourself');
 
     const userExists = await this.participantService.checkParticipantExists(data.conversationID, data.userID);
 
     if (!userExists)
       throw new Error('Participant does not exist');
 
-    if (userExists.role !== Role.OWNER)
-      throw new Error('You cannot ban an owner');
+    if (userExists.role === Role.ADMIN || userExists.role === Role.OWNER)
+      throw new Error('You cannot ban an admin or owner');
+
 
     if (userExists.conversation_status === Status.BANNED)
       throw new Error('Participant is already banned');
 
-    if (userExists.conversation_status !== Status.ACTIVE)
+    if (userExists.conversation_status !== Status.ACTIVE && userExists.conversation_status !== Status.MUTED)
       throw new Error('Participant is not part of this conversation');
 
     return true;
@@ -767,12 +744,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     data: UnBanUserDTO,
     user: string,
   ): Promise<boolean> {
-    if (data.conversationID == '' || data.conversationID == null || data.conversationID == undefined)
-      throw new Error('Conversation ID is required');
-
-    if (data.userID == '' || data.userID == null || data.userID == undefined)
-      throw new Error('Participant ID is required');
-
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
@@ -788,7 +759,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant || participant.conversation_status !== Status.ACTIVE)
+    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('You are not in this conversation');
 
     if (participant.role === Role.USER)
@@ -798,6 +769,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (!userExists)
       throw new Error('Participant does not exist');
+
+    if (userExists.conversation_status === Status.KICKED || userExists.conversation_status === Status.DELETED)
+      throw new Error('Participant is not part of this conversation');
 
     if (userExists.conversation_status !== Status.BANNED)
       throw new Error('Participant is not banned');
@@ -830,7 +804,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant || participant.conversation_status !== Status.ACTIVE)
+    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('You are not in this conversation');
 
     if (participant.role === Role.USER)
@@ -854,9 +828,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     data: any,
     user: string,
   ): Promise<boolean> {
-    if (data.conversationID == '' || data.conversationID == null || data.conversationID == undefined)
-      throw new Error('Conversation ID is required');
-
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
@@ -875,7 +846,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant || participant.conversation_status !== Status.ACTIVE)
+    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('You are not in this conversation');
 
     if (participant.role !== Role.OWNER)

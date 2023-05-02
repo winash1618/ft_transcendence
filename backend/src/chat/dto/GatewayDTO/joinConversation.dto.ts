@@ -1,15 +1,12 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class joinConversationDto {
   @IsString()
   @IsNotEmpty()
   conversationID: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  password?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  privacy: string;
+  password: string;
 }
