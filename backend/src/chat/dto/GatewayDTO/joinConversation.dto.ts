@@ -7,6 +7,5 @@ export class joinConversationDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   password: string;
 }

@@ -7,6 +7,7 @@ import {
   IsOptional,
   Length,
 } from 'class-validator';
+import { IsOptionalOrMatchesRegex } from 'src/utils/validator';
 
 export class createConversationDto {
   @IsString()
@@ -14,10 +15,9 @@ export class createConversationDto {
   @Length(1, 255) // Title length should be between 1 and 255 characters
   title: string;
 
-  @IsOptional()
-  @IsString()
-  @Matches(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/, {
-    message: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special character',
+  @IsOptionalOrMatchesRegex(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/, {
+    message:
+      'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special character',
   })
   password?: string;
 
