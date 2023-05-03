@@ -80,7 +80,7 @@ export class ConversationService {
     if (!participant)
       throw new Error('User is not a participant of this conversation');
 
-    if (participant.role !== Role.OWNER) throw new Error('User is OWNER.');
+    if (participant.role !== Role.OWNER) throw new Error('User is not OWNER.');
 
       if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
       throw new Error('User is not active in this conversation');
