@@ -184,7 +184,7 @@ export class UsersController {
     @Res() res: Response
   ): Promise<void> {
     try {
-      const invitation = await this.usersService.rejectInvite(id, req.user.id);
+      const invitation = await this.usersService.rejectInvite(id);
       res.status(200).json(invitation);
     } catch (error) {
       res.status(400).json({ message: error.message });
@@ -201,7 +201,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':userID/inviations')
+  @Get(':userID/invitations')
   async getInvitations(@Param('userID') userID: string) {
     return await this.usersService.getPendingInvitations(userID);
   }
