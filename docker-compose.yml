@@ -39,6 +39,8 @@ services:
     command: >
       bash -c "npm install
       && npm i -g @nestjs/cli
+      && npx prisma db push
+      && npx prisma db seed
       && npm run start:dev"
     networks:
       - transcendence
