@@ -27,6 +27,7 @@ export class GameController {
     @Res() res: Response,
   ) {
     try {
+      console.log('here', id)
       const gameHistory = await this.gameService.getGameHistory(id);
       const user = await this.usersService.getUserById(id);
       if (user.blocked_users.some(user => user.id === req.user.id)) {

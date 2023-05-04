@@ -361,9 +361,9 @@ export class ConversationService {
       throw new Error('User is not admin of the conversation');
     }
 
-    return await this.prisma.user.findUnique({
+    const conv = await this.prisma.user.findUnique({
       where: {
-        id: userID,
+        id: userID
       },
       select: {
         friends: {
@@ -372,6 +372,11 @@ export class ConversationService {
               participant_in: {
                 some: {
                   conversation_id: conversationID,
+                  NOT: {
+                    conversation_status: {
+                      in: ['BANNED', 'KICKED'],
+                    },
+                  }
                 },
               },
             },
@@ -384,6 +389,8 @@ export class ConversationService {
         },
       },
     });
+    console.log(conv);
+    return conv;
   }
 
   async checkConversationExists(conversationID: string) {
