@@ -182,6 +182,19 @@ export class UsersService {
     return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, sentInvites: true, blocked_users: true } });
   }
 
+  async getUserIDByUserName(username: string): Promise<string> {
+    console.log(username)
+    const user = await this.prisma.user.findUnique({
+      where: { username: username },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user.id;
+  }
+
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
@@ -311,6 +324,7 @@ export class UsersService {
     createInviteDto: any,
     senderId: string
   ) {
+    console.log('createInviteDto', createInviteDto, 'senderId', senderId)
     const { type, receiverId } = createInviteDto;
 
     const invite = await this.prisma.invitations.create({
