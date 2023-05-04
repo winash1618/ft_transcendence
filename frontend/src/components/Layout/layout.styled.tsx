@@ -56,19 +56,25 @@ export const InviteWrapper = styled.div`
   display: flex;
   justify-content: center;
   flex-direction: column;
+  gap: 15px;
   align-items: center;
 `;
 
 export const InviteDescription = styled.p`
   font-size: 0.9rem;
+  line-height: 20px;
 `;
 
 export const NotificationsUl = styled.ul`
   position: absolute;
   overflow-y: auto;
+  z-index: 999999;
   max-height: 500px;
-  left: -300px;
+  left: -15vw;
   background: #fff;
+  /* @media (max-width: 568px) {
+    max-width: 200px;
+  } */
   list-style-type: none;
   border-radius: 10px;
   color: #000;

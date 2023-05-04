@@ -161,22 +161,44 @@ export class AuthController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('validate-otp')
   async validateOTP(
     @Req() req,
     @Res() res: Response,
     @Body() body: { otp: string },
   ): Promise<Response> {
+    const cookie = req.cookies.auth;
+    if (!cookie) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: 'Unauthorized' });
+    }
+
+    const verifyToken = await this.authService.verifyToken(cookie);
+
+    if (!verifyToken) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: 'Unauthorized' });
+    }
+    const cookieToken = await this.authService.decodeToken(cookie);
+
+    if (!cookieToken) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: 'Unauthorized' });
+    }
+    const user = await this.authService.validateUser(cookieToken as User);
+
     const verified = speakeasy.totp.verify({
-      secret: req.user.secret_code,
+      secret: user.secret_code,
       encoding: 'base32',
       token: body.otp,
       window: 1,
     });
 
     if (verified) {
-      await this.userService.updateAuthentication(req.user.id, true);
+      await this.userService.updateAuthentication(user.id, true);
       return res.status(HttpStatus.ACCEPTED).json({ message: 'otp is valid' });
     } else {
       return res
