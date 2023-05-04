@@ -6,7 +6,6 @@ import { LockOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/ico
 interface ExploreChatProps {
 	socket: any;
 	conversations: Conversation[];
-	setNavbar: any;
 	Navbar: Nav;
 }
 
@@ -19,7 +18,6 @@ interface Conversation {
 const ExploreChat = ({
 	socket,
 	conversations,
-	setNavbar,
 	Navbar,
 }: ExploreChatProps) => {
 	const [selectedConversationID, setSelectedConversationID] = React.useState("");
@@ -39,7 +37,6 @@ const ExploreChat = ({
 		setSelectedConversationID(conversation.id);
 		if (conversation.privacy === "PUBLIC") {
 			socket?.emit("joinConversation", { conversationID: conversation.id, password: "" });
-			setNavbar(Nav.GROUPS);
 		}
 		else if (conversation.privacy === "PROTECTED") {
 			setMenuVisible(menuVisible === false ? true : false);
@@ -51,13 +48,12 @@ const ExploreChat = ({
 		socket?.emit("joinConversation", { conversationID: conversation.id, password: password });
 		setPassword('');
 		setMenuVisible(false);
-		setNavbar(Nav.GROUPS);
 	}
 
 	useEffect(() => {
 		console.log("Explore useEffect to reset data");
-		setMenuVisible(false);
-	}, [conversations, Navbar]);
+		setMenuVisible(false);  
+	}, [conversations]);
 
 	return (
 		<>

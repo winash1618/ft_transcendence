@@ -146,7 +146,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await this.joinConversations(client.data.userID.id, data.conversationID);
       this.server.to(data.conversationID).emit('conversationJoined', {
         conversationID: data.conversationID,
-        leftUserID: client.data.userID.id,
+        userID: client.data.userID.id,
       });
     }
     catch (e) {
@@ -216,9 +216,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(client.data.userID.id);
       if (!user) return;
       this.server.to(data.conversationID).emit('conversationLeft', {
-        conversationID: data.conversationID,
-        leftUserID: client.data.userID.id,
-      });
+		  conversationID: data.conversationID,
+		  userID: client.data.userID.id,
+		});
       user.leave(data.conversationID);
     }
     catch (e) {
@@ -245,7 +245,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.server
         .to(data.conversationID)
-        .emit('conversationProtected', conversation.id);
+        .emit('conversationProtected', {
+			conversationID: data.conversationID,
+			userID: client.data.userID.id,
+		  });
     }
     catch (e) {
       throw new WsException({
@@ -492,7 +495,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           data.conversationID,
         );
 
-      this.server.to(data.conversationID).emit('passwordRemoved');
+      this.server.to(data.conversationID).emit('passwordRemoved', {
+        conversationID: data.conversationID,
+        userID: client.data.userID.id,
+      });
     } catch (e) {
       throw new WsException({
         message: 'Remove Password failed',

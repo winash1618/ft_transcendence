@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Colors, Conversation, GNav, Privacy, Role, Status } from "../../chat.functions";
 import axios from "axios";
-import { List, Dropdown, MenuProps, Input } from 'antd';
+import { List, Dropdown, MenuProps, Input, message } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { BASE_URL } from "../../../../api";
 import { IoMdAddCircleOutline } from "react-icons/io";
+import PageNotFound404 from "../../../../pages/errorPages/pageNotFound";
 
 interface GroupChatProps {
 	socket: any;
@@ -19,7 +20,6 @@ interface GroupChatProps {
 	setStatus: any;
 	conversation: any;
 	setGroupResults: any;
-	setGroupNav: any;
 }
 
 const GroupChat = ({
@@ -32,27 +32,11 @@ const GroupChat = ({
 	setStatus,
 	conversation,
 	setGroupResults,
-	setGroupNav,
 }: GroupChatProps) => {
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
-	const { token } = useAppSelector((state) => state.auth);
-
-	const handleConversationLeft = useCallback(() => {
-		console.log("handleConversationLeft in GroupChat");
-		setMessages([]);
-		setConversationID(null);
-	}, [setMessages, setConversationID]);
-
-	useEffect(() => {
-		socket?.on('conversationLeft', handleConversationLeft);
-		return () => {
-			socket?.off('conversationLeft', handleConversationLeft);
-		};
-	}, [socket, handleConversationLeft]);
-
-
+	const { userInfo, token } = useAppSelector((state) => state.auth);
 
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
@@ -63,6 +47,7 @@ const GroupChat = ({
 
 	const resetGroupResults = useCallback(() => {
 		console.log("resetGroupResults in GroupChat");
+		console.log("conversations in resetGroupResults", conversations, conversation, conversationID);
 		setGroupResults([]);
 	}, [setGroupResults]);
 
@@ -70,12 +55,6 @@ const GroupChat = ({
 		setMenuVisible(false);
 		resetGroupResults()
 	}, [conversation, resetGroupResults, setMenuVisible]);
-
-	useEffect(() => {
-		console.log("Group useEffect to reset data");
-		handleConversationLeft();
-		resetGroupResults()
-	}, [conversations, handleConversationLeft, resetGroupResults]);
 
 	function handleUpdatePassword(conversation: any, password: string) {
 		console.log("handleProtectedConversation in GroupChat");
@@ -126,14 +105,23 @@ const GroupChat = ({
 			setConversationID(conversation.id);
 			setConversation(conversation);
 			try {
-				const result = await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
+				await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
-				});
-				console.log("Messages Object from Group chat");
-				setMessages(result.data);
+				}).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setMessages(response.data)
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 			} catch (err) {
 				console.log(err);
 			}
@@ -147,7 +135,6 @@ const GroupChat = ({
 						},
 					}
 				);
-				setGroupNav(GNav.GROUPS);
 				setGroupResults(result.data);
 				console.log("Group members");
 			} catch (err) {
@@ -241,7 +228,7 @@ const GroupChat = ({
 									type="password"
 									onChange={(e) => setPassword(e.target.value)}
 								/>
-								<IoMdAddCircleOutline size={24} color="green" onClick={() => handleUpdatePassword(conversation, password)}/>
+								<IoMdAddCircleOutline size={24} color="green" onClick={() => handleUpdatePassword(conversation, password)} />
 							</div>
 
 						)}

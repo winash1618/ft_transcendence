@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Nav } from "../../chat.functions";
 import { Form, Input, Button, Select, Row, Col } from 'antd';
+import { SuccessAlert } from "../../../toastify";
 const { Option } = Select;
 
 interface CreateChatProps {
@@ -19,7 +20,8 @@ const CreateChat = ({
 	const handleCreateChat = (channelName, channelPrivacy, password) => {
 		if (Boolean(String(channelName).trim()) === true) {
 			socket?.emit('createConversation', { title: channelName, privacy: channelPrivacy, password: password });
-			setNavbar(Nav.GROUPS);
+			setPassword('');
+			setError('');
 		}
 	};
 

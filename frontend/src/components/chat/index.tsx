@@ -5,7 +5,7 @@ import { UserProfilePicture } from "../../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";
-import { ErrorAlert } from "../toastify/index";
+import { ErrorAlert, SuccessAlert } from "../toastify/index";
 
 interface ChatProps {
 	socket: any;
@@ -33,6 +33,15 @@ const Chat = ({
 		});
 		return () => {
 			socket?.off('exception');
+		};
+	}, [socket]);
+
+	useEffect(() => {
+		socket?.on('conversationCreated', () => {
+			SuccessAlert("Conversation Created", 5000);
+		});
+		return () => {
+			socket?.off('conversationCreated');
 		};
 	}, [socket]);
 

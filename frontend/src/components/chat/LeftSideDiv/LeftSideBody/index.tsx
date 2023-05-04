@@ -17,7 +17,6 @@ interface LeftSideBodyProps {
 	setStatus: any;
 	conversation: any;
 	setGroupResults: any;
-	setGroupNav: any;
 }
 
 const LeftSideBody = ({
@@ -33,7 +32,6 @@ const LeftSideBody = ({
 	setStatus,
 	conversation,
 	setGroupResults,
-	setGroupNav
 }: LeftSideBodyProps) => {
 
 	if (Navbar === Nav.DIRECT) {
@@ -59,7 +57,6 @@ const LeftSideBody = ({
 				setStatus={setStatus}
 				conversation={conversation}
 				setGroupResults={setGroupResults}
-				setGroupNav={setGroupNav}
 			/>
 		);
 	}
@@ -68,7 +65,6 @@ const LeftSideBody = ({
 			<ExploreChat
 				socket={socket}
 				conversations={conversations}
-				setNavbar={setNavbar}
 				Navbar={Navbar}
 			/>
 		);

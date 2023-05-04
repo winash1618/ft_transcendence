@@ -43,18 +43,7 @@ const LeftSideDiv = ({
 	setGroupResults,
 	setGroupNav
 }: LeftSideDivProps) => {
-	const { token } = useAppSelector((state) => state.auth);
-	const resetState = useCallback(() => {
-		console.log("left side div resetStateChat");
-		setMessages([]);
-		setConversations([]);
-		setConversationID(null);
-	}, [setMessages, setConversations, setConversationID]);
-
-	useEffect(() => {
-		console.log("left side div useEffect to reset everything when navbar changes");
-		resetState();
-	}, [socket, Navbar, resetState]);
+	const { userInfo, token } = useAppSelector((state) => state.auth);
 
 	const handleDirectExists = useCallback(async (object, token) => {
 		console.log("direct exists");
@@ -101,6 +90,26 @@ const LeftSideDiv = ({
 			socket?.off('directMessage', handleDirectMessage);
 		};
 	}, [handleDirectExists, handleDirectMessage, socket, token]);
+
+	// const handleConversationLeft = useCallback((data) => {
+	// 	console.log("handleConversationLeft in GroupChat");
+	// 	console.log(data.leftUserID, userInfo.id);
+	// 	if (data.leftUserID === userInfo.id) {
+	// 		console.log("data in handleConversationLeft", data);
+	// 		setConversationID(null);
+	// 		setMessages([]);
+	// 		setConversation(null);
+	// 		setConversations(conversations.filter((conversation) => conversation.id !== data.conversationID));
+	// 	}
+	// }, [setMessages, setConversationID]);
+
+	// useEffect(() => {
+	// 	socket?.on('conversationLeft', handleConversationLeft);
+	// 	return () => {
+	// 		socket?.off('conversationLeft', handleConversationLeft);
+	// 	};
+	// }, [socket, handleConversationLeft]);
+
 	return (
 		<>
 			<LeftSideHeader
@@ -111,6 +120,8 @@ const LeftSideDiv = ({
 				setConversations={setConversations}
 				setConversation={setConversation}
 				setResults={setResults}
+				setConversationID={setConversationID}
+				setMessages={setMessages}
 			/>
 			<LeftSideBody
 				socket={socket}
@@ -125,7 +136,6 @@ const LeftSideDiv = ({
 				setStatus={setStatus}
 				conversation={conversation}
 				setGroupResults={setGroupResults}
-				setGroupNav={setGroupNav}
 			/>
 		</>
 	);

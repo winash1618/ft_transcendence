@@ -18,6 +18,8 @@ interface LeftSideHeaderProps {
 	setConversations: (conversations: any) => void;
 	setConversation: (conversation: any) => void;
 	setResults: (results: any) => void;
+	setConversationID: (conversationID: any) => void;
+	setMessages: (messages: any) => void;
 }
 
 function LeftSideHeader({
@@ -28,12 +30,13 @@ function LeftSideHeader({
 	setConversations,
 	setConversation,
 	setResults,
+	setConversationID,
+	setMessages,
 }: LeftSideHeaderProps) {
-	const { token } = useAppSelector((state) => state.auth);
+	const { userInfo, token } = useAppSelector((state) => state.auth);
 	const handleNavbarClick = useCallback(async (nav: Nav) => {
 		setConversations([]);
 		if (nav === Nav.DIRECT) {
-			console.log("i am in leftside header", user.id);
 			try {
 				const result = await axios.get(`${BASE_URL}/chat/direct`, {
 					withCredentials: true,
@@ -100,7 +103,21 @@ function LeftSideHeader({
 					Authorization: `Bearer ${token}`,
 				},
 			});
-			setNavbar(Nav.GROUPS);
+			setConversations(result.data);
+		} catch (err) {
+			setConversations([]);
+			console.log(err);
+		}
+	}
+	const setExploreConversationsObject = async () => {
+		console.log("handleConversationExplore in LeftSideHeader");
+		try {
+			const result = await axios.get(`${BASE_URL}/chat/explore`, {
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
 			setConversations(result.data);
 		} catch (err) {
 			setConversations([]);
@@ -108,45 +125,61 @@ function LeftSideHeader({
 		}
 	}
 
-	const handleSetConversationObject = useCallback(setConversationsObject, [setNavbar, setConversations, token]);
+	const handleSetConversationObject = useCallback(
+		setConversationsObject,
+		[setNavbar, setConversations, token]
+	);
 
 	useEffect(() => {
-		console.log("i am in leftsideheader useEffect");
 		if (user && user !== undefined) {
+			console.log("i am in leftsideheader useEffect");
 			handleNavbarClick(Navbar);
 		}
 	}, [Navbar, user, handleNavbarClick]);
 
 	useEffect(() => {
-		const handleConversationLeft = async (object: any) => {
-			handleSetConversationObject();
-		};
 		const handlePasswordAdded = async (object: any) => {
-			handleSetConversationObject();
-		};
-		const handlePasswordRemoved = async (object: any) => {
-			handleSetConversationObject();
-		};
-		const handleConversationJoined = async (object: any) => {
-			handleSetConversationObject();
-		};
-		const handleUserBan = async (object: any) => {
-			if (object.bannedUserID === user.id) {
+			if (object.userID === userInfo.id) {
 				handleSetConversationObject();
 			}
 		};
-		const handleUserUnbanned = async (object: any) => {
-			if (object.unbannedUserID === user.id) {
+		const handlePasswordRemoved = async (object: any) => {
+			if (object.userID === userInfo.id) {
 				handleSetConversationObject();
 			}
 		};
 		const handleUserKicked = async (object: any) => {
-			if (object.kickedUserID === user.id) {
+			if (object.kickedUserID === userInfo.id) {
 				handleSetConversationObject();
 			}
 		};
+		const handleUserUnbanned = async (object: any) => {
+			if (object.unbannedUserID === userInfo.id) {
+				handleSetConversationObject();
+			}
+		};
+		const handleUserBanned = async (object: any) => {
+			if (object.bannedUserID === userInfo.id) {
+				handleSetConversationObject();
+			}
+		};
+		const handleConversationLeft = async (object: any) => {
+			console.log("handleConversationLeft in LeftSideHeader1", object, userInfo.id);
+			if (object.userID === userInfo.id) {
+				handleSetConversationObject();
+				setConversationID(null);
+				setMessages([]);
+				setConversation(null);
+			}
+		};
+		const handleConversationJoined = async (object: any) => {
+			console.log("handleConversationJoined in LeftSideHeader1", object, userInfo.id);
+			if (object.userID === userInfo.id) {
+				setExploreConversationsObject();
+			}
+		};
 		const handleUserMuted = async (object: any) => {
-			if (object != null && object.mutedUserID !== null && object.mutedUserID === user.id) {
+			if (object != null && object.mutedUserID !== null && object.mutedUserID === userInfo.id) {
 				handleSetConversationObject();
 			}
 		};
@@ -160,9 +193,9 @@ function LeftSideHeader({
 		socket?.on('userMuted', handleUserMuted);
 		socket?.on('userKicked', handleUserKicked);
 		socket?.on('userUnbanned', handleUserUnbanned);
-		socket?.on('userBanned', handleUserBan);
-		socket?.on('conversationJoined', handleConversationJoined);
+		socket?.on('userBanned', handleUserBanned);
 		socket?.on('conversationLeft', handleConversationLeft);
+		socket?.on('conversationJoined', handleConversationJoined);
 		socket?.on('conversationProtected', handlePasswordAdded);
 		socket?.on('passwordRemoved', handlePasswordRemoved);
 
@@ -171,13 +204,13 @@ function LeftSideHeader({
 			socket?.off('userMuted', handleUserMuted);
 			socket?.off('userKicked', handleUserKicked);
 			socket?.off('userUnbanned', handleUserUnbanned);
-			socket?.off('userBanned', handleUserBan);
-			socket?.off('conversationJoined', handleConversationJoined);
+			socket?.off('userBanned', handleUserBanned);
 			socket?.off('conversationLeft', handleConversationLeft);
+			socket?.on('conversationJoined', handleConversationJoined);
 			socket?.off('conversationProtected', handlePasswordAdded);
 			socket?.off('passwordRemoved', handlePasswordRemoved);
 		};
-	}, [socket, user, handleSetConversationObject]);
+	}, [socket, user, handleSetConversationObject, setConversationID, setMessages, setConversation]);
 
 	return (
 		<>
