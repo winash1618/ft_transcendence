@@ -6,6 +6,7 @@ import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";
 import { ErrorAlert, SuccessAlert } from "../toastify/index";
+import { useAppSelector } from "../../hooks/reduxHooks";
 
 interface ChatProps {
 	socket: any;
@@ -16,6 +17,7 @@ const Chat = ({
 	socket,
 	user,
 }: ChatProps) => {
+	const { userInfo } = useAppSelector((state) => state.auth);
 	const [Navbar, setNavbar] = useState(Nav.DIRECT);
 	const [conversationID, setConversationID] = useState(null);
 	const [conversations, setConversations] = useState([]);
@@ -36,14 +38,7 @@ const Chat = ({
 		};
 	}, [socket]);
 
-	useEffect(() => {
-		socket?.on('conversationCreated', () => {
-			SuccessAlert("Conversation Created", 5000);
-		});
-		return () => {
-			socket?.off('conversationCreated');
-		};
-	}, [socket]);
+
 
 	return (
 		<>
@@ -65,7 +60,6 @@ const Chat = ({
 						conversation={conversation}
 						setResults={setResults}
 						setGroupResults={setGroupResults}
-						setGroupNav={setGroupNav}
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>
