@@ -155,14 +155,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       GameStatus.WAITING,
     );
     console.log('User is invited');
-    if ((await this.usersService.checkIfUserSentThreeInvites(userID, invitedUserID))) {
-      new Error('You have already sent three invites to this user');
+    if ((await this.usersService.checkIfUserSentThreeInvites(userID, data.id))) {
+      return new Error('You have already sent three invites to this user');
     }
     const invitedSocketData = this.userSockets.get(invitedUserID);
-    await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID}, userID);
-    this.server.to(client.id).emit('Invited', invitedUserID);
+    const invite = await this.usersService.createInvite({type: 'GAME', receiverId: invitedUserID}, userID);
     if (invitedSocketData)
-      this.server.to(invitedSocketData.client.id).emit('Invited', userID);
+      this.server.to(invitedSocketData.client.id).emit('Invited', {...client.data.userID, inviteId: invite.id});
   }
 
   @UsePipes(new ValidationPipe())
@@ -171,22 +170,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: AcceptDto,
     @ConnectedSocket() client: Socket,
   ) {
+    console.log()
     const userID = client.data.userID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.READY);
-    if (!(await this.usersService.checkIfUserExists(data.inviteID)))
-      throw new Error('User does not exist');
     const checkInvite = await this.usersService.getInvite(data.inviteID);
     if (!checkInvite)
       return;
     const sender = this.userSockets.get(checkInvite.senderId);
     if (!sender || sender.status !== GameStatus.WAITING)
       return;
-    if (sender && sender.status === GameStatus.WAITING) {
-      const invite = await this.usersService.acceptInvite(data.inviteID);
-      if (invite) {
-        const invitedSocketData = this.userSockets.get(invite.senderId);
-        this.initGameRoom(socketData, invitedSocketData.userID, data.hasMiddleWall);
-      }
+    const invite = await this.usersService.acceptInvite(data.inviteID);
+    if (invite) {
+      const invitedSocketData = this.userSockets.get(invite.receiverId);
+      this.initGameRoom(invitedSocketData, invitedSocketData.userID.id, data.hasMiddleWall);
     }
   }
 
@@ -198,10 +194,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const userID = client.data.userID;
     const socketData: SocketData = this.setUserStatus(client, GameStatus.WAITING);
-    if (!(await this.usersService.checkIfUserExists(data.inviteID)))
-      throw new Error('User does not exist');
-    const invite = await this.usersService.rejectInvite(data.inviteID, userID);
+    const invite = await this.usersService.rejectInvite(data.inviteID);
     if (invite) {
+      console.log(invite);
       const invitedSocketData = this.userSockets.get(invite.senderId);
       this.server.to(invitedSocketData.client.id).emit('Rejected', userID);
     }
@@ -225,6 +220,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.gameRooms[roomId].barSelect(keyStatus, client, isPressed);
   }
 
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('StartGame')
   async startGame(@MessageBody() data: StartGameDto, @ConnectedSocket() client: Socket) {
     console.log('start game');

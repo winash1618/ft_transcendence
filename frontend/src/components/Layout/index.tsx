@@ -11,7 +11,7 @@ import {
   MenuProps,
   theme,
 } from "antd";
-import axios, { BASE_URL } from "../../api";
+import axios, { BASE_URL, axiosPrivate } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logOut, setToken, setUserInfo } from "../../store/authReducer";
@@ -63,6 +63,7 @@ const Navbar: React.FC = () => {
         {
           key: data.id,
           inviteId: data.inviteId,
+          type: "GAME",
           login: data.login,
         },
       ]);
@@ -81,7 +82,6 @@ const Navbar: React.FC = () => {
     const getToken = async () => {
       try {
         const response = await axios.get(`/token`);
-        console.log(response);
         localStorage.setItem("auth", JSON.stringify(response.data));
         dispatch(setToken(response.data.token));
         dispatch(setUserInfo(response.data.user));
@@ -98,8 +98,6 @@ const Navbar: React.FC = () => {
         return response.data.token;
       } catch (err) {
         dispatch(logOut());
-
-        console.log("test");
         window.location.replace(`${BASE_URL}/42/login`);
       }
     };
@@ -123,19 +121,27 @@ const Navbar: React.FC = () => {
   }, [dispatch, setIsLoadingPage, navigate]);
 
   useEffect(() => {
-    const getNotifications = async () => {
-      try {
-        const response = await axios.get(`/notifications`);
-        setItems((prev) => [
-          ...prev,
-          response.data.map((item) => ({ key: item.id, login: item.login })),
-        ]);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    getNotifications();
-  }, []);
+    if (userInfo.id) {
+      const getNotifications = async () => {
+        try {
+          const response = await axiosPrivate.get(
+            `/users/${userInfo.id}/invitations`
+          );
+          setItems(
+            response.data.map((item: any) => ({
+              key: item.id,
+              login: item.username,
+              type: item.type,
+              inviteId: item.id,
+            }))
+          );
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      getNotifications();
+    }
+  }, [userInfo]);
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -148,6 +154,52 @@ const Navbar: React.FC = () => {
       setSelected("0");
     }
   }, [location]);
+
+  const acceptInvite = async (item: any) => {
+    if (item.type === "GAME") {
+      socket.emit("Accept", {
+        inviteID: item.inviteId,
+      });
+
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "GAME")
+        );
+      });
+    } else {
+      await axiosPrivate.put(`/users/${item.inviteId}/accept`);
+
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "FRIEND")
+        );
+      });
+    }
+  };
+
+  const declineInvite = async (item: any) => {
+    if (item.type === "GAME") {
+      socket.emit("Reject", {
+        inviteID: item.inviteId,
+      });
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "GAME")
+        );
+      });
+    } else {
+      await axiosPrivate.put(`/users/${item.inviteId}/reject`);
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "FRIEND")
+        );
+      });
+    }
+  };
 
   return (
     <>
@@ -228,39 +280,32 @@ const Navbar: React.FC = () => {
                         {items.map((item) => (
                           <NotificationsLi key={item.key}>
                             <InviteWrapper>
-                              <InviteDescription>
-                                You have been invited by{" "}
-                                {item.login.length > 8
-                                  ? item.login.substring(0, 8) + "..."
-                                  : item.login}{" "}
-                                to play a game
-                              </InviteDescription>
+                              {item.type === "GAME" ? (
+                                <InviteDescription>
+                                  You have been invited by{" "}
+                                  {item.login.length > 8
+                                    ? item.login.substring(0, 8) + "..."
+                                    : item.login}{" "}
+                                  to play a game
+                                </InviteDescription>
+                              ) : (
+                                <InviteDescription>
+                                  You received a friend request from{" "}
+                                  {item.login.length > 8
+                                    ? item.login.substring(0, 8) + "..."
+                                    : item.login}
+                                </InviteDescription>
+                              )}
                               <InviteButtonsWrapper>
                                 <ButtonComponent
-                                  onClick={() => {
-                                    socket.emit("Accept", {
-                                      inviteID: item.inviteId,
-                                    });
-                                    setItems((prevItem) => {
-                                      return prevItem.filter(
-                                        (itemTmp) => itemTmp.key !== item.key
-                                      );
-                                    });
-                                  }}
+                                  style={{ padding: "0rem 0.5rem" }}
+                                  onClick={() => acceptInvite(item)}
                                 >
                                   Accept
                                 </ButtonComponent>
                                 <ButtonComponent
-                                  onClick={() => {
-                                    socket.emit("Reject", {
-                                      inviteID: item.inviteId,
-                                    });
-                                    setItems((prevItem) => {
-                                      return prevItem.filter(
-                                        (itemTmp) => itemTmp.key !== item.key
-                                      );
-                                    });
-                                  }}
+                                  style={{ padding: "0rem 0.5rem" }}
+                                  onClick={() => declineInvite(item)}
                                 >
                                   Decline
                                 </ButtonComponent>

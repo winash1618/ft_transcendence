@@ -311,6 +311,7 @@ export class UsersService {
       select: {
         id: true,
         type: true,
+        username: true,
         senderId: true,
         receiverId: true,
         status: true,
@@ -322,15 +323,18 @@ export class UsersService {
 
   async createInvite(
     createInviteDto: any,
-    senderId: string
+    senderId: string,
   ) {
     console.log('createInviteDto', createInviteDto, 'senderId', senderId)
     const { type, receiverId } = createInviteDto;
+
+    let user = await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });
 
     const invite = await this.prisma.invitations.create({
       data: {
         type,
         senderId,
+        username: user.username,
         receiverId,
         status: 'PENDING',
       },
@@ -338,7 +342,8 @@ export class UsersService {
     if (type === 'GAME') {
       return invite;
     }
-    return await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });
+    user.sentInvites.push(invite);
+    return user;
   }
 
   async getInvite(id: string) {
@@ -377,23 +382,17 @@ export class UsersService {
       return invite;
     }
 
-    return await this.prisma.invitations.update({
+    return await this.prisma.invitations.delete({
       where: { id },
-      data: { status: 'ACCEPTED' },
     });
   }
 
   async rejectInvite(
     id: string,
-    receiverId: string
   ) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
-
-    if (invite.receiverId !== receiverId) {
-      throw new NotFoundException('Invitation not found');
-    }
 
     if (invite.type === 'GAME') {
       await this.prisma.invitations.deleteMany({
@@ -406,9 +405,8 @@ export class UsersService {
       return invite;
     }
 
-    return await this.prisma.invitations.update({
+    return await this.prisma.invitations.delete({
       where: { id },
-      data: { status: 'REJECTED' },
     });
   }
 
