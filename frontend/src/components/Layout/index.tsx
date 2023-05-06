@@ -272,7 +272,7 @@ const Navbar: React.FC = () => {
                       onClick={() => setOpen((prev) => !prev)}
                     >
                       <Badge count={items.length} overflowCount={9}>
-                        <IoNotifications size={30} />
+                        <IoNotifications color="#fff" size={30} />
                       </Badge>
                     </a>
                     {open && (

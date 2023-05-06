@@ -13,14 +13,13 @@ import {
 } from "./playForm.styled";
 import { PlaySchema } from "../../utils/schema";
 import { useEffect, useState } from "react";
-import { Socket } from "socket.io-client";
-import { Checkbox, Spin } from "antd";
+import { Spin } from "antd";
 import { ErrorAlert } from "../toastify";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { setGameInfo } from "../../store/gameReducer";
 
 export type PlayType = {
-  map: number;
+  hasMiddleWall: boolean;
 };
 
 const PlayForm = () => {
@@ -61,25 +60,25 @@ const PlayForm = () => {
       <FormTitle>Find a game</FormTitle>
       <FormDetails>
         <InputController>
-          <FormInputTitle htmlFor="map">Choose a map</FormInputTitle>
+          <FormInputTitle htmlFor="hasMiddleWall">Choose a map</FormInputTitle>
           <Controller
             control={control}
-            defaultValue={1}
-            name="map"
+            defaultValue={false}
+            name="hasMiddleWall"
             render={({ field: { onChange, value } }) => (
               <FormSelect
                 onChange={onChange}
                 options={[
-                  { value: 1, label: "Default" },
-                  { value: 2, label: "Wall map" },
+                  { value: false, label: "Default" },
+                  { value: true, label: "Wall map" },
                 ]}
                 value={value}
                 placeholder="Choose a map to play with"
-                id="map"
+                id="hasMiddleWall"
               />
             )}
           />
-          {errors.map && <InputAlert>{errors.map.message}</InputAlert>}
+          {errors.hasMiddleWall && <InputAlert>{errors.hasMiddleWall.message}</InputAlert>}
         </InputController>
         <ButtonComponent
           style={{ width: "100%", marginBottom: "6px" }}
