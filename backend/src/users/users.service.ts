@@ -13,7 +13,18 @@ export class UsersService {
   }
 
   async add42User(userDto: CreateUserDto) {
-    return await this.prisma.user.create({ data: userDto });
+    const user = await this.prisma.user.create({ data: userDto });
+    const achievements = await this.prisma.achievements.create({
+      data: {
+        user: {
+          connect: {
+            id: user.id,
+          }
+        }
+      },
+    });
+
+    return user;
   }
 
   findAll() {
@@ -478,5 +489,16 @@ export class UsersService {
 		profile_picture: true,
 	  },
   });
-}
+  }
+
+  async getUserAchievements(userID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      include: {
+        achievements: true,
+      }
+    });
+
+    return user.achievements;
+  }
 }

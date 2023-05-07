@@ -40,4 +40,19 @@ export class GameController {
       return res.status(404).json({ error: 'Game history not found' });
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('game/:gameID')
+  async getGame(
+    @Param('gameID',  ParseUUIDPipe) id: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const game = await this.gameService.getGame(id);
+      return res.status(200).json(game);
+    }
+    catch {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+  }
 }

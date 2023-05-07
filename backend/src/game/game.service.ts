@@ -145,4 +145,59 @@ export class GameService {
 
     return gameRoom;
   }
+
+  async getGame(id: string) {
+    const game = await this.prisma.gameHistory.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    if (game.winner === '' || game.winner === null)
+      return game.id;
+
+    return '';
+  }
+
+  async updateUserAchievements(userId: string) {
+    const gameHistory = await this.prisma.gameHistory.findMany({
+      where: {
+        OR: [
+          { player_one: userId },
+          { player_two: userId },
+        ],
+      },
+    });
+
+    // Calculate the number of games won
+    const gamesWon = gameHistory.filter((game) => (game.winner === userId)).length;
+
+    // Check if user has won three or ten games
+    const hasWonThree = gamesWon >= 3;
+    const hasWonTen = gamesWon >= 10;
+
+    // Update user achievements
+    const ach = await this.prisma.achievements.update({
+      where: {
+        userID: userId,
+      },
+      data: {
+        played_first: {
+          set: true,
+        },
+        won_three: {
+          set: hasWonThree,
+        },
+        won_ten: {
+          set: hasWonTen,
+        },
+      },
+    });
+
+    return ach;
+  }
 }

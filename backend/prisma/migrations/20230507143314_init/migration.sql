@@ -47,6 +47,18 @@ CREATE TABLE "Invitations" (
 );
 
 -- CreateTable
+CREATE TABLE "Achievements" (
+    "id" TEXT NOT NULL,
+    "userID" TEXT NOT NULL,
+    "won_three" BOOLEAN NOT NULL DEFAULT false,
+    "played_first" BOOLEAN NOT NULL DEFAULT false,
+    "won_ten" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Achievements_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Conversation" (
     "id" TEXT NOT NULL,
     "title" TEXT,
@@ -118,6 +130,15 @@ CREATE UNIQUE INDEX "User_login_key" ON "User"("login");
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
+CREATE INDEX "user_id_index" ON "User"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Achievements_userID_key" ON "Achievements"("userID");
+
+-- CreateIndex
+CREATE INDEX "achievements_user_id_index" ON "Achievements"("userID");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Participant_conversation_id_user_id_key" ON "Participant"("conversation_id", "user_id");
 
 -- CreateIndex
@@ -137,6 +158,9 @@ ALTER TABLE "Invitations" ADD CONSTRAINT "Invitations_senderId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "Invitations" ADD CONSTRAINT "Invitations_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Achievements" ADD CONSTRAINT "Achievements_userID_fkey" FOREIGN KEY ("userID") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "Conversation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
