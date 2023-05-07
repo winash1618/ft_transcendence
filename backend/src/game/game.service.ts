@@ -9,7 +9,20 @@ import { GameStatus } from './interface/game.interface';
 export class GameService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async storeGameHistory(gameData: CreateGameDto): Promise<void> {
+  async create(createGameDto: CreateGameDto) {
+    return await this.prisma.gameHistory.create({
+      data: {
+        player_one: createGameDto.player_one,
+        player_two: createGameDto.player_two,
+        player_score: -1,
+        opponent_score: -1,
+        winner: '',
+        looser: '',
+      }
+    });
+  }
+
+  async storeGameHistory(gameData: CreateGameDto, id: string): Promise<void> {
     gameData.winner =
       gameData.player_score > gameData.opponent_score
         ? gameData.player_one
@@ -19,7 +32,10 @@ export class GameService {
         ? gameData.player_one
         : gameData.player_two;
 
-    await this.prisma.gameHistory.create({
+    await this.prisma.gameHistory.update({
+      where: {
+        id: id,
+      },
       data: {
         player_one: gameData.player_one,
         player_two: gameData.player_two,

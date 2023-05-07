@@ -42,7 +42,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private gameRooms: GameEngine[] = [];
   private defaultQ: SocketData[] = [];
   private WallQ: SocketData[] = [];
-  private mobile: SocketData[] = [];
   private userSockets: UserMap = new Map<string, SocketData>();
 
   constructor(
@@ -57,7 +56,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       secret: process.env.JWT_SECRET,
     });
 
-    console.log('User connected: ', userid);
     client.data.userID = userid;
     const user = await this.usersService.findOne(client.data.userID['login']);
     client.data.userID['login'] = user.username;
@@ -75,15 +73,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.defaultQ = this.defaultQ.filter((user: any) => user.userID.login !== userid.login);
     this.userSockets.delete(userid);
   }
-  createGameRoom(player1: SocketData, player2: SocketData, hasMiddleWall: boolean) {
-    const id = uuid4();
-    const game: Game = {
-      gameID: id,
-      player1: player1.userID,
-      player2: player2.userID,
-      player1Score: 0,
-      player2Score: 0,
-    };
+
+  async createGameRoom(player1: SocketData, player2: SocketData, hasMiddleWall: boolean) {
+    const game = await this.gameService.create({
+      player_one: player1.userID.id,
+      player_two: player2.userID.id,
+      player_score: -1,
+      opponent_score: -1,
+      winner: null,
+      looser: null
+    });
     const gameRoom = new GameEngine(
       game,
       this.server,
@@ -93,8 +92,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       hasMiddleWall,
     );
     gameRoom.startSettings();
-    this.gameRooms[id] = gameRoom;
-    return id;
+    this.gameRooms[game.id] = gameRoom;
+    return game.id;
   }
 
   setUserStatus(client: Socket, status: GameStatus) {
@@ -115,7 +114,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return socketData;
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Register')
   async registerUser(
     @ConnectedSocket() client: Socket,
@@ -142,7 +141,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Invite')
   async inviteUser(@MessageBody() data: InviteDto, @ConnectedSocket() client: Socket) {
     console.log('Inviting user');
@@ -164,7 +163,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(invitedSocketData.client.id).emit('Invited', {...client.data.userID, inviteId: invite.id});
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Accept')
   async acceptInvitation(
     @MessageBody() data: AcceptDto,
@@ -182,11 +181,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const invite = await this.usersService.acceptInvite(data.inviteID);
     if (invite) {
       const invitedSocketData = this.userSockets.get(invite.receiverId);
-      this.initGameRoom(invitedSocketData, invitedSocketData.userID.id, data.hasMiddleWall);
+      this.initGameRoom(invitedSocketData, invitedSocketData.userID.id, false);
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Reject')
   async rejectInvitation(
     @MessageBody() data: RejectDto,
@@ -202,7 +201,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('moveMouse')
   handleMoveMouse(@MessageBody() data: MoveMouseDto, @ConnectedSocket() client: Socket) {
     const roomId = data.roomID;
@@ -210,7 +209,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.gameRooms[roomId].moveMouse(data.y, client);
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('move')
   handleMove(@MessageBody() data: MoveDto, @ConnectedSocket() client: Socket) {
     const roomId = data.roomID;
@@ -220,7 +219,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.gameRooms[roomId].barSelect(keyStatus, client, isPressed);
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('StartGame')
   async startGame(@MessageBody() data: StartGameDto, @ConnectedSocket() client: Socket) {
     console.log('start game');
@@ -242,12 +241,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  private initGameRoom(player2: SocketData, player1: SocketData, middleWall: boolean = false) {
+  private async initGameRoom(player2: SocketData, player1: SocketData, middleWall: boolean = false) {
     player1.playerNumber = 1;
     player1.status = GameStatus.READY;
     player2.playerNumber = 2;
     player2.status = GameStatus.READY;
-    const roomID = this.createGameRoom(player1, player2, middleWall);
+    const roomID = await this.createGameRoom(player1, player2, middleWall);
     player1.gameID = roomID;
     player2.gameID = roomID;
     this.server.to(player2.client.id).emit('start', {

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
+import { createInviteDto } from './dto/users.dto';
 
 @Injectable()
 export class UsersService {
@@ -322,10 +323,9 @@ export class UsersService {
   }
 
   async createInvite(
-    createInviteDto: any,
+    createInviteDto: createInviteDto,
     senderId: string,
   ) {
-    console.log('createInviteDto', createInviteDto, 'senderId', senderId)
     const { type, receiverId } = createInviteDto;
 
     let user = await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });

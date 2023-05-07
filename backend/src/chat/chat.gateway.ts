@@ -275,14 +275,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!participant)
         throw new Error('Participant not found');
 
-      if (participant.conversation_status === Status.MUTED) {
+      if (participant.mute_expires_at) {
         const currentTime = new Date();
         if (currentTime > participant.mute_expires_at)
           await this.conversationService.unmuteUser(
             data.conversationID,
             client.data.userID.id,
           );
-        throw new Error('You are muted');
+        else
+          throw new Error('You are muted');
       }
 
       const message = await this.messageService.createMessage({
