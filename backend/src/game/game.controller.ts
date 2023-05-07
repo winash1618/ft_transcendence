@@ -42,7 +42,7 @@ export class GameController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('game/:gameID')
+  @Get(':gameID')
   async getGame(
     @Param('gameID',  ParseUUIDPipe) id: string,
     @Res() res: Response,
