@@ -38,19 +38,29 @@ function LeftSideHeader({
 		setConversations([]);
 		if (nav === Nav.DIRECT) {
 			try {
-				const result = await axios.get(`${BASE_URL}/chat/direct`, {
+				await axios.get(`${BASE_URL}/chat/direct`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
-				});
-				setConversations(result.data);
+				}).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setConversations(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 			} catch (err) {
 				setConversations([]);
 				console.log(err);
 			}
 			try {
-				const result = await axios.get(
+				await axios.get(
 					`${BASE_URL}/users/friends/${user.id}`,
 					{
 						withCredentials: true,
@@ -58,20 +68,40 @@ function LeftSideHeader({
 							Authorization: `Bearer ${token}`,
 						},
 					}
-				);
-				setResults(result.data);
+				).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setResults(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 			} catch (err) {
 				console.log(err);
 			}
 		} else if (nav === Nav.GROUPS) {
 			try {
-				const result = await axios.get(`${BASE_URL}/chat/groups`, {
+				await axios.get(`${BASE_URL}/chat/groups`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
+				}).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setConversations(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+				.catch(error => {
+					console.error('An error occurred:', error);
 				});
-				setConversations(result.data);
 				setConversation(null);
 			} catch (err) {
 				setConversations([]);
@@ -97,13 +127,23 @@ function LeftSideHeader({
 	const setConversationsObject = async () => {
 		console.log("handleConversationLeft in LeftSideHeader");
 		try {
-			const result = await axios.get(`${BASE_URL}/chat/groups`, {
+			await axios.get(`${BASE_URL}/chat/groups`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},
+			}).then(response => {
+				if (response.status === 200) {
+					console.log('response', response);
+					console.log('Request succeeded!');
+					setConversations(response.data);
+				} else {
+					window.location.href = '/error';
+				}
+			})
+			.catch(error => {
+				console.error('An error occurred:', error);
 			});
-			setConversations(result.data);
 		} catch (err) {
 			setConversations([]);
 			console.log(err);
@@ -112,13 +152,23 @@ function LeftSideHeader({
 	const setExploreConversationsObject = async () => {
 		console.log("handleConversationExplore in LeftSideHeader");
 		try {
-			const result = await axios.get(`${BASE_URL}/chat/explore`, {
+			await axios.get(`${BASE_URL}/chat/explore`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},
+			}).then(response => {
+				if (response.status === 200) {
+					console.log('response', response);
+					console.log('Request succeeded!');
+					setConversations(response.data);
+				} else {
+					window.location.href = '/error';
+				}
+			})
+			.catch(error => {
+				console.error('An error occurred:', error);
 			});
-			setConversations(result.data);
 		} catch (err) {
 			setConversations([]);
 			console.log(err);

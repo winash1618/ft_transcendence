@@ -28,17 +28,26 @@ const LeaderBoardPage = () => {
 	const [data, setData] = useState<LeaderboardData[]>([]);
 	const getInfos = async () => {
 		try {
-			const result = await axios.get(
-				`${BASE_URL}/users/leaderboard`,
+			await axios.get(
+				`${BASE_URL}/users/leaderboard/leaders`,
 				{
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
 				}
-			);
-			console.log(result.data);
-			setData(result.data);
+			).then(response => {
+				if (response.status === 200) {
+					console.log('response', response);
+					console.log('Request succeeded!');
+					setData(response.data);
+				} else {
+					window.location.href = '/error';
+				}
+			})
+				.catch(error => {
+					console.error('An error occurred:', error);
+				});
 		} catch (err) {
 			console.log(err);
 		}

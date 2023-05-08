@@ -231,7 +231,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/leaderboard')
+  @Get('/leaderboard/leaders')
   async getLeaderboard() {
 	try {
 	  const getPlayers = await this.usersService.getPlayers();
