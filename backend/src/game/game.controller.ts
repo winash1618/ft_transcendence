@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  ParseUUIDPipe,
   NotFoundException,
   Param,
   Req,
@@ -20,10 +21,10 @@ export class GameController {
   constructor(private readonly gameService: GameService, private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('history/:id')
+  @Get('history/:userID')
   async getGameHistory(
     @Req() req,
-    @Param('id') id: string,
+    @Param('userID',  ParseUUIDPipe) id: string,
     @Res() res: Response,
   ) {
     try {
@@ -37,6 +38,21 @@ export class GameController {
     }
     catch {
       return res.status(404).json({ error: 'Game history not found' });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':gameID')
+  async getGame(
+    @Param('gameID',  ParseUUIDPipe) id: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const game = await this.gameService.getGame(id);
+      return res.status(200).json(game);
+    }
+    catch {
+      return res.status(404).json({ error: 'Game not found' });
     }
   }
 }

@@ -10,10 +10,13 @@ import {
   InvitationMap,
   Paddle,
   BallMovement,
+  UserInfo,
 } from './interface/game.interface';
 import { Socket } from 'socket.io';
 import { Server } from 'socket.io';
 import { GameService } from './game.service';
+import { UsersService } from 'src/users/users.service';
+import { UserStatus } from '@prisma/client'
 
 let GAME_WIDTH = 900;
 let GAME_HEIGHT = 800;
@@ -22,20 +25,20 @@ let PADDLE_HEIGHT = 0.125 * GAME_HEIGHT;
 let BALL_SIZE = 0.015 * GAME_WIDTH;
 let BALL_SPEED = 0.005 * GAME_WIDTH;
 let PADDLE_SPEED = 0.015 * GAME_HEIGHT;
-const GAME_TIME = 30;
-const GAME_POINTS = 4;
+const GAME_FPS = 30;
+const GAME_POINTS = 2;
 
 export class GameEngine {
   gameID: string;
   server: Server;
   gameObj: GameObject;
   users: UserMap;
-  player1: string;
-  player2: string;
+  player1: UserInfo;
+  player2: UserInfo;
   ballMovement: BallMovement;
   interval: any;
 
-  initGameObj(points: number, player1: string, player2: string, hasMiddleWall: boolean): GameObject {
+  initGameObj(points: number, player1: UserInfo, player2: UserInfo, hasMiddleWall: boolean): GameObject {
     return {
       gameStatus: GameStatus.WAITING,
       paddle1: {
@@ -61,7 +64,7 @@ export class GameEngine {
         points: points,
         hasMiddleWall: hasMiddleWall,
       },
-      remainingTime: GAME_TIME,
+      remainingTime: GAME_FPS,
       time: 30,
     };
   }
@@ -74,31 +77,31 @@ export class GameEngine {
     private gameService: GameService,
     hasMiddleWall: boolean,
   ) {
-    this.gameID = game.gameID;
+    this.gameID = game.id;
     this.server = server;
-    this.gameObj = this.initGameObj(7, game.player1, game.player2, hasMiddleWall);
+    this.gameObj = this.initGameObj(7, player1.userID, player2.userID, hasMiddleWall);
     this.ballMovement = {
       x: 0,
       y: 0,
       radian: 0,
     };
-    this.users = new Map<string, SocketData>();
-    this.users.set(game.player1, {
+    this.users = new Map<UserInfo, SocketData>();
+    this.users.set(player1.userID, {
       playerNumber: 1,
       client: player1.client,
-      gameID: game.gameID,
-      userID: game.player1,
+      gameID: game.id,
+      userID: player1.userID,
       status: GameStatus.WAITING,
     });
-    this.users.set(game.player2, {
+    this.users.set(player2.userID, {
       playerNumber: 2,
       client: player2.client,
-      gameID: game.gameID,
-      userID: game.player2,
+      gameID: game.id,
+      userID: player2.userID,
       status: GameStatus.WAITING,
     });
-    this.player1 = game.player1;
-    this.player2 = game.player2;
+    this.player1 = player1.userID;
+    this.player2 = player2.userID;
   }
 
   ballBounce(paddlePosition: number, isPaddle: boolean = true) {
@@ -328,7 +331,7 @@ export class GameEngine {
   }
 
   startSettings() {
-    this.gameObj.time = GAME_TIME;
+    this.gameObj.time = GAME_FPS;
     this.interval = setInterval(() => {
       this.gameObj.remainingTime--;
       if (this.gameObj.remainingTime === 0) clearInterval(this.interval);
@@ -336,29 +339,35 @@ export class GameEngine {
     }, 1000);
   }
 
-  startGame(hasMiddleWall: boolean) {
+  startGame(hasMiddleWall: boolean, userService: UsersService) {
     clearInterval(this.interval);
     this.gameObj = this.initGameObj(0, this.player1, this.player2, hasMiddleWall);
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
+
+    const GAME_DURATION = 10 * 1000;
+    let elapsedTime = 0;
 
     this.interval = setInterval(() => {
       this.ballMove();
       this.playerMove();
       this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
 
+      elapsedTime += GAME_FPS;
+
       if (
+        elapsedTime >= GAME_DURATION ||
         this.gameObj.player1.points >= GAME_POINTS ||
         this.gameObj.player2.points >= GAME_POINTS
       ) {
         clearInterval(this.interval);
         this.gameObj.gameStatus = GameStatus.WAITING;
         this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-        const winner: string =
+        const winner: UserInfo =
           this.gameObj.player1.points >= GAME_POINTS
             ? this.player1
             : this.player2;
-        const looser: string =
+        const looser: UserInfo =
           this.gameObj.player1.points >= GAME_POINTS
             ? this.player2
             : this.player1;
@@ -371,9 +380,15 @@ export class GameEngine {
           opponent_score: this.gameObj.player2.points,
           winner: '',
           looser: '',
-        })
+        },
+        this.gameID
+        )
+        userService.userStatusUpdate(this.gameObj.player1.name.id, UserStatus.ONLINE);
+        userService.userStatusUpdate(this.gameObj.player2.name.id, UserStatus.ONLINE);
+        this.gameService.updateUserAchievements(this.gameObj.player1.name.id);
+        this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
       }
-    }, GAME_TIME);
+    }, GAME_FPS);
   }
 
   stopGame() {}

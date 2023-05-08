@@ -68,7 +68,7 @@ export class ChatController {
 
   @Get(':conversationID/messages')
   async getMessages(
-    @Param('conversationID') conversationID: string,
+    @Param('conversationID', ParseUUIDPipe) conversationID: string,
     @Res() res: Response
   ) {
     try {
@@ -94,28 +94,28 @@ export class ChatController {
     }
   }
 
-  @Get('channel/:channelID/banned')
+  @Get('channel/:conversationID/banned')
   async getBannedUsers(
-    @Param('channelID', ParseUUIDPipe) channelID: string,
+    @Param('conversationID', ParseUUIDPipe) conversationID: string,
     @Res() res: Response
   ) {
     try {
-      const users = await this.participantService.bannedUsers(channelID);
+      const users = await this.participantService.bannedUsers(conversationID);
       return res.status(200).json(users);
     } catch (error) {
       return res.status(404).json({ error: error.message });
     }
   }
 
-  @Get('channel/:channelID/addFriends')
+  @Get('channel/:conversationID/addFriends')
   async getFriendsToAddToChannel(
-    @Param('channelID', ParseUUIDPipe) channelID: string,
+    @Param('conversationID', ParseUUIDPipe) conversationID: string,
     @Req() req, @Res() res: Response
   ) {
     try {
       const friends = await this.conversationService.friendsNotInConversation(
         req.user.id,
-        channelID,
+        conversationID,
       );
 
       return res.status(200).json(friends);

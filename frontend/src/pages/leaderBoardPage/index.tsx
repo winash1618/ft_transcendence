@@ -29,7 +29,7 @@ const LeaderBoardPage = () => {
 	const getInfos = async () => {
 		try {
 			const result = await axios.get(
-				`${BASE_URL}/users/leaderboard/highest-score`,
+				`${BASE_URL}/users/leaderboard`,
 				{
 					withCredentials: true,
 					headers: {

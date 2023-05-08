@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
+import { createInviteDto } from './dto/users.dto';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +13,18 @@ export class UsersService {
   }
 
   async add42User(userDto: CreateUserDto) {
-    return await this.prisma.user.create({ data: userDto });
+    const user = await this.prisma.user.create({ data: userDto });
+    const achievements = await this.prisma.achievements.create({
+      data: {
+        user: {
+          connect: {
+            id: user.id,
+          }
+        }
+      },
+    });
+
+    return user;
   }
 
   findAll() {
@@ -322,10 +334,9 @@ export class UsersService {
   }
 
   async createInvite(
-    createInviteDto: any,
+    createInviteDto: createInviteDto,
     senderId: string,
   ) {
-    console.log('createInviteDto', createInviteDto, 'senderId', senderId)
     const { type, receiverId } = createInviteDto;
 
     let user = await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });
@@ -478,5 +489,16 @@ export class UsersService {
 		profile_picture: true,
 	  },
   });
-}
+  }
+
+  async getUserAchievements(userID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      include: {
+        achievements: true,
+      }
+    });
+
+    return user.achievements;
+  }
 }
