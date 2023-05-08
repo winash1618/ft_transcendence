@@ -29,7 +29,7 @@ const LeaderBoardPage = () => {
 	const getInfos = async () => {
 		try {
 			const result = await axios.get(
-				`${BASE_URL}/users/leaderboard`,
+				`${BASE_URL}/users/leaderboard/leaders`,
 				{
 					withCredentials: true,
 					headers: {

@@ -29,5 +29,5 @@ export class BlockDto {
 export class loginDto {
   @IsString()
   @Length(4, 20)
-  username: string;
+  login: string;
 }
