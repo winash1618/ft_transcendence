@@ -11,6 +11,7 @@ import axios, { BASE_URL } from "../../api";
 import { List } from "antd";
 import { Typography } from 'antd';
 import { useEffect, useState } from "react";
+import { UserProfilePicture } from "../../assets";
 const { Title } = Typography;
 interface LeaderboardData {
 	rank: number;
@@ -72,8 +73,11 @@ const LeaderBoardPage = () => {
 							Score: {player.rating}
 						</LeaderboardScore>
 						<LeaderboardAvatar
-							className="leaderboard-avatar"
 							src={`${BASE_URL}/users/profile-image/${player.profile_picture}/${token}`}
+							onError={(e) => {
+								e.currentTarget.src = UserProfilePicture;
+							}}
+							alt="A profile photo of the current user"
 						/>
 					</LeaderboardItem>
 				)}
