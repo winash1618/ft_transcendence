@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsUUID, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsUUID,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { InviteType } from '@prisma/client';
 
 export class GetProfilePhotoDto {

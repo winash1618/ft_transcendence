@@ -1,14 +1,10 @@
 import {
-  Game,
   Position,
-  PlayerStats,
   GameObject,
   GameStatus,
   KeyPress,
   SocketData,
   UserMap,
-  InvitationMap,
-  Paddle,
   BallMovement,
   UserInfo,
 } from './interface/game.interface';
@@ -16,17 +12,17 @@ import { Socket } from 'socket.io';
 import { Server } from 'socket.io';
 import { GameService } from './game.service';
 import { UsersService } from 'src/users/users.service';
-import { UserStatus } from '@prisma/client'
+import { UserStatus } from '@prisma/client';
 
-let GAME_WIDTH = 900;
-let GAME_HEIGHT = 800;
-let PADDLE_WIDTH = 0.025 * GAME_WIDTH;
-let PADDLE_HEIGHT = 0.125 * GAME_HEIGHT;
-let BALL_SIZE = 0.015 * GAME_WIDTH;
-let BALL_SPEED = 0.005 * GAME_WIDTH;
-let PADDLE_SPEED = 0.015 * GAME_HEIGHT;
+const GAME_WIDTH = 900;
+const GAME_HEIGHT = 800;
+const PADDLE_WIDTH = 0.025 * GAME_WIDTH;
+const PADDLE_HEIGHT = 0.125 * GAME_HEIGHT;
+const BALL_SIZE = 0.015 * GAME_WIDTH;
+const BALL_SPEED = 0.005 * GAME_WIDTH;
+const PADDLE_SPEED = 0.015 * GAME_HEIGHT;
 const GAME_FPS = 30;
-const GAME_POINTS = 2;
+const GAME_POINTS = 11;
 
 export class GameEngine {
   gameID: string;
@@ -38,7 +34,12 @@ export class GameEngine {
   ballMovement: BallMovement;
   interval: any;
 
-  initGameObj(points: number, player1: UserInfo, player2: UserInfo, hasMiddleWall: boolean): GameObject {
+  initGameObj(
+    points: number,
+    player1: UserInfo,
+    player2: UserInfo,
+    hasMiddleWall: boolean,
+  ): GameObject {
     return {
       gameStatus: GameStatus.WAITING,
       paddle1: {
@@ -79,7 +80,12 @@ export class GameEngine {
   ) {
     this.gameID = game.id;
     this.server = server;
-    this.gameObj = this.initGameObj(7, player1.userID, player2.userID, hasMiddleWall);
+    this.gameObj = this.initGameObj(
+      7,
+      player1.userID,
+      player2.userID,
+      hasMiddleWall,
+    );
     this.ballMovement = {
       x: 0,
       y: 0,
@@ -104,7 +110,7 @@ export class GameEngine {
     this.player2 = player2.userID;
   }
 
-  ballBounce(paddlePosition: number, isPaddle: boolean = true) {
+  ballBounce(paddlePosition: number, isPaddle = true) {
     const isBallMovingRight = this.ballMovement.x > 0 ? -1 : 1;
 
     if (isPaddle) {
@@ -143,13 +149,22 @@ export class GameEngine {
         this.gameObj.gameSetting.speed;
     } else {
       // Bounce off the center wall
-      const angleOfIncidence = Math.atan2(this.ballMovement.y, this.ballMovement.x);
+      const angleOfIncidence = Math.atan2(
+        this.ballMovement.y,
+        this.ballMovement.x,
+      );
       const wallNormalAngle = Math.PI; // Wall is vertical, so its surface normal is horizontal (180 degrees)
 
       const reflectionAngle = 2 * wallNormalAngle - angleOfIncidence;
 
-      this.ballMovement.x = -Math.cos(reflectionAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
-      this.ballMovement.y = -Math.sin(reflectionAngle) * BALL_SPEED * this.gameObj.gameSetting.speed;
+      this.ballMovement.x =
+        -Math.cos(reflectionAngle) *
+        BALL_SPEED *
+        this.gameObj.gameSetting.speed;
+      this.ballMovement.y =
+        -Math.sin(reflectionAngle) *
+        BALL_SPEED *
+        this.gameObj.gameSetting.speed;
     }
   }
 
@@ -298,7 +313,8 @@ export class GameEngine {
       return;
     }
     const playerNumber = this.users.get(client.data.userID).playerNumber;
-    const paddle = playerNumber === 1 ? this.gameObj.paddle1 : this.gameObj.paddle2;
+    const paddle =
+      playerNumber === 1 ? this.gameObj.paddle1 : this.gameObj.paddle2;
 
     if (y < paddle.y) {
       if (paddle.y >= PADDLE_SPEED) {
@@ -341,11 +357,16 @@ export class GameEngine {
 
   startGame(hasMiddleWall: boolean, userService: UsersService) {
     clearInterval(this.interval);
-    this.gameObj = this.initGameObj(0, this.player1, this.player2, hasMiddleWall);
+    this.gameObj = this.initGameObj(
+      0,
+      this.player1,
+      this.player2,
+      hasMiddleWall,
+    );
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
 
-    const GAME_DURATION = 10 * 1000;
+    const GAME_DURATION = 30 * 1000;
     let elapsedTime = 0;
 
     this.interval = setInterval(() => {
@@ -373,23 +394,28 @@ export class GameEngine {
             : this.player1;
         this.users.get(winner).client.emit('win', winner);
         this.users.get(looser).client.emit('lose', looser);
-        this.gameService.storeGameHistory({
-          player_one: this.gameObj.player1.name.id,
-          player_two: this.gameObj.player2.name.id,
-          player_score: this.gameObj.player1.points,
-          opponent_score: this.gameObj.player2.points,
-          winner: '',
-          looser: '',
-        },
-        this.gameID
-        )
-        userService.userStatusUpdate(this.gameObj.player1.name.id, UserStatus.ONLINE);
-        userService.userStatusUpdate(this.gameObj.player2.name.id, UserStatus.ONLINE);
+        this.gameService.storeGameHistory(
+          {
+            player_one: this.gameObj.player1.name.id,
+            player_two: this.gameObj.player2.name.id,
+            player_score: this.gameObj.player1.points,
+            opponent_score: this.gameObj.player2.points,
+            winner: '',
+            looser: '',
+          },
+          this.gameID,
+        );
+        userService.userStatusUpdate(
+          this.gameObj.player1.name.id,
+          UserStatus.ONLINE,
+        );
+        userService.userStatusUpdate(
+          this.gameObj.player2.name.id,
+          UserStatus.ONLINE,
+        );
         this.gameService.updateUserAchievements(this.gameObj.player1.name.id);
         this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
       }
     }, GAME_FPS);
   }
-
-  stopGame() {}
 }

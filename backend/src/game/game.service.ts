@@ -3,7 +3,6 @@ import { PrismaService } from 'src/database/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { GameHistory } from '@prisma/client';
-import { GameStatus } from './interface/game.interface';
 
 @Injectable()
 export class GameService {
@@ -18,7 +17,7 @@ export class GameService {
         opponent_score: -1,
         winner: '',
         looser: '',
-      }
+      },
     });
   }
 
@@ -43,7 +42,7 @@ export class GameService {
         opponent_score: gameData.opponent_score,
         winner: gameData.winner,
         looser: gameData.looser,
-      }
+      },
     });
   }
 
@@ -157,8 +156,7 @@ export class GameService {
       throw new Error('Game not found');
     }
 
-    if (game.winner === '' || game.winner === null)
-      return game.id;
+    if (game.winner === '' || game.winner === null) return game.id;
 
     return '';
   }
@@ -166,15 +164,12 @@ export class GameService {
   async updateUserAchievements(userId: string) {
     const gameHistory = await this.prisma.gameHistory.findMany({
       where: {
-        OR: [
-          { player_one: userId },
-          { player_two: userId },
-        ],
+        OR: [{ player_one: userId }, { player_two: userId }],
       },
     });
 
     // Calculate the number of games won
-    const gamesWon = gameHistory.filter((game) => (game.winner === userId)).length;
+    const gamesWon = gameHistory.filter(game => game.winner === userId).length;
 
     // Check if user has won three or ten games
     const hasWonThree = gamesWon >= 3;

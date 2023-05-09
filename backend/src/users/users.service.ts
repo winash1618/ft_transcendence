@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -14,13 +14,13 @@ export class UsersService {
 
   async add42User(userDto: CreateUserDto) {
     const user = await this.prisma.user.create({ data: userDto });
-    const achievements = await this.prisma.achievements.create({
+    await this.prisma.achievements.create({
       data: {
         user: {
           connect: {
             id: user.id,
-          }
-        }
+          },
+        },
       },
     });
 
@@ -36,11 +36,29 @@ export class UsersService {
   }
 
   async findOne(login: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { login },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        is_authenticated: true,
+        friends: true,
+        sentInvites:true,
+        blocked_users: true,
+        user_status: true,
+      }
+    });
   }
 
   async getUserByLogin(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { login },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
   }
 
   async getUserByIdWithParticipants(id: string) {
@@ -191,11 +209,14 @@ export class UsersService {
   }
 
   async getUserById(id: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, sentInvites: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { id },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
   }
 
   async getUserIDByUserName(username: string): Promise<string> {
-    console.log(username)
+    console.log(username);
     const user = await this.prisma.user.findUnique({
       where: { username: username },
     });
@@ -302,7 +323,10 @@ export class UsersService {
     return user.blocked_users.length > 0;
   }
 
-  async checkIfUserSentThreeInvites(senderId: string, receiverId: string): Promise<boolean> {
+  async checkIfUserSentThreeInvites(
+    senderId: string,
+    receiverId: string,
+  ): Promise<boolean> {
     const sentInvitesCount = await this.prisma.invitations.count({
       where: {
         type: 'GAME',
@@ -327,19 +351,19 @@ export class UsersService {
         senderId: true,
         receiverId: true,
         status: true,
-      }
+      },
     });
 
     return pendingInvitations;
   }
 
-  async createInvite(
-    createInviteDto: createInviteDto,
-    senderId: string,
-  ) {
+  async createInvite(createInviteDto: createInviteDto, senderId: string) {
     const { type, receiverId } = createInviteDto;
 
-    let user = await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: senderId },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
 
     const invite = await this.prisma.invitations.create({
       data: {
@@ -363,9 +387,7 @@ export class UsersService {
     });
   }
 
-  async acceptInvite(
-    id: string,
-  ) {
+  async acceptInvite(id: string) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
@@ -398,9 +420,7 @@ export class UsersService {
     });
   }
 
-  async rejectInvite(
-    id: string,
-  ) {
+  async rejectInvite(id: string) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
@@ -436,10 +456,10 @@ export class UsersService {
   }
 
   async getTotalGamesWon(userID: string) {
-    const gamesWon =  await this.prisma.user.findUnique({
-		where: {
-			id: userID,
-		},
+    const gamesWon = await this.prisma.user.findUnique({
+      where: {
+        id: userID,
+      },
       select: {
         id: true,
         username: true,
@@ -450,9 +470,9 @@ export class UsersService {
           select: {
             id: true,
             winner: true,
-			looser: true,
-			player_score: true,
-			opponent_score: true,
+            looser: true,
+            player_score: true,
+            opponent_score: true,
           },
           where: {
             winner: userID,
@@ -460,35 +480,34 @@ export class UsersService {
         },
       },
     });
-	return gamesWon.playerOneHistories.length;
-
+    return gamesWon.playerOneHistories.length;
   }
 
   async getTotalGamesPlayed(userID: string) {
-	const user = await this.prisma.user.findUnique({
-	  where: { id: userID },
-	  select: {
-		playerOneHistories: {
-		  select: {
-			id: true,
-		  },
-		},
-	  },
-	});
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      select: {
+        playerOneHistories: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
 
-	return user.playerOneHistories.length;
+    return user.playerOneHistories.length;
   }
 
   async getPlayers() {
-	return await this.prisma.user.findMany({
-	  select: {
-		id: true,
-		username: true,
-		user_status: true,
-		login: true,
-		profile_picture: true,
-	  },
-  });
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        user_status: true,
+        login: true,
+        profile_picture: true,
+      },
+    });
   }
 
   async getUserAchievements(userID: string) {
@@ -496,7 +515,7 @@ export class UsersService {
       where: { id: userID },
       include: {
         achievements: true,
-      }
+      },
     });
 
     return user.achievements;
