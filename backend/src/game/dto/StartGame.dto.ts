@@ -7,5 +7,5 @@ export class StartGameDto {
 
   @IsString()
   @IsNotEmpty()
-  hasMiddleWall: boolean
+  hasMiddleWall: boolean;
 }

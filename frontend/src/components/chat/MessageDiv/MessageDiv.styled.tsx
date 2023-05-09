@@ -1,4 +1,3 @@
-import { BsSend } from "react-icons/bs";
 import styled from "styled-components";
 
 export const MessageSendDiv = styled.div`

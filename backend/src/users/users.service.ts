@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
+import { createInviteDto } from './dto/users.dto';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +13,18 @@ export class UsersService {
   }
 
   async add42User(userDto: CreateUserDto) {
-    return await this.prisma.user.create({ data: userDto });
+    const user = await this.prisma.user.create({ data: userDto });
+    await this.prisma.achievements.create({
+      data: {
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
+    });
+
+    return user;
   }
 
   findAll() {
@@ -24,11 +36,29 @@ export class UsersService {
   }
 
   async findOne(login: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { login },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        is_authenticated: true,
+        friends: true,
+        sentInvites:true,
+        blocked_users: true,
+        user_status: true,
+      }
+    });
   }
 
   async getUserByLogin(login: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { login },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
   }
 
   async getUserByIdWithParticipants(id: string) {
@@ -47,8 +77,12 @@ export class UsersService {
       throw new Error('You cannot add yourself as a friend');
     }
 
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const friendExists = await this.prisma.user.findUnique({ where: { id: friendID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const friendExists = await this.prisma.user.findUnique({
+      where: { id: friendID },
+    });
 
     if (!userExists || !friendExists) {
       throw new Error('One or both users do not exist');
@@ -63,7 +97,7 @@ export class UsersService {
         },
         blocked_users: {
           disconnect: { id: friendID },
-        }
+        },
       },
       include: { friends: true, blocked_users: true },
     });
@@ -83,8 +117,12 @@ export class UsersService {
 
   async unfriend(userID: string, friendID: string) {
     // Check if users exist
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const friendExists = await this.prisma.user.findUnique({ where: { id: friendID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const friendExists = await this.prisma.user.findUnique({
+      where: { id: friendID },
+    });
 
     if (!userExists || !friendExists) {
       throw new Error('One or both users do not exist');
@@ -115,8 +153,12 @@ export class UsersService {
 
   async block(userID: string, blockID: string) {
     // Check if users exist
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const blockExists = await this.prisma.user.findUnique({ where: { id: blockID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const blockExists = await this.prisma.user.findUnique({
+      where: { id: blockID },
+    });
 
     if (!userExists || !blockExists) {
       throw new Error('One or both users do not exist');
@@ -131,7 +173,7 @@ export class UsersService {
         },
         friends: {
           disconnect: { id: blockID },
-        }
+        },
       },
       include: { friends: true, blocked_users: true },
     });
@@ -141,8 +183,12 @@ export class UsersService {
 
   async unblock(userID: string, blockID: string) {
     // Check if users exist
-    const userExists = await this.prisma.user.findUnique({ where: { id: userID } });
-    const blockExists = await this.prisma.user.findUnique({ where: { id: blockID } });
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const blockExists = await this.prisma.user.findUnique({
+      where: { id: blockID },
+    });
 
     if (!userExists || !blockExists) {
       throw new Error('One or both users do not exist');
@@ -163,7 +209,23 @@ export class UsersService {
   }
 
   async getUserById(id: string): Promise<any> {
-    return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, blocked_users: true } });
+    return await this.prisma.user.findUnique({
+      where: { id },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
+  }
+
+  async getUserIDByUserName(username: string): Promise<string> {
+    console.log(username);
+    const user = await this.prisma.user.findUnique({
+      where: { username: username },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user.id;
   }
 
   remove(id: number) {
@@ -235,11 +297,12 @@ export class UsersService {
         },
       },
       select: {
-		id: true,
+        id: true,
         username: true,
         user_status: true,
-		login: true,
-      }
+        login: true,
+        profile_picture: true,
+      },
     });
   }
 
@@ -260,7 +323,10 @@ export class UsersService {
     return user.blocked_users.length > 0;
   }
 
-  async checkIfUserSentThreeInvites(senderId: string, receiverId: string): Promise<boolean> {
+  async checkIfUserSentThreeInvites(
+    senderId: string,
+    receiverId: string,
+  ): Promise<boolean> {
     const sentInvitesCount = await this.prisma.invitations.count({
       where: {
         type: 'GAME',
@@ -272,20 +338,47 @@ export class UsersService {
     return sentInvitesCount >= 3;
   }
 
-  async createInvite(
-    createInviteDto: any,
-    senderId: string
-  ) {
+  async getPendingInvitations(userId: string) {
+    const pendingInvitations = await this.prisma.invitations.findMany({
+      where: {
+        receiverId: userId,
+        status: 'PENDING',
+      },
+      select: {
+        id: true,
+        type: true,
+        username: true,
+        senderId: true,
+        receiverId: true,
+        status: true,
+      },
+    });
+
+    return pendingInvitations;
+  }
+
+  async createInvite(createInviteDto: createInviteDto, senderId: string) {
     const { type, receiverId } = createInviteDto;
 
-    return await this.prisma.invitations.create({
+    const user = await this.prisma.user.findUnique({
+      where: { id: senderId },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
+
+    const invite = await this.prisma.invitations.create({
       data: {
         type,
         senderId,
+        username: user.username,
         receiverId,
         status: 'PENDING',
       },
     });
+    if (type === 'GAME') {
+      return invite;
+    }
+    user.sentInvites.push(invite);
+    return user;
   }
 
   async getInvite(id: string) {
@@ -294,25 +387,18 @@ export class UsersService {
     });
   }
 
-  async acceptInvite(
-    id: string,
-    receiverId: string
-  ) {
+  async acceptInvite(id: string) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
 
-    if (invite.receiverId !== receiverId) {
-      throw new NotFoundException('Invitation not found');
-    }
-
     if (invite.type === 'FRIEND') {
       await this.prisma.user.update({
         where: { id: invite.senderId },
-        data: { friends: { connect: { id: receiverId } } },
+        data: { friends: { connect: { id: invite.receiverId } } },
       });
       await this.prisma.user.update({
-        where: { id: receiverId },
+        where: { id: invite.receiverId },
         data: { friends: { connect: { id: invite.senderId } } },
       });
     }
@@ -329,23 +415,15 @@ export class UsersService {
       return invite;
     }
 
-    return await this.prisma.invitations.update({
+    return await this.prisma.invitations.delete({
       where: { id },
-      data: { status: 'ACCEPTED' },
     });
   }
 
-  async rejectInvite(
-    id: string,
-    receiverId: string
-  ) {
+  async rejectInvite(id: string) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
-
-    if (invite.receiverId !== receiverId) {
-      throw new NotFoundException('Invitation not found');
-    }
 
     if (invite.type === 'GAME') {
       await this.prisma.invitations.deleteMany({
@@ -358,9 +436,8 @@ export class UsersService {
       return invite;
     }
 
-    return await this.prisma.invitations.update({
+    return await this.prisma.invitations.delete({
       where: { id },
-      data: { status: 'REJECTED' },
     });
   }
 
@@ -378,4 +455,69 @@ export class UsersService {
     });
   }
 
+  async getTotalGamesWon(userID: string) {
+    const gamesWon = await this.prisma.user.findUnique({
+      where: {
+        id: userID,
+      },
+      select: {
+        id: true,
+        username: true,
+        user_status: true,
+        login: true,
+        profile_picture: true,
+        playerOneHistories: {
+          select: {
+            id: true,
+            winner: true,
+            looser: true,
+            player_score: true,
+            opponent_score: true,
+          },
+          where: {
+            winner: userID,
+          },
+        },
+      },
+    });
+    return gamesWon.playerOneHistories.length;
+  }
+
+  async getTotalGamesPlayed(userID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      select: {
+        playerOneHistories: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    return user.playerOneHistories.length;
+  }
+
+  async getPlayers() {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        user_status: true,
+        login: true,
+        profile_picture: true,
+      },
+    });
+  }
+
+  async getUserAchievements(userID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      include: {
+        achievements: true,
+      },
+    });
+
+    return user.achievements;
+  }
 }

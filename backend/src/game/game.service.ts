@@ -3,13 +3,25 @@ import { PrismaService } from 'src/database/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { GameHistory } from '@prisma/client';
-import { GameStatus } from './interface/game.interface';
 
 @Injectable()
 export class GameService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async storeGameHistory(gameData: CreateGameDto): Promise<void> {
+  async create(createGameDto: CreateGameDto) {
+    return await this.prisma.gameHistory.create({
+      data: {
+        player_one: createGameDto.player_one,
+        player_two: createGameDto.player_two,
+        player_score: -1,
+        opponent_score: -1,
+        winner: '',
+        looser: '',
+      },
+    });
+  }
+
+  async storeGameHistory(gameData: CreateGameDto, id: string): Promise<void> {
     gameData.winner =
       gameData.player_score > gameData.opponent_score
         ? gameData.player_one
@@ -19,7 +31,10 @@ export class GameService {
         ? gameData.player_one
         : gameData.player_two;
 
-    await this.prisma.gameHistory.create({
+    await this.prisma.gameHistory.update({
+      where: {
+        id: id,
+      },
       data: {
         player_one: gameData.player_one,
         player_two: gameData.player_two,
@@ -27,7 +42,7 @@ export class GameService {
         opponent_score: gameData.opponent_score,
         winner: gameData.winner,
         looser: gameData.looser,
-      }
+      },
     });
   }
 
@@ -128,5 +143,56 @@ export class GameService {
     }
 
     return gameRoom;
+  }
+
+  async getGame(id: string) {
+    const game = await this.prisma.gameHistory.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    if (game.winner === '' || game.winner === null) return game.id;
+
+    return '';
+  }
+
+  async updateUserAchievements(userId: string) {
+    const gameHistory = await this.prisma.gameHistory.findMany({
+      where: {
+        OR: [{ player_one: userId }, { player_two: userId }],
+      },
+    });
+
+    // Calculate the number of games won
+    const gamesWon = gameHistory.filter(game => game.winner === userId).length;
+
+    // Check if user has won three or ten games
+    const hasWonThree = gamesWon >= 3;
+    const hasWonTen = gamesWon >= 10;
+
+    // Update user achievements
+    const ach = await this.prisma.achievements.update({
+      where: {
+        userID: userId,
+      },
+      data: {
+        played_first: {
+          set: true,
+        },
+        won_three: {
+          set: hasWonThree,
+        },
+        won_ten: {
+          set: hasWonTen,
+        },
+      },
+    });
+
+    return ach;
   }
 }

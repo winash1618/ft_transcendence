@@ -2,20 +2,10 @@ import { PingPongContainer } from "./pingPong.styled";
 import CountDown from "./countdown";
 import PingPongCanvas from "./pingPongCanvas";
 
-const PingPong = ({
-  mobile,
-}: {
-  mobile: boolean;
-}) => {
+const PingPong = () => {
   return (
     <PingPongContainer>
-      <CountDown
-        element={
-          <PingPongCanvas
-            mobile={mobile}
-          />
-        }
-      />
+      <CountDown element={<PingPongCanvas />} />
     </PingPongContainer>
   );
 };

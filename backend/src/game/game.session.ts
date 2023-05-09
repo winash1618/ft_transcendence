@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Socket } from 'socket.io';
 import { SocketData } from './interface/game.interface';
 
 @Injectable()
@@ -21,6 +20,10 @@ export class GatewaySessionManager {
 
   getAllMobileSockets(): SocketData[] {
     return Array.from(this.mobileSessions.values());
+  }
+
+  getAllUserKeys(): any[] {
+    return Array.from(this.sessions.keys());
   }
 
   setUserSocket(userId: string, socket: SocketData): void {

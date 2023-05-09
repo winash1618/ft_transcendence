@@ -18,7 +18,7 @@ model User {
   profile_picture       String?
   last_name             String?
   secret_code           String?
-  is_authenticated      Boolean?
+  is_authenticated      Boolean         @default(true)
   friends               User[]          @relation("friends")
   friends_of            User[]          @relation("friends")
   blocked_users         User[]          @relation("blocked_users")
@@ -32,6 +32,9 @@ model User {
   playerTwoHistories    GameHistory[]   @relation("PlayerTwo")
   sentInvites           Invitations[]   @relation("sentInvites")
   receivedInvites       Invitations[]   @relation("receivedInvites")
+  achievements          Achievements?
+
+  @@index([id], name: "user_id_index")
 }
 
 model Invitations {
@@ -39,10 +42,23 @@ model Invitations {
   type                  InviteType      @default(FRIEND)
   sender                User            @relation("sentInvites", fields: [senderId], references: [id])
   senderId              String
+  username              String
   receiver              User            @relation("receivedInvites", fields: [receiverId], references: [id])
   receiverId            String
   status                InviteStatus    @default(PENDING)
   createdAt             DateTime        @default(now())
+}
+
+model Achievements {
+  id                    String          @id @default(uuid())
+  userID                String          @unique
+  user                  User            @relation(fields: [userID], references: [id])
+  won_three             Boolean         @default(false)
+  played_first          Boolean         @default(false)
+  won_ten               Boolean         @default(false)
+  created_at            DateTime        @default(now())
+
+  @@index([userID], name: "achievements_user_id_index")
 }
 
 // Conversation table

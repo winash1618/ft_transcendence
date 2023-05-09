@@ -49,16 +49,16 @@ services:
     working_dir: /app/backend
     command: >
       bash -c "npm install
+      && npm i -g @nestjs/cli
       && npm run build
-      && npm run start:prod
-      && npx prisma migrate dev --name init
-      && npm i -g @nestjs/cli"
+      && npm run start:dev"
     networks:
       - transcendence
     ports:
       - "3001:3001"
       - "5555:5555"
       - "8001:8001"
+      - "8002:8002"
     env_file:
       - .env
     volumes:

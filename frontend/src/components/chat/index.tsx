@@ -5,7 +5,7 @@ import { UserProfilePicture } from "../../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";
-import { ErrorAlert } from "../toastify/index";
+import { ErrorAlert, SuccessAlert } from "../toastify/index";
 
 interface ChatProps {
 	socket: any;
@@ -36,6 +36,15 @@ const Chat = ({
 		};
 	}, [socket]);
 
+	useEffect(() => {
+		socket?.on('conversationCreated', () => {
+			SuccessAlert("Conversation Created", 5000);
+		});
+		return () => {
+			socket?.off('conversationCreated');
+		};
+	}, [socket]);
+
 	return (
 		<>
 			<ParentContainer>
@@ -63,7 +72,6 @@ const Chat = ({
 					{(status === Status.ACTIVE || status === Status.MUTED) && (
 						<MessageDiv
 							user={user}
-							status={status}
 							socket={socket}
 							messages={messages}
 							setMessages={setMessages}
@@ -74,7 +82,6 @@ const Chat = ({
 				<RightSideContainer>
 					<RightSideDiv
 						socket={socket}
-						user={user}
 						Navbar={Navbar}
 						conversationID={conversationID}
 						conversation={conversation}

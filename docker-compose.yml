@@ -39,6 +39,8 @@ services:
     command: >
       bash -c "npm install
       && npm i -g @nestjs/cli
+      && npx prisma db push
+      && npx prisma db seed
       && npm run start:dev"
     networks:
       - transcendence
@@ -46,6 +48,7 @@ services:
       - "3001:3001"
       - "5555:5555"
       - "8001:8001"
+      - "8002:8002"
     env_file:
       - .env.dev
     volumes:

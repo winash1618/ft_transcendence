@@ -20,6 +20,8 @@ import {
   Res,
   BadRequestException,
   Put,
+  UsePipes,
+  ValidationPipe
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,19 +31,24 @@ import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/config/multer.config';
 import { join } from 'path';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { loginDto } from 'src/utils/uuid.dto';
+import { createInviteDto } from './dto/users.dto';
+import { ConfigService } from '@nestjs/config';
 
+// dont add @UseGuards(JwtAuthGuard) here because get profile picture does not need it
 @Controller('users')
 @ApiTags('users')
-@UseGuards(JwtAuthGuard)
 @UseFilters(PrismaClientExceptionFilter)
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private configService: ConfigService
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -55,18 +62,17 @@ export class UsersController {
   ) {
     try {
       const decodedToken = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
+        secret: this.configService.get('JWT_SECRET'),
       });
       if (!decodedToken) {
         throw new BadRequestException('Invalid token');
       }
-      const user = await this.usersService.findOne(filename.substring(0, filename.lastIndexOf('.')));
+      const user = await this.usersService.findOne(
+        filename.substring(0, filename.lastIndexOf('.')),
+      );
       if (
         !user ||
-        user.blocked_users.some(
-          user =>
-            user.id === decodedToken.id,
-        )
+        user.blocked_users.some(user => user.id === decodedToken.id)
       ) {
         throw new BadRequestException('Invalid token');
       }
@@ -77,6 +83,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('profile-image')
   @HttpCode(200)
   @UseInterceptors(FileInterceptor('image', multerConfig))
@@ -94,7 +101,7 @@ export class UsersController {
   ) {
     const decodedToken = this.jwtService.verify(
       request.headers.authorization.split(' ')[1],
-      { secret: process.env.JWT_SECRET },
+      { secret: this.configService.get('JWT_SECRET') },
     );
     const user = await this.usersService.updateProfilePicture(
       decodedToken.id,
@@ -103,110 +110,180 @@ export class UsersController {
     return { user };
   }
 
-  // @Get()
-  // findAll() {
-  // 	return this.usersService.users();
-  // }
-
+  @UseGuards(JwtAuthGuard)
   @Get(':login')
-  async findOne(@Req() req, @Param('login') login: string) {
-    const user = await this.usersService.findOne(login);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async findOne(@Req() req, @Param() params: loginDto) {
+    if (req.user.login !== params.login)
+      throw new BadRequestException('You do not have permission to access this user.');
+    const user = await this.usersService.findOne(params.login);
     if (!user || user.blocked_users.some(user => user.id === req.user.id)) {
-      throw new NotFoundException(`User #${login}: not found`);
+      throw new NotFoundException(`User #${params.login}: not found`);
     }
     return user;
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.usersService.remove(+id);
-  }
-
-  //   @Patch(':id')
-  //   async userStatusUpdate(@Param('id') id: string, @Body() data: { status: string; }) {
-  //     return await this.usersService.userStatusUpdate(id, data.status);
-  //   }
-
+  @UseGuards(JwtAuthGuard)
   @Patch(':uuid')
   async updateUserName(
-    @Param('uuid', new ParseUUIDPipe()) uuid: string,
+    @Req() req,
+    @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body() data: { name: string },
   ) {
+    if (req.user.id !== uuid)
+      throw new BadRequestException('You do not have permission to access this user.');
     return await this.usersService.updateUserName(uuid, data.name);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('friends/:uuid')
-  async getFriends(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
+  async getFriends(@Req() req, @Param('uuid', ParseUUIDPipe) uuid: string) {
+    if (req.user.id !== uuid)
+      throw new BadRequestException('You do not have permission to access this user.');
     return await this.usersService.getUserFriends(uuid);
   }
 
-  @Post()
+  @UseGuards(JwtAuthGuard)
+  @Post('create-invite')
   async createInvite(
-    @Body() createInviteDto: any,
+    @Body() createInviteDto: createInviteDto,
     @Req() req,
-    @Res() res: Response
+    @Res() res: Response,
   ): Promise<void> {
     try {
-      const invitation = await this.usersService.createInvite(createInviteDto, req.user.id);
+      const invitation = await this.usersService.createInvite(
+        createInviteDto,
+        req.user.id,
+      );
       res.status(201).json(invitation);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id/accept')
   async acceptInvite(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req,
-    @Res() res: Response
+    @Res() res: Response,
   ): Promise<void> {
     try {
-      const invitation = await this.usersService.acceptInvite(id, req.user.id);
-      res.status(200).json(invitation);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  }
-  @Put(':id/reject')
-  async rejectInvite(
-    @Param('id') id: string,
-    @Req() req,
-    @Res() res: Response
-  ): Promise<void> {
-    try {
-      const invitation = await this.usersService.rejectInvite(id, req.user.id);
+      if (req.user.id !== id)
+        throw new BadRequestException('You do not have permission to access this user.');
+      const invitation = await this.usersService.acceptInvite(id);
       res.status(200).json(invitation);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/reject')
+  async rejectInvite(
+    @Req() req,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      if (req.user.id !== id)
+        throw new BadRequestException('You do not have permission to access this user.');
+      const invitation = await this.usersService.rejectInvite(id);
+      res.status(200).json(invitation);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':userID/unfriend/:friendID')
   async unfriend(
-    @Param('userID') userID: string,
-    @Param('friendID') friendID: string,
+    @Req() req,
+    @Param('userID', ParseUUIDPipe) userID: string,
+    @Param('friendID', ParseUUIDPipe) friendID: string,
   ) {
+    if (req.user.id !== userID)
+      throw new BadRequestException('You do not have permission to access this user.');
+    if (userID === friendID)
+      throw new BadRequestException('You can not unfriend yourself.');
     return await this.usersService.unfriend(userID, friendID);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':userID/invitations')
+  async getInvitations(@Req() req, @Param('userID', ParseUUIDPipe) userID: string) {
+    if (req.user.id !== userID)
+      throw new BadRequestException('You do not have permission to access this user.');
+    return await this.usersService.getPendingInvitations(userID);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post(':userID/block/:blockID')
   async block(
-    @Param('userID') userID: string,
-    @Param('blockID') blockID: string,
+    @Req() req,
+    @Param('userID', ParseUUIDPipe) userID: string,
+    @Param('blockID', ParseUUIDPipe) blockID: string,
   ) {
+    if (req.user.id !== userID)
+      throw new BadRequestException('You do not have permission to access this user.');
+    if (userID === blockID)
+      throw new BadRequestException('You can not block yourself.');
     return await this.usersService.block(userID, blockID);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':userID/unblock/:blockID')
   async unblock(
-    @Param('userID') userID: string,
-    @Param('blockID') blockID: string,
+    @Req() req,
+    @Param('userID', ParseUUIDPipe) userID: string,
+    @Param('blockID', ParseUUIDPipe) blockID: string,
   ) {
+    if (req.user.id !== userID)
+      throw new BadRequestException('You do not have permission to access this user.');
+    if (userID === blockID)
+      throw new BadRequestException('You can not unblock yourself.');
     return await this.usersService.unblock(userID, blockID);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':userID/status')
-  async GetUserStatus(@Param('userID') userID: string) {
+  async GetUserStatus(@Req() req, @Param('userID', ParseUUIDPipe) userID: string) {
+    if (req.user.id !== userID)
+      throw new BadRequestException('You do not have permission to access this user.');
     return await this.usersService.fetchUserStatus(userID);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/leaderboard/leaders')
+  async getLeaderboard() {
+    try {
+      const getPlayers = await this.usersService.getPlayers();
+      const rankList = [];
+      await Promise.all(
+        getPlayers.map(async player => {
+          const totalGamesPlayed = await this.usersService.getTotalGamesPlayed(
+            player.id,
+          );
+          const totalGamesWon = await this.usersService.getTotalGamesWon(
+            player.id,
+          );
+          console.log(totalGamesPlayed, totalGamesWon);
+          rankList.push({
+            rank: 0,
+            profile_picture: player.profile_picture,
+            login: player.login,
+            rating:
+              800 + totalGamesWon * 10 - (totalGamesPlayed - totalGamesWon) * 8,
+          });
+        }),
+      );
+      rankList.sort((a, b) => b.rating - a.rating);
+      rankList.forEach((player, index) => {
+        player.rank = index + 1;
+      });
+      return rankList;
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

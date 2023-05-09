@@ -21,14 +21,9 @@ import { setGameInfo } from "../../store/gameReducer";
 
 export type PlayType = {
   map: number;
-  mobile: boolean;
 };
 
-const PlayForm = ({
-  setMobile,
-}: {
-  setMobile: any;
-}) => {
+const PlayForm = () => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const { socket } = useAppSelector((state) => state.game);
   const dispatch = useAppDispatch();
@@ -41,7 +36,6 @@ const PlayForm = ({
   useEffect(() => {
     socket?.on("start", (data) => {
       dispatch(setGameInfo({ ...data, isGameStarted: true }));
-      setMobile(data.mobile);
     });
     socket?.on("error", (data) => {
       ErrorAlert("You are already in the queue", 5000);
@@ -49,7 +43,6 @@ const PlayForm = ({
     return () => {
       socket?.off("start", (data) => {
         dispatch(setGameInfo({ ...data, isGameStarted: true }));
-        setMobile(data.mobile);
       });
       socket?.off("error", (data) => {
         ErrorAlert("You are already in the queue", 5000);
@@ -78,7 +71,7 @@ const PlayForm = ({
                 onChange={onChange}
                 options={[
                   { value: 1, label: "Default" },
-                  { value: 2, label: "Power up" },
+                  { value: 2, label: "Wall map" },
                 ]}
                 value={value}
                 placeholder="Choose a map to play with"
@@ -87,24 +80,6 @@ const PlayForm = ({
             )}
           />
           {errors.map && <InputAlert>{errors.map.message}</InputAlert>}
-        </InputController>
-        <InputController>
-          <Controller
-            control={control}
-            defaultValue={false}
-            name="mobile"
-            render={({ field: { onChange, value } }) => (
-              <Checkbox
-                onChange={onChange}
-                style={{ color: "#fff" }}
-                checked={value}
-                id="mobile"
-              >
-                Mobile
-              </Checkbox>
-            )}
-          />
-          {errors.mobile && <InputAlert>{errors.mobile.message}</InputAlert>}
         </InputController>
         <ButtonComponent
           style={{ width: "100%", marginBottom: "6px" }}

@@ -4,7 +4,6 @@ import {
   Get,
   HttpStatus,
   Post,
-  Query,
   Req,
   Res,
   UseGuards,
@@ -17,12 +16,14 @@ import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { AuthService } from './auth.service';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UsersService,
+    private configService: ConfigService
   ) {}
 
   @Get('hello')
@@ -30,18 +31,12 @@ export class AuthController {
     return this.authService.getHello();
   }
 
-  @Get('test')
-  @UseGuards(JwtAuthGuard)
-  async testing() {
-    return 'testing this';
-  }
-
   @UseGuards(FtAuthGuard)
   @Get()
   async redirectUri(@Req() req, @Res() res: Response) {
     try {
       if (!req.user) {
-        return res.redirect('/guest');
+        return res.redirect('/42/login');
       }
       await this.userService.updateAuthentication(req.user.id, false);
       const token = await this.authService.getLongExpiryJwtToken(
@@ -51,9 +46,8 @@ export class AuthController {
       this.userService.updateUserStatus(req.user.id, UserStatus.ONLINE);
 
       res.cookie('auth', token, { httpOnly: true });
-      return res.redirect(process.env.FRONTEND_BASE_URL);
-    }
-    catch (err) {
+      return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
+    } catch (err) {
       console.log(err);
     }
   }
@@ -67,11 +61,17 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('logout')
   async logout(@Res() res: Response) {
-    res.clearCookie('auth');
-    this.userService.updateUserStatus(res.locals.user.id, UserStatus.OFFLINE);
-    return res
-      .status(HttpStatus.OK)
-      .json({ message: 'logged out successfully' });
+    try {
+      res.clearCookie('auth');
+      this.userService.updateUserStatus(res.locals.user.id, UserStatus.OFFLINE);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'logged out successfully' });
+    } catch (err) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'failed to logout' });
+    }
   }
 
   @Get('guest')
@@ -82,7 +82,7 @@ export class AuthController {
     console.log(token);
 
     res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(process.env.FRONTEND_BASE_URL);
+    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
   }
 
   @Get('token')
@@ -152,7 +152,10 @@ export class AuthController {
     });
 
     if (verified) {
-      const user = await this.userService.updateSecretCode(req.user.id, body.secret);
+      const user = await this.userService.updateSecretCode(
+        req.user.id,
+        body.secret,
+      );
       return res.status(HttpStatus.ACCEPTED).json({ user });
     } else {
       return res
@@ -161,22 +164,44 @@ export class AuthController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('validate-otp')
   async validateOTP(
     @Req() req,
     @Res() res: Response,
     @Body() body: { otp: string },
   ): Promise<Response> {
+    const cookie = req.cookies.auth;
+    if (!cookie) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: 'Unauthorized' });
+    }
+
+    const verifyToken = await this.authService.verifyToken(cookie);
+
+    if (!verifyToken) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: 'Unauthorized' });
+    }
+    const cookieToken = await this.authService.decodeToken(cookie);
+
+    if (!cookieToken) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: 'Unauthorized' });
+    }
+    const user = await this.authService.validateUser(cookieToken as User);
+
     const verified = speakeasy.totp.verify({
-      secret: req.user.secret_code,
+      secret: user.secret_code,
       encoding: 'base32',
       token: body.otp,
       window: 1,
     });
 
     if (verified) {
-      await this.userService.updateAuthentication(req.user.id, true);
+      await this.userService.updateAuthentication(user.id, true);
       return res.status(HttpStatus.ACCEPTED).json({ message: 'otp is valid' });
     } else {
       return res
@@ -191,8 +216,7 @@ export class AuthController {
     try {
       const user = await this.userService.updateSecretCode(req.user.id, null);
       return res.status(HttpStatus.ACCEPTED).json({ user });
-    }
-    catch (err) {
+    } catch (err) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: err.message });
     }
   }

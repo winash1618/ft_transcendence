@@ -74,10 +74,17 @@ export interface SocketData {
   playerNumber: number;
   client: Socket;
   gameID: string;
-  userID: string;
+  userID: any;
   status: GameStatus;
 }
 
-export type UserMap = Map<string, SocketData>;
+export interface UserInfo {
+  id: string;
+  login: string;
+  iat: number;
+  exp: number;
+}
+
+export type UserMap = Map<UserInfo, SocketData>;
 
 export type InvitationMap = Map<string, string[]>;

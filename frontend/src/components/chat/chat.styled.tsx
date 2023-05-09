@@ -4,7 +4,7 @@ export const ParentContainer = styled.div`
   display: flex;
   flex-direction: row;
   height: 80vh;
-
+  border-radius: 15px;
   @media (max-width: 768px) {
     flex-direction: column;
     height: auto;

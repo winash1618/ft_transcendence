@@ -1,16 +1,12 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
   UseFilters,
   ParseUUIDPipe,
   UseGuards,
   Req,
-  Res
+  Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
@@ -36,7 +32,8 @@ export class ChatController {
   @Get('direct')
   async getConversations(@Req() req, @Res() res: Response) {
     try {
-      const conversation = await this.conversationService.getDirectConversations(req.user.id);
+      const conversation =
+        await this.conversationService.getDirectConversations(req.user.id);
       return res.status(200).json(conversation);
     } catch (error) {
       return res.status(404).json({ error: error.message });
@@ -45,11 +42,15 @@ export class ChatController {
 
   @Get(':conversationID/members')
   async getParticipants(
+    @Req() req,
     @Param('conversationID', ParseUUIDPipe) conversationID: string,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     try {
-      const participants = await this.participantService.getConversationMembers(conversationID);
+      const participants = await this.participantService.getConversationMembers(
+        conversationID,
+        req.user.id,
+      );
       return res.status(200).json(participants);
     } catch (error) {
       return res.status(404).json({ error: error.message });
@@ -59,7 +60,9 @@ export class ChatController {
   @Get('groups')
   async getChannels(@Req() req, @Res() res: Response) {
     try {
-      const conversations = await this.conversationService.getChannels(req.user.id);
+      const conversations = await this.conversationService.getChannels(
+        req.user.id,
+      );
       return res.status(200).json(conversations);
     } catch (error) {
       return res.status(404).json({ error: error.message });
@@ -68,13 +71,15 @@ export class ChatController {
 
   @Get(':conversationID/messages')
   async getMessages(
-    @Param('conversationID') conversationID: string,
-    @Res() res: Response
+    @Req() req,
+    @Param('conversationID', ParseUUIDPipe) conversationID: string,
+    @Res() res: Response,
   ) {
     try {
       const conversations =
         await this.messageService.getDisplayMessagesByConversationID(
           conversationID,
+          req.user.id,
         );
       return res.status(200).json(conversations);
     } catch (error) {
@@ -85,37 +90,38 @@ export class ChatController {
   @Get('explore')
   async searchChannels(@Req() req, @Res() res: Response) {
     try {
-      const conversations = await this.conversationService.findChannelsThatUserIsNotIn(
-        req.user.id,
-      );
+      const conversations =
+        await this.conversationService.findChannelsThatUserIsNotIn(req.user.id);
       return res.status(200).json(conversations);
     } catch (error) {
       return res.status(404).json({ error: error.message });
     }
   }
 
-  @Get('channel/:channelID/banned')
+  @Get('channel/:conversationID/banned')
   async getBannedUsers(
-    @Param('channelID', ParseUUIDPipe) channelID: string,
-    @Res() res: Response
+    @Req() req,
+    @Param('conversationID', ParseUUIDPipe) conversationID: string,
+    @Res() res: Response,
   ) {
     try {
-      const users = await this.participantService.bannedUsers(channelID);
+      const users = await this.participantService.bannedUsers(conversationID, req.user.id);
       return res.status(200).json(users);
     } catch (error) {
       return res.status(404).json({ error: error.message });
     }
   }
 
-  @Get('channel/:channelID/addFriends')
+  @Get('channel/:conversationID/addFriends')
   async getFriendsToAddToChannel(
-    @Param('channelID', ParseUUIDPipe) channelID: string,
-    @Req() req, @Res() res: Response
+    @Param('conversationID', ParseUUIDPipe) conversationID: string,
+    @Req() req,
+    @Res() res: Response,
   ) {
     try {
       const friends = await this.conversationService.friendsNotInConversation(
         req.user.id,
-        channelID,
+        conversationID,
       );
 
       return res.status(200).json(friends);

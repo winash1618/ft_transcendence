@@ -1,10 +1,7 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Privacy, Role, Status } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import {
-  CreateConversationDto,
-  UpdateConversationDto,
-} from '../dto/conversation.dto';
+import { CreateConversationDto } from '../dto/conversation.dto';
 import * as brypt from 'bcrypt';
 import { ParticipantService } from './participant.service';
 import { UsersService } from '../../users/users.service';
@@ -46,7 +43,7 @@ export class ConversationService {
           title: true,
           privacy: true,
           creator_id: true,
-        }
+        },
       });
 
       return conversation;
@@ -55,11 +52,14 @@ export class ConversationService {
     }
   }
 
-  async protectConversation(conversationID: string, password: string, admin: string) {
+  async protectConversation(
+    conversationID: string,
+    password: string,
+    admin: string,
+  ) {
     const conversation = await this.checkConversationExists(conversationID);
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT) {
       throw new Error('Cannot protect direct conversation');
@@ -69,23 +69,30 @@ export class ConversationService {
       throw new Error('Conversation is already protected');
     }
 
-    const participant = await this.participantService.checkParticipantExists(conversationID, admin)
+    const participant = await this.participantService.checkParticipantExists(
+      conversationID,
+      admin,
+    );
 
     if (!participant)
       throw new Error('User is not a participant of this conversation');
 
-    if (participant.role !== Role.OWNER)
-      throw new Error('User is OWNER.');
+    if (participant.role !== Role.OWNER) throw new Error('User is not OWNER.');
 
-      if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('User is not active in this conversation');
 
     if (password == '' || password == null || password == undefined)
-    throw new Error('Password is required');
+      throw new Error('Password is required');
 
-    const regex = new RegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$");
-    if (!regex.test(password))
-      throw new Error('Password is invalid');
+    const regex = new RegExp(
+      '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$',
+    );
+    if (!regex.test(password)) throw new Error('Password is invalid');
 
     const hashedPassword = await this.hashPassword(password);
 
@@ -151,19 +158,16 @@ export class ConversationService {
       admin,
     );
 
-    if (!participant)
-      throw new Error('User is not participant');
+    if (!participant) throw new Error('User is not participant');
 
-    if (participant.role === Role['USER'])
-      throw new Error('User is not admin');
+    if (participant.role === Role['USER']) throw new Error('User is not admin');
 
     const user = await this.participantService.checkParticipantExists(
       conversationID,
       userID,
     );
 
-    if (!user)
-      throw new Error('User is not participant');
+    if (!user) throw new Error('User is not participant');
 
     if (user.role === Role['ADMIN'] || user.role === Role['OWNER'])
       throw new Error('Cannot mute admin');
@@ -198,8 +202,7 @@ export class ConversationService {
       userID,
     );
 
-    if (!user)
-      throw new Error('User is not participant');
+    if (!user) throw new Error('User is not participant');
 
     if (user.conversation_status === Status.ACTIVE)
       throw new Error('User is not muted');
@@ -244,6 +247,7 @@ export class ConversationService {
             user: {
               select: {
                 username: true,
+                profile_picture: true,
               },
             },
           },
@@ -271,7 +275,7 @@ export class ConversationService {
           some: {
             user_id: userID,
             conversation_status: {
-              notIn: [Status.BANNED, Status.KICKED, Status.DELETED]
+              notIn: [Status.BANNED, Status.KICKED, Status.DELETED],
             },
           },
         },
@@ -283,15 +287,15 @@ export class ConversationService {
         id: true,
         title: true,
         privacy: true,
-				participants: {
-					select: {
-						role: true,
-						conversation_status: true,
-					},
-					where: {
-						user_id: userID,
-					},
-				}
+        participants: {
+          select: {
+            role: true,
+            conversation_status: true,
+          },
+          where: {
+            user_id: userID,
+          },
+        },
       },
     });
   }
@@ -344,21 +348,24 @@ export class ConversationService {
   }
 
   async friendsNotInConversation(userID: string, conversationID: string) {
-    if (!this.userService.checkIfUserExists(userID)) {
+    if (!(await this.userService.checkIfUserExists(userID))) {
       throw new Error('User does not exist');
     }
 
-    if (!this.checkConversationExists(conversationID)) {
+    if (!(await this.checkConversationExists(conversationID))) {
       throw new Error('Conversation does not exist');
     }
 
+    if (!(await this.participantService.checkParticipantExists(conversationID, userID)))
+      throw new Error('User is not participant');
+
     if (
-      !this.participantService.isUserAdminInConversation(userID, conversationID)
+      !(await this.participantService.isUserAdminInConversation(userID, conversationID))
     ) {
       throw new Error('User is not admin of the conversation');
     }
 
-    return await this.prisma.user.findUnique({
+    const conv = await this.prisma.user.findUnique({
       where: {
         id: userID,
       },
@@ -369,6 +376,11 @@ export class ConversationService {
               participant_in: {
                 some: {
                   conversation_id: conversationID,
+                  NOT: {
+                    conversation_status: {
+                      in: ['BANNED', 'KICKED'],
+                    },
+                  },
                 },
               },
             },
@@ -376,10 +388,13 @@ export class ConversationService {
           select: {
             id: true,
             username: true,
+            profile_picture: true,
           },
         },
       },
     });
+    console.log(conv);
+    return conv;
   }
 
   async checkConversationExists(conversationID: string) {
@@ -397,7 +412,6 @@ export class ConversationService {
   }
 
   async checkDirectConversationExists(userID: string, otherUserID: string) {
-
     if (userID === 'undefined' || otherUserID === 'undefined')
       throw new Error('User does not exist');
 
@@ -498,8 +512,8 @@ export class ConversationService {
           in: [Role.OWNER, Role.ADMIN],
         },
         conversation_status: {
-          notIn: [Status.BANNED, Status.KICKED, Status.DELETED]
-        }
+          notIn: [Status.BANNED, Status.KICKED, Status.DELETED],
+        },
       },
     });
 
@@ -530,14 +544,14 @@ export class ConversationService {
                 id: true,
                 username: true,
               },
-            }
-          }
+            },
+          },
         });
       } else {
-        return ;
+        return;
       }
     } else {
-      return ;
+      return;
     }
   }
 

@@ -21,10 +21,10 @@ const ProfileHeader = () => {
 
   const addFriend = async () => {
     try {
-      const response = await axiosPrivate.post(
-        `/users/${userInfo?.id}/add-friend/${user?.id}`
-      );
-      console.log(response);
+      const response = await axiosPrivate.post("/users/create-invite", {
+        type: "FRIEND",
+        receiverId: user?.id,
+      });
       dispatch(setUserInfo(response.data));
     } catch (err) {
       console.log("test");
@@ -99,6 +99,12 @@ const ProfileHeader = () => {
           ) ? (
             <Button onClick={removeFriend} type="primary" danger>
               Remove friend
+            </Button>
+          ) : userInfo.sentInvites?.some(
+              (item) => item.receiverId === user.id
+            ) ? (
+            <Button type="primary" style={{ background: "green", pointerEvents: "none", color: "white" }}>
+              Request sent
             </Button>
           ) : (
             <Button onClick={addFriend} type="primary">

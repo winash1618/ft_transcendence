@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { WsException } from '@nestjs/websockets';
 import { User } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
 import { ConfigService } from '@nestjs/config';
