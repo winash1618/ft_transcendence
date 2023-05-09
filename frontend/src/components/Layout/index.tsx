@@ -37,6 +37,7 @@ const navItems = [
   { icon: HomeOutlined, path: "/", label: "Leaderboard" },
   { icon: PlayCircleOutlined, path: "/pingpong", label: "Play ping pong" },
   { icon: MessageOutlined, path: "/messages", label: "Messages" },
+  { icon: MessageOutlined, path: "/home", label: "Messages" },
 ];
 
 const NotificationMenu: React.FC = ({
@@ -127,6 +128,8 @@ const Navbar: React.FC = () => {
       setSelected("2");
     } else if (location.pathname === "/messages") {
       setSelected("3");
+    } else if (location.pathname === "/home") {
+      setSelected("4");
     } else {
       setSelected("0");
     }
