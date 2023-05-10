@@ -254,6 +254,12 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('achievements/:userID')
+  async getUserAchievements(@Param('userID', ParseUUIDPipe) userID: string) {
+    return await this.usersService.getUserAchievements(userID);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/leaderboard/leaders')
   async getLeaderboard() {
     try {

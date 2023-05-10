@@ -392,8 +392,14 @@ export class GameEngine {
           this.gameObj.player1.points >= GAME_POINTS
             ? this.player2
             : this.player1;
-        this.users.get(winner).client.emit('win', winner);
-        this.users.get(looser).client.emit('lose', looser);
+        if (this.gameObj.player1.points === this.gameObj.player2.points) {
+          this.users.get(winner).client.emit('draw', winner);
+          this.users.get(looser).client.emit('draw', looser);
+        }
+        else {
+          this.users.get(winner).client.emit('win', winner);
+          this.users.get(looser).client.emit('lose', looser);
+        }
         this.gameService.storeGameHistory(
           {
             player_one: this.gameObj.player1.name.id,
