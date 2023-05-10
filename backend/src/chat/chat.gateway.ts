@@ -1,4 +1,4 @@
-import { UsePipes } from '@nestjs/common';
+import { UsePipes, InternalServerErrorException } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -50,23 +50,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
-    const userID = this.jwtService.verify(token, {
-      secret: this.configService.get('JWT_SECRET'),
-    });
+    try {
+      const token = client.handshake.auth.token as string;
+      // const token = client.handshake.headers.token as string;
+      const userID = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
 
-    client.data.userID = userID;
+      client.data.userID = userID;
+      const user = this.gatewaySession.getUserSocket(userID.id);
+      if (user) {
+        this.gatewaySession.removeUserSocket(userID.id);
+        // also disconnect the previous socket
+        user.disconnect();
+      }
 
-    this.gatewaySession.setUserSocket(userID.id, client);
+      this.gatewaySession.setUserSocket(userID.id, client);
 
-    console.log('User connected chat: ', userID);
+      console.log('User connected chat: ', userID);
 
-    const conversations =
-      await this.conversationService.getConversationByUserID(userID.id);
+      const conversations =
+        await this.conversationService.getConversationByUserID(userID.id);
 
-    for (const conversation of conversations) {
-      client.join(conversation.id);
+      for (const conversation of conversations) {
+        client.join(conversation.id);
+      }
+    }
+    catch (e) {
+      throw new InternalServerErrorException('JWT verification failed');
     }
   }
 

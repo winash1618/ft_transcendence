@@ -17,6 +17,7 @@ import {
   KeyPress,
   UserInfo,
 } from './interface/game.interface';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
@@ -55,27 +56,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         secret: this.configService.get('JWT_SECRET'),
       });
 
+      const oldUser = this.userSockets.get(userid);
+      if (oldUser) {
+        // this.usersService.deleted(oldUser)
+        oldUser.client.disconnect();
+      }
+
       client.data.userID = userid;
       const user = await this.usersService.findOne(client.data.userID['login']);
       client.data.userID['login'] = user.username;
       console.log('User connected: ', userid);
 
       this.setUserStatus(client, GameStatus.WAITING);
-    } catch (e) {
-      client.disconnect();
-      throw new WsException({
-        message: 'Error connection',
-        error: e.message,
-      });
+    }
+    catch (e) {
+      throw new InternalServerErrorException('JWT verification failed');
     }
   }
 
   handleDisconnect(client: any) {
     try {
-      const token = client.handshake.auth.token;
-      const userid = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_SECRET'),
-      });
+      const userid = client.data.userID;
       console.log('User disconnected: ', userid);
       this.defaultQ = this.defaultQ.filter(
         (user: any) => user.userID.login !== userid.login,
