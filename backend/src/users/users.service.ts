@@ -46,9 +46,6 @@ export class UsersService {
         last_name: true,
         profile_picture: true,
         is_authenticated: true,
-        friends: true,
-        sentInvites:true,
-        blocked_users: true,
         user_status: true,
       }
     });
@@ -216,7 +213,6 @@ export class UsersService {
   }
 
   async getUserIDByUserName(username: string): Promise<string> {
-    console.log(username);
     const user = await this.prisma.user.findUnique({
       where: { username: username },
     });
@@ -264,6 +260,11 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { id },
       data: { username: name },
+      select: {
+        id: true,
+        username: true,
+        login: true,
+      }
     });
   }
 
@@ -362,7 +363,7 @@ export class UsersService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: senderId },
-      include: { friends: true, sentInvites: true, blocked_users: true },
+      include: { friends: true, sentInvites: true, blocked_users: true }
     });
 
     const invite = await this.prisma.invitations.create({
@@ -514,8 +515,14 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { id: userID },
       include: {
-        achievements: true,
-      },
+        achievements: {
+          select: {
+            won_three: true,
+            played_first: true,
+            won_ten: true
+          },
+        }
+      }
     });
 
     return user.achievements;

@@ -61,13 +61,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(userID.id);
       if (user) {
         this.gatewaySession.removeUserSocket(userID.id);
-        // also disconnect the previous socket
-        user.disconnect();
+        this.handleDisconnect(user);
       }
 
       this.gatewaySession.setUserSocket(userID.id, client);
 
-      console.log('User connected chat: ', userID);
+      // console.log('User connected chat: ', userID);
 
       const conversations =
         await this.conversationService.getConversationByUserID(userID.id);
@@ -82,7 +81,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: Socket) {
-    console.log('User disconnected: ', client.data.userID);
+    // console.log('User disconnected: ', client.data.userID);
     this.gatewaySession.removeUserSocket(client.data.userID.id);
   }
 

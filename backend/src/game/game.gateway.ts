@@ -58,14 +58,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const oldUser = this.userSockets.get(userid);
       if (oldUser) {
-        // this.usersService.deleted(oldUser)
-        oldUser.client.disconnect();
+        console.log('User reconnected: ', userid);
+        this.handleDisconnect(oldUser.client);
       }
 
       client.data.userID = userid;
       const user = await this.usersService.findOne(client.data.userID['login']);
       client.data.userID['login'] = user.username;
-      console.log('User connected: ', userid);
+      // console.log('User connected: ', userid);
 
       this.setUserStatus(client, GameStatus.WAITING);
     }
@@ -77,7 +77,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: any) {
     try {
       const userid = client.data.userID;
-      console.log('User disconnected: ', userid);
+      // console.log('User disconnected: ', userid);
       this.defaultQ = this.defaultQ.filter(
         (user: any) => user.userID.login !== userid.login,
       );
@@ -139,6 +139,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: RegisterDto,
   ) {
     try {
+      const player = this.userSockets.get(client.data.userID);
+      if (player.status !== GameStatus.WAITING) {
+        throw new Error('User is already in game');
+      }
       const socketData: SocketData = this.setUserStatus(
         client,
         GameStatus.WAITING,
@@ -271,7 +275,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.setUserStatus(client, GameStatus.WAITING);
       const invite = await this.usersService.rejectInvite(data.inviteID);
       if (invite) {
-        console.log(invite);
         const users = Array.from(this.userSockets.keys());
         const foundUser = users.find(user => user.id === invite.senderId);
         const invitedSocketData = this.userSockets.get(foundUser);

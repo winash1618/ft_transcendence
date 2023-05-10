@@ -59,8 +59,6 @@ export class GameService {
         ],
       },
       select: {
-        player_one: true,
-        player_two: true,
         player_score: true,
         opponent_score: true,
         winner: true,
@@ -146,9 +144,12 @@ export class GameService {
   }
 
   async getGame(id: string) {
-    const game = await this.prisma.gameHistory.findUnique({
+    const game = await this.prisma.gameHistory.findFirst({
       where: {
-        id,
+        OR: [{ player_one: id }, { player_two: id }],
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
@@ -157,8 +158,7 @@ export class GameService {
     }
 
     if (game.winner === '' || game.winner === null) return game.id;
-
-    return '';
+    else return null;
   }
 
   async updateUserAchievements(userId: string) {

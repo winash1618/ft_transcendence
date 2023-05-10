@@ -393,7 +393,6 @@ export class ConversationService {
         },
       },
     });
-    console.log(conv);
     return conv;
   }
 
@@ -516,8 +515,6 @@ export class ConversationService {
         },
       },
     });
-
-    console.log(admin);
 
     if (!admin) {
       const oldestUser = await this.prisma.participant.findFirst({
