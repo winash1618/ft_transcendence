@@ -8,7 +8,7 @@ import PingPongPage from "../pages/pingPongPage";
 import ProfilePage from "../pages/profilePage";
 import SettingsPage from "../pages/settingsPage";
 import AuthenticatePage from "../pages/authenticatePage";
-import AchievementsPage from "../pages/achievementsPage";
+import HomePage from "../pages/homePage";
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +17,7 @@ export const router = createBrowserRouter([
       { path: "/", element: <LeaderBoardPage /> },
       { path: "/messages", element: <MessagesPage /> },
       { path: "/pingpong", element: <PingPongPage /> },
-      { path: "/achievements", element: <AchievementsPage /> },
+      { path: "/home", element: <HomePage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/profile/:login", element: <ProfilePage /> },
       { path: "/set-nickname", element: <NickNamePage /> },
