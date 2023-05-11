@@ -50,9 +50,14 @@ const PlayForm = () => {
   }, [socket, dispatch]);
 
   const onSubmit: SubmitHandler<PlayType> = (data) => {
-    setIsSearching(true);
-    console.log(data);
-    socket?.emit("Register", data);
+    if (!isSearching) {
+
+      setIsSearching(true);
+      socket?.emit("Register", data);
+    } else {
+      setIsSearching(false);
+      socket?.emit("leave");
+    }
   };
 
   return (
@@ -80,18 +85,26 @@ const PlayForm = () => {
           />
           {errors.hasMiddleWall && <InputAlert>{errors.hasMiddleWall.message}</InputAlert>}
         </InputController>
+        {isSearching ?
+        <>
         <ButtonComponent
+          style={{ width: "100%", marginBottom: "6px" }}
+          htmlType="submit"
+        >
+          Leave Queue
+        </ButtonComponent>
+          <SearchingWrapper>
+            <p>Searching ...</p>
+            <Spin />
+          </SearchingWrapper>
+          </>
+          : <ButtonComponent
           style={{ width: "100%", marginBottom: "6px" }}
           htmlType="submit"
         >
           Find game
         </ButtonComponent>
-        {isSearching && (
-          <SearchingWrapper>
-            <p>Searching ...</p>
-            <Spin />
-          </SearchingWrapper>
-        )}
+        }
       </FormDetails>
     </FormContainer>
   );

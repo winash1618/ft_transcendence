@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrophy } from "@fortawesome/free-solid-svg-icons";
-import { AchievementsWrapper } from "./achievementsPage.styled";
+import { AchievementsContainer, AchievementsWrapper, CustomRow } from "./achievementsPage.styled";
 import { Row } from "antd";
 import AchievementsCard from "../../components/achievementsCard";
 
@@ -27,9 +27,11 @@ const AchievementsPage = () => {
     },
   ];
   return (
-    <Row style={{padding: "30px"}} gutter={[64, 64]}>
+    <AchievementsContainer style={{width: "100%"}}>
+    <CustomRow style={{paddingTop: "30px"}}>
       {achievements.map((achievement) => (
-        <AchievementsWrapper key={achievement.id}>
+        <AchievementsWrapper sm={8}
+        md={8} lg={2} key={achievement.id}>
           <AchievementsCard
             title={achievement.title}
             image={achievement.image}
@@ -37,7 +39,8 @@ const AchievementsPage = () => {
           />
         </AchievementsWrapper>
       ))}
-    </Row>
+    </CustomRow>
+    </AchievementsContainer>
   );
 };
 

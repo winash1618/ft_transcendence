@@ -221,7 +221,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.gameRooms[roomId].barSelect(keyStatus, client, isPressed);
 	}
 
-	@UsePipes(new ValidationPipe())
+	// @UsePipes(new ValidationPipe())
 	@SubscribeMessage('StartGame')
 	async startGame(@MessageBody() data: StartGameDto, @ConnectedSocket() client: Socket) {
 		console.log('start game');
@@ -260,6 +260,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				player2: player2.userID,
 			},
 			roomID,
+			hasMiddleWall: middleWall
 		});
 		this.server.to(player1.client.id).emit('start', {
 			playerNo: 1,
@@ -268,6 +269,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				player2: player2.userID,
 			},
 			roomID,
+			hasMiddleWall: middleWall
 		});
 	}
 }

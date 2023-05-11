@@ -27,6 +27,12 @@ export type GameType = {
     borderColor: string;
     color: string;
   };
+  wall: {
+    x: number;
+    gapTop: number;
+    gapBottom: number;
+    width: number;
+  }
   paddle1: {
     x: number;
     y: number;
@@ -52,6 +58,12 @@ let game: GameType = {
     borderColor: "BLACK",
     color: "WHITE",
   },
+  wall: {
+    x: 0.975 * CANVAS_HEIGHT / 2,
+    width: 0.025 * CANVAS_WIDTH,
+    gapTop: (CANVAS_HEIGHT - 200) / 2,
+    gapBottom: CANVAS_HEIGHT - 200
+  },
   paddle1: {
     x: 0,
     y: 0.875 * CANVAS_HEIGHT / 2,
@@ -71,7 +83,7 @@ let game: GameType = {
 const PingPongCanvas = () => {
   const canvaRef = useRef<HTMLCanvasElement>(null);
   const { socket } = useAppSelector((state) => state.game);
-  const { players, player, roomID } = useAppSelector((state) => state.game);
+  const { players, player, roomID, hasMiddleWall } = useAppSelector((state) => state.game);
   const { token } = useAppSelector((state) => state.auth);
   const [gameStatus, setGameStatus] = useState<number>(0);
   const [player1Score, setPlayer1Score] = useState<number>(0);
@@ -98,6 +110,8 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
+      game.wall.x =  0.975 * canvaRef.current.height / 2;
+      game.wall.width = 0.025 * canvaRef.current.width;
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
       game.ball.radius = 0.015 * canvaRef.current.width;
@@ -114,7 +128,7 @@ const PingPongCanvas = () => {
       let ctx = canvaRef.current.getContext("2d");
       if (ctx) {
         requestAnimationFrame(() =>
-          draw(ctx, game, player, setPlayer1Score, setPlayer2Score)
+          draw(ctx, game, player, setPlayer1Score, setPlayer2Score, hasMiddleWall)
         );
       }
     }
@@ -210,6 +224,7 @@ const PingPongCanvas = () => {
     if (roomID.length > 0) {
       socket?.emit("StartGame", {
         roomID,
+        hasMiddleWall
       });
     }
     return () => {
@@ -245,6 +260,8 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
+      game.wall.x =  0.975 * canvaRef.current.height / 2;
+      game.wall.width = 0.025 * canvaRef.current.width;
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
       game.ball.radius = 0.015 * canvaRef.current.width;

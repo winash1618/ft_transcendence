@@ -88,7 +88,7 @@ const SettingsPage = () => {
             )}
           </InputController>
           <ButtonComponent
-            style={{ width: "100%", marginBottom: "2rem" }}
+            style={{ width: "100%", marginBottom: "2rem", padding: 0 }}
             htmlType="submit"
           >
             Change nickname
@@ -101,20 +101,20 @@ const SettingsPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <ButtonComponent style={{ width: "100%", marginBottom: "2rem" }}>
-                Disable 2-factor authentication
+              <ButtonComponent style={{ width: "100%", marginBottom: "2rem", padding: 0 }}>
+                Disable 2-Factor Auth
               </ButtonComponent>
             </Popconfirm>
           ) : (
             <ButtonComponent
-              style={{ width: "100%", marginBottom: "2rem" }}
+              style={{ width: "100%", marginBottom: "2rem", padding: 0 }}
               onClick={() => setShowModal2FA(true)}
             >
-              Enable 2-factor authentication
+              Enable 2-Factor Auth
             </ButtonComponent>
           )}
           <ButtonComponent
-            style={{ width: "100%" }}
+            style={{ width: "100%", padding: 0 }}
             onClick={() => setShowModalProfile(true)}
           >
             Change profile picture
