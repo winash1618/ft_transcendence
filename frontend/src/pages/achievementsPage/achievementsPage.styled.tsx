@@ -10,8 +10,8 @@ export const CustomRow = styled(Row)`
 width: 100%;
 margin: auto;
 gap: 40px;
-max-width: 790px;
-@media (max-width: 768px) {
+max-width: 830px;
+@media (max-width: 861px) {
     max-width: 540px;
 }
 @media (max-width: 768px) {
