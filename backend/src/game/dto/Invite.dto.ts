@@ -4,5 +4,8 @@ export class InviteDto {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
   username: string;
 }
