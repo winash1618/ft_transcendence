@@ -2,14 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
+import { TrophyOutlined } from "@ant-design/icons";
 import {
-	Badge,
-	ConfigProvider,
-	Dropdown,
-	Layout,
-	Menu,
-	MenuProps,
-	theme,
+  Badge,
+  ConfigProvider,
+  Dropdown,
+  Layout,
+  Menu,
+  MenuProps,
+  theme,
 } from "antd";
 import axios, { BASE_URL, axiosPrivate } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -17,16 +18,16 @@ import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 import Loading from "../loading";
 import {
-	CustomSider,
-	HeaderWrapper,
-	InviteButtonsWrapper,
-	InviteDescription,
-	InviteWrapper,
-	LogoImg,
-	LogoWrapper,
-	NotificationsLi,
-	NotificationsUl,
-	NotificationsWrapper,
+  CustomSider,
+  HeaderWrapper,
+  InviteButtonsWrapper,
+  InviteDescription,
+  InviteWrapper,
+  LogoImg,
+  LogoWrapper,
+  NotificationsLi,
+  NotificationsUl,
+  NotificationsWrapper,
 } from "./layout.styled";
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
@@ -36,197 +37,197 @@ import { setGameInfo, setSocket } from "../../store/gameReducer";
 const { darkAlgorithm } = theme;
 
 const timeInMinutes = process.env.REACT_APP_JWT_EXPIRES_IN as string;
-const timeInMinutesNumber = parseInt(timeInMinutes.replace('m', '')) * 60;
+const timeInMinutesNumber = parseInt(timeInMinutes.replace("m", "")) * 60;
 
 const { Content, Footer, Header } = Layout;
 
 const navItems = [
-	{ icon: HomeOutlined, path: "/", label: "Leaderboard" },
-	{ icon: PlayCircleOutlined, path: "/pingpong", label: "Play ping pong" },
-	{ icon: MessageOutlined, path: "/messages", label: "Messages" },
+  { icon: HomeOutlined, path: "/", label: "Leaderboard" },
+  { icon: PlayCircleOutlined, path: "/pingpong", label: "Play ping pong" },
+  { icon: MessageOutlined, path: "/messages", label: "Messages" },
+  { icon: TrophyOutlined, path: "/achievements", label: "Achievements" },
 ];
 
 const Navbar: React.FC = () => {
-	const [isLoadingPage, setIsLoadingPage] = useState<boolean>(true);
-	const { userInfo, token } = useAppSelector((state) => state.auth);
-	const [open, setOpen] = useState<boolean>(false);
-	const { socket } = useAppSelector((state) => state.game);
-	const [selected, setSelected] = useState<string>("0");
-	const [isCollapsed, setIsCollapsed] = useState(true);
-	const [items, setItems] = useState<any[]>([]);
-	const navigate = useNavigate();
-	const dispatch = useAppDispatch();
-	const location = useLocation();
-	const [connectionTime, setConnectionTime] = useState(null);
+  const [isLoadingPage, setIsLoadingPage] = useState<boolean>(true);
+  const { userInfo, token } = useAppSelector((state) => state.auth);
+  const [open, setOpen] = useState<boolean>(false);
+  const { socket } = useAppSelector((state) => state.game);
+  const [selected, setSelected] = useState<string>("0");
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [items, setItems] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const location = useLocation();
+  const [connectionTime, setConnectionTime] = useState(null);
 
-	useEffect(() => {
-		socket?.on("Invited", (data) => {
-			console.log(data);
-			setItems((prev) => [
-				...prev,
-				{
-					key: data.id,
-					inviteId: data.inviteId,
-					type: "GAME",
-					login: data.login,
-				},
-			]);
-		});
-		socket?.on("start", (data) => {
-			dispatch(setGameInfo({ ...data, isGameStarted: true }));
-			navigate("/pingpong");
-		});
-		return () => {
-			socket?.off("Invited");
-			socket?.disconnect();
-		};
-	}, [socket]);
-	const getToken = async () => {
-		try {
-			const response = await axios.get(`/token`);
-			localStorage.setItem("auth", JSON.stringify(response.data));
-			dispatch(setToken(response.data.token));
-			dispatch(setUserInfo(response.data.user));
-			if (!response.data.user.username) {
-				navigate("/set-nickname");
-			}
-			if (
-				!response.data.user.is_authenticated &&
-				response.data.user.secret_code
-			) {
-				navigate("/authenticate");
-			}
-			setIsLoadingPage(false);
-			return response.data.token;
-		} catch (err) {
-			dispatch(logOut());
-			window.location.replace(`${BASE_URL}/42/login`);
-		}
-	};
-	const getSocket = async () => {
-		try {
-			const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
-				withCredentials: true,
-				auth: async (cb) => {
-					const token = await getToken();
-					cb({
-						token,
-					});
-				},
-			});
-			dispatch(setSocket(socket));
-			setConnectionTime(new Date());
-		} catch (err) {
-			console.log(err);
-		}
-	};
-	useEffect(() => {
-		
-		getSocket();
-	}, [dispatch, setIsLoadingPage, navigate]);
+  useEffect(() => {
+    socket?.on("Invited", (data) => {
+      console.log(data);
+      setItems((prev) => [
+        ...prev,
+        {
+          key: data.id,
+          inviteId: data.inviteId,
+          type: "GAME",
+          login: data.login,
+        },
+      ]);
+    });
+    socket?.on("start", (data) => {
+      dispatch(setGameInfo({ ...data, isGameStarted: true }));
+      navigate("/pingpong");
+    });
+    return () => {
+      socket?.off("Invited");
+      socket?.disconnect();
+    };
+  }, [socket]);
+  const getToken = async () => {
+    try {
+      const response = await axios.get(`/token`);
+      localStorage.setItem("auth", JSON.stringify(response.data));
+      dispatch(setToken(response.data.token));
+      dispatch(setUserInfo(response.data.user));
+      if (!response.data.user.username) {
+        navigate("/set-nickname");
+      }
+      if (
+        !response.data.user.is_authenticated &&
+        response.data.user.secret_code
+      ) {
+        navigate("/authenticate");
+      }
+      setIsLoadingPage(false);
+      return response.data.token;
+    } catch (err) {
+      dispatch(logOut());
+      window.location.replace(`${BASE_URL}/42/login`);
+    }
+  };
+  const getSocket = async () => {
+    try {
+      const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
+        withCredentials: true,
+        auth: async (cb) => {
+          const token = await getToken();
+          cb({
+            token,
+          });
+        },
+      });
+      dispatch(setSocket(socket));
+      setConnectionTime(new Date());
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    getSocket();
+  }, [dispatch, setIsLoadingPage, navigate]);
 
-	useEffect(() => {
-		const intervalId = setInterval(() => {
-			const currentTime = new Date();
-			const timeDifference = (currentTime.getTime() - connectionTime) / 1000;
-			const tokenExpiryTime = timeInMinutesNumber;
-			const timeBeforeExpiry = tokenExpiryTime - timeDifference;
-			if (timeBeforeExpiry <= 10 && socket) {
-				socket.disconnect();
-				getSocket();
-			}
-		}, 500);
-		return () => {
-			clearInterval(intervalId);
-		};
-	}, [dispatch, connectionTime, socket]);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const currentTime = new Date();
+      const timeDifference = (currentTime.getTime() - connectionTime) / 1000;
+      const tokenExpiryTime = timeInMinutesNumber;
+      const timeBeforeExpiry = tokenExpiryTime - timeDifference;
+      if (timeBeforeExpiry <= 10 && socket) {
+        socket.disconnect();
+        getSocket();
+      }
+    }, 500);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [dispatch, connectionTime, socket]);
 
-	useEffect(() => {
-		return () => {
-			socket?.disconnect();
-		};
-	}, [socket]);
+  useEffect(() => {
+    return () => {
+      socket?.disconnect();
+    };
+  }, [socket]);
 
-	useEffect(() => {
-		if (userInfo.id) {
-			const getNotifications = async () => {
-				try {
-					const response = await axiosPrivate.get(
-						`/users/${userInfo.id}/invitations`
-					);
-					setItems(
-						response.data.map((item: any) => ({
-							key: item.id,
-							login: item.username,
-							type: item.type,
-							inviteId: item.id,
-						}))
-					);
-				} catch (err) {
-					console.log(err);
-				}
-			};
-			getNotifications();
-		}
-	}, [userInfo]);
+  useEffect(() => {
+    if (userInfo.id) {
+      const getNotifications = async () => {
+        try {
+          const response = await axiosPrivate.get(
+            `/users/${userInfo.id}/invitations`
+          );
+          setItems(
+            response.data.map((item: any) => ({
+              key: item.id,
+              login: item.username,
+              type: item.type,
+              inviteId: item.id,
+            }))
+          );
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      getNotifications();
+    }
+  }, [userInfo]);
 
-	useEffect(() => {
-		if (location.pathname === "/") {
-			setSelected("1");
-		} else if (location.pathname === "/pingpong") {
-			setSelected("2");
-		} else if (location.pathname === "/messages") {
-			setSelected("3");
-		} else {
-			setSelected("0");
-		}
-	}, [location]);
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setSelected("1");
+    } else if (location.pathname === "/pingpong") {
+      setSelected("2");
+    } else if (location.pathname === "/messages") {
+      setSelected("3");
+    } else {
+      setSelected("0");
+    }
+  }, [location]);
 
-	const acceptInvite = async (item: any) => {
-		if (item.type === "GAME") {
-			socket.emit("Accept", {
-				inviteID: item.inviteId,
-			});
+  const acceptInvite = async (item: any) => {
+    if (item.type === "GAME") {
+      socket.emit("Accept", {
+        inviteID: item.inviteId,
+      });
 
-			setItems((prevItem) => {
-				return prevItem.filter(
-					(itemTmp) =>
-						!(itemTmp.login === item.login && itemTmp.type === "GAME")
-				);
-			});
-		} else {
-			await axiosPrivate.put(`/users/${item.inviteId}/accept`);
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "GAME")
+        );
+      });
+    } else {
+      await axiosPrivate.put(`/users/${item.inviteId}/accept`);
 
-			setItems((prevItem) => {
-				return prevItem.filter(
-					(itemTmp) =>
-						!(itemTmp.login === item.login && itemTmp.type === "FRIEND")
-				);
-			});
-		}
-	};
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "FRIEND")
+        );
+      });
+    }
+  };
 
-	const declineInvite = async (item: any) => {
-		if (item.type === "GAME") {
-			socket.emit("Reject", {
-				inviteID: item.inviteId,
-			});
-			setItems((prevItem) => {
-				return prevItem.filter(
-					(itemTmp) =>
-						!(itemTmp.login === item.login && itemTmp.type === "GAME")
-				);
-			});
-		} else {
-			await axiosPrivate.put(`/users/${item.inviteId}/reject`);
-			setItems((prevItem) => {
-				return prevItem.filter(
-					(itemTmp) =>
-						!(itemTmp.login === item.login && itemTmp.type === "FRIEND")
-				);
-			});
-		}
-	};
+  const declineInvite = async (item: any) => {
+    if (item.type === "GAME") {
+      socket.emit("Reject", {
+        inviteID: item.inviteId,
+      });
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "GAME")
+        );
+      });
+    } else {
+      await axiosPrivate.put(`/users/${item.inviteId}/reject`);
+      setItems((prevItem) => {
+        return prevItem.filter(
+          (itemTmp) =>
+            !(itemTmp.login === item.login && itemTmp.type === "FRIEND")
+        );
+      });
+    }
+  };
 
   return (
     <>

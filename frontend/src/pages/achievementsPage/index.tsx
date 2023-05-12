@@ -6,7 +6,7 @@ import {
   AchievementsWrapper,
   CustomRow,
 } from "./achievementsPage.styled";
-import { Row } from "antd";
+import { Row, Tooltip } from "antd";
 import AchievementsCard from "../../components/achievementsCard";
 import { axiosPrivate } from "../../api";
 import { useAppSelector } from "../../hooks/reduxHooks";
@@ -26,11 +26,19 @@ const AchievementsPage = () => {
             title: "Da Player",
             description: "Play your first game to unlock this achievement",
             image: (
-              <FontAwesomeIcon
-                color={response.data.played_first ? "yellow" : "black"}
-                size="3x"
-                icon={faTrophy}
-              />
+              <Tooltip
+                title={
+                  response.data.played_first
+                    ? "You have this achievement"
+                    : "You do not have this achievement"
+                }
+              >
+                <FontAwesomeIcon
+                  color={response.data.played_first ? "yellow" : "black"}
+                  size="3x"
+                  icon={faTrophy}
+                />
+              </Tooltip>
             ),
           },
           {
@@ -38,11 +46,19 @@ const AchievementsPage = () => {
             title: "Overlord",
             description: "Win 3 games to unlock this achievement",
             image: (
-              <FontAwesomeIcon
-                color={response.data.won_three ? "yellow" : "black"}
-                size="3x"
-                icon={faTrophy}
-              />
+              <Tooltip
+                title={
+                  response.data.won_three
+                    ? "You have this achievement"
+                    : "You do not have this achievement"
+                }
+              >
+                <FontAwesomeIcon
+                  color={response.data.won_three ? "yellow" : "black"}
+                  size="3x"
+                  icon={faTrophy}
+                />
+              </Tooltip>
             ),
           },
           {
@@ -50,11 +66,19 @@ const AchievementsPage = () => {
             title: "Legendary",
             description: "Win 10 games to unlock this achievement",
             image: (
-              <FontAwesomeIcon
-                color={response.data.won_ten ? "yellow" : "black"}
-                size="3x"
-                icon={faTrophy}
-              />
+              <Tooltip
+                title={
+                  response.data.won_ten
+                    ? "You have this achievement"
+                    : "You do not have this achievement"
+                }
+              >
+                <FontAwesomeIcon
+                  color={response.data.won_ten ? "yellow" : "black"}
+                  size="3x"
+                  icon={faTrophy}
+                />
+              </Tooltip>
             ),
           },
         ]);
