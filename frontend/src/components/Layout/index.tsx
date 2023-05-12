@@ -129,7 +129,6 @@ const Navbar: React.FC = () => {
 		const intervalId = setInterval(() => {
 			const currentTime = new Date();
 			const timeDifference = (currentTime.getTime() - connectionTime) / 1000;
-			console.log("timeDifference1", timeDifference);
 			const tokenExpiryTime = timeInMinutesNumber;
 			const timeBeforeExpiry = tokenExpiryTime - timeDifference;
 			if (timeBeforeExpiry <= 10 && socket) {

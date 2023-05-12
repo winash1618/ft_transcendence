@@ -56,7 +56,7 @@ const PlayForm = () => {
       socket?.emit("Register", data);
     } else {
       setIsSearching(false);
-      socket?.emit("leave");
+      socket?.emit("leaveQueue");
     }
   };
 
