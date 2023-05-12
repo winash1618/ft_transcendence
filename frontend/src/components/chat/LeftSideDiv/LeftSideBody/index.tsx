@@ -73,7 +73,6 @@ const LeftSideBody = ({
 		return (
 			<CreateChat
 				socket={socket}
-				setNavbar={setNavbar}
 			/>
 		);
 	}

@@ -126,7 +126,7 @@ const GroupChat = ({
 				console.log(err);
 			}
 			try {
-				const result = await axios.get(
+				await axios.get(
 					`${BASE_URL}/chat/${conversation.id}/members`,
 					{
 						withCredentials: true,
@@ -134,9 +134,18 @@ const GroupChat = ({
 							Authorization: `Bearer ${token}`,
 						},
 					}
-				);
-				setGroupResults(result.data);
-				console.log("Group members");
+				).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setGroupResults(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 			} catch (err) {
 				console.log(err);
 			}

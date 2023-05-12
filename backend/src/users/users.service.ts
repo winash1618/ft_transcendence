@@ -1,481 +1,549 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
+import { createInviteDto } from './dto/users.dto';
 
 @Injectable()
 export class UsersService {
-	constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-	async create(createUserDto: CreateUserDto) {
-		return this.prisma.user.create({ data: createUserDto });
-	}
+  async create(createUserDto: CreateUserDto) {
+    return this.prisma.user.create({ data: createUserDto });
+  }
 
-	async add42User(userDto: CreateUserDto) {
-		return await this.prisma.user.create({ data: userDto });
-	}
+  async add42User(userDto: CreateUserDto) {
+    const user = await this.prisma.user.create({ data: userDto });
+    await this.prisma.achievements.create({
+      data: {
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
+    });
 
-	findAll() {
-		return this.prisma.user.findMany();
-	}
+    return user;
+  }
 
-	async users(): Promise<User[]> {
-		return this.prisma.user.findMany();
-	}
+  findAll() {
+    return this.prisma.user.findMany();
+  }
 
-	async findOne(login: string): Promise<any> {
-		return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
-	}
+  async users(): Promise<User[]> {
+    return this.prisma.user.findMany();
+  }
 
-	async getUserByLogin(login: string): Promise<User | null> {
-		return await this.prisma.user.findUnique({ where: { login }, include: { friends: true, sentInvites: true, blocked_users: true } });
-	}
+  async findOne(login: string): Promise<any> {
+    return await this.prisma.user.findUnique({
+      where: { login },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        is_authenticated: true,
+        user_status: true,
+      }
+    });
+  }
 
-	async getUserByIdWithParticipants(id: string) {
-		return this.prisma.user.findMany({
-			where: {
-				id: id,
-			},
-			include: {
-				participant_in: true,
-			},
-		});
-	}
+  async getUserByLogin(login: string): Promise<User | null> {
+    return await this.prisma.user.findUnique({
+      where: { login },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
+  }
 
-	async addFriend(userID: string, friendID: string) {
-		if (userID === friendID) {
-			throw new Error('You cannot add yourself as a friend');
-		}
+  async getUserByIdWithParticipants(id: string) {
+    return this.prisma.user.findMany({
+      where: {
+        id: id,
+      },
+      include: {
+        participant_in: true,
+      },
+    });
+  }
 
-		const userExists = await this.prisma.user.findUnique({
-			where: { id: userID },
-		});
-		const friendExists = await this.prisma.user.findUnique({
-			where: { id: friendID },
-		});
+  async addFriend(userID: string, friendID: string) {
+    if (userID === friendID) {
+      throw new Error('You cannot add yourself as a friend');
+    }
 
-		if (!userExists || !friendExists) {
-			throw new Error('One or both users do not exist');
-		}
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const friendExists = await this.prisma.user.findUnique({
+      where: { id: friendID },
+    });
 
-		// Update user's friends list
-		const user = await this.prisma.user.update({
-			where: { id: userID },
-			data: {
-				friends: {
-					connect: { id: friendID },
-				},
-				blocked_users: {
-					disconnect: { id: friendID },
-				},
-			},
-			include: { friends: true, blocked_users: true },
-		});
+    if (!userExists || !friendExists) {
+      throw new Error('One or both users do not exist');
+    }
 
-		// Update friend's friends list
-		await this.prisma.user.update({
-			where: { id: friendID },
-			data: {
-				friends: {
-					connect: { id: userID },
-				},
-			},
-		});
+    // Update user's friends list
+    const user = await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        friends: {
+          connect: { id: friendID },
+        },
+        blocked_users: {
+          disconnect: { id: friendID },
+        },
+      },
+      include: { friends: true, blocked_users: true },
+    });
 
-		return user;
-	}
+    // Update friend's friends list
+    await this.prisma.user.update({
+      where: { id: friendID },
+      data: {
+        friends: {
+          connect: { id: userID },
+        },
+      },
+    });
 
-	async unfriend(userID: string, friendID: string) {
-		// Check if users exist
-		const userExists = await this.prisma.user.findUnique({
-			where: { id: userID },
-		});
-		const friendExists = await this.prisma.user.findUnique({
-			where: { id: friendID },
-		});
+    return user;
+  }
 
-		if (!userExists || !friendExists) {
-			throw new Error('One or both users do not exist');
-		}
+  async unfriend(userID: string, friendID: string) {
+    // Check if users exist
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const friendExists = await this.prisma.user.findUnique({
+      where: { id: friendID },
+    });
 
-		// Remove the friend connection for both users
-		const user = await this.prisma.user.update({
-			where: { id: userID },
-			data: {
-				friends: {
-					disconnect: { id: friendID },
-				},
-			},
-			include: { friends: true, blocked_users: true },
-		});
+    if (!userExists || !friendExists) {
+      throw new Error('One or both users do not exist');
+    }
 
-		await this.prisma.user.update({
-			where: { id: friendID },
-			data: {
-				friends: {
-					disconnect: { id: userID },
-				},
-			},
-		});
+    // Remove the friend connection for both users
+    const user = await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        friends: {
+          disconnect: { id: friendID },
+        },
+      },
+      include: { friends: true, blocked_users: true },
+    });
 
-		return user;
-	}
+    await this.prisma.user.update({
+      where: { id: friendID },
+      data: {
+        friends: {
+          disconnect: { id: userID },
+        },
+      },
+    });
 
-	async block(userID: string, blockID: string) {
-		// Check if users exist
-		const userExists = await this.prisma.user.findUnique({
-			where: { id: userID },
-		});
-		const blockExists = await this.prisma.user.findUnique({
-			where: { id: blockID },
-		});
+    return user;
+  }
 
-		if (!userExists || !blockExists) {
-			throw new Error('One or both users do not exist');
-		}
+  async block(userID: string, blockID: string) {
+    // Check if users exist
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const blockExists = await this.prisma.user.findUnique({
+      where: { id: blockID },
+    });
 
-		// Block the user
-		const user = await this.prisma.user.update({
-			where: { id: userID },
-			data: {
-				blocked_users: {
-					connect: { id: blockID },
-				},
-				friends: {
-					disconnect: { id: blockID },
-				},
-			},
-			include: { friends: true, blocked_users: true },
-		});
+    if (!userExists || !blockExists) {
+      throw new Error('One or both users do not exist');
+    }
 
-		return user;
-	}
+    if (await this.isUserBlocked(userID, blockID))
+      throw new Error('User is already blocked');
 
-	async unblock(userID: string, blockID: string) {
-		// Check if users exist
-		const userExists = await this.prisma.user.findUnique({
-			where: { id: userID },
-		});
-		const blockExists = await this.prisma.user.findUnique({
-			where: { id: blockID },
-		});
+    // Block the user
+    const user = await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        blocked_users: {
+          connect: { id: blockID },
+        },
+        friends: {
+          disconnect: { id: blockID },
+        },
+      },
+      include: { friends: true, blocked_users: true },
+    });
 
-		if (!userExists || !blockExists) {
-			throw new Error('One or both users do not exist');
-		}
+    return user;
+  }
 
-		// Unblock the user
-		const user = await this.prisma.user.update({
-			where: { id: userID },
-			data: {
-				blocked_users: {
-					disconnect: { id: blockID },
-				},
-			},
-			include: { friends: true, blocked_users: true },
-		});
+  async unblock(userID: string, blockID: string) {
+    // Check if users exist
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userID },
+    });
+    const blockExists = await this.prisma.user.findUnique({
+      where: { id: blockID },
+    });
 
-		return user;
-	}
+    if (!userExists || !blockExists) {
+      throw new Error('One or both users do not exist');
+    }
 
-	async getUserById(id: string): Promise<any> {
-		return await this.prisma.user.findUnique({ where: { id }, include: { friends: true, sentInvites: true, blocked_users: true } });
-	}
+    // Unblock the user
+    const user = await this.prisma.user.update({
+      where: { id: userID },
+      data: {
+        blocked_users: {
+          disconnect: { id: blockID },
+        },
+      },
+      include: { friends: true, blocked_users: true },
+    });
 
-	async getUserIDByUserName(username: string): Promise<string> {
-		console.log(username)
-		const user = await this.prisma.user.findUnique({
-			where: { username: username },
-		});
+    return user;
+  }
 
-		if (!user) {
-			throw new Error('User not found');
-		}
+  async getUserById(id: string): Promise<any> {
+    return await this.prisma.user.findUnique({
+      where: { id },
+      include: { friends: true, sentInvites: true, blocked_users: true },
+    });
+  }
 
-		return user.id;
-	}
+  async getUserIDByUserName(username: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { username: username },
+    });
 
-	remove(id: number) {
-		return `This action removes a #${id} user`;
-	}
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-	async updateProfilePicture(id: string, picture: string) {
-		return await this.prisma.user.update({
-			where: { id },
-			data: { profile_picture: picture },
-		});
-	}
+    return user.id;
+  }
 
-	async userStatusUpdate(id: string, status: string) {
-		return await this.prisma.user.update({
-			where: { id },
-			data: { user_status: UserStatus[status] },
-		});
-	}
+  remove(id: number) {
+    return `This action removes a #${id} user`;
+  }
 
-	async updateSecretCode(id: string, secret: string | null) {
-		return await this.prisma.user.update({
-			where: { id },
-			data: { secret_code: secret, is_authenticated: true },
-		});
-	}
+  async updateProfilePicture(id: string, picture: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { profile_picture: picture },
+    });
+  }
 
-	async updateAuthentication(id: string, is_authenticated: boolean) {
-		return await this.prisma.user.update({
-			where: { id },
-			data: { is_authenticated },
-		});
-	}
+  async userStatusUpdate(id: string, status: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { user_status: UserStatus[status] },
+    });
+  }
 
-	async updateUserName(id: string, name: string) {
-		return await this.prisma.user.update({
-			where: { id },
-			data: { username: name },
-		});
-	}
+  async updateSecretCode(id: string, secret: string | null) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { secret_code: secret },
+    });
+  }
 
-	async getUsersApartFromUser(id: string) {
-		return this.prisma.user.findMany({
-			where: {
-				id: {
-					not: id,
-				},
-			},
-		});
-	}
+  async updateAuthentication(id: string, is_authenticated: boolean) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { is_authenticated },
+    });
+  }
 
-	async checkIfUserExists(id: string) {
-		const user = await this.prisma.user.findUnique({
-			where: { id },
-		});
-		if (user) {
-			return true;
-		}
-		return false;
-	}
+  async updateUserName(id: string, name: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { username: name },
+      select: {
+        id: true,
+        username: true,
+        login: true,
+      }
+    });
+  }
 
-	async getUserFriends(userID: string) {
-		return this.prisma.user.findMany({
-			where: {
-				friends: {
-					some: {
-						id: userID,
-					},
-				},
-			},
-			select: {
-				id: true,
-				username: true,
-				user_status: true,
-				login: true,
-				profile_picture: true,
-			},
-		});
-	}
+  async getUsersApartFromUser(id: string) {
+    return this.prisma.user.findMany({
+      where: {
+        id: {
+          not: id,
+        },
+      },
+    });
+  }
 
-	async isUserBlocked(blockedUserID: string, blockingUserID: string) {
-		const user = await this.prisma.user.findUnique({
-			where: {
-				id: blockingUserID,
-			},
-			select: {
-				blocked_users: {
-					where: {
-						id: blockedUserID,
-					},
-				},
-			},
-		});
+  async checkIfUserExists(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (user) {
+      return true;
+    }
+    return false;
+  }
 
-		return user.blocked_users.length > 0;
-	}
+  async getUserFriends(userID: string) {
+    return this.prisma.user.findMany({
+      where: {
+        friends: {
+          some: {
+            id: userID,
+          },
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        user_status: true,
+        login: true,
+        profile_picture: true,
+      },
+    });
+  }
 
-	async checkIfUserSentThreeInvites(senderId: string, receiverId: string): Promise<boolean> {
-		const sentInvitesCount = await this.prisma.invitations.count({
-			where: {
-				type: 'GAME',
-				senderId: senderId,
-				receiverId: receiverId,
-			},
-		});
+  async isUserBlocked(blockedUserID: string, blockingUserID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: blockingUserID,
+      },
+      select: {
+        blocked_users: {
+          where: {
+            id: blockedUserID,
+          },
+        },
+      },
+    });
 
-		return sentInvitesCount >= 3;
-	}
+    return user.blocked_users.length > 0;
+  }
 
-	async getPendingInvitations(userId: string) {
-		const pendingInvitations = await this.prisma.invitations.findMany({
-			where: {
-				receiverId: userId,
-				status: 'PENDING',
-			},
-			select: {
-				id: true,
-				type: true,
-				username: true,
-				senderId: true,
-				receiverId: true,
-				status: true,
-			}
-		});
+  async checkIfUserSentThreeInvites(
+    senderId: string,
+    receiverId: string,
+  ): Promise<boolean> {
+    const sentInvitesCount = await this.prisma.invitations.count({
+      where: {
+        type: 'GAME',
+        senderId: senderId,
+        receiverId: receiverId,
+      },
+    });
 
-		return pendingInvitations;
-	}
+    return sentInvitesCount >= 3;
+  }
 
-	async createInvite(
-		createInviteDto: any,
-		senderId: string,
-	) {
-		console.log('createInviteDto', createInviteDto, 'senderId', senderId)
-		const { type, receiverId } = createInviteDto;
+  async getPendingInvitations(userId: string) {
+    const pendingInvitations = await this.prisma.invitations.findMany({
+      where: {
+        receiverId: userId,
+        status: 'PENDING',
+      },
+      select: {
+        id: true,
+        type: true,
+        username: true,
+        senderId: true,
+        receiverId: true,
+        status: true,
+      },
+    });
 
-		let user = await this.prisma.user.findUnique({ where: { id: senderId }, include: { friends: true, sentInvites: true, blocked_users: true } });
+    return pendingInvitations;
+  }
 
-		const invite = await this.prisma.invitations.create({
-			data: {
-				type,
-				senderId,
-				username: user.username,
-				receiverId,
-				status: 'PENDING',
-			},
-		});
-		if (type === 'GAME') {
-			return invite;
-		}
-		user.sentInvites.push(invite);
-		return user;
-	}
+  async createInvite(createInviteDto: createInviteDto, senderId: string) {
+    const { type, receiverId } = createInviteDto;
 
-	async getInvite(id: string) {
-		return await this.prisma.invitations.findUnique({
-			where: { id },
-		});
-	}
+    const user = await this.prisma.user.findUnique({
+      where: { id: senderId },
+      include: { friends: true, sentInvites: true, blocked_users: true }
+    });
 
-	async acceptInvite(
-		id: string,
-	) {
-		const invite = await this.prisma.invitations.findUnique({
-			where: { id },
-		});
+    const invite = await this.prisma.invitations.create({
+      data: {
+        type,
+        senderId,
+        username: user.username,
+        receiverId,
+        status: 'PENDING',
+      },
+    });
+    if (type === 'GAME') {
+      return invite;
+    }
+    user.sentInvites.push(invite);
+    return user;
+  }
 
-		if (invite.type === 'FRIEND') {
-			await this.prisma.user.update({
-				where: { id: invite.senderId },
-				data: { friends: { connect: { id: invite.receiverId } } },
-			});
-			await this.prisma.user.update({
-				where: { id: invite.receiverId },
-				data: { friends: { connect: { id: invite.senderId } } },
-			});
-		}
-		// Delete all the invitation by sender for game
-		if (invite.type === 'GAME') {
-			await this.prisma.invitations.deleteMany({
-				where: {
-					senderId: invite.senderId,
-					type: 'GAME',
-				},
-			});
-			console.log(invite);
-			return invite;
-		}
+  async getInvite(id: string) {
+    return await this.prisma.invitations.findUnique({
+      where: { id },
+    });
+  }
 
-		return await this.prisma.invitations.delete({
-			where: { id },
-		});
-	}
+  async acceptInvite(id: string) {
+    const invite = await this.prisma.invitations.findUnique({
+      where: { id },
+    });
 
-	async rejectInvite(
-		id: string,
-	) {
-		const invite = await this.prisma.invitations.findUnique({
-			where: { id },
-		});
+    if (invite.type === 'FRIEND') {
+      await this.prisma.user.update({
+        where: { id: invite.senderId },
+        data: { friends: { connect: { id: invite.receiverId } } },
+      });
+      await this.prisma.user.update({
+        where: { id: invite.receiverId },
+        data: { friends: { connect: { id: invite.senderId } } },
+      });
+      await this.prisma.invitations.deleteMany({
+        where: {
+          OR: [
+            {
+              senderId: invite.senderId,
+              receiverId: invite.receiverId,
+              type: 'FRIEND',
+            },
+            {
+              senderId: invite.receiverId,
+              receiverId: invite.senderId,
+              type: 'FRIEND',
+            },
+          ],
+        },
+      });
+    }
 
-		if (invite.type === 'GAME') {
-			await this.prisma.invitations.deleteMany({
-				where: {
-					senderId: invite.senderId,
-					type: 'GAME',
-				},
-			});
+    // Delete all the invitation by sender for game
+    if (invite.type === 'GAME') {
+      await this.prisma.invitations.deleteMany({
+        where: {
+          senderId: invite.senderId,
+          type: 'GAME',
+        },
+      });
 
-			return invite;
-		}
+      return invite;
+    }
 
-		return await this.prisma.invitations.delete({
-			where: { id },
-		});
-	}
+    return await this.prisma.invitations.delete({
+      where: { id },
+    });
+  }
 
-	async updateUserStatus(id: string, status: string) {
-		return await this.prisma.user.update({
-			where: { id },
-			data: { user_status: UserStatus[status] },
-		});
-	}
+  async rejectInvite(id: string) {
+    const invite = await this.prisma.invitations.findUnique({
+      where: { id },
+    });
 
-	async fetchUserStatus(id: string) {
-		return await this.prisma.user.findUnique({
-			where: { id },
-			select: { user_status: true },
-		});
-	}
+    if (invite.type === 'GAME') {
+      await this.prisma.invitations.deleteMany({
+        where: {
+          senderId: invite.senderId,
+          type: 'GAME',
+        },
+      });
 
-	async getTotalGamesWon(userID: string) {
-		const gamesWon = await this.prisma.user.findUnique({
-			where: {
-				id: userID,
-			},
-			select: {
-				id: true,
-				username: true,
-				user_status: true,
-				login: true,
-				profile_picture: true,
-				playerOneHistories: {
-					select: {
-						id: true,
-						winner: true,
-						looser: true,
-						player_score: true,
-						opponent_score: true,
-					},
-					where: {
-						winner: userID,
-					},
-				},
-			},
-		});
-		return gamesWon.playerOneHistories.length;
+      return invite;
+    }
 
-	}
+    return await this.prisma.invitations.delete({
+      where: { id },
+    });
+  }
 
-	async getTotalGamesPlayed(userID: string) {
-		const user = await this.prisma.user.findUnique({
-			where: { id: userID },
-			select: {
-				playerOneHistories: {
-					select: {
-						id: true,
-					},
-				},
-			},
-		});
+  async updateUserStatus(id: string, status: string) {
+    return await this.prisma.user.update({
+      where: { id },
+      data: { user_status: UserStatus[status] },
+    });
+  }
 
-		return user.playerOneHistories.length;
-	}
+  async fetchUserStatus(id: string) {
+    return await this.prisma.user.findUnique({
+      where: { id },
+      select: { user_status: true },
+    });
+  }
 
-	async getPlayers() {
-		return await this.prisma.user.findMany({
-			select: {
-				id: true,
-				username: true,
-				user_status: true,
-				login: true,
-				profile_picture: true,
-			},
-		});
-	}
+  async getTotalGamesWon(userID: string) {
+    const gamesWon = await this.prisma.user.findUnique({
+      where: {
+        id: userID,
+      },
+      select: {
+        id: true,
+        username: true,
+        user_status: true,
+        login: true,
+        profile_picture: true,
+        playerOneHistories: {
+          select: {
+            id: true,
+            winner: true,
+            looser: true,
+            player_score: true,
+            opponent_score: true,
+          },
+          where: {
+            winner: userID,
+          },
+        },
+      },
+    });
+    return gamesWon.playerOneHistories.length;
+  }
+
+  async getTotalGamesPlayed(userID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      select: {
+        playerOneHistories: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    return user.playerOneHistories.length;
+  }
+
+  async getPlayers() {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        user_status: true,
+        login: true,
+        profile_picture: true,
+      },
+    });
+  }
+
+  async getUserAchievements(userID: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      include: {
+        achievements: {
+          select: {
+            won_three: true,
+            played_first: true,
+            won_ten: true
+          },
+        }
+      }
+    });
+
+    return user.achievements;
+  }
 }

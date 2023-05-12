@@ -1,5 +1,4 @@
-import { UseGuards, UsePipes } from '@nestjs/common';
-import { validate } from 'class-validator';
+import { UsePipes, InternalServerErrorException } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -9,7 +8,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ConversationService } from './Queries/conversation.service';
@@ -33,13 +32,11 @@ import {
   KickUserDTO,
   MuteUserDTO,
 } from './dto/GatewayDTO/index.dto';
+import { ConfigService } from '@nestjs/config';
+import { WebSocketConfig } from 'src/utils/ws-config';
+import { UsersService } from 'src/users/users.service';
 
-@WebSocketGateway(8001, {
-  cors: {
-    origin: process.env.FRONTEND_BASE_URL,
-    credentials: true,
-  },
-})
+@WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -50,31 +47,43 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private participantService: ParticipantService,
     private messageService: MessageService,
     private jwtService: JwtService,
+    private userService: UsersService,
+    private configService: ConfigService,
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
-    const userID = this.jwtService.verify(token, {
-      secret: process.env.JWT_SECRET,
-    });
+    try {
+      const token = client.handshake.auth.token as string;
+      // const token = client.handshake.headers.token as string;
+      const userID = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
 
-    client.data.userID = userID;
+      client.data.userID = userID;
+      const user = this.gatewaySession.getUserSocket(userID.id);
+      if (user) {
+        this.gatewaySession.removeUserSocket(userID.id);
+        this.handleDisconnect(user);
+      }
 
-    this.gatewaySession.setUserSocket(userID.id, client);
+      this.gatewaySession.setUserSocket(userID.id, client);
 
-    console.log('User connected chat: ', userID);
+      // console.log('User connected chat: ', userID);
 
-    const conversations =
-      await this.conversationService.getConversationByUserID(userID.id);
+      const conversations =
+        await this.conversationService.getConversationByUserID(userID.id);
 
-    for (const conversation of conversations) {
-      client.join(conversation.id);
+      for (const conversation of conversations) {
+        client.join(conversation.id);
+      }
+    }
+    catch (e) {
+      throw new InternalServerErrorException('JWT verification failed');
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log('User disconnected: ', client.data.userID);
+    // console.log('User disconnected: ', client.data.userID);
     this.gatewaySession.removeUserSocket(client.data.userID.id);
   }
 
@@ -97,26 +106,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // add only one participant
       const participant =
-        await this.participantService.addParticipantToConversation(
-          {
-            conversation_id: conversation.id,
-            user_id: client.data.userID.id,
-            role: Role['OWNER'],
-            conversation_status: 'ACTIVE',
-          }
-        );
+        await this.participantService.addParticipantToConversation({
+          conversation_id: conversation.id,
+          user_id: client.data.userID.id,
+          role: Role['OWNER'],
+          conversation_status: 'ACTIVE',
+        });
+
+      if (!participant)
+        throw new Error('Failed to add participant to conversation');
 
       await this.joinConversations(client.data.userID.id, conversation.id);
       await this.sendConversationCreatedToAllClients(
         client.data.userID.id,
         conversation,
       );
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
       throw new WsException({
         message: 'Create conversation failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -140,20 +149,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             role: Role.USER,
             conversation_status: 'ACTIVE',
           },
-          data.password
+          data.password,
         );
+
+      if (!participant)
+        throw new Error('Failed to add participant to conversation');
 
       await this.joinConversations(client.data.userID.id, data.conversationID);
       this.server.to(data.conversationID).emit('conversationJoined', {
         conversationID: data.conversationID,
         userID: client.data.userID.id,
       });
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
       throw new WsException({
         message: 'Join conversation failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -185,11 +196,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await this.joinConversations(client.data.userID.id, conversation.id);
       await this.joinConversations(data.userID, conversation.id);
       client.emit('directMessage', conversation);
-    }
-    catch (e) {
+    } catch (e) {
       throw new WsException({
         message: 'Direct conversation failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -209,6 +219,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           client.data.userID.id,
         );
 
+      if (!removedParticipant)
+        throw new Error('Failed to remove participant from conversation');
+
       await this.conversationService.promoteOldestUserToAdmin(
         data.conversationID,
       );
@@ -216,16 +229,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = this.gatewaySession.getUserSocket(client.data.userID.id);
       if (!user) return;
       this.server.to(data.conversationID).emit('conversationLeft', {
-		  conversationID: data.conversationID,
-		  userID: client.data.userID.id,
-		});
+        conversationID: data.conversationID,
+        userID: client.data.userID.id,
+      });
       user.leave(data.conversationID);
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
       throw new WsException({
         message: 'Leave conversation failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -243,19 +255,45 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.userID.id,
       );
 
-      this.server
-        .to(data.conversationID)
-        .emit('conversationProtected', {
-			conversationID: data.conversationID,
-			userID: client.data.userID.id,
-		  });
-    }
-    catch (e) {
+      if (!conversation)
+        throw new Error('Failed to add password to conversation');
+
+      this.server.to(data.conversationID).emit('conversationProtected', {
+        conversationID: data.conversationID,
+        userID: client.data.userID.id,
+      });
+    } catch (e) {
       throw new WsException({
         message: 'Add Password failed',
-        error: e.message
+        error: e.message,
       });
     }
+  }
+
+  private async sendFilteredMessages(
+    userID: string,
+    conversationID: string,
+    message: any,
+  ) {
+    const conversations = await this.conversationService.getConversationByID(
+      conversationID,
+    );
+
+    const participants = conversations.participants;
+    participants.forEach(async participant => {
+      const sockets = this.gatewaySession.getAllUserSockets();
+      if (!sockets || sockets.length === 0) return;
+      sockets.forEach(async socket => {
+        if (await this.userService.isUserBlocked(participant.user_id, userID)) {
+          message.message = '';
+        }
+        this.server.to(socket.id).emit('messageCreated', {
+          conversationID,
+          participant,
+          message,
+        });
+      });
+    });
   }
 
   @UsePipes(new ValidationPipe())
@@ -272,41 +310,48 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           data.conversationID,
         );
 
-      if (!participant)
-        throw new Error('Participant not found');
+      if (!participant) throw new Error('Participant not found');
 
-      if (participant.conversation_status === Status.MUTED) {
+      if (participant.mute_expires_at) {
         const currentTime = new Date();
         if (currentTime > participant.mute_expires_at)
           await this.conversationService.unmuteUser(
             data.conversationID,
             client.data.userID.id,
           );
-        throw new Error('You are muted');
+        else throw new Error('You are muted');
       }
 
-      const message = await this.messageService.createMessage({
-        message: data.message,
-        author_id: participant.id,
-        conversation_id: data.conversationID,
-      },
-	  client.data.userID.id,
-	  );
+      const message = await this.messageService.createMessage(
+        {
+          message: data.message,
+          author_id: participant.id,
+          conversation_id: data.conversationID,
+        },
+        client.data.userID.id,
+      );
 
       this.server.to(data.conversationID).emit('messageCreated', message);
-    }
-    catch (e) {
-		console.log(e)
+      await this.sendFilteredMessages(
+        client.data.userID.id,
+        data.conversationID,
+        message,
+      );
+    } catch (e) {
+      console.log(e);
       throw new WsException({
         message: 'Send Message failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('makeAdmin')
-  async makeAdmin(@ConnectedSocket() client: Socket, @MessageBody() data: MakeAdminDTO) {
+  async makeAdmin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: MakeAdminDTO,
+  ) {
     try {
       const participant = await this.participantService.makeParticipantAdmin(
         data.conversationID,
@@ -318,11 +363,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         conversationID: data.conversationID,
         admin: participant.user_id,
       });
-    }
-    catch (e) {
+    } catch (e) {
       throw new WsException({
         message: 'Make Admin failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -336,7 +380,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In addParticipant');
 
     try {
-      const check = await this.addRemoveParticipantValidation(data, client.data.userID.id, 'Added');
+      const check = await this.addRemoveParticipantValidation(
+        data,
+        client.data.userID.id,
+        'Added',
+      );
 
       if (check) {
         if (check && check.conversation_status === Status.ACTIVE)
@@ -347,26 +395,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const participant =
-        await this.participantService.addParticipantToConversation(
-          {
-            conversation_id: data.conversationID,
-            user_id: data.userID,
-            role: Role.USER,
-            conversation_status: 'ACTIVE',
-          }
-        );
+        await this.participantService.addParticipantToConversation({
+          conversation_id: data.conversationID,
+          user_id: data.userID,
+          role: Role.USER,
+          conversation_status: 'ACTIVE',
+        });
 
       this.joinConversations(data.userID, data.conversationID);
       this.server.to(data.conversationID).emit('participantAdded', {
         conversationID: data.conversationID,
         participant: participant.user_id,
       });
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
       throw new WsException({
         message: 'Add Participant failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -380,7 +425,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In removeParticipant');
 
     try {
-      const check = await this.addRemoveParticipantValidation(data, client.data.userID.id, 'REMOVE');
+      const check = await this.addRemoveParticipantValidation(
+        data,
+        client.data.userID.id,
+        'REMOVE',
+      );
 
       console.log('check', check);
 
@@ -388,13 +437,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (check.conversation_status === 'BANNED')
           throw new Error('User is banned');
 
-        if (check.conversation_status !== Status.ACTIVE && check.conversation_status !== Status.MUTED)
+        if (
+          check.conversation_status !== Status.ACTIVE &&
+          check.conversation_status !== Status.MUTED
+        )
           throw new Error('User is not in conversation');
 
         if (check.role === Role.OWNER)
           throw new Error('User is channel Owner.');
       }
-
 
       const participant =
         await this.participantService.removeParticipantFromConversation(
@@ -414,18 +465,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         conversationID: data.conversationID,
         removedUserID: participant.user_id,
       });
-    }
-    catch (e) {
+    } catch (e) {
       throw new WsException({
         message: 'Remove Participant failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('banUser')
-  async banUser(@ConnectedSocket() client: Socket, @MessageBody() data: BanUserDTO) {
+  async banUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: BanUserDTO,
+  ) {
     try {
       console.log('In banUser');
 
@@ -447,14 +500,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       throw new WsException({
         message: 'Ban User failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('unbanUser')
-  async unbanUser(@ConnectedSocket() client: Socket, @MessageBody() data: UnBanUserDTO) {
+  async unbanUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: UnBanUserDTO,
+  ) {
     try {
       console.log('In unbanUser');
 
@@ -474,7 +530,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       throw new WsException({
         message: 'Unban User failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -495,6 +551,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           data.conversationID,
         );
 
+      if (!conversation) throw new Error('Conversation does not have password');
+
       this.server.to(data.conversationID).emit('passwordRemoved', {
         conversationID: data.conversationID,
         userID: client.data.userID.id,
@@ -502,21 +560,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       throw new WsException({
         message: 'Remove Password failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('muteUser')
-  async muteUser(@ConnectedSocket() client: Socket, @MessageBody() data: MuteUserDTO) {
+  async muteUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: MuteUserDTO,
+  ) {
     try {
-      const muteDuration: number = 1;
+      const muteDuration = 1;
       const conversation = await this.conversationService.muteUser(
         data.conversationID,
         data.userID,
         muteDuration,
-        client.data.userID.id);
+        client.data.userID.id,
+      );
+
+      if (!conversation) throw new Error('User was not muted');
 
       this.server.to(data.conversationID).emit('userMuted', {
         conversationID: data.conversationID,
@@ -525,7 +589,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       throw new WsException({
         message: 'Mute User failed',
-        error: e.message
+        error: e.message,
       });
     }
   }
@@ -557,43 +621,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('conversationCreated', conversation);
   }
 
-  // private async sendConversationJoinedToAllClients(
-  //   userID: string,
-  //   conversationID: string,
-  // ) {
-  //   const conversations = await this.conversationService.getConversationByID(
-  //     conversationID,
-  //   );
-
-  //   const participants = conversations.participants;
-  //   participants.forEach(async participant => {
-  //     const messages = await this.messageService.getMessagesByConversationID(
-  //       conversationID,
-  //     );
-  //     const sockets = this.gatewaySession.getAllUserSockets();
-  //     if (!sockets || sockets.length === 0) return;
-  //     sockets.forEach(socket => {
-  //       this.server.to(socket.id).emit('conversationJoined', {
-  //         conversationID,
-  //         participant,
-  //         messages,
-  //       });
-  //     });
-  //   });
-  // }
-
   // validations
 
   private async createConversationValidation(
     data: createConversationDto,
   ): Promise<boolean> {
-    if (data.privacy === Privacy.PROTECTED || data.privacy === Privacy.PRIVATE) {
+    if (
+      data.privacy === Privacy.PROTECTED ||
+      data.privacy === Privacy.PRIVATE
+    ) {
       if (!data.password) {
         throw new Error('Password is required to protect the conversations');
       }
     }
 
-    if ((await this.conversationService.validateChannelTitle(data.title) === false)) {
+    if (
+      (await this.conversationService.validateChannelTitle(data.title)) ===
+      false
+    ) {
       throw new Error('Title is invalid');
     }
 
@@ -608,8 +653,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.conversationID,
     );
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT)
       throw new Error('You cannot join a direct conversation');
@@ -626,15 +670,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (participant.conversation_status === Status.BANNED)
         throw new Error('You are banned from this conversation');
 
-      if (participant.conversation_status === Status.ACTIVE || participant.conversation_status === Status.MUTED)
+      if (
+        participant.conversation_status === Status.ACTIVE ||
+        participant.conversation_status === Status.MUTED
+      )
         throw new Error('You are already in this conversation');
     }
 
     if (conversation.privacy === Privacy.PROTECTED) {
-      if (data.password == '' || data.password == null || data.password == undefined)
+      if (
+        data.password == '' ||
+        data.password == null ||
+        data.password == undefined
+      )
         throw new Error('Password is incorrect');
 
-      if (await this.conversationService.validatePassword(data.password, conversation.password) === false)
+      if (
+        (await this.conversationService.validatePassword(
+          data.password,
+          conversation.password,
+        )) === false
+      )
         throw new Error('Password is incorrect');
     }
 
@@ -645,15 +701,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     data: LeaveConversationDTO,
     user: string,
   ): Promise<boolean> {
-    if (data.conversationID == '' || data.conversationID == null || data.conversationID == undefined)
+    if (
+      data.conversationID == '' ||
+      data.conversationID == null ||
+      data.conversationID == undefined
+    )
       throw new Error('Conversation ID is required');
 
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT)
       throw new Error('You cannot leave a direct conversation');
@@ -663,7 +722,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('You are not in this conversation');
 
     return true;
@@ -678,11 +741,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.conversationID,
     );
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT)
-      throw new Error(`You cannot ${event} participants from a direct conversation`);
+      throw new Error(
+        `You cannot ${event} participants from a direct conversation`,
+      );
 
     const participant = await this.participantService.checkParticipantExists(
       data.conversationID,
@@ -695,21 +759,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (participant.role === Role.USER)
       throw new Error('You are not an admin of this conversation');
 
-    const userExists = await this.participantService.checkParticipantExists(data.conversationID, data.userID);
+    const userExists = await this.participantService.checkParticipantExists(
+      data.conversationID,
+      data.userID,
+    );
 
     return userExists;
   }
 
-  async banUserValidation(
-    data: BanUserDTO,
-    user: string,
-  ): Promise<boolean> {
+  async banUserValidation(data: BanUserDTO, user: string): Promise<boolean> {
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT)
       throw new Error('You cannot ban participants from a direct conversation');
@@ -719,28 +782,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('You are not in this conversation');
 
     if (participant.role === Role.USER)
       throw new Error('You are not an admin of this conversation');
 
-    if (user === data.userID)
-      throw new Error('You cannot ban yourself');
+    if (user === data.userID) throw new Error('You cannot ban yourself');
 
-    const userExists = await this.participantService.checkParticipantExists(data.conversationID, data.userID);
+    const userExists = await this.participantService.checkParticipantExists(
+      data.conversationID,
+      data.userID,
+    );
 
-    if (!userExists)
-      throw new Error('Participant does not exist');
+    if (!userExists) throw new Error('Participant does not exist');
 
     if (userExists.role === Role.ADMIN || userExists.role === Role.OWNER)
       throw new Error('You cannot ban an admin or owner');
 
-
     if (userExists.conversation_status === Status.BANNED)
       throw new Error('Participant is already banned');
 
-    if (userExists.conversation_status !== Status.ACTIVE && userExists.conversation_status !== Status.MUTED)
+    if (
+      userExists.conversation_status !== Status.ACTIVE &&
+      userExists.conversation_status !== Status.MUTED
+    )
       throw new Error('Participant is not part of this conversation');
 
     return true;
@@ -754,29 +824,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.conversationID,
     );
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot unban participants from a direct conversation');
+      throw new Error(
+        'You cannot unban participants from a direct conversation',
+      );
 
     const participant = await this.participantService.checkParticipantExists(
       data.conversationID,
       user,
     );
 
-    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('You are not in this conversation');
 
     if (participant.role === Role.USER)
       throw new Error('You are not an admin of this conversation');
 
-    const userExists = await this.participantService.checkParticipantExists(data.conversationID, data.userID);
+    const userExists = await this.participantService.checkParticipantExists(
+      data.conversationID,
+      data.userID,
+    );
 
-    if (!userExists)
-      throw new Error('Participant does not exist');
+    if (!userExists) throw new Error('Participant does not exist');
 
-    if (userExists.conversation_status === Status.KICKED || userExists.conversation_status === Status.DELETED)
+    if (
+      userExists.conversation_status === Status.KICKED ||
+      userExists.conversation_status === Status.DELETED
+    )
       throw new Error('Participant is not part of this conversation');
 
     if (userExists.conversation_status !== Status.BANNED)
@@ -785,11 +865,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return true;
   }
 
-  async kickUserValidation(
-    data: KickUserDTO,
-    user: string,
-  ): Promise<boolean> {
-    if (data.conversationID == '' || data.conversationID == null || data.conversationID == undefined)
+  async kickUserValidation(data: KickUserDTO, user: string): Promise<boolean> {
+    if (
+      data.conversationID == '' ||
+      data.conversationID == null ||
+      data.conversationID == undefined
+    )
       throw new Error('Conversation ID is required');
 
     if (data.userID == '' || data.userID == null || data.userID == undefined)
@@ -799,27 +880,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.conversationID,
     );
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot kick participants from a direct conversation');
+      throw new Error(
+        'You cannot kick participants from a direct conversation',
+      );
 
     const participant = await this.participantService.checkParticipantExists(
       data.conversationID,
       user,
     );
 
-    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('You are not in this conversation');
 
     if (participant.role === Role.USER)
       throw new Error('You are not an admin of this conversation');
 
-    const userExists = await this.participantService.checkParticipantExists(data.conversationID, data.userID);
+    const userExists = await this.participantService.checkParticipantExists(
+      data.conversationID,
+      data.userID,
+    );
 
-    if (!userExists)
-      throw new Error('Participant does not exist');
+    if (!userExists) throw new Error('Participant does not exist');
 
     if (userExists.role === Role.ADMIN)
       throw new Error('You cannot kick an admin');
@@ -830,16 +918,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return true;
   }
 
-  async removePasswordValidation(
-    data: any,
-    user: string,
-  ): Promise<boolean> {
+  async removePasswordValidation(data: any, user: string): Promise<boolean> {
     const conversation = await this.conversationService.checkConversationExists(
       data.conversationID,
     );
 
-    if (!conversation)
-      throw new Error('Conversation does not exist');
+    if (!conversation) throw new Error('Conversation does not exist');
 
     if (conversation.privacy === Privacy.DIRECT)
       throw new Error('You cannot remove password from a direct conversation');
@@ -852,7 +936,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user,
     );
 
-    if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('You are not in this conversation');
 
     if (participant.role !== Role.OWNER)

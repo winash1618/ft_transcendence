@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class AddParticipantDTO {
   @IsString()
@@ -7,5 +7,6 @@ export class AddParticipantDTO {
 
   @IsString()
   @IsNotEmpty()
+  @IsUUID()
   userID: string;
 }

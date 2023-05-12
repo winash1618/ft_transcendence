@@ -47,13 +47,23 @@ const DirectChat = ({
 		setConversationID(conversation.id);
 		setMessages([]);
 		try {
-			const result = await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
+			await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},
-			});
-			setMessages(result.data);
+			}).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setMessages(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 		} catch (err) {
 			console.log(err);
 		}

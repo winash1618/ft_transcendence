@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateMessageDto {
   @IsString()
@@ -10,11 +10,13 @@ export class CreateMessageDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
+  @IsUUID()
   author_id: string;
 
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
+  @IsUUID()
   conversation_id: string;
 }
 

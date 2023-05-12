@@ -22,7 +22,6 @@ interface LeftSideDivProps {
 	conversation: any;
 	setResults: any;
 	setGroupResults: any;
-	setGroupNav: any;
 }
 
 const LeftSideDiv = ({
@@ -41,9 +40,8 @@ const LeftSideDiv = ({
 	conversation,
 	setResults,
 	setGroupResults,
-	setGroupNav
 }: LeftSideDivProps) => {
-	const { userInfo, token } = useAppSelector((state) => state.auth);
+	const { token } = useAppSelector((state) => state.auth);
 
 	const handleDirectExists = useCallback(async (object, token) => {
 		console.log("direct exists");
@@ -91,24 +89,14 @@ const LeftSideDiv = ({
 		};
 	}, [handleDirectExists, handleDirectMessage, socket, token]);
 
-	// const handleConversationLeft = useCallback((data) => {
-	// 	console.log("handleConversationLeft in GroupChat");
-	// 	console.log(data.leftUserID, userInfo.id);
-	// 	if (data.leftUserID === userInfo.id) {
-	// 		console.log("data in handleConversationLeft", data);
-	// 		setConversationID(null);
-	// 		setMessages([]);
-	// 		setConversation(null);
-	// 		setConversations(conversations.filter((conversation) => conversation.id !== data.conversationID));
-	// 	}
-	// }, [setMessages, setConversationID]);
-
 	// useEffect(() => {
-	// 	socket?.on('conversationLeft', handleConversationLeft);
+	// 	socket?.on('conversationCreated', (data) => {
+	// 		SuccessAlert("Conversation Created", 5000);
+	// 	});
 	// 	return () => {
-	// 		socket?.off('conversationLeft', handleConversationLeft);
+	// 		socket?.off('conversationCreated');
 	// 	};
-	// }, [socket, handleConversationLeft]);
+	// }, [socket]);
 
 	return (
 		<>

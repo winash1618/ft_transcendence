@@ -1,9 +1,10 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 import { KeyPress } from '../interface/game.interface';
 
 export class MoveDto {
   @IsString()
   @IsNotEmpty()
+  @IsUUID()
   roomID: string;
 
   @IsString()

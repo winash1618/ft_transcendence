@@ -25,6 +25,7 @@ interface LeaderboardProps {
 }
 
 const LeaderBoardPage = () => {
+<<<<<<< HEAD
   const { token } = useAppSelector((state) => state.auth);
   const [data, setData] = useState<LeaderboardData[]>([]);
   const getInfos = async () => {
@@ -44,6 +45,36 @@ const LeaderBoardPage = () => {
       console.log(err);
     }
   };
+=======
+	const { token } = useAppSelector((state) => state.auth);
+	const [data, setData] = useState<LeaderboardData[]>([]);
+	const getInfos = async () => {
+		try {
+			await axios.get(
+				`${BASE_URL}/users/leaderboard/leaders`,
+				{
+					withCredentials: true,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			).then(response => {
+				if (response.status === 200) {
+					console.log('response', response);
+					console.log('Request succeeded!');
+					setData(response.data);
+				} else {
+					window.location.href = '/error';
+				}
+			})
+				.catch(error => {
+					console.error('An error occurred:', error);
+				});
+		} catch (err) {
+			console.log(err);
+		}
+	};
+>>>>>>> origin/chat_refactor
 
   useEffect(() => {
     console.log("i am in leaderboard useEffect");

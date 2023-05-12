@@ -151,7 +151,7 @@ const GroupChatRelations = ({
 	const HandleGroupNavClick = (nav: any) => async () => {
 		if (nav === GNav.GROUPS && conversationID !== null) {
 			try {
-				const result = await axios.get(
+				await axios.get(
 					`${BASE_URL}/chat/${conversationID}/members`,
 					{
 						withCredentials: true,
@@ -159,9 +159,18 @@ const GroupChatRelations = ({
 							Authorization: `Bearer ${token}`,
 						},
 					}
-				);
-				setGroupResults(result.data);
-				console.log("Group members");
+				).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setGroupResults(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 			} catch (err) {
 				console.log(err);
 			}
@@ -169,7 +178,7 @@ const GroupChatRelations = ({
 		if (nav === GNav.BLOCKED && conversationID !== null) {
 			console.log(conversationID);
 			try {
-				const result = await axios.get(
+				await axios.get(
 					`${BASE_URL}/chat/channel/${conversationID}/banned`,
 					{
 						withCredentials: true,
@@ -177,9 +186,18 @@ const GroupChatRelations = ({
 							Authorization: `Bearer ${token}`,
 						},
 					}
-				);
-				setGroupResults(result.data);
-				console.log("Banned Members", result);
+				).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setGroupResults(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 			} catch (err) {
 				console.log(err);
 			}
@@ -187,7 +205,7 @@ const GroupChatRelations = ({
 		if (nav === GNav.ADD && conversationID !== null) {
 			console.log(conversationID);
 			try {
-				const result = await axios.get(
+				await axios.get(
 					`${BASE_URL}/chat/channel/${conversationID}/addFriends`,
 					{
 						withCredentials: true,
@@ -195,9 +213,18 @@ const GroupChatRelations = ({
 							Authorization: `Bearer ${token}`,
 						},
 					}
-				);
-				setGroupResults(result.data.friends);
-				console.log("Add Members", result.data.friends);
+				).then(response => {
+					if (response.status === 200) {
+						console.log('response', response);
+						console.log('Request succeeded!');
+						setGroupResults(response.data.friends);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
 			} catch (err) {
 				console.log(err);
 			}

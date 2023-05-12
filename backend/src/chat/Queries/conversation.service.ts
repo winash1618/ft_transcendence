@@ -1,10 +1,7 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Privacy, Role, Status } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import {
-  CreateConversationDto,
-  UpdateConversationDto,
-} from '../dto/conversation.dto';
+import { CreateConversationDto } from '../dto/conversation.dto';
 import * as brypt from 'bcrypt';
 import { ParticipantService } from './participant.service';
 import { UsersService } from '../../users/users.service';
@@ -82,7 +79,11 @@ export class ConversationService {
 
     if (participant.role !== Role.OWNER) throw new Error('User is not OWNER.');
 
-      if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('User is not active in this conversation');
 
     if (password == '' || password == null || password == undefined)
@@ -123,6 +124,9 @@ export class ConversationService {
     userID: string,
     otherUserID: string,
   ) {
+    if (await this.userService.isUserBlocked(userID, otherUserID))
+      throw new Error('User is blocked');
+
     const conversation = await this.createConversation(createConversation);
 
     await this.participantService.addParticipantToConversation({
@@ -225,6 +229,8 @@ export class ConversationService {
       throw new Error('User does not exist');
     }
 
+    const user = await this.userService.findOne(userID);
+
     return await this.prisma.conversation.findMany({
       where: {
         privacy: Privacy.DIRECT,
@@ -253,6 +259,7 @@ export class ConversationService {
           where: {
             user_id: {
               not: userID,
+              notIn: user.blocked_users.map((blockedUser) => blockedUser.id),
             },
           },
         },
@@ -347,23 +354,26 @@ export class ConversationService {
   }
 
   async friendsNotInConversation(userID: string, conversationID: string) {
-    if (!this.userService.checkIfUserExists(userID)) {
+    if (!(await this.userService.checkIfUserExists(userID))) {
       throw new Error('User does not exist');
     }
 
-    if (!this.checkConversationExists(conversationID)) {
+    if (!(await this.checkConversationExists(conversationID))) {
       throw new Error('Conversation does not exist');
     }
 
+    if (!(await this.participantService.checkParticipantExists(conversationID, userID)))
+      throw new Error('User is not participant');
+
     if (
-      !this.participantService.isUserAdminInConversation(userID, conversationID)
+      !(await this.participantService.isUserAdminInConversation(userID, conversationID))
     ) {
       throw new Error('User is not admin of the conversation');
     }
 
     const conv = await this.prisma.user.findUnique({
       where: {
-        id: userID
+        id: userID,
       },
       select: {
         friends: {
@@ -376,7 +386,7 @@ export class ConversationService {
                     conversation_status: {
                       in: ['BANNED', 'KICKED'],
                     },
-                  }
+                  },
                 },
               },
             },
@@ -389,7 +399,6 @@ export class ConversationService {
         },
       },
     });
-    console.log(conv);
     return conv;
   }
 
@@ -512,8 +521,6 @@ export class ConversationService {
         },
       },
     });
-
-    console.log(admin);
 
     if (!admin) {
       const oldestUser = await this.prisma.participant.findFirst({

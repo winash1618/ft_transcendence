@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateMessageDto, UpdateMessageDto } from '../dto/messages.dto';
+import { CreateMessageDto } from '../dto/messages.dto';
 import { ConversationService } from './conversation.service';
 import { ParticipantService } from './participant.service';
 import { Status } from '@prisma/client';
@@ -27,10 +27,13 @@ export class MessageService {
       userID,
     );
 
-    if (!participant)
-      throw new Error('Participant is not in the conversation');
+    if (!participant) throw new Error('Participant is not in the conversation');
 
-      if (!participant || (participant.conversation_status !== Status.ACTIVE && participant.conversation_status !== Status.MUTED))
+    if (
+      !participant ||
+      (participant.conversation_status !== Status.ACTIVE &&
+        participant.conversation_status !== Status.MUTED)
+    )
       throw new Error('Participant is not active in the conversation');
 
     return await this.prisma.message.create({
@@ -46,7 +49,7 @@ export class MessageService {
               select: {
                 id: true,
                 username: true,
-				profile_picture: true,
+                profile_picture: true,
               },
             },
           },
@@ -69,10 +72,13 @@ export class MessageService {
     });
   }
 
-  async getDisplayMessagesByConversationID(conversationID: string) {
+  async getDisplayMessagesByConversationID(conversationID: string, userID: string) {
     if (!this.conversationService.checkConversationExists(conversationID)) {
       throw new Error('Conversation does not exist');
     }
+
+    if (!(await this.participantService.checkParticipantExists(conversationID, userID)))
+      throw new Error('Participant is not in the conversation');
 
     return this.prisma.message.findMany({
       where: {
