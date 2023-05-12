@@ -301,4 +301,12 @@ export class UsersController {
       console.error(error);
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/blockedUsers/:userID')
+  async getBlockedUsers(@Req() req, @Param('userID', ParseUUIDPipe) userID: string) {
+	if (req.user.id !== userID)
+	  throw new BadRequestException('You do not have permission to access this user.');
+	return await this.usersService.blockedUsers(userID);
+  }
 }

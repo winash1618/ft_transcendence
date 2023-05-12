@@ -286,12 +286,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       sockets.forEach(async socket => {
         if (await this.userService.isUserBlocked(participant.user_id, userID)) {
           message.message = '';
+		  this.server.to(socket.id).emit('messageCreated', message);
         }
-        this.server.to(socket.id).emit('messageCreated', {
-          conversationID,
-          participant,
-          message,
-        });
+		else
+			this.server.to(socket.id).emit('messageCreated', message);
+        // this.server.to(socket.id).emit('messageCreated', {
+        // //   conversationID,
+        // //   participant,
+        //   message,
+        // });
       });
     });
   }
@@ -332,11 +335,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       this.server.to(data.conversationID).emit('messageCreated', message);
-      await this.sendFilteredMessages(
-        client.data.userID.id,
-        data.conversationID,
-        message,
-      );
+    //   await this.sendFilteredMessages(
+    //     client.data.userID.id,
+    //     data.conversationID,
+    //     message,
+    //   );
     } catch (e) {
       console.log(e);
       throw new WsException({
@@ -345,6 +348,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
   }
+
+
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('makeAdmin')

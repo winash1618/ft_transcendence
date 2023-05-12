@@ -327,6 +327,25 @@ export class UsersService {
     return user.blocked_users.length > 0;
   }
 
+  async blockedUsers(userID: string) {
+	if (await this.checkIfUserExists(userID) === false)
+		throw new Error('User does not exist');
+	return this.prisma.user.findMany({
+		where: {
+			blocked_users: {
+				some: {
+					id: userID,
+				},
+			},
+		},
+		select: {
+			id: true,
+			username: true,
+			login: true,
+		},
+	});
+	}
+
   async checkIfUserSentThreeInvites(
     senderId: string,
     receiverId: string,

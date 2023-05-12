@@ -19,10 +19,10 @@ const DirectChat = ({
 	UserProfilePicture,
 	setConversationID,
 	conversationID,
-	setMessages,
+	setMessages
 }: DirectChatProp) => {
 	const [searchText, setSearchText] = useState("");
-	const { token } = useAppSelector((state) => state.auth);
+	const { userInfo, token } = useAppSelector((state) => state.auth);
 
 	const resetState = useCallback(() => {
 		console.log("handleConversationLeft in DirectChat");
