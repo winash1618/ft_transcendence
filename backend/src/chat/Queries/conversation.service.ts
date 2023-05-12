@@ -124,6 +124,9 @@ export class ConversationService {
     userID: string,
     otherUserID: string,
   ) {
+    if (await this.userService.isUserBlocked(userID, otherUserID))
+      throw new Error('User is blocked');
+
     const conversation = await this.createConversation(createConversation);
 
     await this.participantService.addParticipantToConversation({
@@ -226,6 +229,8 @@ export class ConversationService {
       throw new Error('User does not exist');
     }
 
+    const user = await this.userService.findOne(userID);
+
     return await this.prisma.conversation.findMany({
       where: {
         privacy: Privacy.DIRECT,
@@ -254,6 +259,7 @@ export class ConversationService {
           where: {
             user_id: {
               not: userID,
+              notIn: user.blocked_users.map((blockedUser) => blockedUser.id),
             },
           },
         },

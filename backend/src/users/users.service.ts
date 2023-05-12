@@ -161,6 +161,9 @@ export class UsersService {
       throw new Error('One or both users do not exist');
     }
 
+    if (await this.isUserBlocked(userID, blockID))
+      throw new Error('User is already blocked');
+
     // Block the user
     const user = await this.prisma.user.update({
       where: { id: userID },
@@ -401,6 +404,22 @@ export class UsersService {
       await this.prisma.user.update({
         where: { id: invite.receiverId },
         data: { friends: { connect: { id: invite.senderId } } },
+      });
+      await this.prisma.invitations.deleteMany({
+        where: {
+          OR: [
+            {
+              senderId: invite.senderId,
+              receiverId: invite.receiverId,
+              type: 'FRIEND',
+            },
+            {
+              senderId: invite.receiverId,
+              receiverId: invite.senderId,
+              type: 'FRIEND',
+            },
+          ],
+        },
       });
     }
 

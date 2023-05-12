@@ -34,6 +34,7 @@ import {
 } from './dto/GatewayDTO/index.dto';
 import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
+import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway()
@@ -46,6 +47,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private participantService: ParticipantService,
     private messageService: MessageService,
     private jwtService: JwtService,
+    private userService: UsersService,
     private configService: ConfigService,
   ) {}
 
@@ -268,6 +270,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  private async sendFilteredMessages(
+    userID: string,
+    conversationID: string,
+    message: any,
+  ) {
+    const conversations = await this.conversationService.getConversationByID(
+      conversationID,
+    );
+
+    const participants = conversations.participants;
+    participants.forEach(async participant => {
+      const sockets = this.gatewaySession.getAllUserSockets();
+      if (!sockets || sockets.length === 0) return;
+      sockets.forEach(async socket => {
+        if (await this.userService.isUserBlocked(participant.user_id, userID)) {
+          message.message = '';
+        }
+        this.server.to(socket.id).emit('messageCreated', {
+          conversationID,
+          participant,
+          message,
+        });
+      });
+    });
+  }
+
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('sendMessage')
   async sendMessage(
@@ -304,6 +332,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       this.server.to(data.conversationID).emit('messageCreated', message);
+      await this.sendFilteredMessages(
+        client.data.userID.id,
+        data.conversationID,
+        message,
+      );
     } catch (e) {
       console.log(e);
       throw new WsException({
@@ -587,31 +620,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
     this.server.emit('conversationCreated', conversation);
   }
-
-  // private async sendConversationJoinedToAllClients(
-  //   userID: string,
-  //   conversationID: string,
-  // ) {
-  //   const conversations = await this.conversationService.getConversationByID(
-  //     conversationID,
-  //   );
-
-  //   const participants = conversations.participants;
-  //   participants.forEach(async participant => {
-  //     const messages = await this.messageService.getMessagesByConversationID(
-  //       conversationID,
-  //     );
-  //     const sockets = this.gatewaySession.getAllUserSockets();
-  //     if (!sockets || sockets.length === 0) return;
-  //     sockets.forEach(socket => {
-  //       this.server.to(socket.id).emit('conversationJoined', {
-  //         conversationID,
-  //         participant,
-  //         messages,
-  //       });
-  //     });
-  //   });
-  // }
 
   // validations
 

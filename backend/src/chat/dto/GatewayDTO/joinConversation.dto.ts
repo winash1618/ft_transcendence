@@ -8,6 +8,5 @@ export class joinConversationDto {
 
   @IsOptional()
   @IsString()
-  @IsUUID()
   password: string;
 }
