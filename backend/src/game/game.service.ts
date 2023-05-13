@@ -50,6 +50,25 @@ export class GameService {
     });
   }
 
+  async checkingGameHistory(
+    gameData: CreateGameDto,
+    id: string,
+  ): Promise<void> {
+    await this.prisma.gameHistory.update({
+      where: {
+        id: id,
+      },
+      data: {
+        player_one: gameData.player_one,
+        player_two: gameData.player_two,
+        player_score: gameData.player_score,
+        opponent_score: gameData.opponent_score,
+        winner: '',
+        looser: '',
+      },
+    });
+  }
+
   async getGameHistory(playerId: string) {
     const gameHistory = await this.prisma.gameHistory.findMany({
       where: {
@@ -206,6 +225,24 @@ export class GameService {
       where: {
         id: gameID,
       },
+      include: {
+        playerOne: {
+          select: {
+            id: true,
+            login: true,
+            username: true,
+            profile_picture: true,
+          },
+        },
+        playerTwo: {
+          select: {
+            id: true,
+            login: true,
+            username: true,
+            profile_picture: true,
+          },
+        },
+      }
     });
 
     if (!game) {
@@ -217,9 +254,6 @@ export class GameService {
     ) {
       throw new Error('User is not part of this game');
     }
-
-    if (game.player_score !== -1 || game.opponent_score !== -1)
-      throw new Error('Game is already in progress');
 
     return game;
   }
