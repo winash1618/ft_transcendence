@@ -361,11 +361,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!this.gameRooms[roomID]) {
         throw new Error('Game room does not exist');
       }
-      if (socketData.status === GameStatus.READY) {
-        if (socketData.gameID === roomID) {
-          client.join(roomID);
-        }
-      }
+      client.join(roomID);
       this.usersService.userStatusUpdate(
         socketData.userID.id,
         UserStatus.IN_GAME,
