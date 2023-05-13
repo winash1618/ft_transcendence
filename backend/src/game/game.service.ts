@@ -161,8 +161,8 @@ export class GameService {
       throw new Error('Game not found');
     }
 
-    if (game.winner === '' || game.winner === null) return game.id;
-    else return null;
+    if (game.winner === '' || game.winner === null) return game;
+    throw new Error('Game has already ended');
   }
 
   async updateUserAchievements(userId: string) {
