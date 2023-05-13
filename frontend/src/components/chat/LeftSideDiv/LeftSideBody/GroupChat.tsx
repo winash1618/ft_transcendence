@@ -20,7 +20,6 @@ interface GroupChatProps {
 	setStatus: any;
 	conversation: any;
 	setGroupResults: any;
-	setBlockedUsers: any;
 }
 
 const GroupChat = ({
@@ -33,12 +32,11 @@ const GroupChat = ({
 	setStatus,
 	conversation,
 	setGroupResults,
-	setBlockedUsers,
 }: GroupChatProps) => {
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
-	const { userInfo, token } = useAppSelector((state) => state.auth);
+	const { token } = useAppSelector((state) => state.auth);
 
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
@@ -152,27 +150,7 @@ const GroupChat = ({
 				console.log(err);
 			}
 		}
-		try {
-			await axios.get(`${BASE_URL}/users/blockedUsers/${userInfo.id}`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			}).then(response => {
-					if (response.status === 200) {
-						console.log('response blocked', response);
-						console.log('Request succeeded!');
-						setBlockedUsers(response.data);
-					} else {
-						window.location.href = '/error';
-					}
-				})
-					.catch(error => {
-						console.error('An error occurred:', error);
-					});
-		} catch (err) {
-			console.log(err);
-		}
+		
 	}
 
 	const handleMenuClick = (e: any) => {

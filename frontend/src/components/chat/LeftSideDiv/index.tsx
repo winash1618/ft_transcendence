@@ -22,7 +22,6 @@ interface LeftSideDivProps {
 	conversation: any;
 	setResults: any;
 	setGroupResults: any;
-	setBlockedUsers: any;
 }
 
 const LeftSideDiv = ({
@@ -41,7 +40,6 @@ const LeftSideDiv = ({
 	conversation,
 	setResults,
 	setGroupResults,
-	setBlockedUsers,
 }: LeftSideDivProps) => {
 	const { token } = useAppSelector((state) => state.auth);
 
@@ -126,7 +124,6 @@ const LeftSideDiv = ({
 				setStatus={setStatus}
 				conversation={conversation}
 				setGroupResults={setGroupResults}
-				setBlockedUsers={setBlockedUsers}
 			/>
 		</>
 	);

@@ -26,7 +26,6 @@ const Chat = ({
 	const [results, setResults] = useState<User[]>([]);
 	const [groupResults, setGroupResults] = useState<User[]>([]);
 	const [groupNav, setGroupNav] = useState(GNav.GROUPS);
-	const [blockedUsers, setBlockedUsers] = useState<User[]>([]);
 
 	useEffect(() => {
 		socket?.on('exception', (error) => {
@@ -58,7 +57,6 @@ const Chat = ({
 						conversation={conversation}
 						setResults={setResults}
 						setGroupResults={setGroupResults}
-						setBlockedUsers={setBlockedUsers}
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>
@@ -69,7 +67,6 @@ const Chat = ({
 							messages={messages}
 							setMessages={setMessages}
 							conversationID={conversationID}
-							blockedUsers={blockedUsers}
 						/>
 					)}
 				</MessageBoxContainer>
