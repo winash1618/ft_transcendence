@@ -94,16 +94,25 @@ const ProfileHeader = () => {
       </ProfileWrapper>
       {userInfo.login !== user.login && (
         <ProfileButtonWrapper>
-          {userInfo.friends?.some(
+          {userInfo.blocked_users?.some(
             (userItem) => userItem.login === user.login
-          ) ? (
+          ) ? null : userInfo.friends?.some(
+              (userItem) => userItem.login === user.login
+            ) ? (
             <Button onClick={removeFriend} type="primary" danger>
               Remove friend
             </Button>
           ) : userInfo.sentInvites?.some(
               (item) => item.receiverId === user.id
             ) ? (
-            <Button type="primary" style={{ background: "green", pointerEvents: "none", color: "white" }}>
+            <Button
+              type="primary"
+              style={{
+                background: "green",
+                pointerEvents: "none",
+                color: "white",
+              }}
+            >
               Request sent
             </Button>
           ) : (

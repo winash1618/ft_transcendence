@@ -114,23 +114,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return game.id;
   }
 
-  setUserStatus(client: Socket, status: GameStatus) {
-    const userID = client.data.userID;
-    if (!this.userSockets.has(userID)) {
-      const socketData: SocketData = {
-        playerNumber: -1,
-        client: client,
-        gameID: '',
-        userID: userID,
-        status: status,
-      };
-      this.userSockets.set(userID, socketData);
-      return socketData;
-    }
-    const socketData = this.userSockets.get(userID);
-    socketData.status = status;
-    return socketData;
-  }
+	setUserStatus(client: Socket, status: GameStatus) {
+		const userID = client.data.userID;
+		if (!this.userSockets.has(userID)) {
+			const socketData: SocketData = {
+				playerNumber: -1,
+				client: client,
+				gameID: '',
+				userID: userID,
+				status: status,
+			};
+			this.userSockets.set(userID, socketData);
+			return socketData;
+		}
+		const socketData = this.userSockets.get(userID);
+		socketData.status = status;
+		return socketData;
+	}
 
   // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Register')

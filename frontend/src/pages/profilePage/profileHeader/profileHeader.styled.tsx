@@ -6,6 +6,7 @@ export const ProfileHeaderContainer = styled.div`
   background: var(--main-600);
   border-radius: 10px;
   padding: 120px 0px 20px 40px;
+  border: 1px solid green;
   position: relative;
   display: flex;
   align-items: end;
@@ -22,6 +23,7 @@ export const ProfileBackground = styled.div`
   width: 100%;
   height: 60%;
   z-index: 10;
+  border-radius: 10px 10px 0px 0px;
   top: 0;
   left: 0;
   position: absolute;

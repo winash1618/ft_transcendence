@@ -9,6 +9,7 @@ import ProfilePage from "../pages/profilePage";
 import SettingsPage from "../pages/settingsPage";
 import AuthenticatePage from "../pages/authenticatePage";
 import HomePage from "../pages/homePage";
+import AchievementsPage from "../pages/achievementsPage";
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: "/settings", element: <SettingsPage /> },
       { path: "/profile/:login", element: <ProfilePage /> },
       { path: "/set-nickname", element: <NickNamePage /> },
+      { path: "/achievements", element: <AchievementsPage /> },
     ],
   },
   { path: "*", element: <PageNotFound404 /> },

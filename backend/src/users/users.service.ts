@@ -47,6 +47,11 @@ export class UsersService {
         profile_picture: true,
         is_authenticated: true,
         user_status: true,
+        blocked_users: true,
+        blocked_by: true,
+        friends: true,
+        sentInvites: true,
+        receivedInvites: true,
       }
     });
   }
@@ -96,7 +101,7 @@ export class UsersService {
           disconnect: { id: friendID },
         },
       },
-      include: { friends: true, blocked_users: true },
+      include: { friends: true, blocked_users: true, sentInvites: true, receivedInvites: true },
     });
 
     // Update friend's friends list
@@ -175,7 +180,17 @@ export class UsersService {
           disconnect: { id: blockID },
         },
       },
-      include: { friends: true, blocked_users: true },
+      include: { friends: true, blocked_users: true, sentInvites: true, receivedInvites: true },
+    });
+
+    await this.prisma.user.update({
+      where: { id: blockID },
+      data: {
+        friends: {
+          disconnect: { id: userID },
+        },
+      },
+      include: { friends: true, blocked_users: true, sentInvites: true, receivedInvites: true },
     });
 
     return user;
@@ -428,7 +443,6 @@ export class UsersService {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
-
     if (invite.type === 'FRIEND') {
       await this.prisma.user.update({
         where: { id: invite.senderId },
@@ -455,7 +469,6 @@ export class UsersService {
         },
       });
     }
-
     // Delete all the invitation by sender for game
     if (invite.type === 'GAME') {
       await this.prisma.invitations.deleteMany({
@@ -467,10 +480,7 @@ export class UsersService {
 
       return invite;
     }
-
-    return await this.prisma.invitations.delete({
-      where: { id },
-    });
+    return invite;
   }
 
   async rejectInvite(id: string) {
