@@ -110,7 +110,7 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
-      game.wall.x =  0.975 * canvaRef.current.height / 2;
+      game.wall.x = 0.95 * canvaRef.current.width / 2;
       game.wall.width = 0.025 * canvaRef.current.width;
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
@@ -260,7 +260,7 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
-      game.wall.x =  0.975 * canvaRef.current.height / 2;
+      game.wall.x = 0.95 * canvaRef.current.width / 2;
       game.wall.width = 0.025 * canvaRef.current.width;
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;

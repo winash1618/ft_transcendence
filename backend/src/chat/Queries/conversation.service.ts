@@ -259,7 +259,6 @@ export class ConversationService {
           where: {
             user_id: {
               not: userID,
-              notIn: user.blocked_users.map((blockedUser) => blockedUser.id),
             },
           },
         },

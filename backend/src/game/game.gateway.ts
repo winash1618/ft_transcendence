@@ -369,7 +369,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private async initGameRoom(
     player2: SocketData,
     player1: SocketData,
-    middleWall = false,
+    middleWall: boolean,
   ) {
     player1.playerNumber = 1;
     player1.status = GameStatus.READY;
@@ -385,6 +385,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         player2: player2.userID,
       },
       roomID,
+	  hasMiddleWall: middleWall,
     });
     this.server.to(player1.client.id).emit('start', {
       playerNo: 1,
@@ -393,6 +394,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         player2: player2.userID,
       },
       roomID,
+	  hasMiddleWall: middleWall,
     });
   }
 }
