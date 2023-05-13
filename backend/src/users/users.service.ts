@@ -35,6 +35,12 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
+  async findOneID(id: string): Promise<any> {
+    return await this.prisma.user.findUnique({
+      where: { id }
+    });
+  }
+
   async findOne(login: string): Promise<any> {
     return await this.prisma.user.findUnique({
       where: { login },
@@ -410,6 +416,7 @@ export class UsersService {
   }
 
   async createInvite(createInviteDto: createInviteDto, senderId: string) {
+    console.log(createInviteDto, senderId)
     const { type, receiverId } = createInviteDto;
 
     const user = await this.prisma.user.findUnique({

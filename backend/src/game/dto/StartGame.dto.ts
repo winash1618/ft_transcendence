@@ -1,12 +1,11 @@
-import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class StartGameDto {
-  @IsString()
-  @IsNotEmpty()
   @IsUUID()
+  @IsNotEmpty()
   roomID: string;
 
-  @IsString()
+  @IsBoolean()
   @IsNotEmpty()
   hasMiddleWall: boolean;
 }

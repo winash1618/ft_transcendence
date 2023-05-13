@@ -3,10 +3,14 @@ import { PrismaService } from 'src/database/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { GameHistory } from '@prisma/client';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class GameService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private userService: UsersService,
+    ) {}
 
   async create(createGameDto: CreateGameDto) {
     return await this.prisma.gameHistory.create({
@@ -194,5 +198,29 @@ export class GameService {
     });
 
     return ach;
+  }
+
+  async validateGame(gameID: string, userID: string) {
+    console.log(userID)
+    const game = await this.prisma.gameHistory.findUnique({
+      where: {
+        id: gameID,
+      },
+    });
+
+    if (!game) {
+      throw new Error('Game not found');
+    }
+
+    if ((game.player_one === userID || game.player_two !== userID) &&
+        (game.player_one !== userID || game.player_two === userID)
+    ) {
+      throw new Error('User is not part of this game');
+    }
+
+    if (game.player_score !== -1 || game.opponent_score !== -1)
+      throw new Error('Game is already in progress');
+
+    return game;
   }
 }
