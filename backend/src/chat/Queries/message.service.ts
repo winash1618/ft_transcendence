@@ -77,12 +77,31 @@ export class MessageService {
       throw new Error('Conversation does not exist');
     }
 
-    if (!(await this.participantService.checkParticipantExists(conversationID, userID)))
+    if (!(await this.participantService.checkParticipantExists(conversationID, userID))) {
       throw new Error('Participant is not in the conversation');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userID },
+      select: {
+        blocked_users: { select: { id: true } },
+        blocked_by: { select: { id: true } },
+      },
+    });
+
+    const blockedUsersIDs = [
+      ...user.blocked_users.map((blockedUser) => blockedUser.id),
+      ...user.blocked_by.map((blockedByUser) => blockedByUser.id),
+    ];
 
     return this.prisma.message.findMany({
       where: {
         conversation_id: conversationID,
+        author: {
+          user_id: {
+            notIn: blockedUsersIDs,
+          },
+        },
       },
       orderBy: {
         created_at: 'asc',

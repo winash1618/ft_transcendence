@@ -330,20 +330,34 @@ export class UsersService {
   async blockedUsers(userID: string) {
 	if (await this.checkIfUserExists(userID) === false)
 		throw new Error('User does not exist');
-	return this.prisma.user.findMany({
+	const blocked = await this.prisma.user.findUnique({
 		where: {
-			blocked_users: {
-				some: {
-					id: userID,
-				},
-			},
+			id: userID,
 		},
-		select: {
-			id: true,
-			username: true,
-			login: true,
-		},
+    select: {
+      blocked_users: {
+        select: {
+          id: true,
+          login: true,
+          username: true,
+        },
+      },
+      blocked_by: {
+        select: {
+          id: true,
+          login: true,
+          username: true,
+        },
+      },
+    },
 	});
+
+  const combinedBlockedUsers = [
+    ...blocked.blocked_users,
+    ...blocked.blocked_by,
+  ];
+
+  return combinedBlockedUsers;
 	}
 
   async checkIfUserSentThreeInvites(
