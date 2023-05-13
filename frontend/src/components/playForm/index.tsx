@@ -33,16 +33,10 @@ const PlayForm = () => {
   } = useForm<PlayType>({ resolver: yupResolver(PlaySchema) });
 
   useEffect(() => {
-    socket?.on("start", (data) => {
-      dispatch(setGameInfo({ ...data, isGameStarted: true }));
-    });
     socket?.on("error", (data) => {
       ErrorAlert("You are already in the queue", 5000);
     });
     return () => {
-      socket?.off("start", (data) => {
-        dispatch(setGameInfo({ ...data, isGameStarted: true }));
-      });
       socket?.off("error", (data) => {
         ErrorAlert("You are already in the queue", 5000);
       });

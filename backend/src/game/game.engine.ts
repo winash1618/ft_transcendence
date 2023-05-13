@@ -357,12 +357,12 @@ export class GameEngine {
 
   startGame(hasMiddleWall: boolean, userService: UsersService) {
     clearInterval(this.interval);
-    this.gameObj = this.initGameObj(
-      0,
-      this.player1,
-      this.player2,
-      hasMiddleWall,
-    );
+    // this.gameObj = this.initGameObj(
+    //   0,
+    //   this.player1,
+    //   this.player2,
+    //   hasMiddleWall,
+    // );
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
 

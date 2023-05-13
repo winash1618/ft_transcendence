@@ -75,7 +75,7 @@ const Navbar: React.FC = () => {
       ]);
     });
     socket?.on("start", (data) => {
-      dispatch(setGameInfo({ ...data, isGameStarted: true }));
+      dispatch(setGameInfo({ ...data, isGameStarted: true, hasMiddleWall: data.hasMiddleWall }));
       navigate("/pingpong");
     });
     return () => {
