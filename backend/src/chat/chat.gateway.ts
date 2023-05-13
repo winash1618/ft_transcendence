@@ -60,11 +60,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       client.data.userID = userID;
-      const user = this.gatewaySession.getUserSocket(userID.id);
-      if (user) {
-        this.gatewaySession.removeUserSocket(userID.id);
-        this.handleDisconnect(user);
-      }
+      // const user = this.gatewaySession.getUserSocket(userID.id);
+      // if (user) {
+      //   this.gatewaySession.removeUserSocket(userID.id);
+      //   this.handleDisconnect(user);
+      // }
 
       this.gatewaySession.setUserSocket(userID.id, client);
 
@@ -78,13 +78,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
     catch (e) {
-      throw new InternalServerErrorException('JWT verification failed');
+      console.error('Error Connecting to Game Gateway: ', e.message);
+      client.disconnect();
     }
   }
 
   handleDisconnect(client: Socket) {
-    // console.log('User disconnected: ', client.data.userID);
-    this.gatewaySession.removeUserSocket(client.data.userID.id);
+    try {
+      // console.log('User disconnected: ', client.data.userID);
+      this.gatewaySession.removeUserSocket(client.data.userID.id);
+    }
+    catch (e) {
+      console.error('User disconnected:', e.message);
+    }
   }
 
   @UsePipes(new ValidationPipe())
@@ -435,8 +441,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.userID.id,
         'REMOVE',
       );
-
-      console.log('check', check);
 
       if (check) {
         if (check.conversation_status === 'BANNED')

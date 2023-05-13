@@ -9,8 +9,8 @@ export const ProfileMatchHistoryContainer = styled(Card)`
   overflow-y: auto;
   overflow-x: hidden;
   border-radius: 10px;
+  border: 1px solid green;
   padding: 30px 0px;
-  border: none;
   max-width: 600px;
   & .ant-card-body {
     display: flex;
@@ -94,5 +94,4 @@ export const PlayerProfileWrapper = styled.div`
 
 export const MatchHistoryTitle = styled.h1`
   font-size: 2rem;
-  padding-bottom: 20px;
 `;

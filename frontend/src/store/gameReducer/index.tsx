@@ -4,6 +4,7 @@ import { Socket } from "socket.io-client";
 
 interface GameState {
   isGameStarted: boolean;
+  hasMiddleWall: boolean;
   socket: Socket | null;
   players: any;
   player: number;
@@ -14,6 +15,7 @@ const initialState: GameState = {
   socket: null,
   players: null,
   isGameStarted: false,
+  hasMiddleWall: false,
   player: 1,
   roomID: "",
 };
@@ -29,6 +31,7 @@ const gameSlide = createSlice({
         isGameStarted: action.payload.isGameStarted,
         player: action.payload.playerNo,
         roomID: action.payload.roomID,
+        hasMiddleWall: action.payload.hasMiddleWall
       };
     },
     setSocket: (state, action) => {

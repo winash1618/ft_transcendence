@@ -10,6 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
+import { ValidationPipe, UsePipes } from '@nestjs/common';
 import {
   SocketData,
   UserMap,
@@ -17,7 +18,6 @@ import {
   KeyPress,
   UserInfo,
 } from './interface/game.interface';
-import { InternalServerErrorException } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
@@ -33,7 +33,7 @@ import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
 
 @WebSocketGateway(8002, WebSocketConfig.getOptions(new ConfigService()))
-// @WebSocketGateway()
+// @WebSocketGateway ()
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -51,10 +51,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket) {
     try {
+      // const token = client.handshake.headers.token as string;
       const token = client.handshake.auth.token;
       const userid = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_SECRET'),
       });
+      if (!(await this.usersService.getUserById(userid['id'])))
+        throw new Error('User not found');
 
       const oldUser = this.userSockets.get(userid);
       if (oldUser) {
@@ -70,7 +73,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.setUserStatus(client, GameStatus.WAITING);
     }
     catch (e) {
-      throw new InternalServerErrorException('JWT verification failed');
+      console.error('Error connecting to game gateway:', e.message);
+      client.disconnect();
     }
   }
 
@@ -85,7 +89,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         (user: any) => user.userID.login !== userid.login,
       );
       this.userSockets.delete(userid);
-    } catch (e) {}
+    } catch (e) {
+      console.log('User disconnect: ', e.message);
+    }
   }
 
   async createGameRoom(
@@ -114,23 +120,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return game.id;
   }
 
-  setUserStatus(client: Socket, status: GameStatus) {
-    const userID = client.data.userID;
-    if (!this.userSockets.has(userID)) {
-      const socketData: SocketData = {
-        playerNumber: -1,
-        client: client,
-        gameID: '',
-        userID: userID,
-        status: status,
-      };
-      this.userSockets.set(userID, socketData);
-      return socketData;
-    }
-    const socketData = this.userSockets.get(userID);
-    socketData.status = status;
-    return socketData;
-  }
+	setUserStatus(client: Socket, status: GameStatus) {
+		const userID = client.data.userID;
+		if (!this.userSockets.has(userID)) {
+			const socketData: SocketData = {
+				playerNumber: -1,
+				client: client,
+				gameID: '',
+				userID: userID,
+				status: status,
+			};
+			this.userSockets.set(userID, socketData);
+			return socketData;
+		}
+		const socketData = this.userSockets.get(userID);
+		socketData.status = status;
+		return socketData;
+	}
 
   // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Register')
@@ -139,10 +145,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: RegisterDto,
   ) {
     try {
+      console.log('In register')
       const player = this.userSockets.get(client.data.userID);
-      if (player.status !== GameStatus.WAITING) {
-        throw new Error('User is already in game');
-      }
+      const user = await this.usersService.findOneID(client.data.userID.id);
+      // console.log('User: ', user)
+      if (player.status === GameStatus.QUEUED)
+        throw new Error('User is already in queue');
+      if (user.status === UserStatus.IN_GAME)
+        throw new Error('User is already playing');
+      if (player.status === GameStatus.READY)
+        throw new Error('User is ready for a different game');
       const socketData: SocketData = this.setUserStatus(
         client,
         GameStatus.WAITING,
@@ -150,19 +162,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const queue = data.hasMiddleWall ? this.WallQ : this.defaultQ;
 
-      if (queue.find(user => user.userID['id'] === socketData.userID['id'])) {
-        this.server.to(client.id).emit('error');
-        return;
+      if (this.WallQ.find(user => user.userID['id'] === socketData.userID['id']) ||
+          this.defaultQ.find(user => user.userID['id'] === socketData.userID['id'])
+      ) {
+        throw new Error('User already in queue');
       }
 
       if (queue.length >= 1) {
+        console.log('Users are ready')
         this.initGameRoom(socketData, queue[0], data.hasMiddleWall);
         queue.splice(0, 1);
       } else {
+        console.log('User is waiting')
         socketData.status = GameStatus.QUEUED;
         queue.push(socketData);
       }
     } catch (e) {
+      console.log('Error register: ', e.message);
       throw new WsException({
         message: 'Error register',
         error: e.message,
@@ -174,6 +190,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('leaveQueue')
   async leaveQueue(@ConnectedSocket() client: Socket) {
     try {
+      console.log('In leaveQueue')
+      const player = this.userSockets.get(client.data.userID);
+      if (player.status !== GameStatus.QUEUED)
+        throw new Error('User is not in queue');
       const socketData = this.setUserStatus(client, GameStatus.WAITING);
       const userid = socketData.userID;
       this.defaultQ = this.defaultQ.filter(
@@ -199,16 +219,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       console.log('Inviting user');
       const userID = client.data.userID.id;
-      const invitedUserID = await this.usersService.getUserIDByUserName(
-        data.username,
-      );
+      const invitedUserID = data.id;
+      if (userID === invitedUserID)
+        throw new Error('You cannot invite yourself');
       if ((await this.usersService.checkIfUserExists(invitedUserID)) == null)
         throw new Error('User does not exist');
       this.setUserStatus(client, GameStatus.WAITING);
 
       console.log('User is invited');
       if (
-        await this.usersService.checkIfUserSentThreeInvites(userID, data.id)
+        await this.usersService.checkIfUserSentThreeInvites(userID, invitedUserID)
       ) {
         return new Error('You have already sent three invites to this user');
       }
@@ -219,11 +239,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         { type: 'GAME', receiverId: invitedUserID },
         userID,
       );
-      if (invitedSocketData)
+      // if (invitedSocketData)
         this.server
           .to(invitedSocketData.client.id)
           .emit('Invited', { ...client.data.userID, inviteId: invite.id });
     } catch (e) {
+      console.log('Error invite: ', e.message)
       throw new WsException({
         message: 'Error invite',
         error: e.message,
@@ -238,25 +259,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      this.setUserStatus(client, GameStatus.READY);
+      console.log('In acceptInvitation')
+      const user = this.setUserStatus(client, GameStatus.READY);
       const checkInvite = await this.usersService.getInvite(data.inviteID);
       if (!checkInvite) return;
       const users = Array.from(this.userSockets.keys());
       const foundUser = users.find(user => user.id === checkInvite.senderId);
       const sender = this.userSockets.get(foundUser);
-      if (!sender || sender.status !== GameStatus.WAITING) return;
       const invite = await this.usersService.acceptInvite(data.inviteID);
+      if (!sender || sender.status !== GameStatus.WAITING){
+        throw new Error('Sender is not waiting');
+      }
       if (invite) {
-        const users = Array.from(this.userSockets.keys());
-        const foundUser = users.find(user => user.id === invite.receiverId);
-        const invitedSocketData = this.userSockets.get(foundUser);
+        console.log('Users are ready')
         this.initGameRoom(
-          invitedSocketData,
-          invitedSocketData.userID.id,
+          sender,
+          user,
           false,
         );
       }
     } catch (e) {
+      console.log('Error accept: ', e.message)
       throw new WsException({
         message: 'Error accept',
         error: e.message,
@@ -295,15 +318,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ) {
     try {
+      const roomId = data.roomID;
+      if (roomId in this.gameRooms)
+        this.gameRooms[roomId].moveMouse(data.y, client);
     } catch (e) {
       throw new WsException({
         message: 'Error move mouse',
         error: e.message,
       });
     }
-    const roomId = data.roomID;
-    if (roomId in this.gameRooms)
-      this.gameRooms[roomId].moveMouse(data.y, client);
   }
 
   // @UsePipes(new ValidationPipe())
@@ -332,15 +355,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       console.log('start game');
       const roomID = data.roomID;
+      await this.gameService.validateGame(roomID, client.data.userID.id);
       const socketData: SocketData = this.setUserStatus(
         client,
         GameStatus.READY,
       );
 
       if (!this.gameRooms[roomID]) {
-        console.log('disconnected');
-        client.disconnect();
-        return;
+        throw new Error('Game room does not exist');
       }
       if (socketData.status === GameStatus.READY) {
         if (socketData.gameID === roomID) {
@@ -351,14 +373,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         socketData.userID.id,
         UserStatus.IN_GAME,
       );
-      this.usersService.userStatusUpdate(
-        socketData.userID.id,
-        UserStatus.IN_GAME,
-      );
       if (this.gameRooms[roomID]) {
         this.gameRooms[roomID].startGame(data.hasMiddleWall, this.usersService);
       }
     } catch (e) {
+		console.log(e);
       throw new WsException({
         message: 'Error start game',
         error: e.message,
@@ -369,7 +388,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private async initGameRoom(
     player2: SocketData,
     player1: SocketData,
-    middleWall = false,
+    middleWall: boolean,
   ) {
     player1.playerNumber = 1;
     player1.status = GameStatus.READY;
@@ -378,6 +397,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomID = await this.createGameRoom(player1, player2, middleWall);
     player1.gameID = roomID;
     player2.gameID = roomID;
+    console.log('roomID', roomID);
     this.server.to(player2.client.id).emit('start', {
       playerNo: 2,
       players: {
@@ -385,6 +405,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         player2: player2.userID,
       },
       roomID,
+	  hasMiddleWall: middleWall,
     });
     this.server.to(player1.client.id).emit('start', {
       playerNo: 1,
@@ -393,6 +414,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         player2: player2.userID,
       },
       roomID,
+	  hasMiddleWall: middleWall,
     });
   }
 }

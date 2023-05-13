@@ -43,13 +43,18 @@ export const draw = (
   player: number,
   setPlayer1Score: any,
   setPlayer2Score: any,
+  hasMiddleWall: boolean,
 ) => {
   if (!game.pause) {
     ctx.clearRect(0, 0, 2000 , 2000);
     drawPaddles(ctx, game.paddle1, game.paddle2);
     drawBall(ctx, game.ball);
+    if (hasMiddleWall)
+    {
+      drawWalls(ctx, game);
+    }
   }
   requestAnimationFrame(() =>
-    draw(ctx, game, player, setPlayer1Score, setPlayer2Score)
+    draw(ctx, game, player, setPlayer1Score, setPlayer2Score, hasMiddleWall)
   );
 };
