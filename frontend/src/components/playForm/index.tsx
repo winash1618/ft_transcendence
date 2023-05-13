@@ -16,7 +16,6 @@ import { useEffect, useState } from "react";
 import { Spin } from "antd";
 import { ErrorAlert } from "../toastify";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { setGameInfo } from "../../store/gameReducer";
 
 export type PlayType = {
   hasMiddleWall: boolean;
