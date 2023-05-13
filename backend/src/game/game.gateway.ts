@@ -377,6 +377,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.gameRooms[roomID].startGame(data.hasMiddleWall, this.usersService);
       }
     } catch (e) {
+		console.log(e);
       throw new WsException({
         message: 'Error start game',
         error: e.message,
