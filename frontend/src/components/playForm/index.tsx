@@ -40,6 +40,7 @@ const PlayForm = () => {
       socket?.off("error", (data) => {
         ErrorAlert("You are already in the queue", 5000);
       });
+	  socket?.emit("leaveQueue");
     };
   }, [socket, dispatch]);
 

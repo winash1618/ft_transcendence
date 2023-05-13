@@ -62,6 +62,20 @@ const Navbar: React.FC = () => {
   const [connectionTime, setConnectionTime] = useState(null);
 
   useEffect(() => {
+    if (userInfo.id) {
+      const checkIsGameStarted = async () => {
+        try {
+          const response = await axiosPrivate.get(`/game/${userInfo.id}`);
+          console.log(response);
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      checkIsGameStarted();
+    }
+  }, [userInfo]);
+
+  useEffect(() => {
     socket?.on("Invited", (data) => {
       console.log(data);
       setItems((prev) => [
@@ -76,7 +90,13 @@ const Navbar: React.FC = () => {
     });
     socket?.on("start", (data) => {
       console.log(data);
-      dispatch(setGameInfo({ ...data, isGameStarted: true, hasMiddleWall: data.hasMiddleWall }));
+      dispatch(
+        setGameInfo({
+          ...data,
+          isGameStarted: true,
+          hasMiddleWall: data.hasMiddleWall,
+        })
+      );
       navigate("/pingpong");
     });
     return () => {
@@ -84,6 +104,7 @@ const Navbar: React.FC = () => {
       socket?.disconnect();
     };
   }, [socket]);
+
   const getToken = async () => {
     try {
       const response = await axios.get(`/token`);
@@ -103,9 +124,10 @@ const Navbar: React.FC = () => {
       return response.data.token;
     } catch (err) {
       dispatch(logOut());
-      window.location.replace(`${BASE_URL}/42/login`);
+      navigate("/login");
     }
   };
+
   const getSocket = async () => {
     try {
       const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
@@ -123,6 +145,7 @@ const Navbar: React.FC = () => {
       console.log(err);
     }
   };
+
   useEffect(() => {
     getSocket();
   }, [dispatch, setIsLoadingPage, navigate]);

@@ -1,94 +1,29 @@
-import styled from 'styled-components';
+import styled from "styled-components";
+import { Input, Select } from "antd";
 
-// interface ParentContainerProps {
-// 	backgroundColor: string;
-//   }
-  
-// export const ParentContainer = styled.div<ParentContainerProps>`
-// display: flex;
-// flex-direction: row;
-// height: 100vh;
-// color: var(--main-600);
-// background-color: ${({ backgroundColor }) => backgroundColor};
-// `;
+export const HomeContainer = styled.form`
+  width: 100%;
+  height: 100%;
+  padding: 3rem 2rem;
+  background: var(--main-800);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
 
-// export const Input = styled.input.attrs({ type: "checkbox" })``;
+export const HomeDetails = styled.div`
+  width: 100%;
+  max-width: 373px;
+`;
 
-// export const Label = styled.label`
-//   align-items: center;
-//   display: flex;
-//   gap: 8px;
-//   margin-bottom: 8px;
-// `
-// type LabelTextProps = {
-// 	$mode: string;
-//   };
-  
-// export const LabelText = styled.span<LabelTextProps>`
-//  as ThemedStyledProps<DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>, any>;
-//   ${(props) => {
-//     switch (props.$mode) {
-//       case "dark":
-//         return css`
-//           background-color: black;
-//           color: white;
-//           ${Input}:checked + && {
-//             color: blue;
-//           }
-//         `;
-//       default:
-//         return css`
-//           background-color: white;
-//           color: black;
-//           ${Input}:checked + && {
-//             color: red;
-//           }
-//         `;
-//     }
-//   }}
-// `;
-
-// export const FormContainer = styled.form`
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   margin: 50px;
-// `;
-
-// export const Label = styled.label`
-//   font-size: 1.2rem;
-//   margin-bottom: 10px;
-// `;
-
-// export const Input = styled.input`
-//   padding: 10px;
-//   border-radius: 5px;
-//   border: none;
-//   margin-bottom: 20px;
-// `;
-
-// export const Select = styled.select`
-//   padding: 10px;
-//   border-radius: 5px;
-//   border: none;
-//   margin-bottom: 20px;
-// `;
-
-// export const Option = styled.option`
-//   font-size: 1rem;
-// `;
-
-// export const Button = styled.button`
-//   padding: 10px 20px;
-//   background-color: #008CBA;
-//   color: #fff;
-//   border: none;
-//   border-radius: 5px;
-//   cursor: pointer;
-//   transition: background-color 0.3s ease;
-
-//   &:hover {
-//     background-color: #00688B;
-//   }
-// `;
-
+export const HomeTitle = styled.div`
+  text-align: center;
+  font-weight: 600;
+  font-size: 2.25rem;
+  line-height: 30px;
+  padding-right: 10px;
+  /* border-right: 1px solid #000; */
+  letter-spacing: 1px;
+  margin-bottom: 3rem;
+`;
