@@ -115,7 +115,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.gameService,
       hasMiddleWall,
     );
-    gameRoom.startSettings();
     this.gameRooms[game.id] = gameRoom;
     return game.id;
   }
@@ -169,11 +168,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       if (queue.length >= 1) {
-        console.log('Users are ready')
         this.initGameRoom(socketData, queue[0], data.hasMiddleWall);
         queue.splice(0, 1);
       } else {
-        console.log('User is waiting')
         socketData.status = GameStatus.QUEUED;
         queue.push(socketData);
       }
@@ -364,17 +361,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!this.gameRooms[roomID]) {
         throw new Error('Game room does not exist');
       }
-      if (socketData.status === GameStatus.READY) {
-        if (socketData.gameID === roomID) {
-          client.join(roomID);
-        }
-      }
+      client.join(roomID);
       this.usersService.userStatusUpdate(
         socketData.userID.id,
         UserStatus.IN_GAME,
       );
       if (this.gameRooms[roomID]) {
-        this.gameRooms[roomID].startGame(data.hasMiddleWall, this.usersService);
+        this.gameRooms[roomID].startGame(this.usersService, socketData);
       }
     } catch (e) {
 		console.log(e);
@@ -397,12 +390,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomID = await this.createGameRoom(player1, player2, middleWall);
     player1.gameID = roomID;
     player2.gameID = roomID;
-    console.log('roomID', roomID);
+    const user1 = await this.usersService.getUserById(player1.userID.id);
+    const user2 = await this.usersService.getUserById(player2.userID.id);
     this.server.to(player2.client.id).emit('start', {
       playerNo: 2,
       players: {
         player1: player1.userID,
         player2: player2.userID,
+        profile_pic: user1.profile_pic,
       },
       roomID,
 	  hasMiddleWall: middleWall,
@@ -412,6 +407,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       players: {
         player1: player1.userID,
         player2: player2.userID,
+        profile_pic: user2.profile_pic,
       },
       roomID,
 	  hasMiddleWall: middleWall,
