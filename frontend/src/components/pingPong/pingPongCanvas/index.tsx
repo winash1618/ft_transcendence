@@ -98,6 +98,10 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
+      game.wall.x = 0.95 * canvaRef.current.width / 2;
+	  game.wall.gapBottom = ((canvaRef.current.height - canvaRef.current.height/4) / 2) ;
+	  game.wall.gapTop = canvaRef.current.height / 4;
+      game.wall.width = 0.025 * canvaRef.current.width;
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
       game.ball.radius = 0.015 * canvaRef.current.width;
@@ -245,6 +249,13 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
+<<<<<<< Updated upstream
+=======
+      game.wall.x = 0.95 * canvaRef.current.width / 2;
+	  game.wall.gapBottom = ((canvaRef.current.height - canvaRef.current.height/4) / 2);
+	  game.wall.gapTop = canvaRef.current.height / 4;
+      game.wall.width = 0.025 * canvaRef.current.width;
+>>>>>>> Stashed changes
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
       game.ball.radius = 0.015 * canvaRef.current.width;

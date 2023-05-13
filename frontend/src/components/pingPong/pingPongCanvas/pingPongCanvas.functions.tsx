@@ -33,6 +33,10 @@ const drawPaddles = (ctx: any, paddle1: PaddleType, paddle2: PaddleType) => {
   ctx.fillRect(paddle2.x, paddle2.y, paddle2.width, paddle2.height);
 };
 
+export const drawWalls = (ctx: any, game: GameType) => {
+  ctx.fillRect(game.wall.x, game.wall.gapBottom, game.wall.width, game.wall.gapTop);
+}
+
 export const draw = (
   ctx: any,
   game: GameType,
