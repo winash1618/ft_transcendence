@@ -66,7 +66,44 @@ const Navbar: React.FC = () => {
       const checkIsGameStarted = async () => {
         try {
           const response = await axiosPrivate.get(`/game/${userInfo.id}`);
-		  console.log(response.data);
+          console.log("user id: ", userInfo.id);
+          console.log("player 1 id", response.data.playerOne.id);
+          if (userInfo.id === response.data.playerOne.id) {
+            console.log(response.data);
+            dispatch(
+              setGameInfo({
+                players: {
+                  player1: response.data.playerOne,
+                  player2: response.data.playerTwo,
+                  player1Pic: response.data.playerOne.profile_pic,
+                  player2Pic: response.data.playerTwo.profile_pic,
+                },
+                player1Score: response.data.player_score,
+                player2Score: response.data.opponent_score,
+                timer: false,
+                player: 1,
+                roomID: response.data.id,
+                isGameStarted: true,
+              })
+            );
+          } else {
+            dispatch(
+              setGameInfo({
+                players: {
+                  player1: response.data.playerOne,
+                  player2: response.data.playerTwo,
+                  player1Pic: response.data.playerOne.profile_pic,
+                  player2Pic: response.data.playerTwo.profile_pic,
+                },
+                player1Score: response.data.player_score,
+                player2Score: response.data.opponent_score,
+                timer: false,
+                player: 2,
+                roomID: response.data.id,
+                isGameStarted: true,
+              })
+            );
+          }
         } catch (err) {
           console.log(err);
         }
@@ -94,6 +131,9 @@ const Navbar: React.FC = () => {
         setGameInfo({
           ...data,
           isGameStarted: true,
+          player2Score: 0,
+          player1Score: 0,
+          timer: true,
           hasMiddleWall: data.hasMiddleWall,
         })
       );
