@@ -10,7 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
-import { ValidationPipe, UsePipes } from '@nestjs/common';
+import { ValidationPipe, UsePipes, UseGuards } from '@nestjs/common';
 import {
 	SocketData,
 	UserMap,
@@ -18,6 +18,7 @@ import {
 	KeyPress,
 	UserInfo,
 } from './interface/game.interface';
+import { JwtGuard } from 'src/utils/wsJWTGuard.guard';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
@@ -32,6 +33,7 @@ import { UserStatus } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
 
+// @UseGuards(JwtGuard)
 @WebSocketGateway(8002, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway ()
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {

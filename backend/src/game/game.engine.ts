@@ -298,21 +298,28 @@ export class GameEngine {
   }
 
   barSelect(keyStatus: KeyPress, client: Socket, isPressed: boolean) {
-    if (this.users.get(client.data.userID) === undefined) {
+    const users = Array.from(this.users.keys());
+    const foundUser = users.find(user => user.id === client.data.userID.id);
+    if (this.users.get(foundUser) === undefined) {
+      console.log('user not found');
 		return;
     }
-    if (this.users.get(client.data.userID).playerNumber === 1) {
+    this.users.get(foundUser).client = client;
+    if (this.users.get(foundUser).playerNumber === 1) {
       this.barMove(keyStatus, this.gameObj.paddle1, isPressed);
-    } else if (this.users.get(client.data.userID).playerNumber === 2) {
+    } else if (this.users.get(foundUser).playerNumber === 2) {
       this.barMove(keyStatus, this.gameObj.paddle2, isPressed);
     }
   }
 
   moveMouse(y: number, client: Socket) {
-    if (this.users.get(client.data.userID) === undefined) {
+    const users = Array.from(this.users.keys());
+    const foundUser = users.find(user => user.id === client.data.userID.id);
+    if (this.users.get(foundUser) === undefined) {
       return;
     }
-    const playerNumber = this.users.get(client.data.userID).playerNumber;
+    this.users.get(foundUser).client = client;
+    const playerNumber = this.users.get(foundUser).playerNumber;
     const paddle =
       playerNumber === 1 ? this.gameObj.paddle1 : this.gameObj.paddle2;
 
