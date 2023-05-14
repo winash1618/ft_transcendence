@@ -66,8 +66,6 @@ const Navbar: React.FC = () => {
       const checkIsGameStarted = async () => {
         try {
           const response = await axiosPrivate.get(`/game/${userInfo.id}`);
-          console.log("user id: ", userInfo.id);
-          console.log("player 1 id", response.data.playerOne.id);
           if (userInfo.id === response.data.playerOne.id) {
             console.log(response.data);
             dispatch(

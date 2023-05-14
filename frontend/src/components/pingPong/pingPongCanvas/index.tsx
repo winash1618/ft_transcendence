@@ -91,11 +91,11 @@ const PingPongCanvas = () => {
     players,
     player,
     roomID,
+	timer,
     hasMiddleWall,
     player1Score: playerOneScore,
     player2Score: playerTwoScore,
   } = useAppSelector((state) => state.game);
-  console.log(playerOneScore);
   const { token } = useAppSelector((state) => state.auth);
   const [gameStatus, setGameStatus] = useState<number>(0);
   const [player1Score, setPlayer1Score] = useState<number>(playerOneScore);
@@ -261,7 +261,7 @@ const PingPongCanvas = () => {
     socket?.on("player2Score", (data) => {
       setPlayer2Score(data);
     });
-    if (roomID.length > 0) {
+    if (roomID.length > 0 && timer) {
       socket?.emit("StartGame", {
         roomID,
         hasMiddleWall,
