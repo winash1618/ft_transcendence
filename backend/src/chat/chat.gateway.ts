@@ -35,7 +35,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
 import { UsersService } from 'src/users/users.service';
+import { JwtGuard } from 'src/utils/wsJWTGuard.guard';
 
+@UseGuards(JwtGuard)
 @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -60,11 +62,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       client.data.userID = userID;
-      // const user = this.gatewaySession.getUserSocket(userID.id);
-      // if (user) {
-      //   this.gatewaySession.removeUserSocket(userID.id);
-      //   this.handleDisconnect(user);
-      // }
+      const user = this.gatewaySession.getUserSocket(userID.id);
+      if (user) {
+        this.gatewaySession.removeUserSocket(userID.id);
+        this.handleDisconnect(user);
+      }
 
       this.gatewaySession.setUserSocket(userID.id, client);
 
