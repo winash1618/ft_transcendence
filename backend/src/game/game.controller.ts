@@ -30,12 +30,8 @@ export class GameController {
     @Res() res: Response,
   ) {
     try {
-      console.log('here', id);
+      if (req.user.id !== id) throw new NotFoundException(`Game history not found`);
       const gameHistory = await this.gameService.getGameHistory(id);
-      const user = await this.usersService.getUserById(id);
-      if (user.blocked_users.some(user => user.id === req.user.id)) {
-        throw new NotFoundException(`Game history not found`);
-      }
       return res.status(200).json(gameHistory);
     } catch {
       return res.status(404).json({ error: 'Game history not found' });
@@ -43,13 +39,15 @@ export class GameController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':gameID')
+  @Get(':userID')
   async getGame(
-    @Param('gameID', ParseUUIDPipe) id: string,
+    @Param('userID', ParseUUIDPipe) id: string,
     @Res() res: Response,
   ) {
     try {
       const game = await this.gameService.getGame(id);
+      if (!game)
+        throw new NotFoundException(`Game is finished`);
       return res.status(200).json(game);
     } catch {
       return res.status(404).json({ error: 'Game not found' });

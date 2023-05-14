@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
+import { TrophyOutlined } from "@ant-design/icons";
 import {
   Badge,
   ConfigProvider,
@@ -35,17 +36,21 @@ import { Socket, io } from "socket.io-client";
 import { setGameInfo, setSocket } from "../../store/gameReducer";
 const { darkAlgorithm } = theme;
 
+const timeInMinutes = process.env.REACT_APP_JWT_EXPIRES_IN as string;
+const timeInMinutesNumber = parseInt(timeInMinutes.replace("m", "")) * 60;
+
 const { Content, Footer, Header } = Layout;
 
 const navItems = [
   { icon: HomeOutlined, path: "/", label: "Leaderboard" },
   { icon: PlayCircleOutlined, path: "/pingpong", label: "Play ping pong" },
   { icon: MessageOutlined, path: "/messages", label: "Messages" },
+  { icon: TrophyOutlined, path: "/achievements", label: "Achievements" },
 ];
 
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(true);
-  const { userInfo } = useAppSelector((state) => state.auth);
+  const { userInfo, token } = useAppSelector((state) => state.auth);
   const [open, setOpen] = useState<boolean>(false);
   const { socket } = useAppSelector((state) => state.game);
   const [selected, setSelected] = useState<string>("0");
@@ -54,6 +59,58 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
+  const [connectionTime, setConnectionTime] = useState(null);
+
+  useEffect(() => {
+    if (userInfo.id) {
+      const checkIsGameStarted = async () => {
+        try {
+          const response = await axiosPrivate.get(`/game/${userInfo.id}`);
+          console.log("user id: ", userInfo.id);
+          console.log("player 1 id", response.data.playerOne.id);
+          if (userInfo.id === response.data.playerOne.id) {
+            console.log(response.data);
+            dispatch(
+              setGameInfo({
+                players: {
+                  player1: response.data.playerOne,
+                  player2: response.data.playerTwo,
+                  player1Pic: response.data.playerOne.profile_pic,
+                  player2Pic: response.data.playerTwo.profile_pic,
+                },
+                player1Score: response.data.player_score,
+                player2Score: response.data.opponent_score,
+                timer: false,
+                player: 1,
+                roomID: response.data.id,
+                isGameStarted: true,
+              })
+            );
+          } else {
+            dispatch(
+              setGameInfo({
+                players: {
+                  player1: response.data.playerOne,
+                  player2: response.data.playerTwo,
+                  player1Pic: response.data.playerOne.profile_pic,
+                  player2Pic: response.data.playerTwo.profile_pic,
+                },
+                player1Score: response.data.player_score,
+                player2Score: response.data.opponent_score,
+                timer: false,
+                player: 2,
+                roomID: response.data.id,
+                isGameStarted: true,
+              })
+            );
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      };
+      checkIsGameStarted();
+    }
+  }, [userInfo]);
 
   useEffect(() => {
     socket?.on("Invited", (data) => {
@@ -69,7 +126,17 @@ const Navbar: React.FC = () => {
       ]);
     });
     socket?.on("start", (data) => {
-      dispatch(setGameInfo({ ...data, isGameStarted: true }));
+      console.log(data);
+      dispatch(
+        setGameInfo({
+          ...data,
+          isGameStarted: true,
+          player2Score: 0,
+          player1Score: 0,
+          timer: true,
+          hasMiddleWall: data.hasMiddleWall,
+        })
+      );
       navigate("/pingpong");
     });
     return () => {
@@ -78,47 +145,72 @@ const Navbar: React.FC = () => {
     };
   }, [socket]);
 
+  const getToken = async () => {
+    try {
+      const response = await axios.get(`/token`);
+      localStorage.setItem("auth", JSON.stringify(response.data));
+      dispatch(setToken(response.data.token));
+      dispatch(setUserInfo(response.data.user));
+      if (!response.data.user.username) {
+        navigate("/set-nickname");
+      }
+      if (
+        !response.data.user.is_authenticated &&
+        response.data.user.secret_code
+      ) {
+        navigate("/authenticate");
+      }
+      setIsLoadingPage(false);
+      return response.data.token;
+    } catch (err) {
+      dispatch(logOut());
+      navigate("/login");
+    }
+  };
+
+  const getSocket = async () => {
+    try {
+      const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
+        withCredentials: true,
+        auth: async (cb) => {
+          const token = await getToken();
+          cb({
+            token,
+          });
+        },
+      });
+      dispatch(setSocket(socket));
+      setConnectionTime(new Date());
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
-    const getToken = async () => {
-      try {
-        const response = await axios.get(`/token`);
-        localStorage.setItem("auth", JSON.stringify(response.data));
-        dispatch(setToken(response.data.token));
-        dispatch(setUserInfo(response.data.user));
-        if (!response.data.user.username) {
-          navigate("/set-nickname");
-        }
-        if (
-          !response.data.user.is_authenticated &&
-          response.data.user.secret_code
-        ) {
-          navigate("/authenticate");
-        }
-        setIsLoadingPage(false);
-        return response.data.token;
-      } catch (err) {
-        dispatch(logOut());
-        window.location.replace(`${BASE_URL}/42/login`);
-      }
-    };
-    const getSocket = async () => {
-      try {
-        const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
-          withCredentials: true,
-          auth: async (cb) => {
-            const token = await getToken();
-            cb({
-              token,
-            });
-          },
-        });
-        dispatch(setSocket(socket));
-      } catch (err) {
-        console.log(err);
-      }
-    };
     getSocket();
   }, [dispatch, setIsLoadingPage, navigate]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const currentTime = new Date();
+      const timeDifference = (currentTime.getTime() - connectionTime) / 1000;
+      const tokenExpiryTime = timeInMinutesNumber;
+      const timeBeforeExpiry = tokenExpiryTime - timeDifference;
+      if (timeBeforeExpiry <= 10 && socket) {
+        socket.disconnect();
+        getSocket();
+      }
+    }, 500);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [dispatch, connectionTime, socket]);
+
+  useEffect(() => {
+    return () => {
+      socket?.disconnect();
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (userInfo.id) {
@@ -272,7 +364,7 @@ const Navbar: React.FC = () => {
                       onClick={() => setOpen((prev) => !prev)}
                     >
                       <Badge count={items.length} overflowCount={9}>
-                        <IoNotifications size={30} />
+                        <IoNotifications color="#fff" size={30} />
                       </Badge>
                     </a>
                     {open && (

@@ -42,8 +42,13 @@ function MessageInbox(
 													padding: '1em',
 												}}
 											>
-												<div style={{ width: '100%', marginRight: '10px' }}>
-													{message.message}
+												<div style={{ display: 'flex', flexDirection: 'column', width: '100%', marginRight: '10px' }}>
+													<div style={{ color: 'red' }}>
+														{userObject.username}
+													</div>
+													<div style={{ width: '100%', marginRight: '10px' }}>
+														{message.message}
+													</div>
 												</div>
 												<PictureRight
 													src={`${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`}
@@ -79,8 +84,13 @@ function MessageInbox(
 													}}
 													alt="A profile photo of the current user"
 												/>
-												<div style={{ width: '100%' }}>
-													{message.message}
+													<div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+													<div style={{ color: 'blue' }}>
+														{message.author.user.username}
+													</div>
+													<div style={{ width: '100%'}}>
+														{message.message}
+													</div>
 												</div>
 											</div>
 										</Col>

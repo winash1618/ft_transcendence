@@ -9,6 +9,7 @@ import ProfilePage from "../pages/profilePage";
 import SettingsPage from "../pages/settingsPage";
 import AuthenticatePage from "../pages/authenticatePage";
 import HomePage from "../pages/homePage";
+import AchievementsPage from "../pages/achievementsPage";
 
 export const router = createBrowserRouter([
   {
@@ -17,12 +18,13 @@ export const router = createBrowserRouter([
       { path: "/", element: <LeaderBoardPage /> },
       { path: "/messages", element: <MessagesPage /> },
       { path: "/pingpong", element: <PingPongPage /> },
-      { path: "/home", element: <HomePage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/profile/:login", element: <ProfilePage /> },
       { path: "/set-nickname", element: <NickNamePage /> },
+      { path: "/achievements", element: <AchievementsPage /> },
     ],
   },
+  { path: "/login", element: <HomePage /> },
   { path: "*", element: <PageNotFound404 /> },
   { path: "/authenticate", element: <AuthenticatePage /> },
 ]);

@@ -6,6 +6,7 @@ import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";
 import { ErrorAlert, SuccessAlert } from "../toastify/index";
+import { useAppSelector } from "../../hooks/reduxHooks";
 
 interface ChatProps {
 	socket: any;
@@ -25,6 +26,7 @@ const Chat = ({
 	const [results, setResults] = useState<User[]>([]);
 	const [groupResults, setGroupResults] = useState<User[]>([]);
 	const [groupNav, setGroupNav] = useState(GNav.GROUPS);
+	const [blockedUsers, setBlockedUsers] = useState<User[]>([]);
 
 	useEffect(() => {
 		socket?.on('exception', (error) => {
@@ -33,15 +35,6 @@ const Chat = ({
 		});
 		return () => {
 			socket?.off('exception');
-		};
-	}, [socket]);
-
-	useEffect(() => {
-		socket?.on('conversationCreated', () => {
-			SuccessAlert("Conversation Created", 5000);
-		});
-		return () => {
-			socket?.off('conversationCreated');
 		};
 	}, [socket]);
 
@@ -65,7 +58,7 @@ const Chat = ({
 						conversation={conversation}
 						setResults={setResults}
 						setGroupResults={setGroupResults}
-						setGroupNav={setGroupNav}
+						setBlockedUsers={setBlockedUsers}
 					/>
 				</LeftSideContainer>
 				<MessageBoxContainer>
@@ -76,6 +69,7 @@ const Chat = ({
 							messages={messages}
 							setMessages={setMessages}
 							conversationID={conversationID}
+							blockedUsers={blockedUsers}
 						/>
 					)}
 				</MessageBoxContainer>

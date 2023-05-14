@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class DirectMessageDTO {
   @IsString()
@@ -7,5 +7,6 @@ export class DirectMessageDTO {
 
   @IsString()
   @IsNotEmpty()
+  @IsUUID()
   userID: string;
 }

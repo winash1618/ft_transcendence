@@ -124,6 +124,9 @@ export class ConversationService {
     userID: string,
     otherUserID: string,
   ) {
+    if (await this.userService.isUserBlocked(userID, otherUserID))
+      throw new Error('User is blocked');
+
     const conversation = await this.createConversation(createConversation);
 
     await this.participantService.addParticipantToConversation({
@@ -225,6 +228,8 @@ export class ConversationService {
     if (!(await this.userService.checkIfUserExists(userID))) {
       throw new Error('User does not exist');
     }
+
+    const user = await this.userService.findOne(userID);
 
     return await this.prisma.conversation.findMany({
       where: {
@@ -393,7 +398,6 @@ export class ConversationService {
         },
       },
     });
-    console.log(conv);
     return conv;
   }
 
@@ -516,8 +520,6 @@ export class ConversationService {
         },
       },
     });
-
-    console.log(admin);
 
     if (!admin) {
       const oldestUser = await this.prisma.participant.findFirst({

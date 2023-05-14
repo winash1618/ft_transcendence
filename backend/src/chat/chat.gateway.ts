@@ -1,4 +1,4 @@
-import { UsePipes } from '@nestjs/common';
+import { UsePipes, InternalServerErrorException } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -34,6 +34,7 @@ import {
 } from './dto/GatewayDTO/index.dto';
 import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
+import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway()
@@ -46,33 +47,50 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private participantService: ParticipantService,
     private messageService: MessageService,
     private jwtService: JwtService,
+    private userService: UsersService,
     private configService: ConfigService,
   ) {}
 
   async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token as string;
-    // const token = client.handshake.headers.token as string;
-    const userID = this.jwtService.verify(token, {
-      secret: this.configService.get('JWT_SECRET'),
-    });
+    try {
+      const token = client.handshake.auth.token as string;
+      // const token = client.handshake.headers.token as string;
+      const userID = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
 
-    client.data.userID = userID;
+      client.data.userID = userID;
+      // const user = this.gatewaySession.getUserSocket(userID.id);
+      // if (user) {
+      //   this.gatewaySession.removeUserSocket(userID.id);
+      //   this.handleDisconnect(user);
+      // }
 
-    this.gatewaySession.setUserSocket(userID.id, client);
+      this.gatewaySession.setUserSocket(userID.id, client);
 
-    console.log('User connected chat: ', userID);
+      // console.log('User connected chat: ', userID);
 
-    const conversations =
-      await this.conversationService.getConversationByUserID(userID.id);
+      const conversations =
+        await this.conversationService.getConversationByUserID(userID.id);
 
-    for (const conversation of conversations) {
-      client.join(conversation.id);
+      for (const conversation of conversations) {
+        client.join(conversation.id);
+      }
+    }
+    catch (e) {
+      console.error('Error Connecting to Game Gateway: ', e.message);
+      client.disconnect();
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log('User disconnected: ', client.data.userID);
-    this.gatewaySession.removeUserSocket(client.data.userID.id);
+    try {
+      // console.log('User disconnected: ', client.data.userID);
+      this.gatewaySession.removeUserSocket(client.data.userID.id);
+    }
+    catch (e) {
+      console.error('User disconnected:', e.message);
+    }
   }
 
   @UsePipes(new ValidationPipe())
@@ -258,6 +276,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  private async sendFilteredMessages(
+    userID: string,
+    conversationID: string,
+    message: any,
+  ) {
+    const conversations = await this.conversationService.getConversationByID(
+      conversationID,
+    );
+
+    const participants = conversations.participants;
+    participants.forEach(async participant => {
+      const sockets = this.gatewaySession.getAllUserSockets();
+      if (!sockets || sockets.length === 0) return;
+      sockets.forEach(async socket => {
+        if (await this.userService.isUserBlocked(participant.user_id, userID)) {
+          message.message = '';
+		  this.server.to(socket.id).emit('messageCreated', message);
+        }
+		else
+			this.server.to(socket.id).emit('messageCreated', message);
+        // this.server.to(socket.id).emit('messageCreated', {
+        // //   conversationID,
+        // //   participant,
+        //   message,
+        // });
+      });
+    });
+  }
+
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('sendMessage')
   async sendMessage(
@@ -294,6 +341,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       this.server.to(data.conversationID).emit('messageCreated', message);
+    //   await this.sendFilteredMessages(
+    //     client.data.userID.id,
+    //     data.conversationID,
+    //     message,
+    //   );
     } catch (e) {
       console.log(e);
       throw new WsException({
@@ -302,6 +354,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
   }
+
+
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('makeAdmin')
@@ -387,8 +441,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.data.userID.id,
         'REMOVE',
       );
-
-      console.log('check', check);
 
       if (check) {
         if (check.conversation_status === 'BANNED')
@@ -577,31 +629,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
     this.server.emit('conversationCreated', conversation);
   }
-
-  // private async sendConversationJoinedToAllClients(
-  //   userID: string,
-  //   conversationID: string,
-  // ) {
-  //   const conversations = await this.conversationService.getConversationByID(
-  //     conversationID,
-  //   );
-
-  //   const participants = conversations.participants;
-  //   participants.forEach(async participant => {
-  //     const messages = await this.messageService.getMessagesByConversationID(
-  //       conversationID,
-  //     );
-  //     const sockets = this.gatewaySession.getAllUserSockets();
-  //     if (!sockets || sockets.length === 0) return;
-  //     sockets.forEach(socket => {
-  //       this.server.to(socket.id).emit('conversationJoined', {
-  //         conversationID,
-  //         participant,
-  //         messages,
-  //       });
-  //     });
-  //   });
-  // }
 
   // validations
 

@@ -346,23 +346,23 @@ export class GameEngine {
     }
   }
 
-  startSettings() {
-    this.gameObj.time = GAME_FPS;
-    this.interval = setInterval(() => {
-      this.gameObj.remainingTime--;
-      if (this.gameObj.remainingTime === 0) clearInterval(this.interval);
-      else this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-    }, 1000);
-  }
-
-  startGame(hasMiddleWall: boolean, userService: UsersService) {
+  startGame(userService: UsersService, client: SocketData) {
     clearInterval(this.interval);
-    this.gameObj = this.initGameObj(
-      0,
-      this.player1,
-      this.player2,
-      hasMiddleWall,
-    );
+
+    if (this.users.get(client.userID) === undefined) {
+      const users = Array.from(this.users.keys());
+      const foundUser = users.find(user => user.id === client.userID.id);
+      let updateUser = this.users.get(foundUser);
+      updateUser.client = client.client;
+      console.log(updateUser.playerNumber)
+      if (updateUser.playerNumber === 1) {
+        this.gameObj.player1.name = updateUser.userID;
+      }
+      if (updateUser.playerNumber === 2) {
+        this.gameObj.player2.name = updateUser.userID;
+      }
+    }
+
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
 
@@ -373,6 +373,18 @@ export class GameEngine {
       this.ballMove();
       this.playerMove();
       this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+
+      this.gameService.checkingGameHistory(
+        {
+          player_one: this.gameObj.player1.name.id,
+          player_two: this.gameObj.player2.name.id,
+          player_score: this.gameObj.player1.points,
+          opponent_score: this.gameObj.player2.points,
+          winner: '',
+          looser: '',
+        },
+        this.gameID,
+      );
 
       elapsedTime += GAME_FPS;
 
@@ -392,8 +404,14 @@ export class GameEngine {
           this.gameObj.player1.points >= GAME_POINTS
             ? this.player2
             : this.player1;
-        this.users.get(winner).client.emit('win', winner);
-        this.users.get(looser).client.emit('lose', looser);
+        if (this.gameObj.player1.points === this.gameObj.player2.points) {
+          this.users.get(winner).client.emit('draw', winner);
+          this.users.get(looser).client.emit('draw', looser);
+        }
+        else {
+          this.users.get(winner).client.emit('win', winner);
+          this.users.get(looser).client.emit('lose', looser);
+        }
         this.gameService.storeGameHistory(
           {
             player_one: this.gameObj.player1.name.id,
@@ -417,5 +435,9 @@ export class GameEngine {
         this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
       }
     }, GAME_FPS);
+  }
+
+  public set setServer(server: Server) {
+    this.server = server;
   }
 }

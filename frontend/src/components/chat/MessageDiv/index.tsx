@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import MessageInbox from "./MessageInbox";
 import MessageInput from "./MessageInput";
 import { UserProfilePicture } from "../../../assets";
+import { useAppSelector } from "../../../hooks/reduxHooks";
 
 interface MessageDivProps {
 	user: any;
@@ -9,6 +10,7 @@ interface MessageDivProps {
 	messages: any;
 	setMessages: any;
 	conversationID: any;
+	blockedUsers: any;
 }
 
 const MessageDiv = ({
@@ -17,6 +19,7 @@ const MessageDiv = ({
 	messages,
 	setMessages,
 	conversationID,
+	blockedUsers,
 }: MessageDivProps) => {
 	const messageEndRef = useRef(null);
 	const [message, setMessage] = useState("");
@@ -35,12 +38,17 @@ const MessageDiv = ({
 	};
 
 	const handleMessageCreated = useCallback((object) => {
-		if (object.conversation_id === conversationID) {
-			setMessages((messages) => [...messages, object]);
+		console.log("handleMessageCreated in MessageDiv", object.author.user.id, blockedUsers);
+		blockedUsers.filter((user) => user.id === object.author.user.id)
+		if (blockedUsers.length === 0) {
+			if (object.conversation_id === conversationID) {
+				setMessages((messages) => [...messages, object]);
+			}
 		}
 	}, [conversationID, setMessages]);
 
 	useEffect(() => {
+		console.log("socket: ", socket);
 		socket?.on('messageCreated', handleMessageCreated);
 		return () => {
 			socket?.off('messageCreated', handleMessageCreated);

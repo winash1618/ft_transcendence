@@ -37,7 +37,6 @@ import { loginDto } from 'src/utils/uuid.dto';
 import { createInviteDto } from './dto/users.dto';
 import { ConfigService } from '@nestjs/config';
 
-// dont add @UseGuards(JwtAuthGuard) here because get profile picture does not need it
 @Controller('users')
 @ApiTags('users')
 @UseFilters(PrismaClientExceptionFilter)
@@ -114,10 +113,10 @@ export class UsersController {
   @Get(':login')
   @UsePipes(new ValidationPipe({ transform: true }))
   async findOne(@Req() req, @Param() params: loginDto) {
-    if (req.user.login !== params.login)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.login !== params.login)
+    //   throw new BadRequestException('You do not have permission to access this user.');
     const user = await this.usersService.findOne(params.login);
-    if (!user || user.blocked_users.some(user => user.id === req.user.id)) {
+    if (!user || await this.usersService.isUserBlocked(req.user.id, user.id)) {
       throw new NotFoundException(`User #${params.login}: not found`);
     }
     return user;
@@ -130,16 +129,21 @@ export class UsersController {
     @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body() data: { name: string },
   ) {
-    if (req.user.id !== uuid)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.id !== uuid)
+    //   throw new BadRequestException('You do not have permission to access this user.');
+    const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+
+    if (!usernameRegex.test(data.name)) {
+      throw new BadRequestException('Invalid username');
+    }
     return await this.usersService.updateUserName(uuid, data.name);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('friends/:uuid')
   async getFriends(@Req() req, @Param('uuid', ParseUUIDPipe) uuid: string) {
-    if (req.user.id !== uuid)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.id !== uuid)
+    //   throw new BadRequestException('You do not have permission to access this user.');
     return await this.usersService.getUserFriends(uuid);
   }
 
@@ -169,8 +173,8 @@ export class UsersController {
     @Res() res: Response,
   ): Promise<void> {
     try {
-      if (req.user.id !== id)
-        throw new BadRequestException('You do not have permission to access this user.');
+      // if (req.user.id !== id)
+      //   throw new BadRequestException('You do not have permission to access this user.');
       const invitation = await this.usersService.acceptInvite(id);
       res.status(200).json(invitation);
     } catch (error) {
@@ -186,10 +190,10 @@ export class UsersController {
     @Res() res: Response,
   ): Promise<void> {
     try {
-      if (req.user.id !== id)
-        throw new BadRequestException('You do not have permission to access this user.');
+      // if (req.user.id !== id)
+      //   throw new BadRequestException('You do not have permission to access this user.');
       const invitation = await this.usersService.rejectInvite(id);
-      res.status(200).json(invitation);
+      res.status(200).json('Invitation rejected');
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -201,19 +205,21 @@ export class UsersController {
     @Req() req,
     @Param('userID', ParseUUIDPipe) userID: string,
     @Param('friendID', ParseUUIDPipe) friendID: string,
+    @Res() res: Response,
   ) {
-    if (req.user.id !== userID)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.id !== userID)
+    //   throw new BadRequestException('You do not have permission to access this user.');
     if (userID === friendID)
       throw new BadRequestException('You can not unfriend yourself.');
-    return await this.usersService.unfriend(userID, friendID);
+    const user = await this.usersService.unfriend(userID, friendID);
+    res.status(200).json(user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':userID/invitations')
   async getInvitations(@Req() req, @Param('userID', ParseUUIDPipe) userID: string) {
-    if (req.user.id !== userID)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.id !== userID)
+    //   throw new BadRequestException('You do not have permission to access this user.');
     return await this.usersService.getPendingInvitations(userID);
   }
 
@@ -223,12 +229,14 @@ export class UsersController {
     @Req() req,
     @Param('userID', ParseUUIDPipe) userID: string,
     @Param('blockID', ParseUUIDPipe) blockID: string,
+    @Res() res: Response,
   ) {
-    if (req.user.id !== userID)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.id !== userID)
+    //   throw new BadRequestException('You do not have permission to access this user.');
     if (userID === blockID)
       throw new BadRequestException('You can not block yourself.');
-    return await this.usersService.block(userID, blockID);
+    const user = await this.usersService.block(userID, blockID);
+    res.status(200).json(user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -237,20 +245,28 @@ export class UsersController {
     @Req() req,
     @Param('userID', ParseUUIDPipe) userID: string,
     @Param('blockID', ParseUUIDPipe) blockID: string,
+    @Res() res: Response,
   ) {
-    if (req.user.id !== userID)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.id !== userID)
+    //   throw new BadRequestException('You do not have permission to access this user.');
     if (userID === blockID)
       throw new BadRequestException('You can not unblock yourself.');
-    return await this.usersService.unblock(userID, blockID);
+    const user = await this.usersService.unblock(userID, blockID);
+    res.status(200).json(user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':userID/status')
   async GetUserStatus(@Req() req, @Param('userID', ParseUUIDPipe) userID: string) {
-    if (req.user.id !== userID)
-      throw new BadRequestException('You do not have permission to access this user.');
+    // if (req.user.id !== userID)
+    //   throw new BadRequestException('You do not have permission to access this user.');
     return await this.usersService.fetchUserStatus(userID);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('achievements/:userID')
+  async getUserAchievements(@Param('userID', ParseUUIDPipe) userID: string) {
+    return await this.usersService.getUserAchievements(userID);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -267,7 +283,6 @@ export class UsersController {
           const totalGamesWon = await this.usersService.getTotalGamesWon(
             player.id,
           );
-          console.log(totalGamesPlayed, totalGamesWon);
           rankList.push({
             rank: 0,
             profile_picture: player.profile_picture,
@@ -285,5 +300,13 @@ export class UsersController {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/blockedUsers/:userID')
+  async getBlockedUsers(@Req() req, @Param('userID', ParseUUIDPipe) userID: string) {
+	if (req.user.id !== userID)
+	  throw new BadRequestException('You do not have permission to access this user.');
+	return await this.usersService.blockedUsers(userID);
   }
 }

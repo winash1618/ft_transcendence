@@ -12,6 +12,15 @@ async function seed() {
       user_status: 'ONLINE',
     },
   });
+  await prisma.achievements.create({
+    data: {
+      user: {
+        connect: {
+          id: user1.id,
+        },
+      },
+    }
+  });
 
   const user2 = await prisma.user.create({
     data: {
