@@ -96,6 +96,9 @@ export class UsersService {
       throw new Error('One or both users do not exist');
     }
 
+    if (await this.isUserBlocked(userID, friendID))
+      throw new Error('User is blocked');
+
     // Update user's friends list
     const user = await this.prisma.user.update({
       where: { id: userID },
@@ -135,6 +138,9 @@ export class UsersService {
     if (!userExists || !friendExists) {
       throw new Error('One or both users do not exist');
     }
+
+    if (await this.isUserBlocked(userID, friendID))
+      throw new Error('User is blocked');
 
     // Remove the friend connection for both users
     const user = await this.prisma.user.update({
@@ -214,6 +220,9 @@ export class UsersService {
     if (!userExists || !blockExists) {
       throw new Error('One or both users do not exist');
     }
+
+    if (!(await this.isUserBlocked(userID, blockID)))
+      throw new Error('User is not blocked');
 
     // Unblock the user
     const user = await this.prisma.user.update({

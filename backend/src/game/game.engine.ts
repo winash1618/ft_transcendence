@@ -365,7 +365,7 @@ export class GameEngine {
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
 
-    const GAME_DURATION = 3 * 1000;
+    const GAME_DURATION = 30 * 1000;
     let elapsedTime = 0;
     this.gameObj.player1.points = 0;
     this.gameObj.player2.points = 0;

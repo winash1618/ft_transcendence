@@ -22,6 +22,33 @@ export class MessageService {
       throw new Error('Conversation does not exist');
     }
 
+    // throw error when the other user in direct conversation is blocked
+    if (conversation.privacy === 'DIRECT') {
+      const otherParticipant = await this.prisma.participant.findFirst({
+        where: {
+          conversation_id: createMessage.conversation_id,
+          user_id: {
+            not: userID,
+          },
+        },
+        select: {
+          user: {
+            select: {
+              blocked_by: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (otherParticipant?.user.blocked_by.length > 0) {
+        throw new Error('User is blocked');
+      }
+    }
+
     const participant = await this.participantService.checkParticipantExists(
       createMessage.conversation_id,
       userID,

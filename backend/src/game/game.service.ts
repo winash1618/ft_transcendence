@@ -72,6 +72,23 @@ export class GameService {
     });
   }
 
+  async checkIfGameRunning(userId: string) {
+    const game = await this.prisma.gameHistory.findFirst({
+      where: {
+        OR: [{ player_one: userId }, { player_two: userId }],
+      },
+    });
+    console.log(game)
+    if (!game)
+      return null;
+
+    if (game.winner !== '') {
+      return game.id;
+    }
+
+    return null;
+  }
+
   async getGameHistory(playerId: string) {
     const gameHistory = await this.prisma.gameHistory.findMany({
       where: {

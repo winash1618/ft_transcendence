@@ -65,6 +65,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.handleDisconnect(client);
       }
 
+      const game = await this.gameService.checkIfGameRunning(userid['id']);
+      if (game)
+        client.join(game);
+
 			client.data.userID = userid;
 			const user = await this.usersService.findOne(client.data.userID['login']);
 			client.data.userID['login'] = user.username;
@@ -138,7 +142,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return socketData;
 	}
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Register')
   async registerUser(
     @ConnectedSocket() client: Socket,
@@ -183,7 +187,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('leaveQueue')
   async leaveQueue(@ConnectedSocket() client: Socket) {
     try {
@@ -207,7 +210,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Invite')
   async inviteUser(
     @MessageBody() data: InviteDto,
@@ -248,7 +251,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Accept')
   async acceptInvitation(
     @MessageBody() data: AcceptDto,
@@ -286,7 +289,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('Reject')
   async rejectInvitation(
     @MessageBody() data: RejectDto,
@@ -310,7 +313,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('moveMouse')
   handleMoveMouse(
     @MessageBody() data: MoveMouseDto,
@@ -328,7 +331,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('move')
   handleMove(@MessageBody() data: MoveDto, @ConnectedSocket() client: Socket) {
     try {
@@ -345,7 +348,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
+  // @UsePipes(new ValidationPipe())
   @SubscribeMessage('StartGame')
   async startGame(
     @MessageBody() data: StartGameDto,
