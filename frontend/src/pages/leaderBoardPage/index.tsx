@@ -6,7 +6,7 @@ import {
   LeaderboardScore,
 } from "./leader.styled";
 import { useAppSelector } from "../../hooks/reduxHooks";
-import axios, { BASE_URL } from "../../api";
+import axios, { BASE_URL, axiosPrivate } from "../../api";
 
 import { List } from "antd";
 import { Typography } from "antd";
@@ -29,7 +29,7 @@ const LeaderBoardPage = () => {
 	const [data, setData] = useState<LeaderboardData[]>([]);
 	const getInfos = async () => {
 		try {
-			await axios.get(
+			await axiosPrivate.get(
 				`${BASE_URL}/users/leaderboard/leaders`,
 				{
 					withCredentials: true,

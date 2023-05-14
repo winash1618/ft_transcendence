@@ -3,7 +3,7 @@ import { Nav } from "../chat.functions";
 import LeftSideBody from "./LeftSideBody";
 import LeftSideHeader from "./LeftSideHeader";
 import axios from "axios";
-import { BASE_URL } from "../../../api";
+import { BASE_URL, axiosPrivate } from "../../../api";
 import { useAppSelector } from "../../../hooks/reduxHooks";
 
 interface LeftSideDivProps {
@@ -50,7 +50,7 @@ const LeftSideDiv = ({
 		setConversationID(object);
 		setMessages([]);
 		try {
-			const result = await axios.get(`${BASE_URL}/chat/${object}/Messages`, {
+			const result = await axiosPrivate.get(`${BASE_URL}/chat/${object}/Messages`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -66,7 +66,7 @@ const LeftSideDiv = ({
 		console.log("In handdle direct message");
 		setConversationID(object.id)
 		try {
-			const result = await axios.get(`${BASE_URL}/chat/direct`, {
+			const result = await axiosPrivate.get(`${BASE_URL}/chat/direct`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
