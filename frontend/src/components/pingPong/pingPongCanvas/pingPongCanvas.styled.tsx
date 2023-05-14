@@ -4,7 +4,7 @@ import styled from "styled-components";
 export const StyledCanvas = styled.canvas`
   background: url("https://steamuserimages-a.akamaihd.net/ugc/563267371964767353/E4BE528E333C46F3CE6CF71A6678D2F0F8189BA7/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false");
   background-size: 100vh;
-  backgroung-length: 100vh;
+  background-left: 100px;
   border: 1px solid black;
 `;
 
