@@ -91,6 +91,7 @@ const PingPongCanvas = () => {
     players,
     player,
     roomID,
+	timer,
     hasMiddleWall,
     player1Score: playerOneScore,
     player2Score: playerTwoScore,
@@ -260,7 +261,7 @@ const PingPongCanvas = () => {
     socket?.on("player2Score", (data) => {
       setPlayer2Score(data);
     });
-    if (roomID.length > 0) {
+    if (roomID.length > 0 && timer) {
       socket?.emit("StartGame", {
         roomID,
         hasMiddleWall,

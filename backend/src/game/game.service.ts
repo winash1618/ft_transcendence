@@ -82,11 +82,7 @@ export class GameService {
     if (!game)
       return null;
 
-    if (game.winner !== '') {
-      return game.id;
-    }
-
-    return null;
+    return game.id;
   }
 
   async getGameHistory(playerId: string) {
