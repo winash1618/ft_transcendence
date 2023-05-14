@@ -190,21 +190,22 @@ const Navbar: React.FC = () => {
     getSocket();
   }, [dispatch, setIsLoadingPage, navigate]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const currentTime = new Date();
-      const timeDifference = (currentTime.getTime() - connectionTime) / 1000;
-      const tokenExpiryTime = timeInMinutesNumber;
-      const timeBeforeExpiry = tokenExpiryTime - timeDifference;
-      if (timeBeforeExpiry <= 10 && socket) {
-        socket.disconnect();
-        getSocket();
-      }
-    }, 500);
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [dispatch, connectionTime, socket]);
+	useEffect(() => {
+		const intervalId = setInterval(() => {
+			const currentTime = new Date();
+			const timeDifference = (currentTime.getTime() - connectionTime) / 1000;
+			// console.log("timeDifference1", timeDifference);
+			const tokenExpiryTime = timeInMinutesNumber;
+			const timeBeforeExpiry = tokenExpiryTime - timeDifference;
+			if (timeBeforeExpiry <= 10 && socket) {
+				socket.disconnect();
+				getSocket();
+			}
+		}, 500);
+		return () => {
+			clearInterval(intervalId);
+		};
+	}, [dispatch, connectionTime, socket]);
 
   useEffect(() => {
     return () => {
