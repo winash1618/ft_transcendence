@@ -78,7 +78,6 @@ export class GameService {
         OR: [{ player_one: userId }, { player_two: userId }],
       },
     });
-    console.log(game)
     if (!game)
       return null;
 

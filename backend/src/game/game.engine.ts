@@ -299,7 +299,7 @@ export class GameEngine {
 
   barSelect(keyStatus: KeyPress, client: Socket, isPressed: boolean) {
     if (this.users.get(client.data.userID) === undefined) {
-      return;
+		return;
     }
     if (this.users.get(client.data.userID).playerNumber === 1) {
       this.barMove(keyStatus, this.gameObj.paddle1, isPressed);
