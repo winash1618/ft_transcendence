@@ -346,7 +346,7 @@ export class GameEngine {
     }
   }
 
-  startGame(userService: UsersService, client: SocketData) {
+  async startGame(userService: UsersService, client: SocketData) {
     clearInterval(this.interval);
 
     if (this.users.get(client.userID) === undefined) {
@@ -354,7 +354,6 @@ export class GameEngine {
       const foundUser = users.find(user => user.id === client.userID.id);
       let updateUser = this.users.get(foundUser);
       updateUser.client = client.client;
-      console.log(updateUser.playerNumber)
       if (updateUser.playerNumber === 1) {
         this.gameObj.player1.name = updateUser.userID;
       }
@@ -366,10 +365,12 @@ export class GameEngine {
     this.gameObj.gameStatus = GameStatus.PLAYING;
     this.resetBall();
 
-    const GAME_DURATION = 30 * 1000;
+    const GAME_DURATION = 3 * 1000;
     let elapsedTime = 0;
+    this.gameObj.player1.points = 0;
+    this.gameObj.player2.points = 0;
 
-    this.interval = setInterval(() => {
+    this.interval = setInterval(async () => {
       this.ballMove();
       this.playerMove();
       this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
@@ -378,6 +379,7 @@ export class GameEngine {
         {
           player_one: this.gameObj.player1.name.id,
           player_two: this.gameObj.player2.name.id,
+          hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
           player_score: this.gameObj.player1.points,
           opponent_score: this.gameObj.player2.points,
           winner: '',
@@ -393,6 +395,7 @@ export class GameEngine {
         this.gameObj.player1.points >= GAME_POINTS ||
         this.gameObj.player2.points >= GAME_POINTS
       ) {
+        console.log('Game Over')
         clearInterval(this.interval);
         this.gameObj.gameStatus = GameStatus.WAITING;
         this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
@@ -404,7 +407,9 @@ export class GameEngine {
           this.gameObj.player1.points >= GAME_POINTS
             ? this.player2
             : this.player1;
-        if (this.gameObj.player1.points === this.gameObj.player2.points) {
+        if (
+          this.gameObj.player1.points === this.gameObj.player2.points
+        ) {
           this.users.get(winner).client.emit('draw', winner);
           this.users.get(looser).client.emit('draw', looser);
         }
@@ -416,6 +421,7 @@ export class GameEngine {
           {
             player_one: this.gameObj.player1.name.id,
             player_two: this.gameObj.player2.name.id,
+            hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
             player_score: this.gameObj.player1.points,
             opponent_score: this.gameObj.player2.points,
             winner: '',
@@ -423,11 +429,11 @@ export class GameEngine {
           },
           this.gameID,
         );
-        userService.userStatusUpdate(
+        await userService.userStatusUpdate(
           this.gameObj.player1.name.id,
           UserStatus.ONLINE,
         );
-        userService.userStatusUpdate(
+        await userService.userStatusUpdate(
           this.gameObj.player2.name.id,
           UserStatus.ONLINE,
         );
@@ -435,9 +441,5 @@ export class GameEngine {
         this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
       }
     }, GAME_FPS);
-  }
-
-  public set setServer(server: Server) {
-    this.server = server;
   }
 }

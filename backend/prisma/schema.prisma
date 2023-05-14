@@ -106,16 +106,17 @@ model Participant {
 }
 
 model GameHistory {
-  id            String   @id @default(uuid())
-  player_one    String
-  player_two    String
-  player_score  Int
-  opponent_score Int
-  winner        String
-  looser        String
-  playerOne     User     @relation("PlayerOne", fields: [player_one], references: [id])
-  playerTwo     User     @relation("PlayerTwo", fields: [player_two], references: [id])
-  createdAt     DateTime @default(now())
+  id                    String          @id @default(uuid())
+  player_one            String
+  player_two            String
+  hasMiddleWall         Boolean         @default(false)
+  player_score          Int
+  opponent_score        Int
+  winner                String
+  looser                String
+  playerOne             User            @relation("PlayerOne", fields: [player_one], references: [id])
+  playerTwo             User            @relation("PlayerTwo", fields: [player_two], references: [id])
+  createdAt             DateTime        @default(now())
 }
 
 enum Role {

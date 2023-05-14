@@ -1,12 +1,10 @@
-import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID, IsNumber } from 'class-validator';
 
 export class MoveMouseDto {
-  @IsString()
-  @IsNotEmpty()
   @IsUUID()
+  @IsNotEmpty()
   roomID: string;
 
-  @IsString()
-  @IsNotEmpty()
-  y: string;
+  @IsNumber()
+  y: number;
 }

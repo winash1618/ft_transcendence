@@ -12,6 +12,10 @@ export class CreateGameDto {
   @IsUUID()
   player_two: string;
 
+  @IsString()
+  @ApiProperty()
+  hasMiddleWall: boolean;
+
   @IsNumber()
   @ApiProperty()
   player_score: number;

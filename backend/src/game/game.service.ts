@@ -17,6 +17,7 @@ export class GameService {
       data: {
         player_one: createGameDto.player_one,
         player_two: createGameDto.player_two,
+        hasMiddleWall: createGameDto.hasMiddleWall,
         player_score: -1,
         opponent_score: -1,
         winner: '',
@@ -42,6 +43,7 @@ export class GameService {
       data: {
         player_one: gameData.player_one,
         player_two: gameData.player_two,
+        hasMiddleWall: gameData.hasMiddleWall,
         player_score: gameData.player_score,
         opponent_score: gameData.opponent_score,
         winner: gameData.winner,
@@ -61,6 +63,7 @@ export class GameService {
       data: {
         player_one: gameData.player_one,
         player_two: gameData.player_two,
+        hasMiddleWall: gameData.hasMiddleWall,
         player_score: gameData.player_score,
         opponent_score: gameData.opponent_score,
         winner: '',
@@ -86,6 +89,7 @@ export class GameService {
         opponent_score: true,
         winner: true,
         looser: true,
+        hasMiddleWall: true,
         playerOne: {
           select: {
             username: true,
@@ -137,11 +141,12 @@ export class GameService {
     return gameHistory;
   }
 
-  async createGameRoom(player1ID: string, player2ID: string) {
+  async createGameRoom(player1ID: string, player2ID: string, hasMiddleWall: boolean) {
     const gameRoom = await this.prisma.gameHistory.create({
       data: {
         player_one: player1ID,
         player_two: player2ID,
+        hasMiddleWall: hasMiddleWall,
         player_score: 0,
         opponent_score: 0,
         winner: null,
@@ -220,7 +225,6 @@ export class GameService {
   }
 
   async validateGame(gameID: string, userID: string) {
-    console.log(userID)
     const game = await this.prisma.gameHistory.findUnique({
       where: {
         id: gameID,

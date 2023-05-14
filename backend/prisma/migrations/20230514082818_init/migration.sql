@@ -102,6 +102,7 @@ CREATE TABLE "GameHistory" (
     "id" TEXT NOT NULL,
     "player_one" TEXT NOT NULL,
     "player_two" TEXT NOT NULL,
+    "hasMiddleWall" BOOLEAN NOT NULL DEFAULT false,
     "player_score" INTEGER NOT NULL,
     "opponent_score" INTEGER NOT NULL,
     "winner" TEXT NOT NULL,

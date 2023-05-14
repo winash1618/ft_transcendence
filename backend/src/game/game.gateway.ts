@@ -62,7 +62,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const oldUser = this.userSockets.get(userid);
       if (oldUser) {
         console.log('User reconnected: ', userid);
-        this.handleDisconnect(oldUser.client);
+        this.handleDisconnect(client);
       }
 
       client.data.userID = userid;
@@ -102,6 +102,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const game = await this.gameService.create({
       player_one: player1.userID.id,
       player_two: player2.userID.id,
+      hasMiddleWall: hasMiddleWall,
       player_score: -1,
       opponent_score: -1,
       winner: null,
@@ -137,7 +138,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return socketData;
 	}
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Register')
   async registerUser(
     @ConnectedSocket() client: Socket,
@@ -147,7 +148,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log('In register')
       const player = this.userSockets.get(client.data.userID);
       const user = await this.usersService.findOneID(client.data.userID.id);
-      // console.log('User: ', user)
       if (player.status === GameStatus.QUEUED)
         throw new Error('User is already in queue');
       if (user.status === UserStatus.IN_GAME)
@@ -183,7 +183,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('leaveQueue')
   async leaveQueue(@ConnectedSocket() client: Socket) {
     try {
@@ -207,7 +207,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Invite')
   async inviteUser(
     @MessageBody() data: InviteDto,
@@ -223,7 +223,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         throw new Error('User does not exist');
       this.setUserStatus(client, GameStatus.WAITING);
 
-      console.log('User is invited');
       if (
         await this.usersService.checkIfUserSentThreeInvites(userID, invitedUserID)
       ) {
@@ -249,7 +248,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Accept')
   async acceptInvitation(
     @MessageBody() data: AcceptDto,
@@ -257,6 +256,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     try {
       console.log('In acceptInvitation')
+      const val = await this.usersService.findOneID(client.data.userID.id);
+      if (val.status === UserStatus.IN_GAME)
+        throw new Error('User is already playing');
       const user = this.setUserStatus(client, GameStatus.READY);
       const checkInvite = await this.usersService.getInvite(data.inviteID);
       if (!checkInvite) return;
@@ -284,7 +286,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Reject')
   async rejectInvitation(
     @MessageBody() data: RejectDto,
@@ -308,7 +310,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('moveMouse')
   handleMoveMouse(
     @MessageBody() data: MoveMouseDto,
@@ -326,7 +328,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('move')
   handleMove(@MessageBody() data: MoveDto, @ConnectedSocket() client: Socket) {
     try {
@@ -343,7 +345,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @UsePipes(new ValidationPipe())
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('StartGame')
   async startGame(
     @MessageBody() data: StartGameDto,
@@ -362,7 +364,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         throw new Error('Game room does not exist');
       }
       client.join(roomID);
-      this.usersService.userStatusUpdate(
+      await this.usersService.userStatusUpdate(
         socketData.userID.id,
         UserStatus.IN_GAME,
       );

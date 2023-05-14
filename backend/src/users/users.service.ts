@@ -416,7 +416,6 @@ export class UsersService {
   }
 
   async createInvite(createInviteDto: createInviteDto, senderId: string) {
-    console.log(createInviteDto, senderId)
     const { type, receiverId } = createInviteDto;
 
     const user = await this.prisma.user.findUnique({
