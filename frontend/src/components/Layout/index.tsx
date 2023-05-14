@@ -102,6 +102,7 @@ const Navbar: React.FC = () => {
               })
             );
           }
+		  navigate("/pingpong");
         } catch (err) {
           console.log(err);
         }
@@ -111,6 +112,12 @@ const Navbar: React.FC = () => {
   }, [userInfo]);
 
   useEffect(() => {
+    socket?.on("exception", (data) => {
+      if (data.message === "TokenExpiredError") {
+        socket.disconnect();
+        getSocket();
+      }
+    });
     socket?.on("Invited", (data) => {
       console.log(data);
       setItems((prev) => [
@@ -139,6 +146,12 @@ const Navbar: React.FC = () => {
     });
     return () => {
       socket?.off("Invited");
+      socket?.off("exception", (data) => {
+        if (data.message === "TokenExpiredError") {
+          socket.disconnect();
+          getSocket();
+        }
+      });
       socket?.disconnect();
     };
   }, [socket]);
@@ -187,20 +200,6 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     getSocket();
   }, [dispatch]);
-
-  useEffect(() => {
-    socket?.on("exception", (data) => {
-      socket.disconnect();
-      getSocket();
-    });
-    return () => {
-      socket?.off("exception", (data) => {
-        socket.disconnect();
-        getSocket();
-      });
-      socket?.disconnect();
-    };
-  }, [socket]);
 
   useEffect(() => {
     if (userInfo.id) {
