@@ -95,7 +95,6 @@ const PingPongCanvas = () => {
     player1Score: playerOneScore,
     player2Score: playerTwoScore,
   } = useAppSelector((state) => state.game);
-  console.log(playerOneScore);
   const { token } = useAppSelector((state) => state.auth);
   const [gameStatus, setGameStatus] = useState<number>(0);
   const [player1Score, setPlayer1Score] = useState<number>(playerOneScore);
