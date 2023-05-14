@@ -9,7 +9,7 @@ import { Nav, Colors } from "../../chat.functions";
 import { useCallback, useEffect } from "react";
 import axios from "axios";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
-import { BASE_URL } from "../../../../api";
+import { BASE_URL, axiosPrivate } from "../../../../api";
 interface LeftSideHeaderProps {
 	user: any;
 	socket: any;
@@ -38,7 +38,7 @@ function LeftSideHeader({
 		setConversations([]);
 		if (nav === Nav.DIRECT) {
 			try {
-				await axios.get(`${BASE_URL}/chat/direct`, {
+				await axiosPrivate.get(`${BASE_URL}/chat/direct`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -60,7 +60,7 @@ function LeftSideHeader({
 				console.log(err);
 			}
 			try {
-				await axios.get(
+				await axiosPrivate.get(
 					`${BASE_URL}/users/friends/${user.id}`,
 					{
 						withCredentials: true,
@@ -85,7 +85,7 @@ function LeftSideHeader({
 			}
 		} else if (nav === Nav.GROUPS) {
 			try {
-				await axios.get(`${BASE_URL}/chat/groups`, {
+				await axiosPrivate.get(`${BASE_URL}/chat/groups`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -109,7 +109,7 @@ function LeftSideHeader({
 			}
 		} else if (nav === Nav.EXPLORE) {
 			try {
-				const result = await axios.get(`${BASE_URL}/chat/explore`, {
+				const result = await axiosPrivate.get(`${BASE_URL}/chat/explore`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -127,7 +127,7 @@ function LeftSideHeader({
 	const setConversationsObject = async () => {
 		console.log("handleConversationLeft in LeftSideHeader");
 		try {
-			await axios.get(`${BASE_URL}/chat/groups`, {
+			await axiosPrivate.get(`${BASE_URL}/chat/groups`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -152,7 +152,7 @@ function LeftSideHeader({
 	const setExploreConversationsObject = async () => {
 		console.log("handleConversationExplore in LeftSideHeader");
 		try {
-			await axios.get(`${BASE_URL}/chat/explore`, {
+			await axiosPrivate.get(`${BASE_URL}/chat/explore`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,

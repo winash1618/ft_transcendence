@@ -4,7 +4,7 @@ import axios from "axios";
 import { List, Input } from 'antd';
 import { Picture } from "../../chat.styled";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
-import { BASE_URL } from "../../../../api";
+import { BASE_URL, axiosPrivate } from "../../../../api";
 
 interface DirectChatProp {
 	conversations: Conversation[];
@@ -47,7 +47,7 @@ const DirectChat = ({
 		setConversationID(conversation.id);
 		setMessages([]);
 		try {
-			await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
+			await axiosPrivate.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
 				withCredentials: true,
 				headers: {
 					Authorization: `Bearer ${token}`,

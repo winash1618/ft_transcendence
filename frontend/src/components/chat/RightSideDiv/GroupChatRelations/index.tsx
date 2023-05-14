@@ -8,7 +8,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { Picture } from "../../chat.styled";
-import { BASE_URL } from "../../../../api";
+import { BASE_URL, axiosPrivate } from "../../../../api";
 import { IoMdAddCircleOutline } from "react-icons/io";
 
 interface GroupChatRelationsProps {
@@ -151,7 +151,7 @@ const GroupChatRelations = ({
 	const HandleGroupNavClick = (nav: any) => async () => {
 		if (nav === GNav.GROUPS && conversationID !== null) {
 			try {
-				await axios.get(
+				await axiosPrivate.get(
 					`${BASE_URL}/chat/${conversationID}/members`,
 					{
 						withCredentials: true,
@@ -178,7 +178,7 @@ const GroupChatRelations = ({
 		if (nav === GNav.BLOCKED && conversationID !== null) {
 			console.log(conversationID);
 			try {
-				await axios.get(
+				await axiosPrivate.get(
 					`${BASE_URL}/chat/channel/${conversationID}/banned`,
 					{
 						withCredentials: true,
@@ -205,7 +205,7 @@ const GroupChatRelations = ({
 		if (nav === GNav.ADD && conversationID !== null) {
 			console.log(conversationID);
 			try {
-				await axios.get(
+				await axiosPrivate.get(
 					`${BASE_URL}/chat/channel/${conversationID}/addFriends`,
 					{
 						withCredentials: true,
