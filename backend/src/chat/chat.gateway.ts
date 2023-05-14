@@ -1,5 +1,5 @@
 import { UsePipes, InternalServerErrorException } from '@nestjs/common';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,

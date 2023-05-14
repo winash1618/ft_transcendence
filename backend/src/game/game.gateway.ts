@@ -33,7 +33,7 @@ import { UserStatus } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
 
-@UseGuards(JwtGuard)
+// @UseGuards(JwtGuard)
 @WebSocketGateway(8002, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway ()
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
