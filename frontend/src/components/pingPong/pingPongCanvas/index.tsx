@@ -12,7 +12,7 @@ import {
   StatusText,
   StyledCanvas,
 } from "./pingPongCanvas.styled";
-import { PingPongContainer } from "../pingPong.styled";
+import { PingPongContainer, PlayerManual } from "../pingPong.styled";
 import { BASE_URL } from "../../../api";
 
 export let CANVAS_WIDTH = (window.innerHeight < 0.9 * window.innerWidth) ? window.innerHeight : 0.9 * window.innerWidth;
@@ -262,18 +262,10 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
       game.wall.x = 0.95 * canvaRef.current.width / 2;
 	  game.wall.gapBottom = ((canvaRef.current.height - canvaRef.current.height/4) / 2);
 	  game.wall.gapTop = canvaRef.current.height / 4;
       game.wall.width = 0.025 * canvaRef.current.width;
->>>>>>> Stashed changes
-=======
-      game.wall.x = 0.95 * canvaRef.current.width / 2;
-      game.wall.width = 0.025 * canvaRef.current.width;
->>>>>>> fixing/game
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
       game.ball.radius = 0.015 * canvaRef.current.width;
@@ -281,6 +273,12 @@ const PingPongCanvas = () => {
   }, [])
   return (
     <PingPongContainer>
+		<PlayerManual>
+			<p style={{color: 'red'}}>Player Manual </p>
+			<p>Mouse - Move</p>
+			<p>W - Up</p>
+			<p>S - Down</p>
+		</PlayerManual>
       <StyledCanvas
         style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
         ref={canvaRef}
