@@ -16,7 +16,6 @@ import { useEffect, useState } from "react";
 import { Spin } from "antd";
 import { ErrorAlert } from "../toastify";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { setGameInfo } from "../../store/gameReducer";
 
 export type PlayType = {
   hasMiddleWall: boolean;
@@ -40,6 +39,7 @@ const PlayForm = () => {
       socket?.off("error", (data) => {
         ErrorAlert("You are already in the queue", 5000);
       });
+	  socket?.emit("leaveQueue");
     };
   }, [socket, dispatch]);
 

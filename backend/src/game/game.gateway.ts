@@ -1,22 +1,22 @@
 import {
-  WebSocketGateway,
-  SubscribeMessage,
-  MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  WebSocketServer,
-  ConnectedSocket,
-  WsException,
+	WebSocketGateway,
+	SubscribeMessage,
+	MessageBody,
+	OnGatewayConnection,
+	OnGatewayDisconnect,
+	WebSocketServer,
+	ConnectedSocket,
+	WsException,
 } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
 import { ValidationPipe, UsePipes } from '@nestjs/common';
 import {
-  SocketData,
-  UserMap,
-  GameStatus,
-  KeyPress,
-  UserInfo,
+	SocketData,
+	UserMap,
+	GameStatus,
+	KeyPress,
+	UserInfo,
 } from './interface/game.interface';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
@@ -35,29 +35,29 @@ import { WebSocketConfig } from 'src/utils/ws-config';
 @WebSocketGateway(8002, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway ()
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer()
-  server: Server;
-  private gameRooms: GameEngine[] = [];
-  private defaultQ: SocketData[] = [];
-  private WallQ: SocketData[] = [];
-  private userSockets: UserMap = new Map<UserInfo, SocketData>();
+	@WebSocketServer()
+	server: Server;
+	private gameRooms: GameEngine[] = [];
+	private defaultQ: SocketData[] = [];
+	private WallQ: SocketData[] = [];
+	private userSockets: UserMap = new Map<UserInfo, SocketData>();
 
-  constructor(
-    private readonly gameService: GameService,
-    private readonly jwtService: JwtService,
-    private usersService: UsersService,
-    private configService: ConfigService
-  ) {}
+	constructor(
+		private readonly gameService: GameService,
+		private readonly jwtService: JwtService,
+		private usersService: UsersService,
+		private configService: ConfigService
+	) { }
 
-  async handleConnection(client: Socket) {
-    try {
-      // const token = client.handshake.headers.token as string;
-      const token = client.handshake.auth.token;
-      const userid = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_SECRET'),
-      });
-      if (!(await this.usersService.getUserById(userid['id'])))
-        throw new Error('User not found');
+	async handleConnection(client: Socket) {
+		try {
+			// const token = client.handshake.headers.token as string;
+			const token = client.handshake.auth.token;
+			const userid = this.jwtService.verify(token, {
+				secret: this.configService.get('JWT_SECRET'),
+			});
+			if (!(await this.usersService.getUserById(userid['id'])))
+				throw new Error('User not found');
 
       const oldUser = this.userSockets.get(userid);
       if (oldUser) {
@@ -65,34 +65,34 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.handleDisconnect(client);
       }
 
-      client.data.userID = userid;
-      const user = await this.usersService.findOne(client.data.userID['login']);
-      client.data.userID['login'] = user.username;
-      // console.log('User connected: ', userid);
+			client.data.userID = userid;
+			const user = await this.usersService.findOne(client.data.userID['login']);
+			client.data.userID['login'] = user.username;
+			// console.log('User connected: ', userid);
 
-      this.setUserStatus(client, GameStatus.WAITING);
-    }
-    catch (e) {
-      console.error('Error connecting to game gateway:', e.message);
-      client.disconnect();
-    }
-  }
+			this.setUserStatus(client, GameStatus.WAITING);
+		}
+		catch (e) {
+			console.error('Error connecting to game gateway:', e.message);
+			client.disconnect();
+		}
+	}
 
-  handleDisconnect(client: any) {
-    try {
-      const userid = client.data.userID;
-      // console.log('User disconnected: ', userid);
-      this.defaultQ = this.defaultQ.filter(
-        (user: any) => user.userID.login !== userid.login,
-      );
-      this.WallQ = this.WallQ.filter(
-        (user: any) => user.userID.login !== userid.login,
-      );
-      this.userSockets.delete(userid);
-    } catch (e) {
-      console.log('User disconnect: ', e.message);
-    }
-  }
+	handleDisconnect(client: any) {
+		try {
+			const userid = client.data.userID;
+			// console.log('User disconnected: ', userid);
+			this.defaultQ = this.defaultQ.filter(
+				(user: any) => user.userID.login !== userid.login,
+			);
+			this.WallQ = this.WallQ.filter(
+				(user: any) => user.userID.login !== userid.login,
+			);
+			this.userSockets.delete(userid);
+		} catch (e) {
+			console.log('User disconnect: ', e.message);
+		}
+	}
 
   async createGameRoom(
     player1: SocketData,
@@ -159,29 +159,29 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         GameStatus.WAITING,
       );
 
-      const queue = data.hasMiddleWall ? this.WallQ : this.defaultQ;
+			const queue = data.hasMiddleWall ? this.WallQ : this.defaultQ;
 
-      if (this.WallQ.find(user => user.userID['id'] === socketData.userID['id']) ||
-          this.defaultQ.find(user => user.userID['id'] === socketData.userID['id'])
-      ) {
-        throw new Error('User already in queue');
-      }
+			if (this.WallQ.find(user => user.userID['id'] === socketData.userID['id']) ||
+				this.defaultQ.find(user => user.userID['id'] === socketData.userID['id'])
+			) {
+				throw new Error('User already in queue');
+			}
 
-      if (queue.length >= 1) {
-        this.initGameRoom(socketData, queue[0], data.hasMiddleWall);
-        queue.splice(0, 1);
-      } else {
-        socketData.status = GameStatus.QUEUED;
-        queue.push(socketData);
-      }
-    } catch (e) {
-      console.log('Error register: ', e.message);
-      throw new WsException({
-        message: 'Error register',
-        error: e.message,
-      });
-    }
-  }
+			if (queue.length >= 1) {
+				this.initGameRoom(socketData, queue[0], data.hasMiddleWall);
+				queue.splice(0, 1);
+			} else {
+				socketData.status = GameStatus.QUEUED;
+				queue.push(socketData);
+			}
+		} catch (e) {
+			console.log('Error register: ', e.message);
+			throw new WsException({
+				message: 'Error register',
+				error: e.message,
+			});
+		}
+	}
 
   @UsePipes(new ValidationPipe())
   @SubscribeMessage('leaveQueue')
@@ -380,39 +380,41 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  private async initGameRoom(
-    player2: SocketData,
-    player1: SocketData,
-    middleWall: boolean,
-  ) {
-    player1.playerNumber = 1;
-    player1.status = GameStatus.READY;
-    player2.playerNumber = 2;
-    player2.status = GameStatus.READY;
-    const roomID = await this.createGameRoom(player1, player2, middleWall);
-    player1.gameID = roomID;
-    player2.gameID = roomID;
-    const user1 = await this.usersService.getUserById(player1.userID.id);
-    const user2 = await this.usersService.getUserById(player2.userID.id);
-    this.server.to(player2.client.id).emit('start', {
-      playerNo: 2,
-      players: {
-        player1: player1.userID,
-        player2: player2.userID,
-        profile_pic: user1.profile_pic,
-      },
-      roomID,
-	  hasMiddleWall: middleWall,
-    });
-    this.server.to(player1.client.id).emit('start', {
-      playerNo: 1,
-      players: {
-        player1: player1.userID,
-        player2: player2.userID,
-        profile_pic: user2.profile_pic,
-      },
-      roomID,
-	  hasMiddleWall: middleWall,
-    });
-  }
+	private async initGameRoom(
+		player2: SocketData,
+		player1: SocketData,
+		middleWall: boolean,
+	) {
+		player1.playerNumber = 1;
+		player1.status = GameStatus.READY;
+		player2.playerNumber = 2;
+		player2.status = GameStatus.READY;
+		const roomID = await this.createGameRoom(player1, player2, middleWall);
+		player1.gameID = roomID;
+		player2.gameID = roomID;
+		const user1 = await this.usersService.getUserById(player1.userID.id);
+		const user2 = await this.usersService.getUserById(player2.userID.id);
+		this.server.to(player2.client.id).emit('start', {
+			playerNo: 2,
+			players: {
+				player1: player1.userID,
+				player2: player2.userID,
+				player1Pic: user1.profile_pic,
+				player2Pic: user2.profile_pic,
+			},
+			roomID,
+			hasMiddleWall: middleWall,
+		});
+		this.server.to(player1.client.id).emit('start', {
+			playerNo: 1,
+			players: {
+				player1: player1.userID,
+				player2: player2.userID,
+				player1Pic: user1.profile_pic,
+				player2Pic: user2.profile_pic,
+			},
+			roomID,
+			hasMiddleWall: middleWall,
+		});
+	}
 }

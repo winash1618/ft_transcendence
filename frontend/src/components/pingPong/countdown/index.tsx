@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import Countdown from "react-countdown";
+import { useAppSelector } from "../../../hooks/reduxHooks";
 import {
   CountDownCircle,
   CountDownContainer,
@@ -7,7 +8,8 @@ import {
   CountDownSvg,
 } from "./countdown.styled";
 
-const CountDown = (({ element }: { element: JSX.Element }) => {
+const CountDown = ({ element }: { element: JSX.Element }) => {
+  const { timer } = useAppSelector((state) => state.game);
   const renderer = ({ seconds, completed }: any) => {
     if (completed) {
       return element;
@@ -22,7 +24,9 @@ const CountDown = (({ element }: { element: JSX.Element }) => {
       );
     }
   };
-  return <Countdown date={Date.now() + 5000} renderer={renderer} />;
-});
+  return (
+    <Countdown date={Date.now() + (timer ? 5000 : 0)} renderer={renderer} />
+  );
+};
 
 export default CountDown;
