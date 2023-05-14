@@ -281,6 +281,13 @@ export class UsersService {
   }
 
   async updateUserName(id: string, name: string) {
+    const nickname = await this.prisma.user.findUnique({
+      where: { username: name },
+    });
+
+    if (nickname)
+      throw new Error('Username already exists');
+
     return await this.prisma.user.update({
       where: { id },
       data: { username: name },

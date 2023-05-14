@@ -129,14 +129,21 @@ export class UsersController {
     @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body() data: { name: string },
   ) {
-    // if (req.user.id !== uuid)
-    //   throw new BadRequestException('You do not have permission to access this user.');
-    const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+    try {
+      console.log(req.user.id, uuid)
+      if (req.user.id !== uuid)
+        throw new BadRequestException('You do not have permission to access this user.');
+      const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
 
-    if (!usernameRegex.test(data.name)) {
-      throw new BadRequestException('Invalid username');
+      if (!usernameRegex.test(data.name)) {
+        throw new BadRequestException('Invalid username');
+      }
+      const name = await this.usersService.updateUserName(uuid, data.name);
+      return { name };
     }
-    return await this.usersService.updateUserName(uuid, data.name);
+    catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
