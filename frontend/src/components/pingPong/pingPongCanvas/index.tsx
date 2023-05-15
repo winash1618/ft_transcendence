@@ -12,7 +12,7 @@ import {
   StatusText,
   StyledCanvas,
 } from "./pingPongCanvas.styled";
-import { PingPongContainer } from "../pingPong.styled";
+import { PingPongContainer, PlayerManual } from "../pingPong.styled";
 import { BASE_URL } from "../../../api";
 import { resetGameInfo } from "../../../store/gameReducer";
 
@@ -337,6 +337,12 @@ const PingPongCanvas = () => {
   }, []);
   return (
     <PingPongContainer>
+		<PlayerManual>
+			<p style={{color: 'red'}}>Player Manual </p>
+			<p>Mouse - Move</p>
+			<p>W - Up</p>
+			<p>S - Down</p>
+		</PlayerManual>
       <StyledCanvas
         style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
         ref={canvaRef}
