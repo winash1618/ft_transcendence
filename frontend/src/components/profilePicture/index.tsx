@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { BASE_URL, axiosPrivate } from "../../api";
 import ImgCrop from "antd-img-crop";
 import ProfileLoading from "./profileLoading";
-import { SuccessAlert } from "../toastify";
+import { ErrorAlert, SuccessAlert } from "../toastify";
 import { setUserInfo } from "../../store/authReducer";
 
 const getBase64 = (img: RcFile, callback: (url: string) => void) => {
@@ -29,7 +29,7 @@ const beforeUpload = (file: RcFile) => {
   }
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
-    message.error("Image must smaller than 2MB!");
+    ErrorAlert("Image must smaller than 2MB!", 5000);
   }
   return isJpgOrPng && isLt2M;
 };
@@ -49,7 +49,7 @@ const ProfilePicture: React.FC = () => {
   ) => {
     if (info.file.status === "uploading") {
       setImageUrl({ loading: true, image: null, file: null });
-      info.file.status = "done";
+      return;
     }
     if (info.file.status === "done") {
       getBase64(info.file.originFileObj, (imageUrl) => {
@@ -57,6 +57,7 @@ const ProfilePicture: React.FC = () => {
         img.src = imageUrl;
         setUploadedFile(true);
         img.addEventListener("load", function () {
+          console.log(info.file.size);
           setImageUrl({ loading: false, image: imageUrl, file: info.file });
         });
       });
@@ -126,6 +127,9 @@ const ProfilePicture: React.FC = () => {
             justifyContent: "center",
           }}
           name="avatar"
+          customRequest={({ file, onSuccess, onError }) => {
+            Promise.resolve().then(() => onSuccess(file));
+          }}
           onPreview={onPreview}
           showUploadList={false}
           beforeUpload={beforeUpload}
