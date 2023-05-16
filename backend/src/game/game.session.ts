@@ -1,52 +1,95 @@
 import { Injectable } from '@nestjs/common';
-import { SocketData } from './interface/game.interface';
+import { SocketData, UserInfo } from './interface/game.interface';
+import { GameEngine } from './game.engine';
 
 @Injectable()
-export class GatewaySessionManager {
-  private readonly sessions: Map<string, SocketData> = new Map();
-  private readonly mobileSessions: Map<string, SocketData> = new Map();
+export class GameGatewaySessionManager {
+  private sessions: Map<UserInfo, SocketData> = new Map<UserInfo, SocketData>();
+	private gameRooms: GameEngine[] = [];
+	private defaultQ: SocketData[] = [];
+	private WallQ: SocketData[] = [];
 
-  getUserSocket(userId: string): SocketData {
+  getUserSocket(userId: any): SocketData {
     return this.sessions.get(userId);
-  }
-
-  getMobileSocket(userId: string): SocketData {
-    return this.mobileSessions.get(userId);
   }
 
   getAllUserSockets(): SocketData[] {
     return Array.from(this.sessions.values());
   }
 
-  getAllMobileSockets(): SocketData[] {
-    return Array.from(this.mobileSessions.values());
-  }
-
   getAllUserKeys(): any[] {
     return Array.from(this.sessions.keys());
   }
 
-  setUserSocket(userId: string, socket: SocketData): void {
-    this.sessions.set(userId, socket);
-  }
-
-  setMobileSocket(userId: string, socket: SocketData): void {
-    this.mobileSessions.set(userId, socket);
-  }
-
-  removeUserSocket(userId: string): void {
-    this.sessions.delete(userId);
-  }
-
-  removeMobileSocket(userId: string): void {
-    this.mobileSessions.delete(userId);
-  }
-
-  getSockets(): Map<string, SocketData> {
+  getSession(): Map<UserInfo, SocketData> {
     return this.sessions;
   }
 
-  getMobileSockets(): Map<string, SocketData> {
-    return this.mobileSessions;
+  setUserSocket(userId: UserInfo, socket: SocketData): void {
+    this.sessions.set(userId, socket);
+  }
+
+  removeUserSocket(userId: UserInfo): void {
+    this.sessions.delete(userId);
+  }
+
+  getSockets(): Map<UserInfo, SocketData> {
+    return this.sessions;
+  }
+
+  getGameRooms(): GameEngine[] {
+    return this.gameRooms;
+  }
+
+  seetGameRooms(gameID: string, engine): void {
+    this.gameRooms[gameID] = engine;
+  }
+
+  checkGameRoom(gameID: string): boolean {
+    return (gameID in this.gameRooms)
+  }
+
+  getGameRoom(gameID: string): GameEngine {
+    return this.gameRooms[gameID];
+  }
+
+  getDefaultQ(): SocketData[] {
+    return this.defaultQ;
+  }
+
+  setDefaultQ(defaultQ: SocketData[]): void {
+    this.defaultQ = defaultQ;
+  }
+
+  getWallQ(): SocketData[] {
+    return this.WallQ;
+  }
+
+  setWallQ(WallQ: SocketData[]): void {
+    this.WallQ = WallQ;
+  }
+
+  addDefaultQ(socket: SocketData): void {
+    this.defaultQ.push(socket);
+  }
+
+  addWallQ(socket: SocketData): void {
+    this.WallQ.push(socket);
+  }
+
+  removeDefaultQ(userid: UserInfo): void {
+    this.defaultQ = this.defaultQ.filter(
+      (user: any) => user.userID.login !== userid.login,
+    );
+  }
+
+  removeWallQ(userid: UserInfo): void {
+    this.WallQ = this.WallQ.filter(
+      (user: any) => user.userID.login !== userid.login,
+    );
+  }
+
+  removeGameRoom(gameRoom: GameEngine): void {
+    this.gameRooms = this.gameRooms.filter((g) => g !== gameRoom);
   }
 }

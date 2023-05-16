@@ -69,7 +69,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 			const game = await this.gameService.checkIfGameRunning(userid['id']);
 			if (game) {
-        console.log('Game found: ', game);
 				client.join(game);
 			}
 
@@ -146,7 +145,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return socketData;
 	}
 
-	// @UsePipes(new ValidationPipe())
+	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('Register')
 	async registerUser(
 		@ConnectedSocket() client: Socket,
@@ -154,11 +153,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	) {
 		try {
 			console.log('In register')
+      this.verifyToken(client);
 			const player = this.userSockets.get(client.data.userID);
 			const user = await this.usersService.findOneID(client.data.userID.id);
 			if (player.status === GameStatus.QUEUED)
 				throw new Error('User is already in queue');
-			if (user.status === UserStatus.IN_GAME)
+			if (user.user_status === UserStatus.IN_GAME)
 				throw new Error('User is already playing');
 			if (player.status === GameStatus.READY)
 				throw new Error('User is ready for a different game');
@@ -195,6 +195,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async leaveQueue(@ConnectedSocket() client: Socket) {
 		try {
 			console.log('In leaveQueue')
+      this.verifyToken(client);
 			const player = this.userSockets.get(client.data.userID);
 			if (player.status !== GameStatus.QUEUED)
 				throw new Error('User is not in queue');
@@ -214,7 +215,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// @UsePipes(new ValidationPipe())
+	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('Invite')
 	async inviteUser(
 		@MessageBody() data: InviteDto,
@@ -222,6 +223,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	) {
 		try {
 			console.log('Inviting user');
+      this.verifyToken(client);
 			const userID = client.data.userID.id;
 			const invitedUserID = data.id;
 			if (userID === invitedUserID)
@@ -255,7 +257,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// @UsePipes(new ValidationPipe())
+	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('Accept')
 	async acceptInvitation(
 		@MessageBody() data: AcceptDto,
@@ -263,6 +265,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	) {
 		try {
 			console.log('In acceptInvitation')
+      this.verifyToken(client);
 			const val = await this.usersService.findOneID(client.data.userID.id);
 			if (val.status === UserStatus.IN_GAME)
 				throw new Error('User is already playing');
@@ -293,13 +296,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// @UsePipes(new ValidationPipe())
+	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('Reject')
 	async rejectInvitation(
 		@MessageBody() data: RejectDto,
 		@ConnectedSocket() client: Socket,
 	) {
 		try {
+      console.log('In rejectInvitation')
+      this.verifyToken(client);
 			const userID = client.data.userID;
 			this.setUserStatus(client, GameStatus.WAITING);
 			const invite = await this.usersService.rejectInvite(data.inviteID);
@@ -317,13 +322,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// @UsePipes(new ValidationPipe())
+	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('moveMouse')
 	handleMoveMouse(
 		@MessageBody() data: MoveMouseDto,
 		@ConnectedSocket() client: Socket,
 	) {
 		try {
+      this.verifyToken(client);
 			const roomId = data.roomID;
 			if (roomId in this.gameRooms)
 				this.gameRooms[roomId].moveMouse(data.y, client);
@@ -335,10 +341,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// @UsePipes(new ValidationPipe())
+	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('move')
 	handleMove(@MessageBody() data: MoveDto, @ConnectedSocket() client: Socket) {
 		try {
+      this.verifyToken(client);
 			const roomId = data.roomID;
 			const keyStatus: KeyPress = data.key;
 			const isPressed = data.isPressed;
@@ -352,13 +359,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	// @UsePipes(new ValidationPipe())
+	@UsePipes(new ValidationPipe())
 	@SubscribeMessage('StartGame')
 	async startGame(
 		@MessageBody() data: StartGameDto,
 		@ConnectedSocket() client: Socket,
 	) {
 		try {
+      this.verifyToken(client);
 			console.log('start game');
 			const roomID = data.roomID;
 			await this.gameService.validateGame(roomID, client.data.userID.id);
@@ -424,4 +432,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			hasMiddleWall: middleWall,
 		});
 	}
+
+  verifyToken(client: Socket) {
+    try {
+      const token = client.handshake.auth.token;
+      const userid = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+      return userid;
+    } catch (e) {
+      console.error('Error connecting to game gateway:', e.message);
+      throw new WsException('Token expired');
+    }
+  }
 }
