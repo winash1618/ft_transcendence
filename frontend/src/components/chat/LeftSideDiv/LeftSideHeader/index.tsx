@@ -7,9 +7,8 @@ import {
 } from "./LeftSideHeader.styled";
 import { Nav, Colors } from "../../chat.functions";
 import { useCallback, useEffect } from "react";
-import axios from "axios";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
-import { BASE_URL, axiosPrivate } from "../../../../api";
+import { axiosPrivate } from "../../../../api";
 interface LeftSideHeaderProps {
 	user: any;
 	socket: any;
@@ -33,25 +32,19 @@ function LeftSideHeader({
 	setConversationID,
 	setMessages,
 }: LeftSideHeaderProps) {
-	const { userInfo, token } = useAppSelector((state) => state.auth);
+	const { userInfo } = useAppSelector((state) => state.auth);
 	const handleNavbarClick = useCallback(async (nav: Nav) => {
 		setConversations([]);
 		if (nav === Nav.DIRECT) {
 			try {
-				await axiosPrivate.get(`${BASE_URL}/chat/direct`, {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}).then(response => {
-					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
-						setConversations(response.data);
-					} else {
-						window.location.href = '/error';
-					}
-				})
+				await axiosPrivate.get(`/chat/direct`)
+					.then(response => {
+						if (response.status === 200) {
+							setConversations(response.data);
+						} else {
+							window.location.href = '/error';
+						}
+					})
 					.catch(error => {
 						console.error('An error occurred:', error);
 					});
@@ -61,17 +54,9 @@ function LeftSideHeader({
 			}
 			try {
 				await axiosPrivate.get(
-					`${BASE_URL}/users/friends/${user.id}`,
-					{
-						withCredentials: true,
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
+					`/users/friends/${user.id}`
 				).then(response => {
 					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
 						setResults(response.data);
 					} else {
 						window.location.href = '/error';
@@ -85,15 +70,49 @@ function LeftSideHeader({
 			}
 		} else if (nav === Nav.GROUPS) {
 			try {
-				await axiosPrivate.get(`${BASE_URL}/chat/groups`, {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}).then(response => {
+				await axiosPrivate.get(`/chat/groups`)
+					.then(response => {
+						if (response.status === 200) {
+							setConversations(response.data);
+						} else {
+							window.location.href = '/error';
+						}
+					})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
+				setConversation(null);
+			} catch (err) {
+				setConversations([]);
+				console.log(err);
+			}
+		} else if (nav === Nav.EXPLORE) {
+			try {
+				await axiosPrivate.get(`/chat/explore`)
+					.then(response => {
+						if (response.status === 200) {
+							setConversations(response.data);
+						} else {
+							window.location.href = '/error';
+						}
+					})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
+			} catch (err) {
+				setConversations([]);
+				console.log(err);
+			}
+		}
+		setNavbar(nav);
+	}, [setConversations, setResults, setNavbar, user, setConversation]);
+
+	const setConversationsObject = async () => {
+		console.log("handleConversationLeft in LeftSideHeader");
+		try {
+			await axiosPrivate.get(`/chat/groups`)
+				.then(response => {
 					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
 						setConversations(response.data);
 					} else {
 						window.location.href = '/error';
@@ -102,48 +121,6 @@ function LeftSideHeader({
 				.catch(error => {
 					console.error('An error occurred:', error);
 				});
-				setConversation(null);
-			} catch (err) {
-				setConversations([]);
-				console.log(err);
-			}
-		} else if (nav === Nav.EXPLORE) {
-			try {
-				const result = await axiosPrivate.get(`${BASE_URL}/chat/explore`, {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				setConversations(result.data);
-			} catch (err) {
-				setConversations([]);
-				console.log(err);
-			}
-		}
-		setNavbar(nav);
-	}, [setConversations, setResults, setNavbar, user, setConversation, token]);
-
-	const setConversationsObject = async () => {
-		console.log("handleConversationLeft in LeftSideHeader");
-		try {
-			await axiosPrivate.get(`${BASE_URL}/chat/groups`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			}).then(response => {
-				if (response.status === 200) {
-					console.log('response', response);
-					console.log('Request succeeded!');
-					setConversations(response.data);
-				} else {
-					window.location.href = '/error';
-				}
-			})
-			.catch(error => {
-				console.error('An error occurred:', error);
-			});
 		} catch (err) {
 			setConversations([]);
 			console.log(err);
@@ -152,23 +129,16 @@ function LeftSideHeader({
 	const setExploreConversationsObject = async () => {
 		console.log("handleConversationExplore in LeftSideHeader");
 		try {
-			await axiosPrivate.get(`${BASE_URL}/chat/explore`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			}).then(response => {
+			await axiosPrivate.get(`/chat/explore`).then(response => {
 				if (response.status === 200) {
-					console.log('response', response);
-					console.log('Request succeeded!');
 					setConversations(response.data);
 				} else {
 					window.location.href = '/error';
 				}
 			})
-			.catch(error => {
-				console.error('An error occurred:', error);
-			});
+				.catch(error => {
+					console.error('An error occurred:', error);
+				});
 		} catch (err) {
 			setConversations([]);
 			console.log(err);
@@ -177,7 +147,7 @@ function LeftSideHeader({
 
 	const handleSetConversationObject = useCallback(
 		setConversationsObject,
-		[setNavbar, setConversations, token]
+		[setNavbar, setConversations]
 	);
 
 	useEffect(() => {

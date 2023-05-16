@@ -60,10 +60,17 @@ export const changeNickName = createAsyncThunk(
   "users/changeNickName",
   async (data: { id: string; name: string }, thunkApi) => {
     try {
-      const result = await axiosPrivate.patch(`/users/${data.id}`, {
-        name: data.name,
-      });
-      return result.data;
+		await axiosPrivate.patch(`/users/${data.id}`, {
+			name: data.name,
+		  }).then(response => {
+			if (response.status === 200) {
+				return response.data;
+			} else {
+				window.location.href = '/error';
+			}
+		}).catch(error => {
+			console.error('An error occurred:', error);
+		});
     } catch (error) {
       return thunkApi.rejectWithValue(error);
     }

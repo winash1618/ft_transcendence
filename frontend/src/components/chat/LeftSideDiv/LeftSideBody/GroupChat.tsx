@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { Colors, Conversation, GNav, Privacy, Role, Status } from "../../chat.functions";
-import axios from "axios";
-import { List, Dropdown, MenuProps, Input, message } from 'antd';
+import { Colors, Conversation, Privacy, Role, Status } from "../../chat.functions";
+import { List, Dropdown, MenuProps, Input } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { useAppSelector } from "../../../../hooks/reduxHooks";
-import { BASE_URL, axiosPrivate } from "../../../../api";
+import { axiosPrivate } from "../../../../api";
 import { IoMdAddCircleOutline } from "react-icons/io";
-import PageNotFound404 from "../../../../pages/errorPages/pageNotFound";
 
 interface GroupChatProps {
 	socket: any;
@@ -36,7 +33,6 @@ const GroupChat = ({
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
-	const { token, userInfo } = useAppSelector((state) => state.auth);
 
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
@@ -46,8 +42,6 @@ const GroupChat = ({
 	};
 
 	const resetGroupResults = useCallback(() => {
-		console.log("resetGroupResults in GroupChat");
-		console.log("conversations in resetGroupResults", conversations, conversation, conversationID);
 		setGroupResults([]);
 	}, [setGroupResults]);
 
@@ -57,7 +51,6 @@ const GroupChat = ({
 	}, [conversation, resetGroupResults, setMenuVisible]);
 
 	function handleUpdatePassword(conversation: any, password: string) {
-		console.log("handleProtectedConversation in GroupChat");
 		socket?.emit("addPassword", { conversationID: conversation.id, password: password });
 		setPassword('');
 		setMenuVisible(false);
@@ -105,20 +98,14 @@ const GroupChat = ({
 			setConversationID(conversation.id);
 			setConversation(conversation);
 			try {
-				await axiosPrivate.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}).then(response => {
-					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
-						setMessages(response.data)
-					} else {
-						window.location.href = '/error';
-					}
-				})
+				await axiosPrivate.get(`/chat/${conversation.id}/Messages`)
+					.then(response => {
+						if (response.status === 200) {
+							setMessages(response.data)
+						} else {
+							window.location.href = '/error';
+						}
+					})
 					.catch(error => {
 						console.error('An error occurred:', error);
 					});
@@ -126,50 +113,20 @@ const GroupChat = ({
 				console.log(err);
 			}
 			try {
-				await axiosPrivate.get(
-					`${BASE_URL}/chat/${conversation.id}/members`,
-					{
-						withCredentials: true,
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				).then(response => {
-					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
-						setGroupResults(response.data);
-					} else {
-						window.location.href = '/error';
-					}
-				})
+				await axiosPrivate.get(`/chat/${conversation.id}/members`)
+					.then(response => {
+						if (response.status === 200) {
+							setGroupResults(response.data);
+						} else {
+							window.location.href = '/error';
+						}
+					})
 					.catch(error => {
 						console.error('An error occurred:', error);
 					});
 			} catch (err) {
 				console.log(err);
 			}
-		}
-		try {
-			await axiosPrivate.get(`${BASE_URL}/users/blockedUsers/${userInfo.id}`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			}).then(response => {
-					if (response.status === 200) {
-						console.log('response blocked', response);
-						console.log('Request succeeded!');
-						// setBlockedUsers(response.data);
-					} else {
-						window.location.href = '/error';
-					}
-				})
-					.catch(error => {
-						console.error('An error occurred:', error);
-					});
-		} catch (err) {
-			console.log(err);
 		}
 	}
 
@@ -193,7 +150,7 @@ const GroupChat = ({
 	return (
 		<>
 			<Input.Search
-				placeholder="Search friends"
+				placeholder="Search conversations"
 				value={searchText}
 				onChange={(e) => setSearchText(e.target.value)}
 			/>

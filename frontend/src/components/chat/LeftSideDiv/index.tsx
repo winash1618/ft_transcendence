@@ -2,8 +2,7 @@ import { useCallback, useEffect } from "react";
 import { Nav } from "../chat.functions";
 import LeftSideBody from "./LeftSideBody";
 import LeftSideHeader from "./LeftSideHeader";
-import axios from "axios";
-import { BASE_URL, axiosPrivate } from "../../../api";
+import { axiosPrivate } from "../../../api";
 import { useAppSelector } from "../../../hooks/reduxHooks";
 
 interface LeftSideDivProps {
@@ -43,33 +42,23 @@ const LeftSideDiv = ({
 }: LeftSideDivProps) => {
 	const { token } = useAppSelector((state) => state.auth);
 
-	const handleDirectExists = useCallback(async (object, token) => {
+	const handleDirectExists = useCallback(async (object) => {
 		console.log("direct exists");
 		setConversationID(object);
 		setMessages([]);
 		try {
-			const result = await axiosPrivate.get(`${BASE_URL}/chat/${object}/Messages`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+			const result = await axiosPrivate.get(`s/chat/${object}/Messages`);
 			setMessages(result.data);
 		} catch (err) {
 			console.log(err);
 		}
 	}, [setConversationID, setMessages]);
 
-	const handleDirectMessage = useCallback(async (object, token) => {
+	const handleDirectMessage = useCallback(async (object) => {
 		console.log("In handdle direct message");
 		setConversationID(object.id)
 		try {
-			const result = await axiosPrivate.get(`${BASE_URL}/chat/direct`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+			const result = await axiosPrivate.get(`s/chat/direct`);
 			setConversations(result.data);
 			setMessages([]);
 		} catch (err) {
@@ -79,24 +68,15 @@ const LeftSideDiv = ({
 
 	useEffect(() => {
 		const getTokenAndHandleSocketEvents = async () => {
-			socket?.on('directExists', (object) => handleDirectExists(object, token));
-			socket?.on('directMessage', (object) => handleDirectMessage(object, token));
+			socket?.on('directExists', (object) => handleDirectExists(object));
+			socket?.on('directMessage', (object) => handleDirectMessage(object));
 		};
 		getTokenAndHandleSocketEvents();
 		return () => {
 			socket?.off('directExists', handleDirectExists);
 			socket?.off('directMessage', handleDirectMessage);
 		};
-	}, [handleDirectExists, handleDirectMessage, socket, token]);
-
-	// useEffect(() => {
-	// 	socket?.on('conversationCreated', (data) => {
-	// 		SuccessAlert("Conversation Created", 5000);
-	// 	});
-	// 	return () => {
-	// 		socket?.off('conversationCreated');
-	// 	};
-	// }, [socket]);
+	}, [handleDirectExists, handleDirectMessage, socket]);
 
 	return (
 		<>

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { Colors, Conversation } from "../../chat.functions";
-import axios from "axios";
 import { List, Input } from 'antd';
 import { Picture } from "../../chat.styled";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
@@ -22,7 +21,7 @@ const DirectChat = ({
 	setMessages
 }: DirectChatProp) => {
 	const [searchText, setSearchText] = useState("");
-	const { userInfo, token } = useAppSelector((state) => state.auth);
+	const { token } = useAppSelector((state) => state.auth);
 
 	const resetState = useCallback(() => {
 		console.log("handleConversationLeft in DirectChat");
@@ -47,23 +46,17 @@ const DirectChat = ({
 		setConversationID(conversation.id);
 		setMessages([]);
 		try {
-			await axiosPrivate.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			}).then(response => {
+			await axiosPrivate.get(`/chat/${conversation.id}/Messages`)
+				.then(response => {
 					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
 						setMessages(response.data);
 					} else {
 						window.location.href = '/error';
 					}
 				})
-					.catch(error => {
-						console.error('An error occurred:', error);
-					});
+				.catch(error => {
+					console.error('An error occurred:', error);
+				});
 		} catch (err) {
 			console.log(err);
 		}
