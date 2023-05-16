@@ -47,6 +47,7 @@ function LeftSideHeader({
 					})
 					.catch(error => {
 						console.error('An error occurred:', error);
+						window.location.href = '/error';
 					});
 			} catch (err) {
 				setConversations([]);
@@ -64,6 +65,7 @@ function LeftSideHeader({
 				})
 					.catch(error => {
 						console.error('An error occurred:', error);
+						window.location.href = '/error';
 					});
 			} catch (err) {
 				console.log(err);
@@ -80,6 +82,7 @@ function LeftSideHeader({
 					})
 					.catch(error => {
 						console.error('An error occurred:', error);
+						window.location.href = '/error';
 					});
 				setConversation(null);
 			} catch (err) {
@@ -98,6 +101,7 @@ function LeftSideHeader({
 					})
 					.catch(error => {
 						console.error('An error occurred:', error);
+						window.location.href = '/error';
 					});
 			} catch (err) {
 				setConversations([]);
@@ -120,6 +124,7 @@ function LeftSideHeader({
 				})
 				.catch(error => {
 					console.error('An error occurred:', error);
+					window.location.href = '/error';
 				});
 		} catch (err) {
 			setConversations([]);
@@ -138,6 +143,7 @@ function LeftSideHeader({
 			})
 				.catch(error => {
 					console.error('An error occurred:', error);
+					window.location.href = '/error';
 				});
 		} catch (err) {
 			setConversations([]);

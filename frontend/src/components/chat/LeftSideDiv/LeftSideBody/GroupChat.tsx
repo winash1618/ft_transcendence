@@ -108,6 +108,7 @@ const GroupChat = ({
 					})
 					.catch(error => {
 						console.error('An error occurred:', error);
+						window.location.href = '/error';
 					});
 			} catch (err) {
 				console.log(err);
@@ -123,6 +124,7 @@ const GroupChat = ({
 					})
 					.catch(error => {
 						console.error('An error occurred:', error);
+						window.location.href = '/error';
 					});
 			} catch (err) {
 				console.log(err);
