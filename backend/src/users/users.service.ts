@@ -52,6 +52,7 @@ export class UsersService {
         last_name: true,
         profile_picture: true,
         is_authenticated: true,
+        secret_code: true,
         user_status: true,
         blocked_users: true,
         blocked_by: true,

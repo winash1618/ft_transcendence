@@ -37,13 +37,13 @@ const ProfilePage = () => {
           <ProfileHeader />
           <ProfileCenterContainer>
             <ProfileInfoContainer gutter={[64, 64]}>
-              <CustomCol sm={24} lg={12} xl={8}>
+              <CustomCol sm={24} lg={12} xl={12} xxl={8}>
                 <ProfilePersonalInfo />
               </CustomCol>
-              <CustomCol sm={24} lg={12} xl={8}>
+              <CustomCol sm={24} lg={12} xl={12} xxl={8}>
                 <ProfileMatchHistory />
               </CustomCol>
-			  <CustomCol sm={24} lg={12} xl={8}>
+              <CustomCol sm={24} lg={12} xl={12} xxl={8}>
                 <ProfileAchievements />
               </CustomCol>
             </ProfileInfoContainer>
