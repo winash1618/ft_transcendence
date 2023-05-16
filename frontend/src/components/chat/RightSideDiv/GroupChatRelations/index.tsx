@@ -5,10 +5,9 @@ import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
 import { Colors, GNav, Role, User } from "../../chat.functions";
 import { useState } from "react";
-import axios from "axios";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { Picture } from "../../chat.styled";
-import { BASE_URL } from "../../../../api";
+import { BASE_URL, axiosPrivate } from "../../../../api";
 import { IoMdAddCircleOutline } from "react-icons/io";
 
 interface GroupChatRelationsProps {
@@ -62,7 +61,6 @@ const GroupChatRelations = ({
 					return result;
 				})
 			);
-			console.log("Make Admin");
 		} else if (e.target.textContent === "Ban") {
 			console.log("User Ban", userObject);
 			socket?.emit("banUser", {
@@ -70,26 +68,22 @@ const GroupChatRelations = ({
 				userID: userObject.id,
 			});
 			setGroupResults(groupResults.filter((result) => result.user.id !== userObject.id));
-			console.log("Ban");
 		} else if (e.target.textContent === "Mute") {
 			socket?.emit("muteUser", {
 				conversationID: conversation.id,
 				userID: userObject.id,
 			});
-			console.log("Mute");
 		} else if (e.target.textContent === "Kick") {
 			socket?.emit("removeParticipant", {
 				conversationID: conversation.id,
 				userID: userObject.id,
 			});
 			setGroupResults(groupResults.filter((result) => result.user.id !== userObject.id));
-			console.log("Kick");
 		}
 	};
 	/*-----------Handle Menu Click-------------------------------------------------*/
 	/*-----------Handle Unban Click-------------------------------------------------*/
 	const handleUnbanClick = (object: any) => {
-		console.log("unban");
 		setUserObject(object.user);
 		socket?.emit("unbanUser", {
 			conversationID: conversation.id,
@@ -100,7 +94,6 @@ const GroupChatRelations = ({
 	/*-----------Handle Unban Click-------------------------------------------------*/
 	/*-----------Handle Add Click-------------------------------------------------*/
 	const handleAddClick = (object: any) => {
-		console.log("Add");
 		setUserObject(object.username);
 		socket?.emit("addParticipant", {
 			conversationID: conversation.id,
@@ -114,7 +107,6 @@ const GroupChatRelations = ({
 		if (!searchText) {
 			return data;
 		}
-		console.log(data);
 		if (groupNav !== GNav.ADD && conversationID !== null)
 			return data.filter((item) => item.user.username.toLowerCase().includes(searchText.toLowerCase()));
 		return data.filter((item) => item.username.toLowerCase().includes(searchText.toLowerCase()));
@@ -149,25 +141,17 @@ const GroupChatRelations = ({
 	/*----------------------------------------------------------------*/
 	/*----------------------------------------------------------------*/
 	const HandleGroupNavClick = (nav: any) => async () => {
+		setGroupResults([]);
 		if (nav === GNav.GROUPS && conversationID !== null) {
 			try {
-				await axios.get(
-					`${BASE_URL}/chat/${conversationID}/members`,
-					{
-						withCredentials: true,
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				).then(response => {
-					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
-						setGroupResults(response.data);
-					} else {
-						window.location.href = '/error';
-					}
-				})
+				await axiosPrivate.get(`/chat/${conversationID}/members`).
+					then(response => {
+						if (response.status === 200) {
+							setGroupResults(response.data);
+						} else {
+							window.location.href = '/error';
+						}
+					})
 					.catch(error => {
 						console.error('An error occurred:', error);
 					});
@@ -176,25 +160,16 @@ const GroupChatRelations = ({
 			}
 		}
 		if (nav === GNav.BLOCKED && conversationID !== null) {
-			console.log(conversationID);
+			setGroupResults([]);
 			try {
-				await axios.get(
-					`${BASE_URL}/chat/channel/${conversationID}/banned`,
-					{
-						withCredentials: true,
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				).then(response => {
-					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
-						setGroupResults(response.data);
-					} else {
-						window.location.href = '/error';
-					}
-				})
+				await axiosPrivate.get(`/chat/channel/${conversationID}/banned`)
+					.then(response => {
+						if (response.status === 200) {
+							setGroupResults(response.data);
+						} else {
+							window.location.href = '/error';
+						}
+					})
 					.catch(error => {
 						console.error('An error occurred:', error);
 					});
@@ -203,25 +178,16 @@ const GroupChatRelations = ({
 			}
 		}
 		if (nav === GNav.ADD && conversationID !== null) {
-			console.log(conversationID);
+			setGroupResults([]);
 			try {
-				await axios.get(
-					`${BASE_URL}/chat/channel/${conversationID}/addFriends`,
-					{
-						withCredentials: true,
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				).then(response => {
-					if (response.status === 200) {
-						console.log('response', response);
-						console.log('Request succeeded!');
-						setGroupResults(response.data.friends);
-					} else {
-						window.location.href = '/error';
-					}
-				})
+				await axiosPrivate.get(`/chat/channel/${conversationID}/addFriends`)
+					.then(response => {
+						if (response.status === 200) {
+							setGroupResults(response.data.friends);
+						} else {
+							window.location.href = '/error';
+						}
+					})
 					.catch(error => {
 						console.error('An error occurred:', error);
 					});
@@ -253,7 +219,7 @@ const GroupChatRelations = ({
 					/>
 				</GroupTitle>
 				<Input.Search
-					placeholder="Search friends"
+					placeholder="Search Users"
 					value={searchText}
 					onChange={(e) => setSearchText(e.target.value)}
 				/>
@@ -334,7 +300,7 @@ const GroupChatRelations = ({
 											{result.user.username}
 											{conversation.participants[0].role !== Role.USER ? (
 												(result.role === "USER" || result.role === "ADMIN") ? (
-													<IoMdAddCircleOutline size={24} color="green" onClick={() => handleUnbanClick(result)}/>
+													<IoMdAddCircleOutline size={24} color="green" onClick={() => handleUnbanClick(result)} />
 												) : (
 													<MinusCircleOutlined />
 												)
@@ -376,7 +342,7 @@ const GroupChatRelations = ({
 										<span style={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 											{result.username}
 											{conversation.participants[0].role !== Role.USER ? (
-												<IoMdAddCircleOutline size={24} color="green" onClick={() => handleAddClick(result)}/>
+												<IoMdAddCircleOutline size={24} color="green" onClick={() => handleAddClick(result)} />
 											) : <MinusCircleOutlined />}
 										</span>
 									}

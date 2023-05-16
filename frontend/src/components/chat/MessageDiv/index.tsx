@@ -4,7 +4,7 @@ import MessageInput from "./MessageInput";
 import { UserProfilePicture } from "../../../assets";
 import { useAppSelector } from "../../../hooks/reduxHooks";
 import axios from "axios";
-import { BASE_URL } from "../../../api";
+import { BASE_URL, axiosPrivate } from "../../../api";
 
 interface MessageDivProps {
 	user: any;
@@ -32,7 +32,6 @@ const MessageDiv = ({
 				conversationID: conversationID,
 				message: message,
 			};
-			console.log("newMessage: ", newMessage);
 			socket?.emit('sendMessage', newMessage);
 			setMessage("");
 		}
@@ -40,15 +39,9 @@ const MessageDiv = ({
 
 	const handleMessageCreated = useCallback((object) => {
 		try {
-			axios.get(`${BASE_URL}/users/blockedUsers/${userInfo.id}`, {
-				withCredentials: true,
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			}).then(response => {
+			axiosPrivate.get(`/users/blockedUsers/${userInfo.id}`)
+			.then(response => {
 				if (response.status === 200) {
-					console.log('response blocked', response);
-					console.log('Request succeeded!');
 					const blockedUsers = response.data.filter((user) => user.id === object.author.user.id)
 					if (blockedUsers.length === 0) {
 						if (object.conversation_id === conversationID) {
@@ -75,7 +68,6 @@ const MessageDiv = ({
 	}, [conversationID, setMessages]);
 
 	useEffect(() => {
-		console.log("socket: ", socket);
 		socket?.on('messageCreated', handleMessageCreated);
 		return () => {
 			socket?.off('messageCreated', handleMessageCreated);

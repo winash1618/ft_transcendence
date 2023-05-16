@@ -58,7 +58,7 @@ const ExploreChat = ({
 	return (
 		<>
 			<Input.Search
-				placeholder="Search friends"
+				placeholder="Search Conversations"
 				value={searchText}
 				onChange={(e) => setSearchText(e.target.value)}
 			/>

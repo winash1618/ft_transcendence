@@ -38,11 +38,13 @@ const LeaderboardName = styled.div`
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 5px;
+  width: 15%;
 `;
 
 const LeaderboardScore = styled.div`
   color: white;
   font-size: 14px;
+  width: 15%;
 `;
 
 export {
