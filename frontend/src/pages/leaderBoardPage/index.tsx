@@ -14,10 +14,11 @@ import { useEffect, useState } from "react";
 import { UserProfilePicture } from "../../assets";
 const { Title } = Typography;
 interface LeaderboardData {
-	rank: number;
-	login: string;
-	rating: number;
-	profile_picture: string;
+  rank: number;
+  login: string;
+  username: string;
+  rating: number;
+  profile_picture: string;
 }
 
 const LeaderBoardPage = () => {
@@ -39,10 +40,9 @@ const LeaderBoardPage = () => {
 		}
 	};
 
-	useEffect(() => {
-		console.log("i am in leaderboard useEffect");
-		getInfos();
-	}, []);
+  useEffect(() => {
+    getInfos();
+  }, []);
 
 	return (
 		<div>

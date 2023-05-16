@@ -69,6 +69,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 			const game = await this.gameService.checkIfGameRunning(userid['id']);
 			if (game) {
+        console.log('Game found: ', game);
 				client.join(game);
 			}
 

@@ -13,6 +13,7 @@ import { ConversationService } from './Queries/conversation.service';
 import { ParticipantService } from './Queries/participant.service';
 import { ChatController } from './chat.controller';
 import { ValidationPipe } from 'src/utils/WsValidationPipe.pipe';
+import { validationService } from './Queries/validation.service';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ValidationPipe } from 'src/utils/WsValidationPipe.pipe';
   ],
   providers: [
     ValidationPipe,
+    validationService,
     GatewaySessionManager,
     ChatGateway,
     ChatService,

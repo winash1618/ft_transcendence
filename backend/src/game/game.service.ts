@@ -36,6 +36,8 @@ export class GameService {
 				? gameData.player_one
 				: gameData.player_two;
 
+    console.log('gameData', gameData.winner, gameData.looser)
+
     await this.prisma.gameHistory.update({
       where: {
         id: id,
@@ -79,6 +81,9 @@ export class GameService {
       },
     });
     if (!game)
+      return null;
+
+    if (game.winner !== '' && game.looser !== '')
       return null;
 
     return game.id;
@@ -214,7 +219,7 @@ export class GameService {
 		if (!game) {
 			throw new Error('Game not found');
 		}
-		console.log(game);
+
 		if (game.winner === '' || game.winner === null) return game;
 		return false;
 	}

@@ -128,7 +128,6 @@ const GroupChat = ({
 				console.log(err);
 			}
 		}
-
 	}
 
 	const handleMenuClick = (e: any) => {

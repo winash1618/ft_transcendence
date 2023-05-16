@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
-import { UserProfilePicture } from "../../../assets";
+import { BlackBackground, GameMap, UserProfilePicture } from "../../../assets";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import { draw } from "./pingPongCanvas.functions";
 import {
@@ -12,9 +12,10 @@ import {
   StatusText,
   StyledCanvas,
 } from "./pingPongCanvas.styled";
-import { PingPongContainer } from "../pingPong.styled";
+import { PingPongContainer, PlayerManual } from "../pingPong.styled";
 import { BASE_URL } from "../../../api";
 import { resetGameInfo } from "../../../store/gameReducer";
+import { useTimer } from "react-timer-hook";
 
 export let CANVAS_WIDTH =
   window.innerHeight < 0.9 * window.innerWidth
@@ -85,13 +86,19 @@ let game: GameType = {
 };
 
 const PingPongCanvas = () => {
+  const time = new Date();
+  time.setSeconds(time.getSeconds() + 60 * 1);
+  const { seconds, minutes } = useTimer({
+    expiryTimestamp: time,
+    onExpire: () => console.warn("onExpire called"),
+  });
   const canvaRef = useRef<HTMLCanvasElement>(null);
   const { socket } = useAppSelector((state) => state.game);
   const {
     players,
     player,
     roomID,
-	timer,
+    timer,
     hasMiddleWall,
     player1Score: playerOneScore,
     player2Score: playerTwoScore,
@@ -138,9 +145,10 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
-      game.wall.x = 0.95 * canvaRef.current.width / 2;
-	  game.wall.gapBottom = ((canvaRef.current.height - canvaRef.current.height/4) / 2) ;
-	  game.wall.gapTop = canvaRef.current.height / 4;
+      game.wall.x = (0.95 * canvaRef.current.width) / 2;
+      game.wall.gapBottom =
+        (canvaRef.current.height - canvaRef.current.height / 4) / 2;
+      game.wall.gapTop = canvaRef.current.height / 4;
       game.wall.width = 0.025 * canvaRef.current.width;
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
@@ -318,11 +326,12 @@ const PingPongCanvas = () => {
       game.paddle2.width = 0.025 * canvaRef.current.width;
       game.paddle2.height = 0.125 * canvaRef.current.height;
       game.paddle1.x = 0;
-      game.wall.x = 0.95 * canvaRef.current.width / 2;
-	  game.wall.gapBottom = ((canvaRef.current.height - canvaRef.current.height/4) / 2);
-	  game.wall.gapTop = canvaRef.current.height / 4;
+      game.wall.x = (0.95 * canvaRef.current.width) / 2;
+      game.wall.gapBottom =
+        (canvaRef.current.height - canvaRef.current.height / 4) / 2;
+      game.wall.gapTop = canvaRef.current.height / 4;
       game.wall.width = 0.025 * canvaRef.current.width;
-      game.wall.x = 0.95 * canvaRef.current.width / 2;
+      game.wall.x = (0.95 * canvaRef.current.width) / 2;
       game.wall.width = 0.025 * canvaRef.current.width;
       game.paddle1.width = 0.025 * canvaRef.current.width;
       game.paddle1.height = 0.125 * canvaRef.current.height;
@@ -337,8 +346,18 @@ const PingPongCanvas = () => {
   }, []);
   return (
     <PingPongContainer>
+      <PlayerManual>
+        <p style={{ color: "red" }}>Player Manual </p>
+        <p>Mouse - Move</p>
+        <p>W - Up</p>
+        <p>S - Down</p>
+      </PlayerManual>
+      <div style={{ fontSize: "30px", paddingBottom: "10px" }}>
+        <span>{minutes < 10 ? "0" + minutes : minutes}</span>:
+        <span>{seconds < 10 ? "0" + seconds : seconds}</span>
+      </div>
       <StyledCanvas
-        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
+        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, backgroundImage: !hasMiddleWall ? `url(${GameMap})` : `url(${BlackBackground})` }}
         ref={canvaRef}
       />
       <ScoreWrapper>

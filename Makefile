@@ -1,4 +1,5 @@
 DOCKER-COMPOSE := docker-compose -f docker-compose.yml
+DOCKER-COMPOSE-PROD := docker-compose -f docker-compose.prod.yml
 
 all: up
 
@@ -8,7 +9,7 @@ up:
 
 prod:
 	@printf "\033[0;31mBuild, recreate, start production containers\033[0m\n"
-	$(DOCKER-COMPOSE) -f docker-compose.prod.yml up -d --build
+	$(DOCKER-COMPOSE-PROD) up -d --build
 
 build:
 		@printf "\033[0;31mBuild images from dockerfiles\033[0m\n"
@@ -31,9 +32,9 @@ down:
 		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
 		$(DOCKER-COMPOSE) down --rmi local --volumes --remove-orphans
 
-down-prod:
+pown:
 		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
-		$(DOCKER-COMPOSE) -f docker-compose.prod.yml down --rmi local --volumes --remove-orphans
+		$(DOCKER-COMPOSE-PROD) down --rmi local --volumes --remove-orphans
 
 ps:
 		@printf "\033[0;31mList containers\033[0m\n"
@@ -72,5 +73,7 @@ prune:	fclean
 		@printf "\033[0;31mRemoves all unused images, containers and volumes\033[0m\n"
 
 re: fclean all
+
+pe: pown prod
 
 .PHONY: all up build start restart stop down ps images volume clean fclean prune re

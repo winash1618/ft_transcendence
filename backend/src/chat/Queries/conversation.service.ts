@@ -124,9 +124,6 @@ export class ConversationService {
     userID: string,
     otherUserID: string,
   ) {
-    if (await this.userService.isUserBlocked(userID, otherUserID))
-      throw new Error('User is blocked');
-
     const conversation = await this.createConversation(createConversation);
 
     await this.participantService.addParticipantToConversation({
@@ -149,36 +146,10 @@ export class ConversationService {
   async muteUser(
     conversationID: string,
     userID: string,
-    muteDuration: number,
     admin: string,
   ) {
-    if (!(await this.checkConversationExists(conversationID))) {
-      throw new Error('Conversation does not exist');
-    }
-
-    const participant = await this.participantService.checkParticipantExists(
-      conversationID,
-      admin,
-    );
-
-    if (!participant) throw new Error('User is not participant');
-
-    if (participant.role === Role['USER']) throw new Error('User is not admin');
-
-    const user = await this.participantService.checkParticipantExists(
-      conversationID,
-      userID,
-    );
-
-    if (!user) throw new Error('User is not participant');
-
-    if (user.role === Role['ADMIN'] || user.role === Role['OWNER'])
-      throw new Error('Cannot mute admin');
-
-    if (user.conversation_status === Status.MUTED)
-      throw new Error('User is already muted');
-
     const muteExpiresAt = new Date();
+    const muteDuration = 1;
     muteExpiresAt.setMinutes(muteExpiresAt.getMinutes() + muteDuration);
 
     return await this.prisma.participant.update({
@@ -383,7 +354,7 @@ export class ConversationService {
                   conversation_id: conversationID,
                   NOT: {
                     conversation_status: {
-                      in: ['BANNED', 'KICKED'],
+                      in: ['BANNED'],
                     },
                   },
                 },

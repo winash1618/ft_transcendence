@@ -176,7 +176,9 @@ export class ParticipantService {
     return await this.prisma.participant.findMany({
       where: {
         conversation_id: conversationID,
-        conversation_status: Status.ACTIVE,
+        conversation_status: {
+          in: ['ACTIVE', 'MUTED'],
+        }
       },
       select: {
         user: {
@@ -232,15 +234,7 @@ export class ParticipantService {
   async removeParticipantFromConversation(
     conversationID: string,
     userID: string,
-    adminUser?: string,
   ) {
-    if (adminUser)
-      if (
-        (await this.isUserAdminInConversation(adminUser, conversationID)) ===
-        false
-      )
-        throw new Error('User is not an admin');
-
     return await this.updateParticipantStatus(
       conversationID,
       userID,
@@ -520,5 +514,38 @@ export class ParticipantService {
         },
       },
     });
+  }
+
+  async checkActiveOrMutedMembers(conversationId: string, userIdToExclude: string) {
+    const participants = await this.prisma.participant.findMany({
+      where: {
+        conversation_id: conversationId,
+        user_id: {
+          not: userIdToExclude,
+        },
+        OR: [
+          {
+            conversation_status: 'ACTIVE',
+          },
+          {
+            conversation_status: 'MUTED',
+          },
+        ],
+      },
+      select: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+        conversation_status: true,
+      },
+    });
+
+    if (!participants || participants.length === 0) {
+      return false;
+    }
+
+    return participants;
   }
 }

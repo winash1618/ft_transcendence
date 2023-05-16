@@ -43,7 +43,7 @@ export class AuthController {
         req.user as User,
       );
       console.log(token);
-      this.userService.updateUserStatus(req.user.id, UserStatus.ONLINE);
+      this.userService.userStatusUpdate(req.user.id, UserStatus.ONLINE);
 
       res.cookie('auth', token, { httpOnly: true });
       return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
@@ -60,10 +60,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('logout')
-  async logout(@Res() res: Response) {
+  async logout(@Req() req, @Res() res: Response) {
     try {
       res.clearCookie('auth');
-      this.userService.updateUserStatus(res.locals.user.id, UserStatus.OFFLINE);
+      await this.userService.userStatusUpdate(req.user.id, 'OFFLINE');
       return res
         .status(HttpStatus.OK)
         .json({ message: 'logged out successfully' });

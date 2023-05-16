@@ -52,6 +52,7 @@ export class UsersService {
         last_name: true,
         profile_picture: true,
         is_authenticated: true,
+        secret_code: true,
         user_status: true,
         blocked_users: true,
         blocked_by: true,
@@ -221,9 +222,6 @@ export class UsersService {
       throw new Error('One or both users do not exist');
     }
 
-    if (!(await this.isUserBlocked(userID, blockID)))
-      throw new Error('User is not blocked');
-
     // Unblock the user
     const user = await this.prisma.user.update({
       where: { id: userID },
@@ -276,10 +274,13 @@ export class UsersService {
   }
 
   async updateSecretCode(id: string, secret: string | null) {
-    return await this.prisma.user.update({
+    const code = await this.prisma.user.update({
       where: { id },
       data: { secret_code: secret },
     });
+
+    console.log(code);
+    return code;
   }
 
   async updateAuthentication(id: string, is_authenticated: boolean) {

@@ -9,7 +9,7 @@ export const ProfileContainer = styled.div`
 `;
 
 export const ProfileInfoContainer = styled(Row)`
-  max-width: 1500px;
+  max-width: 1300px;
   margin-top: 50px;
   align-items: stretch;
   @media (max-width: 991px) {

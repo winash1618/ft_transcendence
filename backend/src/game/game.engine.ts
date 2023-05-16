@@ -19,7 +19,7 @@ const GAME_HEIGHT = 800;
 const PADDLE_WIDTH = 0.025 * GAME_WIDTH;
 const PADDLE_HEIGHT = 0.125 * GAME_HEIGHT;
 const BALL_SIZE = 0.015 * GAME_WIDTH;
-const BALL_SPEED = 0.005 * GAME_WIDTH;
+const BALL_SPEED = 0.008 * GAME_WIDTH;
 const PADDLE_SPEED = 0.015 * GAME_HEIGHT;
 const GAME_FPS = 30;
 const GAME_POINTS = 11;
@@ -382,71 +382,73 @@ export class GameEngine {
       this.playerMove();
       this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
 
-      this.gameService.checkingGameHistory(
-        {
-          player_one: this.gameObj.player1.name.id,
-          player_two: this.gameObj.player2.name.id,
-          hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
-          player_score: this.gameObj.player1.points,
-          opponent_score: this.gameObj.player2.points,
-          winner: '',
-          looser: '',
-        },
-        this.gameID,
-      );
-
       elapsedTime += GAME_FPS;
 
       if (
         elapsedTime >= GAME_DURATION ||
         this.gameObj.player1.points >= GAME_POINTS ||
         this.gameObj.player2.points >= GAME_POINTS
-      ) {
-        console.log('Game Over')
-        clearInterval(this.interval);
-        this.gameObj.gameStatus = GameStatus.WAITING;
-        this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-        const winner: UserInfo =
-          this.gameObj.player1.points >= GAME_POINTS
-            ? this.player1
-            : this.player2;
-        const looser: UserInfo =
-          this.gameObj.player1.points >= GAME_POINTS
-            ? this.player2
-            : this.player1;
-        if (
-          this.gameObj.player1.points === this.gameObj.player2.points
         ) {
-          this.users.get(winner).client.emit('draw', winner);
-          this.users.get(looser).client.emit('draw', looser);
-        }
-        else {
-          this.users.get(winner).client.emit('win', winner);
-          this.users.get(looser).client.emit('lose', looser);
-        }
-        this.gameService.storeGameHistory(
-          {
-            player_one: this.gameObj.player1.name.id,
-            player_two: this.gameObj.player2.name.id,
-            hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
-            player_score: this.gameObj.player1.points,
-            opponent_score: this.gameObj.player2.points,
-            winner: '',
-            looser: '',
-          },
-          this.gameID,
-        );
-        await userService.userStatusUpdate(
-          this.gameObj.player1.name.id,
-          UserStatus.ONLINE,
-        );
-        await userService.userStatusUpdate(
-          this.gameObj.player2.name.id,
-          UserStatus.ONLINE,
-        );
-        this.gameService.updateUserAchievements(this.gameObj.player1.name.id);
-        this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
-      }
-    }, GAME_FPS);
-  }
+          console.log('Game Over')
+          clearInterval(this.interval);
+          this.gameObj.gameStatus = GameStatus.WAITING;
+          this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+          const winner: UserInfo =
+          this.gameObj.player1.points >= GAME_POINTS
+          ? this.player1
+          : this.player2;
+          const looser: UserInfo =
+          this.gameObj.player1.points >= GAME_POINTS
+          ? this.player2
+          : this.player1;
+          await this.gameService.storeGameHistory(
+            {
+              player_one: this.gameObj.player1.name.id,
+              player_two: this.gameObj.player2.name.id,
+              hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
+              player_score: this.gameObj.player1.points,
+              opponent_score: this.gameObj.player2.points,
+              winner: '',
+              looser: '',
+            },
+            this.gameID,
+            );
+            if (
+              this.gameObj.player1.points === this.gameObj.player2.points
+              ) {
+                this.users.get(winner).client.emit('draw', winner);
+                this.users.get(looser).client.emit('draw', looser);
+              }
+              else {
+                this.users.get(winner).client.emit('win', winner);
+                this.users.get(looser).client.emit('lose', looser);
+              }
+              await userService.userStatusUpdate(
+                this.gameObj.player1.name.id,
+                UserStatus.ONLINE,
+                );
+                await userService.userStatusUpdate(
+                  this.gameObj.player2.name.id,
+                  UserStatus.ONLINE,
+                  );
+                  this.gameService.updateUserAchievements(this.gameObj.player1.name.id);
+                  this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
+                }
+                else {
+                  this.gameService.checkingGameHistory(
+                    {
+                      player_one: this.gameObj.player1.name.id,
+                      player_two: this.gameObj.player2.name.id,
+                      hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
+                      player_score: this.gameObj.player1.points,
+                      opponent_score: this.gameObj.player2.points,
+                      winner: '',
+                      looser: '',
+                    },
+                    this.gameID,
+                  );
+                }
+              }, GAME_FPS);
+            }
+
 }
