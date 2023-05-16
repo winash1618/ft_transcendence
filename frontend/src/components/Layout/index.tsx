@@ -102,6 +102,7 @@ const Navbar: React.FC = () => {
               })
             );
           }
+		  navigate("/pingpong");
         } catch (err) {
           console.log(err);
         }
@@ -111,6 +112,12 @@ const Navbar: React.FC = () => {
   }, [userInfo]);
 
   useEffect(() => {
+    socket?.on("exception", (data) => {
+      if (data.message === "TokenExpiredError") {
+        socket.disconnect();
+        getSocket();
+      }
+    });
     socket?.on("Invited", (data) => {
       console.log(data);
       setItems((prev) => [
@@ -139,6 +146,12 @@ const Navbar: React.FC = () => {
     });
     return () => {
       socket?.off("Invited");
+      socket?.off("exception", (data) => {
+        if (data.message === "TokenExpiredError") {
+          socket.disconnect();
+          getSocket();
+        }
+      });
       socket?.disconnect();
     };
   }, [socket]);
@@ -186,30 +199,7 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     getSocket();
-  }, [dispatch, setIsLoadingPage, navigate]);
-
-	useEffect(() => {
-		const intervalId = setInterval(() => {
-			const currentTime = new Date();
-			const timeDifference = (currentTime.getTime() - connectionTime) / 1000;
-			// console.log("timeDifference1", timeDifference);
-			const tokenExpiryTime = timeInMinutesNumber;
-			const timeBeforeExpiry = tokenExpiryTime - timeDifference;
-			if (timeBeforeExpiry <= 10 && socket) {
-				socket.disconnect();
-				getSocket();
-			}
-		}, 500);
-		return () => {
-			clearInterval(intervalId);
-		};
-	}, [dispatch, connectionTime, socket]);
-
-  useEffect(() => {
-    return () => {
-      socket?.disconnect();
-    };
-  }, [socket]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (userInfo.id) {

@@ -36,6 +36,8 @@ import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
 import { UsersService } from 'src/users/users.service';
 import { JwtGuard } from 'src/utils/wsJWTGuard.guard';
+import { validationService } from './Queries/validation.service';
+import { RemovePasswordDTO } from './dto/GatewayDTO/removePassword.dto';
 
 @UseGuards(JwtGuard)
 @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
@@ -49,6 +51,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private participantService: ParticipantService,
     private messageService: MessageService,
     private jwtService: JwtService,
+    private validation: validationService,
     private userService: UsersService,
     private configService: ConfigService,
   ) {}
@@ -103,7 +106,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In createConversation');
     try {
-      await this.createConversationValidation(data);
+      await this.validation.validateCreateConversation(data, client.data.userID.id)
 
       const conversation = await this.conversationService.createConversation({
         title: data.title,
@@ -147,8 +150,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In joinConversation');
 
     try {
-      await this.joinConversationValidation(data, client.data.userID.id);
-
+      await this.validation.validateJoinConversation(data.conversationID, client.data.userID.id, data.password);
       const participant =
         await this.participantService.addParticipantToConversation(
           {
@@ -219,7 +221,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: LeaveConversationDTO,
   ) {
     try {
-      await this.leaveConversationValidation(data, client.data.userID.id);
+      await this.validation.validateLeaveConversation(data.conversationID, client.data.userID.id);
 
       const removedParticipant =
         await this.participantService.removeParticipantFromConversation(
@@ -257,6 +259,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: AddPasswordDTO,
   ) {
     try {
+      await this.validation.validateAddPassword(data.conversationID, client.data.userID.id);
+
       const conversation = await this.conversationService.protectConversation(
         data.conversationID,
         data.password,
@@ -330,6 +334,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: MakeAdminDTO,
   ) {
     try {
+      await this.validation.validateMakeAdmin(data.conversationID, client.data.userID.id, data.userID);
       const participant = await this.participantService.makeParticipantAdmin(
         data.conversationID,
         data.userID,
@@ -357,7 +362,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In addParticipant');
 
     try {
-      await this.addParticipantValidation(data, client.data.userID.id);
+      await this.validation.validateAddParticipant(data.conversationID, client.data.userID.id, data.userID);
 
       const participant =
         await this.participantService.addParticipantToConversation({
@@ -390,16 +395,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In removeParticipant');
 
     try {
-      await this.removeParticipantValidation(
-        data,
-        client.data.userID.id,
-      );
+      await this.validation.validateRemoveParticipant(data.conversationID, client.data.userID.id, data.userID);
 
       const participant =
         await this.participantService.removeParticipantFromConversation(
           data.conversationID,
           data.userID,
-          client.data.userID.id,
         );
 
       await this.conversationService.promoteOldestUserToAdmin(
@@ -430,7 +431,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       console.log('In banUser');
 
-      await this.banUserValidation(data, client.data.userID.id);
+      await this.validation.validateBanUser(data.conversationID, client.data.userID.id, data.userID);
 
       const participant = await this.participantService.updateParticipantStatus(
         data.conversationID,
@@ -462,7 +463,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       console.log('In unbanUser');
 
-      await this.unbanUserValidation(data, client.data.userID.id);
+      await this.validation.validateUnBanUser(data.conversationID, client.data.userID.id, data.userID);
 
       const participant = await this.participantService.updateParticipantStatus(
         data.conversationID,
@@ -487,12 +488,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('removePassword')
   async removePassword(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: RemovePasswordDTO,
   ) {
     try {
       console.log('In removePassword');
 
-      await this.removePasswordValidation(data, client.data.userID.id);
+      await this.validation.validateRemovePassword(data.conversationID, client.data.userID.id);
 
       const conversation =
         await this.conversationService.removePasswordFromConversation(
@@ -520,11 +521,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: MuteUserDTO,
   ) {
     try {
-      const muteDuration = 1;
+      await this.validation.validateMute(data.conversationID, client.data.userID.id, data.userID);
       const conversation = await this.conversationService.muteUser(
         data.conversationID,
         data.userID,
-        muteDuration,
         client.data.userID.id,
       );
 
@@ -567,388 +567,5 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(socket.id).emit('conversationCreated', conversation);
     });
     this.server.emit('conversationCreated', conversation);
-  }
-
-  // validations
-
-  private async createConversationValidation(
-    data: createConversationDto,
-  ): Promise<boolean> {
-    if (
-      data.privacy === Privacy.PROTECTED ||
-      data.privacy === Privacy.PRIVATE
-    ) {
-      if (!data.password) {
-        throw new Error('Password is required to protect the conversations');
-      }
-    }
-
-    if (
-      (await this.conversationService.validateChannelTitle(data.title)) ===
-      false
-    ) {
-      throw new Error('Title is invalid');
-    }
-
-    return true;
-  }
-
-  async joinConversationValidation(
-    data: joinConversationDto,
-    user: string,
-  ): Promise<boolean> {
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot join a direct conversation');
-
-    if (conversation.privacy === Privacy.PRIVATE)
-      throw new Error('You cannot join a private conversation.');
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (participant) {
-      if (participant.conversation_status === Status.BANNED)
-        throw new Error('You are banned from this conversation');
-
-      if (
-        participant.conversation_status === Status.ACTIVE ||
-        participant.conversation_status === Status.MUTED
-      )
-        throw new Error('You are already in this conversation');
-    }
-
-    if (conversation.privacy === Privacy.PROTECTED) {
-      if (
-        data.password == '' ||
-        data.password == null ||
-        data.password == undefined
-      )
-        throw new Error('Password is incorrect');
-
-      if (
-        (await this.conversationService.validatePassword(
-          data.password,
-          conversation.password,
-        )) === false
-      )
-        throw new Error('Password is incorrect');
-    }
-
-    return true;
-  }
-
-  async leaveConversationValidation(
-    data: LeaveConversationDTO,
-    user: string,
-  ): Promise<boolean> {
-    if (
-      data.conversationID == '' ||
-      data.conversationID == null ||
-      data.conversationID == undefined
-    )
-      throw new Error('Conversation ID is required');
-
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot leave a direct conversation');
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (
-      !participant ||
-      (participant.conversation_status !== Status.ACTIVE &&
-        participant.conversation_status !== Status.MUTED)
-    )
-      throw new Error('You are not in this conversation');
-
-    return true;
-  }
-
-  async addParticipantValidation(
-    data: AddParticipantDTO,
-    user: string,
-  ) {
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot add participants to a direct conversation');
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (!participant || participant.conversation_status !== Status.ACTIVE)
-      throw new Error('You are not in this conversation');
-
-    if (participant.role === Role.USER)
-      throw new Error('You are not an admin/owner of this conversation');
-
-    const userExists = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      data.userID,
-    );
-
-    if (userExists)
-      throw new Error('User is already in this conversation');
-
-    if (userExists.role === Role.OWNER)
-      throw new Error('Owner cannot be removed from this conversation');
-
-    if (userExists.conversation_status === Status.BANNED)
-      throw new Error('User is banned from this conversation');
-
-    if (userExists.conversation_status === Status.ACTIVE || userExists.conversation_status === Status.MUTED)
-      throw new Error('User is already in this conversation');
-
-    if (user === data.userID)
-      throw new Error('You cannot add yourself to the conversation');
-
-    return true;
-  }
-
-  async removeParticipantValidation(
-    data: AddParticipantDTO,
-    user: string,
-  ) {
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot remove participants from a direct conversation');
-
-    if (user === data.userID)
-      throw new Error('You cannot remove yourself from the conversation');
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (!participant || participant.conversation_status !== Status.ACTIVE)
-      throw new Error('You are not in this conversation');
-
-    if (participant.role === Role.USER)
-      throw new Error('You are not an admin/owner of this conversation');
-
-    const userExists = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      data.userID,
-    );
-
-    if (!userExists || userExists.conversation_status !== Status.ACTIVE && userExists.conversation_status !== Status.MUTED)
-      throw new Error('User is not in this conversation');
-
-    if (userExists.role === Role.OWNER)
-      throw new Error('Owner cannot be removed from this conversation');
-
-    return true;
-  }
-
-  async banUserValidation(data: BanUserDTO, user: string): Promise<boolean> {
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot ban participants from a direct conversation');
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (
-      !participant ||
-      (participant.conversation_status !== Status.ACTIVE &&
-        participant.conversation_status !== Status.MUTED)
-    )
-      throw new Error('You are not in this conversation');
-
-    if (participant.role === Role.USER)
-      throw new Error('You are not an admin of this conversation');
-
-    if (user === data.userID) throw new Error('You cannot ban yourself');
-
-    const userExists = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      data.userID,
-    );
-
-    if (!userExists) throw new Error('Participant does not exist');
-
-    if (userExists.role === Role.OWNER)
-      throw new Error('You cannot ban an owner');
-
-    if (userExists.conversation_status === Status.BANNED)
-      throw new Error('Participant is already banned');
-
-    if (
-      userExists.conversation_status !== Status.ACTIVE &&
-      userExists.conversation_status !== Status.MUTED
-    )
-      throw new Error('Participant is not part of this conversation');
-
-    return true;
-  }
-
-  async unbanUserValidation(
-    data: UnBanUserDTO,
-    user: string,
-  ): Promise<boolean> {
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error(
-        'You cannot unban participants from a direct conversation',
-      );
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (
-      !participant ||
-      (participant.conversation_status !== Status.ACTIVE &&
-        participant.conversation_status !== Status.MUTED)
-    )
-      throw new Error('You are not in this conversation');
-
-    if (participant.role === Role.USER)
-      throw new Error('You are not an admin of this conversation');
-
-    const userExists = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      data.userID,
-    );
-
-    if (!userExists) throw new Error('Participant does not exist');
-
-    if (
-      userExists.conversation_status === Status.KICKED ||
-      userExists.conversation_status === Status.DELETED
-    )
-      throw new Error('Participant is not part of this conversation');
-
-    if (userExists.conversation_status !== Status.BANNED)
-      throw new Error('Participant is not banned');
-
-    return true;
-  }
-
-  async kickUserValidation(data: KickUserDTO, user: string): Promise<boolean> {
-    if (
-      data.conversationID == '' ||
-      data.conversationID == null ||
-      data.conversationID == undefined
-    )
-      throw new Error('Conversation ID is required');
-
-    if (data.userID == '' || data.userID == null || data.userID == undefined)
-      throw new Error('Participant ID is required');
-
-    if (user === data.userID) throw new Error('You cannot kick yourself');
-
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error(
-        'You cannot kick participants from a direct conversation',
-      );
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (
-      !participant ||
-      (participant.conversation_status !== Status.ACTIVE &&
-        participant.conversation_status !== Status.MUTED)
-    )
-      throw new Error('You are not in this conversation');
-
-    if (participant.role === Role.USER)
-      throw new Error('You are not an admin of this conversation');
-
-    const userExists = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      data.userID,
-    );
-
-    if (!userExists) throw new Error('Participant does not exist');
-
-    if (userExists.role === Role.OWNER)
-      throw new Error('You cannot kick an owner');
-
-    if (userExists.conversation_status !== Status.ACTIVE && userExists.conversation_status !== Status.MUTED)
-      throw new Error('Participant is not part of this conversation');
-
-    return true;
-  }
-
-  async removePasswordValidation(data: any, user: string): Promise<boolean> {
-    const conversation = await this.conversationService.checkConversationExists(
-      data.conversationID,
-    );
-
-    if (!conversation) throw new Error('Conversation does not exist');
-
-    if (conversation.privacy === Privacy.DIRECT)
-      throw new Error('You cannot remove password from a direct conversation');
-
-    if (conversation.privacy === Privacy.PUBLIC)
-      throw new Error('This conversation does not have a password');
-
-    const participant = await this.participantService.checkParticipantExists(
-      data.conversationID,
-      user,
-    );
-
-    if (
-      !participant ||
-      (participant.conversation_status !== Status.ACTIVE &&
-        participant.conversation_status !== Status.MUTED)
-    )
-      throw new Error('You are not in this conversation');
-
-    if (participant.role !== Role.OWNER)
-      throw new Error('You are not an owner of this conversation');
-
-    return true;
   }
 }

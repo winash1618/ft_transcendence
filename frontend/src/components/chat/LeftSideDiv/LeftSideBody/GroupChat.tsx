@@ -6,7 +6,7 @@ import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useAppSelector } from "../../../../hooks/reduxHooks";
-import { BASE_URL } from "../../../../api";
+import { BASE_URL, axiosPrivate } from "../../../../api";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import PageNotFound404 from "../../../../pages/errorPages/pageNotFound";
 
@@ -36,7 +36,7 @@ const GroupChat = ({
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
-	const { token } = useAppSelector((state) => state.auth);
+	const { token, userInfo } = useAppSelector((state) => state.auth);
 
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
@@ -105,7 +105,7 @@ const GroupChat = ({
 			setConversationID(conversation.id);
 			setConversation(conversation);
 			try {
-				await axios.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
+				await axiosPrivate.get(`${BASE_URL}/chat/${conversation.id}/Messages`, {
 					withCredentials: true,
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -126,7 +126,7 @@ const GroupChat = ({
 				console.log(err);
 			}
 			try {
-				await axios.get(
+				await axiosPrivate.get(
 					`${BASE_URL}/chat/${conversation.id}/members`,
 					{
 						withCredentials: true,
@@ -150,7 +150,27 @@ const GroupChat = ({
 				console.log(err);
 			}
 		}
-		
+		try {
+			await axiosPrivate.get(`${BASE_URL}/users/blockedUsers/${userInfo.id}`, {
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			}).then(response => {
+					if (response.status === 200) {
+						console.log('response blocked', response);
+						console.log('Request succeeded!');
+						// setBlockedUsers(response.data);
+					} else {
+						window.location.href = '/error';
+					}
+				})
+					.catch(error => {
+						console.error('An error occurred:', error);
+					});
+		} catch (err) {
+			console.log(err);
+		}
 	}
 
 	const handleMenuClick = (e: any) => {

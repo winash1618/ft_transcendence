@@ -39,12 +39,22 @@ export class MessageService {
                   id: true,
                 },
               },
+              blocked_users: {
+                select: {
+                  id: true,
+                },
+              },
             },
           },
         },
       });
 
-      if (otherParticipant?.user.blocked_by.length > 0) {
+      const blockedUsers = [
+        ...(otherParticipant?.user.blocked_by || []),
+        ...(otherParticipant?.user.blocked_users || []),
+      ];
+
+      if (blockedUsers.length > 0) {
         throw new Error('User is blocked');
       }
     }

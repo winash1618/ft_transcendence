@@ -232,15 +232,7 @@ export class ParticipantService {
   async removeParticipantFromConversation(
     conversationID: string,
     userID: string,
-    adminUser?: string,
   ) {
-    if (adminUser)
-      if (
-        (await this.isUserAdminInConversation(adminUser, conversationID)) ===
-        false
-      )
-        throw new Error('User is not an admin');
-
     return await this.updateParticipantStatus(
       conversationID,
       userID,
