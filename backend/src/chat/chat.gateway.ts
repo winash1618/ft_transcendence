@@ -300,6 +300,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       if (participant.mute_expires_at) {
         const currentTime = new Date();
+        console.log(currentTime, participant.mute_expires_at)
         if (currentTime > participant.mute_expires_at)
           await this.conversationService.unmuteUser(
             data.conversationID,

@@ -149,7 +149,7 @@ export class ConversationService {
     admin: string,
   ) {
     const muteExpiresAt = new Date();
-    const muteDuration = 10;
+    const muteDuration = 1;
     muteExpiresAt.setMinutes(muteExpiresAt.getMinutes() + muteDuration);
 
     return await this.prisma.participant.update({

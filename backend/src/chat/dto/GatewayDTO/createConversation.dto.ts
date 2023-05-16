@@ -1,11 +1,12 @@
 import { Privacy } from '@prisma/client';
-import { IsNotEmpty, IsString, IsIn, Length } from 'class-validator';
+import { IsNotEmpty, IsString, IsIn, Length, Matches } from 'class-validator';
 import { IsOptionalOrMatchesRegex } from 'src/utils/validator';
 
 export class createConversationDto {
   @IsString()
   @IsNotEmpty({ message: 'Title is required' })
-  @Length(1, 50) // Title length should be between 1 and 255 characters
+  @Length(1, 50) // Title length should be between 1 and 50 characters
+  @Matches(/^[a-zA-Z0-9]*$/, { message: 'Title can only contain alphanumeric characters' })
   title: string;
 
   @IsOptionalOrMatchesRegex(

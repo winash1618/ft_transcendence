@@ -28,7 +28,7 @@ export class validationService {
     if (createConversationDto.privacy === Privacy.PROTECTED || createConversationDto.privacy === Privacy.PRIVATE && !createConversationDto.password)
       throw new Error('You must provide a password for this conversation');
 
-    if (await this.conversationService.validateChannelTitle(createConversationDto.title))
+    if (!(await this.conversationService.validateChannelTitle(createConversationDto.title)))
       throw new Error('Conversation title already exists');
 
     return true;
