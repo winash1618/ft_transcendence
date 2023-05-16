@@ -79,6 +79,9 @@ export class GameService {
       where: {
         OR: [{ player_one: userId }, { player_two: userId }],
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
     if (!game)
       return null;

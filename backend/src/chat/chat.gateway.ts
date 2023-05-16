@@ -17,6 +17,7 @@ import { MessageService } from './Queries/message.service';
 import { Participant, Privacy, Role, Status } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
+import { WsJwtStrategy } from 'src/auth/Strategy/ws-jwt.strategy';
 import {
   sendMessageDto,
   createConversationDto,
@@ -35,11 +36,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
 import { UsersService } from 'src/users/users.service';
-import { JwtGuard } from 'src/utils/wsJWTGuard.guard';
 import { validationService } from './Queries/validation.service';
 import { RemovePasswordDTO } from './dto/GatewayDTO/removePassword.dto';
 
-@UseGuards(JwtGuard)
 @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
 // @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -106,6 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In createConversation');
     try {
+      this.verifyToken(client);
       await this.validation.validateCreateConversation(data, client.data.userID.id)
 
       const conversation = await this.conversationService.createConversation({
@@ -150,6 +150,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In joinConversation');
 
     try {
+      this.verifyToken(client);
       await this.validation.validateJoinConversation(data.conversationID, client.data.userID.id, data.password);
       const participant =
         await this.participantService.addParticipantToConversation(
@@ -187,6 +188,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In directMessage');
     try {
+      this.verifyToken(client);
       await this.conversationService.checkDirectConversationExists(
         client.data.userID.id,
         data.userID,
@@ -221,6 +223,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: LeaveConversationDTO,
   ) {
     try {
+      this.verifyToken(client);
       await this.validation.validateLeaveConversation(data.conversationID, client.data.userID.id);
 
       const removedParticipant =
@@ -259,6 +262,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: AddPasswordDTO,
   ) {
     try {
+      this.verifyToken(client);
       await this.validation.validateAddPassword(data.conversationID, client.data.userID.id);
 
       const conversation = await this.conversationService.protectConversation(
@@ -290,6 +294,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In sendMessage', data);
     try {
+      this.verifyToken(client);
       const participant =
         await this.participantService.findParticipantByUserIDandConversationID(
           client.data.userID.id,
@@ -335,6 +340,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: MakeAdminDTO,
   ) {
     try {
+      this.verifyToken(client);
       await this.validation.validateMakeAdmin(data.conversationID, client.data.userID.id, data.userID);
       const participant = await this.participantService.makeParticipantAdmin(
         data.conversationID,
@@ -363,6 +369,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In addParticipant');
 
     try {
+      this.verifyToken(client);
       await this.validation.validateAddParticipant(data.conversationID, client.data.userID.id, data.userID);
 
       const participant =
@@ -396,6 +403,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In removeParticipant');
 
     try {
+      this.verifyToken(client);
       await this.validation.validateRemoveParticipant(data.conversationID, client.data.userID.id, data.userID);
 
       const participant =
@@ -430,6 +438,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: BanUserDTO,
   ) {
     try {
+      this.verifyToken(client);
       console.log('In banUser');
 
       await this.validation.validateBanUser(data.conversationID, client.data.userID.id, data.userID);
@@ -462,6 +471,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: UnBanUserDTO,
   ) {
     try {
+      this.verifyToken(client);
       console.log('In unbanUser');
 
       await this.validation.validateUnBanUser(data.conversationID, client.data.userID.id, data.userID);
@@ -492,6 +502,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: RemovePasswordDTO,
   ) {
     try {
+      this.verifyToken(client);
       console.log('In removePassword');
 
       await this.validation.validateRemovePassword(data.conversationID, client.data.userID.id);
@@ -522,6 +533,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: MuteUserDTO,
   ) {
     try {
+      this.verifyToken(client);
       await this.validation.validateMute(data.conversationID, client.data.userID.id, data.userID);
       const conversation = await this.conversationService.muteUser(
         data.conversationID,
@@ -568,5 +580,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(socket.id).emit('conversationCreated', conversation);
     });
     this.server.emit('conversationCreated', conversation);
+  }
+
+  verifyToken(client: Socket) {
+    try {
+      const token = client.handshake.auth.token;
+      const userid = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+      return userid;
+    } catch (e) {
+      console.error('Error connecting to game gateway:', e.message);
+      throw new WsException('Token expired');
+    }
   }
 }
