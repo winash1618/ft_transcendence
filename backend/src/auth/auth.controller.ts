@@ -7,6 +7,7 @@ import {
   Req,
   Res,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { User, UserStatus } from '@prisma/client';
 import { Response } from 'express';
@@ -17,6 +18,7 @@ import { AuthService } from './auth.service';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { ConfigService } from '@nestjs/config';
+import { ValidateOtpDto, VerifyOtpDto } from './authDTO/2auth.dto';
 
 @Controller()
 export class AuthController {
@@ -142,7 +144,7 @@ export class AuthController {
   async verifyOTP(
     @Req() req,
     @Res() res: Response,
-    @Body() body: { secret: string; otp: string },
+    @Body() body: VerifyOtpDto,
   ): Promise<Response> {
     const verified = speakeasy.totp.verify({
       secret: body.secret,
@@ -168,7 +170,7 @@ export class AuthController {
   async validateOTP(
     @Req() req,
     @Res() res: Response,
-    @Body() body: { otp: string },
+    @Body() body: ValidateOtpDto,
   ): Promise<Response> {
     const cookie = req.cookies.auth;
     if (!cookie) {

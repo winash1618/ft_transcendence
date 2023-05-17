@@ -21,7 +21,8 @@ import {
   BadRequestException,
   Put,
   UsePipes,
-  ValidationPipe
+  ValidationPipe,
+  Query
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -315,5 +316,14 @@ export class UsersController {
 	if (req.user.id !== userID)
 	  throw new BadRequestException('You do not have permission to access this user.');
 	return await this.usersService.blockedUsers(userID);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/search')
+  async searchUsers(
+    @Query('search') search: string,
+  ) {
+    console.log(search);
+    return await this.usersService.searchUsers(search);
   }
 }
