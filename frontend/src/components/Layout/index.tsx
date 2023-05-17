@@ -60,61 +60,61 @@ const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
 
+  const fetchGameInfo = async () => {
+    try {
+      const response = await axiosPrivate.get(`/game/${userInfo.id}`);
+      if (userInfo.id === response.data.playerOne.id) {
+        console.log(response.data);
+        dispatch(
+          setGameInfo({
+            players: {
+              player1: response.data.playerOne,
+              player2: response.data.playerTwo,
+              player1Pic: response.data.playerOne.profile_pic,
+              player2Pic: response.data.playerTwo.profile_pic,
+            },
+            player1Score: response.data.player_score,
+            player2Score: response.data.opponent_score,
+            timer: false,
+            player: 1,
+            roomID: response.data.id,
+            isGameStarted: true,
+          })
+        );
+      } else {
+        dispatch(
+          setGameInfo({
+            players: {
+              player1: response.data.playerOne,
+              player2: response.data.playerTwo,
+              player1Pic: response.data.playerOne.profile_pic,
+              player2Pic: response.data.playerTwo.profile_pic,
+            },
+            player1Score: response.data.player_score,
+            player2Score: response.data.opponent_score,
+            timer: false,
+            player: 2,
+            roomID: response.data.id,
+            isGameStarted: true,
+          })
+        );
+      }
+      navigate("/pingpong");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     if (userInfo.id) {
-      const checkIsGameStarted = async () => {
-        try {
-          const response = await axiosPrivate.get(`/game/${userInfo.id}`);
-          if (userInfo.id === response.data.playerOne.id) {
-            console.log(response.data);
-            dispatch(
-              setGameInfo({
-                players: {
-                  player1: response.data.playerOne,
-                  player2: response.data.playerTwo,
-                  player1Pic: response.data.playerOne.profile_pic,
-                  player2Pic: response.data.playerTwo.profile_pic,
-                },
-                player1Score: response.data.player_score,
-                player2Score: response.data.opponent_score,
-                timer: false,
-                player: 1,
-                roomID: response.data.id,
-                isGameStarted: true,
-              })
-            );
-          } else {
-            dispatch(
-              setGameInfo({
-                players: {
-                  player1: response.data.playerOne,
-                  player2: response.data.playerTwo,
-                  player1Pic: response.data.playerOne.profile_pic,
-                  player2Pic: response.data.playerTwo.profile_pic,
-                },
-                player1Score: response.data.player_score,
-                player2Score: response.data.opponent_score,
-                timer: false,
-                player: 2,
-                roomID: response.data.id,
-                isGameStarted: true,
-              })
-            );
-          }
-          navigate("/pingpong");
-        } catch (err) {
-          console.log(err);
-        }
-      };
-      checkIsGameStarted();
+      fetchGameInfo();
     }
-  }, [userInfo]);
+  }, [userInfo, navigate]);
 
   useEffect(() => {
     socket?.on("exception", (data) => {
-      if (data.message === "TokenExpiredError") {
-        socket.disconnect();
-        getSocket();
+      if (data.error === "Token expired") {
+        window.location.reload();
       }
     });
     socket?.on("Invited", (data) => {
@@ -171,6 +171,15 @@ const Navbar: React.FC = () => {
         navigate("/authenticate");
       }
       setIsLoadingPage(false);
+    } catch (err) {
+      dispatch(logOut());
+      navigate("/login");
+    }
+  };
+
+  const socketToken = async () => {
+    try {
+      const response = await axios.get(`/token`);
       return response.data.token;
     } catch (err) {
       dispatch(logOut());
@@ -183,7 +192,7 @@ const Navbar: React.FC = () => {
       const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
         withCredentials: true,
         auth: async (cb) => {
-          const token = await getToken();
+          const token = await socketToken();
           cb({
             token,
           });
@@ -196,6 +205,7 @@ const Navbar: React.FC = () => {
   };
 
   useEffect(() => {
+    getToken();
     getSocket();
   }, [dispatch]);
 

@@ -93,12 +93,12 @@ const PingPongCanvas = () => {
   //   onExpire: () => console.warn("onExpire called"),
   // });
   const canvaRef = useRef<HTMLCanvasElement>(null);
-  const { socket } = useAppSelector((state) => state.game);
   const {
     players,
     player,
     roomID,
     timer,
+    socket,
     hasMiddleWall,
     player1Score: playerOneScore,
     player2Score: playerTwoScore,
@@ -248,56 +248,59 @@ const PingPongCanvas = () => {
   }, [player, roomID, socket, window]);
 
   useEffect(() => {
-    socket?.on("win", (data) => {
-      setGameStatus(1);
-    });
-    socket?.on("lose", (data) => {
-      setGameStatus(2);
-    });
-    socket?.on("draw", (data) => {
-      setGameStatus(3);
-    });
-    socket?.on("gameUpdate", (data) => {
-      game.ball.x = (data.ball.x * canvaRef.current.width) / 900;
-      game.ball.y = (data.ball.y * canvaRef.current.height) / 800;
-      game.paddle1.y = (data.paddle1.y * canvaRef.current.height) / 800;
-      game.paddle2.y = (data.paddle2.y * canvaRef.current.height) / 800;
-    });
-    socket?.on("player1Score", (data) => {
-      setPlayer1Score(data);
-    });
-    socket?.on("player2Score", (data) => {
-      setPlayer2Score(data);
-    });
-    if (roomID.length > 0 && timer) {
-      socket?.emit("StartGame", {
-        roomID,
-        hasMiddleWall,
+    if (canvaRef.current) {
+      socket?.on("win", (data) => {
+        setGameStatus(1);
       });
-    }
-    return () => {
-      socket?.off("gameUpdate", (data) => {
+      socket?.on("lose", (data) => {
+        setGameStatus(2);
+      });
+      socket?.on("draw", (data) => {
+        setGameStatus(3);
+      });
+      socket?.on("gameUpdate", (data) => {
         game.ball.x = (data.ball.x * canvaRef.current.width) / 900;
         game.ball.y = (data.ball.y * canvaRef.current.height) / 800;
         game.paddle1.y = (data.paddle1.y * canvaRef.current.height) / 800;
         game.paddle2.y = (data.paddle2.y * canvaRef.current.height) / 800;
       });
-      socket?.off("player1Score", (data) => {
+      socket?.on("player1Score", (data) => {
         setPlayer1Score(data);
       });
-      socket?.off("player2Score", (data) => {
+      socket?.on("player2Score", (data) => {
         setPlayer2Score(data);
       });
-      socket?.off("win", (data) => {
-        setGameStatus(1);
-      });
-      socket?.off("lose", (data) => {
-        setGameStatus(2);
-      });
-      socket?.off("draw", (data) => {
-        setGameStatus(3);
-      });
-    };
+      if (roomID.length > 0 && timer) {
+        socket?.emit("StartGame", {
+          roomID,
+          hasMiddleWall,
+        });
+      }
+      return () => {
+        socket?.off("gameUpdate", (data) => {
+          console.log(data);
+          game.ball.x = (data.ball.x * canvaRef.current.width) / 900;
+          game.ball.y = (data.ball.y * canvaRef.current.height) / 800;
+          game.paddle1.y = (data.paddle1.y * canvaRef.current.height) / 800;
+          game.paddle2.y = (data.paddle2.y * canvaRef.current.height) / 800;
+        });
+        socket?.off("player1Score", (data) => {
+          setPlayer1Score(data);
+        });
+        socket?.off("player2Score", (data) => {
+          setPlayer2Score(data);
+        });
+        socket?.off("win", (data) => {
+          setGameStatus(1);
+        });
+        socket?.off("lose", (data) => {
+          setGameStatus(2);
+        });
+        socket?.off("draw", (data) => {
+          setGameStatus(3);
+        });
+      };
+    }
   }, [socket, player, dispatch, roomID]);
 
   useEffect(() => {
@@ -340,9 +343,9 @@ const PingPongCanvas = () => {
   }, []);
 
   useEffect(() => {
-    return () => {
-      dispatch(resetGameInfo());
-    };
+    // return () => {
+    //   dispatch(resetGameInfo());
+    // };
   }, []);
   return (
     <PingPongContainer>
@@ -357,7 +360,13 @@ const PingPongCanvas = () => {
         <span>{seconds < 10 ? "0" + seconds : seconds}</span>
       </div> */}
       <StyledCanvas
-        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, backgroundImage: !hasMiddleWall ? `url(${GameMap})` : `url(${BlackBackground})` }}
+        style={{
+          width: `${canvasWidth}px`,
+          height: `${canvasHeight}px`,
+          backgroundImage: !hasMiddleWall
+            ? `url(${GameMap})`
+            : `url(${BlackBackground})`,
+        }}
         ref={canvaRef}
       />
       <ScoreWrapper>
