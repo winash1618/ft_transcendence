@@ -612,4 +612,45 @@ export class UsersService {
 
     return user.achievements;
   }
+
+  async searchUsers(searchTerm: string) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            first_name: {
+              contains: searchTerm,
+              mode: 'insensitive', // case insensitive
+            },
+          },
+          {
+            last_name: {
+              contains: searchTerm,
+              mode: 'insensitive', // case insensitive
+            },
+          },
+          {
+            login: {
+              contains: searchTerm,
+              mode: 'insensitive', // case insensitive
+            },
+          },
+          {
+            username: {
+              contains: searchTerm,
+              mode: 'insensitive', // case insensitive
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        login: true,
+        user_status: true,
+      }
+    });
+
+    return users;
+  }
 }
