@@ -1,5 +1,6 @@
 import { Nav } from "../chat.functions";
 import DirectChatRelations from "./DirectChatRelations";
+import ExploreUsers from "./ExploreUsers";
 import GroupChatRelations from "./GroupChatRelations";
 
 interface RightSideDivProps {
@@ -47,6 +48,13 @@ const RightSideDiv = ({
 				setGroupNav = {setGroupNav}
 				groupNav = {groupNav}
 				/>
+			</>
+		);
+	}
+	else if (Navbar === Nav.EXPLORE) {
+		return (
+			<>
+				<ExploreUsers />
 			</>
 		);
 	}

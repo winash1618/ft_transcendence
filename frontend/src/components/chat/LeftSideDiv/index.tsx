@@ -3,7 +3,6 @@ import { Nav } from "../chat.functions";
 import LeftSideBody from "./LeftSideBody";
 import LeftSideHeader from "./LeftSideHeader";
 import { axiosPrivate } from "../../../api";
-import { useAppSelector } from "../../../hooks/reduxHooks";
 
 interface LeftSideDivProps {
 	user: any;
@@ -40,10 +39,8 @@ const LeftSideDiv = ({
 	setResults,
 	setGroupResults,
 }: LeftSideDivProps) => {
-	const { token } = useAppSelector((state) => state.auth);
 
 	const handleDirectExists = useCallback(async (object) => {
-		console.log("direct exists");
 		setConversationID(object);
 		setMessages([]);
 		try {
@@ -55,7 +52,6 @@ const LeftSideDiv = ({
 	}, [setConversationID, setMessages]);
 
 	const handleDirectMessage = useCallback(async (object) => {
-		console.log("In handdle direct message");
 		setConversationID(object.id)
 		try {
 			const result = await axiosPrivate.get(`s/chat/direct`);

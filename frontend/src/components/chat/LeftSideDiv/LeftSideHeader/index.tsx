@@ -46,12 +46,10 @@ function LeftSideHeader({
 						}
 					})
 					.catch(error => {
-						console.error('An error occurred:', error);
 						window.location.href = '/error';
 					});
 			} catch (err) {
 				setConversations([]);
-				console.log(err);
 			}
 			try {
 				await axiosPrivate.get(
@@ -64,11 +62,10 @@ function LeftSideHeader({
 					}
 				})
 					.catch(error => {
-						console.error('An error occurred:', error);
 						window.location.href = '/error';
 					});
 			} catch (err) {
-				console.log(err);
+				window.location.href = '/error';
 			}
 		} else if (nav === Nav.GROUPS) {
 			try {
@@ -81,13 +78,11 @@ function LeftSideHeader({
 						}
 					})
 					.catch(error => {
-						console.error('An error occurred:', error);
 						window.location.href = '/error';
 					});
 				setConversation(null);
 			} catch (err) {
 				setConversations([]);
-				console.log(err);
 			}
 		} else if (nav === Nav.EXPLORE) {
 			try {
@@ -100,60 +95,63 @@ function LeftSideHeader({
 						}
 					})
 					.catch(error => {
-						console.error('An error occurred:', error);
 						window.location.href = '/error';
 					});
 			} catch (err) {
 				setConversations([]);
-				console.log(err);
 			}
 		}
 		setNavbar(nav);
 	}, [setConversations, setResults, setNavbar, user, setConversation]);
 
 	const setConversationsObject = async () => {
-		console.log("handleConversationLeft in LeftSideHeader");
 		try {
 			await axiosPrivate.get(`/chat/groups`)
 				.then(response => {
 					if (response.status === 200) {
 						setConversations(response.data);
+						setMessages([]);
+						setConversation(null);
+						setConversationID(null);
 					} else {
 						window.location.href = '/error';
 					}
 				})
 				.catch(error => {
-					console.error('An error occurred:', error);
 					window.location.href = '/error';
 				});
 		} catch (err) {
 			setConversations([]);
-			console.log(err);
 		}
 	}
 	const setExploreConversationsObject = async () => {
-		console.log("handleConversationExplore in LeftSideHeader");
 		try {
 			await axiosPrivate.get(`/chat/explore`).then(response => {
 				if (response.status === 200) {
 					setConversations(response.data);
+					setMessages([]);
+					setConversation(null);
+					setConversationID(null);
 				} else {
 					window.location.href = '/error';
 				}
 			})
 				.catch(error => {
-					console.error('An error occurred:', error);
 					window.location.href = '/error';
 				});
 		} catch (err) {
 			setConversations([]);
-			console.log(err);
 		}
 	}
 
 	const handleSetConversationObject = useCallback(
 		setConversationsObject,
-		[setNavbar, setConversations]
+		[setConversations, setMessages, setConversation, setConversationID]
+	);
+
+	const handleSetExploreConversationObject = useCallback(
+		setExploreConversationsObject,
+		[setConversations, setMessages, setConversation, setConversationID]
 	);
 
 	useEffect(() => {
@@ -190,7 +188,6 @@ function LeftSideHeader({
 			}
 		};
 		const handleConversationLeft = async (object: any) => {
-			console.log("handleConversationLeft in LeftSideHeader1", object, userInfo.id);
 			if (object.userID === userInfo.id) {
 				handleSetConversationObject();
 				setConversationID(null);
@@ -199,9 +196,8 @@ function LeftSideHeader({
 			}
 		};
 		const handleConversationJoined = async (object: any) => {
-			console.log("handleConversationJoined in LeftSideHeader1", object, userInfo.id);
 			if (object.userID === userInfo.id) {
-				setExploreConversationsObject();
+				handleSetExploreConversationObject();
 			}
 		};
 		const handleUserMuted = async (object: any) => {
@@ -236,7 +232,7 @@ function LeftSideHeader({
 			socket?.off('conversationProtected', handlePasswordAdded);
 			socket?.off('passwordRemoved', handlePasswordRemoved);
 		};
-	}, [socket, user, handleSetConversationObject, setConversationID, setMessages, setConversation]);
+	}, [socket, user, handleSetConversationObject, setConversationID, setMessages, setConversation, userInfo, handleSetExploreConversationObject]);
 
 	return (
 		<>

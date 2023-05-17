@@ -3,8 +3,7 @@ import MessageInbox from "./MessageInbox";
 import MessageInput from "./MessageInput";
 import { UserProfilePicture } from "../../../assets";
 import { useAppSelector } from "../../../hooks/reduxHooks";
-import axios from "axios";
-import { BASE_URL, axiosPrivate } from "../../../api";
+import { axiosPrivate } from "../../../api";
 
 interface MessageDivProps {
 	user: any;
@@ -23,7 +22,7 @@ const MessageDiv = ({
 }: MessageDivProps) => {
 	const messageEndRef = useRef(null);
 	const [message, setMessage] = useState("");
-	const { userInfo, token } = useAppSelector((state) => state.auth);
+	const { userInfo } = useAppSelector((state) => state.auth);
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
@@ -66,7 +65,7 @@ const MessageDiv = ({
 		} catch (err) {
 			console.log(err);
 		}
-	}, [conversationID, setMessages]);
+	}, [conversationID, setMessages, userInfo]);
 
 	useEffect(() => {
 		socket?.on('messageCreated', handleMessageCreated);
