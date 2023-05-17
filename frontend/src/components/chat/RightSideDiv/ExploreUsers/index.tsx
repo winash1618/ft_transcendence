@@ -7,35 +7,6 @@ import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { Picture } from "../../chat.styled";
 import { BASE_URL, axiosPrivate } from "../../../../api";
 
-const users: User[] = [
-	{
-	  id: 1,
-	  login: "john_doe",
-	  username: "John Doe",
-	  avatar: "https://example.com/john_doe_avatar.png",
-	  profile_picture: "https://example.com/john_doe_profile_picture.png",
-	  user_status: "ONLINE"
-	},
-	{
-	  id: 2,
-	  login: "jane_smith",
-	  username: "Jane Smith",
-	  avatar: "https://example.com/jane_smith_avatar.png",
-	  profile_picture: "https://example.com/jane_smith_profile_picture.png",
-	  user_status: "OFFLINE"
-	},
-	{
-	  id: 3,
-	  login: "bob_johnson",
-	  username: "Bob Johnson",
-	  avatar: "https://example.com/bob_johnson_avatar.png",
-	  profile_picture: "https://example.com/bob_johnson_profile_picture.png",
-	  user_status: "IN_GAME"
-	},
-	// add more users here
-  ];
-  
-
 const ExploreUsers = () => {
 	const [results, setResults] = useState<User[]>([]);
 	const { token } = useAppSelector((state) => state.auth);
@@ -45,25 +16,27 @@ const ExploreUsers = () => {
 	};
 
 	const searchUsers = async (searchText: string) => {
-		try {
-			await axiosPrivate.get(`/users/search/${searchText}`)
-				.then(response => {
-					if (response.status === 200) {
-						setResults(response.data);
-					} else {
+		if (searchText.length > 3 && searchText.length < 20) {
+			try {
+				await axiosPrivate.get('/search', { params: { search: searchText } })
+					.then(response => {
+						if (response.status === 200) {
+							setResults(response.data);
+						} else {
+							window.location.href = '/error';
+						}
+					})
+					.catch(error => {
+						console.error('An error occurred:', error);
 						window.location.href = '/error';
-					}
-				})
-				.catch(error => {
-					console.error('An error occurred:', error);
-					window.location.href = '/error';
-				});
-		} catch (err) {
-			console.log(err);
+					});
+			} catch (err) {
+				console.log(err);
+			}
+		} else {
+			setResults([]);
 		}
-		// setResults(users);
 	};
-
 
 	return (
 		<>

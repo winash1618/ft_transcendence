@@ -642,4 +642,13 @@ export class AuthController {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: err.message });
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/search')
+  async searchUsers(
+    @Query('search') search: string,
+  ) {
+    console.log(search);
+    return await this.userService.searchUsers(search);
+  }
 }
