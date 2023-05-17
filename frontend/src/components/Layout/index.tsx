@@ -50,7 +50,7 @@ const navItems = [
 
 const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(true);
-  const { userInfo, token } = useAppSelector((state) => state.auth);
+  const { userInfo } = useAppSelector((state) => state.auth);
   const [open, setOpen] = useState<boolean>(false);
   const { socket } = useAppSelector((state) => state.game);
   const [selected, setSelected] = useState<string>("0");
@@ -59,7 +59,6 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const [connectionTime, setConnectionTime] = useState(null);
 
   useEffect(() => {
     if (userInfo.id) {
@@ -102,7 +101,7 @@ const Navbar: React.FC = () => {
               })
             );
           }
-		  navigate("/pingpong");
+          navigate("/pingpong");
         } catch (err) {
           console.log(err);
         }
@@ -147,7 +146,7 @@ const Navbar: React.FC = () => {
     return () => {
       socket?.off("Invited");
       socket?.off("exception", (data) => {
-        if (data.message === "TokenExpiredError") {
+        if (data.error === "Token expired") {
           socket.disconnect();
           getSocket();
         }
@@ -191,7 +190,6 @@ const Navbar: React.FC = () => {
         },
       });
       dispatch(setSocket(socket));
-      setConnectionTime(new Date());
     } catch (err) {
       console.log(err);
     }

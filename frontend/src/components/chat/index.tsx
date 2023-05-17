@@ -30,7 +30,6 @@ const Chat = ({
 	useEffect(() => {
 		socket?.on('exception', (error) => {
 			ErrorAlert(error.error, 5000);
-			console.log(error);
 		});
 		return () => {
 			socket?.off('exception');

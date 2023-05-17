@@ -89,7 +89,7 @@ const ProfileHeader = () => {
         />
         <ProfileInfoWrapper>
           <UserName>{user.first_name + " " + user.last_name}</UserName>
-          <UserRating type="secondary">{"Rating 1000"}</UserRating>
+          <UserRating type="secondary">{`Score: ${user.rating}`}</UserRating>
         </ProfileInfoWrapper>
       </ProfileWrapper>
       {userInfo.login !== user.login && (

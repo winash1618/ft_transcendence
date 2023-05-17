@@ -37,12 +37,12 @@ export class UsersService {
 
   async findOneID(id: string): Promise<any> {
     return await this.prisma.user.findUnique({
-      where: { id }
+      where: { id },
     });
   }
 
   async findOne(login: string): Promise<any> {
-    return await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { login },
       select: {
         id: true,
@@ -59,8 +59,19 @@ export class UsersService {
         friends: true,
         sentInvites: true,
         receivedInvites: true,
-      }
+      },
     });
+    if (user) {
+      const totalGamesPlayed = await this.getTotalGamesPlayed(user.id);
+      const totalGamesWon = await this.getTotalGamesWon(user.id);
+      return {
+        ...user,
+        rating:
+          800 + totalGamesWon * 10 - (totalGamesPlayed - totalGamesWon) * 8,
+      };
+    } else {
+      return user;
+    }
   }
 
   async getUserByLogin(login: string): Promise<User | null> {
@@ -111,7 +122,12 @@ export class UsersService {
           disconnect: { id: friendID },
         },
       },
-      include: { friends: true, blocked_users: true, sentInvites: true, receivedInvites: true },
+      include: {
+        friends: true,
+        blocked_users: true,
+        sentInvites: true,
+        receivedInvites: true,
+      },
     });
 
     // Update friend's friends list
@@ -193,7 +209,12 @@ export class UsersService {
           disconnect: { id: blockID },
         },
       },
-      include: { friends: true, blocked_users: true, sentInvites: true, receivedInvites: true },
+      include: {
+        friends: true,
+        blocked_users: true,
+        sentInvites: true,
+        receivedInvites: true,
+      },
     });
 
     await this.prisma.user.update({
@@ -203,7 +224,12 @@ export class UsersService {
           disconnect: { id: userID },
         },
       },
-      include: { friends: true, blocked_users: true, sentInvites: true, receivedInvites: true },
+      include: {
+        friends: true,
+        blocked_users: true,
+        sentInvites: true,
+        receivedInvites: true,
+      },
     });
 
     return user;
@@ -295,8 +321,7 @@ export class UsersService {
       where: { username: name },
     });
 
-    if (nickname)
-      throw new Error('Username already exists');
+    if (nickname) throw new Error('Username already exists');
 
     return await this.prisma.user.update({
       where: { id },
@@ -305,7 +330,7 @@ export class UsersService {
         id: true,
         username: true,
         login: true,
-      }
+      },
     });
   }
 
@@ -366,37 +391,37 @@ export class UsersService {
   }
 
   async blockedUsers(userID: string) {
-	if (await this.checkIfUserExists(userID) === false)
-		throw new Error('User does not exist');
-	const blocked = await this.prisma.user.findUnique({
-		where: {
-			id: userID,
-		},
-    select: {
-      blocked_users: {
-        select: {
-          id: true,
-          login: true,
-          username: true,
+    if ((await this.checkIfUserExists(userID)) === false)
+      throw new Error('User does not exist');
+    const blocked = await this.prisma.user.findUnique({
+      where: {
+        id: userID,
+      },
+      select: {
+        blocked_users: {
+          select: {
+            id: true,
+            login: true,
+            username: true,
+          },
+        },
+        blocked_by: {
+          select: {
+            id: true,
+            login: true,
+            username: true,
+          },
         },
       },
-      blocked_by: {
-        select: {
-          id: true,
-          login: true,
-          username: true,
-        },
-      },
-    },
-	});
+    });
 
-  const combinedBlockedUsers = [
-    ...blocked.blocked_users,
-    ...blocked.blocked_by,
-  ];
+    const combinedBlockedUsers = [
+      ...blocked.blocked_users,
+      ...blocked.blocked_by,
+    ];
 
-  return combinedBlockedUsers;
-	}
+    return combinedBlockedUsers;
+  }
 
   async checkIfUserSentThreeInvites(
     senderId: string,
@@ -437,7 +462,7 @@ export class UsersService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: senderId },
-      include: { friends: true, sentInvites: true, blocked_users: true }
+      include: { friends: true, sentInvites: true, blocked_users: true },
     });
 
     const invite = await this.prisma.invitations.create({
@@ -604,10 +629,10 @@ export class UsersService {
           select: {
             won_three: true,
             played_first: true,
-            won_ten: true
+            won_ten: true,
           },
-        }
-      }
+        },
+      },
     });
 
     return user.achievements;
@@ -648,7 +673,7 @@ export class UsersService {
         username: true,
         login: true,
         user_status: true,
-      }
+      },
     });
 
     return users;

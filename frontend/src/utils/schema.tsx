@@ -8,7 +8,7 @@ export const PlaySchema = yup
 
 export const NickNameSchema = yup
   .object({
-    nickName: yup.string().required("Nick name field is required"),
+    nickName: yup.string().matches(/^[a-zA-Z0-9_-]{3,20}$/, "Nick name must be 3 or more characters and 20 or less characters long and can only contain these characters a-z A-Z 0-9 _ and -").required("Nick name field is required"),
   })
   .required();
 

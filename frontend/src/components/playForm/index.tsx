@@ -82,7 +82,7 @@ const PlayForm = () => {
         {isSearching ?
         <>
         <ButtonComponent
-          style={{ width: "100%", marginBottom: "6px" }}
+          style={{ width: "100%", marginBottom: "6px", padding: 0 }}
           htmlType="submit"
         >
           Leave Queue
@@ -93,7 +93,7 @@ const PlayForm = () => {
           </SearchingWrapper>
           </>
           : <ButtonComponent
-          style={{ width: "100%", marginBottom: "6px" }}
+          style={{ width: "100%", marginBottom: "6px", padding: 0 }}
           htmlType="submit"
         >
           Find game

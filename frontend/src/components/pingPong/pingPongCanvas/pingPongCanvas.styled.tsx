@@ -32,7 +32,7 @@ export const StatusText = styled(motion.h1)`
     font-size: 1rem;
   }
   position: absolute;
-  -webkit-text-stroke: 2px black;
+  -webkit-text-stroke: 1px black;
 `;
 
 export const ScoreWrapper = styled.div`

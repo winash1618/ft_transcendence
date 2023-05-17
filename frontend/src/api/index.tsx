@@ -28,7 +28,7 @@ axiosPrivate.interceptors.request.use(async (req) => {
   const data = await localStorage.getItem("auth");
   if (data === null) {
     try {
-      const response = await axios.get(`${BASE_URL}/auth/token/`, {
+      const response = await axios.get(`${BASE_URL}/token/`, {
         withCredentials: true,
       });
       localStorage.setItem("auth", JSON.stringify(response.data));
@@ -38,12 +38,12 @@ axiosPrivate.interceptors.request.use(async (req) => {
       return req;
     } catch (err) {
       try {
-        await axios.get(`${BASE_URL}/auth/logout`, {
+        await axios.get(`${BASE_URL}/logout`, {
           withCredentials: true,
         });
       } catch (err) {}
       store.dispatch(logOut());
-      router.navigate("/");
+      router.navigate("/login");
       return req;
     }
   }
@@ -56,7 +56,7 @@ axiosPrivate.interceptors.request.use(async (req) => {
     return req;
   }
   try {
-    const response = await axios.get(`${BASE_URL}/auth/token/`, {
+    const response = await axios.get(`${BASE_URL}/token/`, {
       withCredentials: true,
     });
     localStorage.setItem("auth", JSON.stringify(response.data));
@@ -66,13 +66,13 @@ axiosPrivate.interceptors.request.use(async (req) => {
     return req;
   } catch (err) {
     try {
-      await axios.get(`${BASE_URL}/auth/logout`, {
+      await axios.get(`${BASE_URL}/logout`, {
         withCredentials: true,
       });
     } catch (err) {}
     localStorage.removeItem("auth");
     store.dispatch(logOut());
-    router.navigate("/");
+    router.navigate("/login");
     return req;
   }
 });

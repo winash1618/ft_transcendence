@@ -53,7 +53,7 @@ const UserInfo = () => {
           />
           <UserInfoWrapper>
             <UserName>{userInfo?.first_name}</UserName>
-            <UserLogin type="secondary">{userInfo?.login}</UserLogin>
+            <UserLogin type="secondary">{userInfo?.username}</UserLogin>
           </UserInfoWrapper>
           <ChevronIcon />
         </DropDownLink>

@@ -54,10 +54,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async handleConnection(client: Socket) {
 		try {
 			// const token = client.handshake.headers.token as string;
-			const token = client.handshake.auth.token;
-			const userid = this.jwtService.verify(token, {
-				secret: this.configService.get('JWT_SECRET'),
-			});
+			const userid = this.verifyToken(client);
 			if (!(await this.usersService.getUserById(userid['id'])))
 				throw new Error('User not found');
 
@@ -412,10 +409,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		this.server.to(player2.client.id).emit('start', {
 			playerNo: 2,
 			players: {
-				player1: player1.userID,
-				player2: player2.userID,
-				player1Pic: user1.profile_pic,
-				player2Pic: user2.profile_pic,
+				player1: user1,
+				player2: user2,
 			},
 			roomID,
 			hasMiddleWall: middleWall,
@@ -423,10 +418,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		this.server.to(player1.client.id).emit('start', {
 			playerNo: 1,
 			players: {
-				player1: player1.userID,
-				player2: player2.userID,
-				player1Pic: user1.profile_pic,
-				player2Pic: user2.profile_pic,
+				player1: user1,
+				player2: user2,
 			},
 			roomID,
 			hasMiddleWall: middleWall,

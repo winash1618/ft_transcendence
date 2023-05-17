@@ -421,7 +421,10 @@ export class GameEngine {
               }
               else {
                 this.users.get(winner).client.emit('win', winner);
+                console.log(this.users);
+                console.log(this.users.get(winner));
                 this.users.get(looser).client.emit('lose', looser);
+                console.log(this.users.get(looser));
               }
               await userService.userStatusUpdate(
                 this.gameObj.player1.name.id,

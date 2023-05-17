@@ -86,12 +86,12 @@ let game: GameType = {
 };
 
 const PingPongCanvas = () => {
-  const time = new Date();
-  time.setSeconds(time.getSeconds() + 60 * 1);
-  const { seconds, minutes } = useTimer({
-    expiryTimestamp: time,
-    onExpire: () => console.warn("onExpire called"),
-  });
+  // const time = new Date();
+  // time.setSeconds(time.getSeconds() + 60 * 1);
+  // const { seconds, minutes } = useTimer({
+  //   expiryTimestamp: time,
+  //   onExpire: () => console.warn("onExpire called"),
+  // });
   const canvaRef = useRef<HTMLCanvasElement>(null);
   const { socket } = useAppSelector((state) => state.game);
   const {
@@ -352,10 +352,10 @@ const PingPongCanvas = () => {
         <p>W - Up</p>
         <p>S - Down</p>
       </PlayerManual>
-      <div style={{ fontSize: "30px", paddingBottom: "10px" }}>
+      {/* <div style={{ fontSize: "30px", paddingBottom: "10px" }}>
         <span>{minutes < 10 ? "0" + minutes : minutes}</span>:
         <span>{seconds < 10 ? "0" + seconds : seconds}</span>
-      </div>
+      </div> */}
       <StyledCanvas
         style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, backgroundImage: !hasMiddleWall ? `url(${GameMap})` : `url(${BlackBackground})` }}
         ref={canvaRef}
