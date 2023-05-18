@@ -32,12 +32,9 @@ import {
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
 import ButtonComponent from "../ButtonComponent";
-import { Socket, io } from "socket.io-client";
+import { io } from "socket.io-client";
 import { setGameInfo, setSocket } from "../../store/gameReducer";
 const { darkAlgorithm } = theme;
-
-const timeInMinutes = process.env.REACT_APP_JWT_EXPIRES_IN as string;
-const timeInMinutesNumber = parseInt(timeInMinutes.replace("m", "")) * 60;
 
 const { Content, Footer, Header } = Layout;
 
