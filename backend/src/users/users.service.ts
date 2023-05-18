@@ -52,13 +52,19 @@ export class UsersService {
         last_name: true,
         profile_picture: true,
         is_authenticated: true,
-        secret_code: true,
         user_status: true,
         blocked_users: true,
-        blocked_by: true,
-        friends: true,
-        sentInvites: true,
-        receivedInvites: true,
+        friends: {
+          select: {
+            id: true,
+            login: true,
+            username: true,
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
+            user_status: true,
+          },
+        }
       },
     });
     if (user) {
@@ -247,6 +253,9 @@ export class UsersService {
     if (!userExists || !blockExists) {
       throw new Error('One or both users do not exist');
     }
+
+    if ((await this.isUserBlocked(userID, blockID)))
+      throw new Error('User is not blocked');
 
     // Unblock the user
     const user = await this.prisma.user.update({
@@ -460,6 +469,9 @@ export class UsersService {
   async createInvite(createInviteDto: createInviteDto, senderId: string) {
     const { type, receiverId } = createInviteDto;
 
+    if (await this.checkIfUserExists(receiverId) === false)
+      throw new Error('User does not exist');
+
     const user = await this.prisma.user.findUnique({
       where: { id: senderId },
       include: { friends: true, sentInvites: true, blocked_users: true },
@@ -491,6 +503,9 @@ export class UsersService {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
+
+    if (!invite) throw new Error('Invite does not exist');
+
     if (invite.type === 'FRIEND') {
       await this.prisma.user.update({
         where: { id: invite.senderId },
@@ -535,6 +550,8 @@ export class UsersService {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
+
+    if (!invite) throw new Error('Invite does not exist');
 
     if (invite.type === 'GAME') {
       await this.prisma.invitations.deleteMany({

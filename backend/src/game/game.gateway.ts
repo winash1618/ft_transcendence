@@ -264,8 +264,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			console.log('In acceptInvitation')
       this.verifyToken(client);
 			const val = await this.usersService.findOneID(client.data.userID.id);
-			if (val.status === UserStatus.IN_GAME)
-				throw new Error('User is already playing');
+			if (val.user_status === UserStatus.IN_GAME)
+				throw new Error('User is in game');
 			const user = this.setUserStatus(client, GameStatus.READY);
 			const checkInvite = await this.usersService.getInvite(data.inviteID);
 			if (!checkInvite) return;
