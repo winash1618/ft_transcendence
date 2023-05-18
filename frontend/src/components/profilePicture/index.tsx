@@ -86,14 +86,16 @@ const ProfilePicture: React.FC = () => {
 
   useEffect(() => {
     if (userInfo?.profile_picture) {
-      setImageUrl({
-        loading: false,
-        image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`,
-        file: null,
-      });
+      setTimeout(() => {
+        setImageUrl({
+          loading: false,
+          image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`,
+          file: null,
+        });
+      }, 1000);
     }
   }, [userInfo]);
-
+  console.log(imageUrl);
   const uploadButton = (
     <ButtonComponent
       style={{ width: "100%", maxWidth: "250px", marginBottom: "1rem" }}
