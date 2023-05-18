@@ -14,8 +14,6 @@ import {
 } from "./pingPongCanvas.styled";
 import { PingPongContainer, PlayerManual } from "../pingPong.styled";
 import { BASE_URL } from "../../../api";
-import { resetGameInfo } from "../../../store/gameReducer";
-import { useTimer } from "react-timer-hook";
 
 export let CANVAS_WIDTH =
   window.innerHeight < 0.9 * window.innerWidth
