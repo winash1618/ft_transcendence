@@ -100,7 +100,9 @@ const SettingsPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <ButtonComponent style={{ width: "100%", marginBottom: "2rem", padding: 0 }}>
+              <ButtonComponent
+                style={{ width: "100%", marginBottom: "2rem", padding: 0 }}
+              >
                 Disable 2-Factor Auth
               </ButtonComponent>
             </Popconfirm>
@@ -132,7 +134,7 @@ const SettingsPage = () => {
         open={showModalProfile}
         onCancel={() => setShowModalProfile(false)}
       >
-        <ProfilePicture />
+        <ProfilePicture setShowModal={setShowModalProfile} />
       </Modal>
     </SettingsContainer>
   );

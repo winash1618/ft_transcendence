@@ -34,7 +34,11 @@ const beforeUpload = (file: RcFile) => {
   return isJpgOrPng && isLt2M;
 };
 
-const ProfilePicture: React.FC = () => {
+const ProfilePicture = ({
+  setShowModal,
+}: {
+  setShowModal: any;
+}) => {
   const [uploadedFile, setUploadedFile] = useState(false);
   const { userInfo, token } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
@@ -77,6 +81,7 @@ const ProfilePicture: React.FC = () => {
           },
         }
       );
+      setShowModal(false);
       dispatch(setUserInfo(response.data.user));
       SuccessAlert("Profile picture changed successfully", 5000);
     } catch (error) {
@@ -95,7 +100,6 @@ const ProfilePicture: React.FC = () => {
       }, 1000);
     }
   }, [userInfo]);
-  console.log(imageUrl);
   const uploadButton = (
     <ButtonComponent
       style={{ width: "100%", maxWidth: "250px", marginBottom: "1rem" }}
