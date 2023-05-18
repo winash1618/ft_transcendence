@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { axiosPrivate } from "../../api";
-import { ErrorAlert } from "../../components/toastify";
+import { ErrorAlert, SuccessAlert } from "../../components/toastify";
 
 interface UsersState {
 	users: [];
@@ -66,16 +66,19 @@ export const changeNickName = createAsyncThunk(
 				name: data.name,
 			}).then(response => {
 				if (response.status === 200) {
+					SuccessAlert("Nickname changed successfully", 5000);
 					console.log(response.data);
 					return response.data;
 				} else {
-					window.location.href = '/set-nickname';
+					// window.location.href = '/set-nickname';
+					ErrorAlert("Nickname update failed", 5000);
 				}
 			}).catch(error => {
 				console.error('An error occurred:', error);
-				window.location.href = '/set-nickname';
+				ErrorAlert("Nickname update failed", 5000);
 			});
 		} catch (error) {
+			ErrorAlert("Nickname update failed", 5000);
 			return thunkApi.rejectWithValue(error);
 		}
 	}
