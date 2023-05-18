@@ -361,7 +361,7 @@ const PingPongCanvas = () => {
         style={{
           width: `${canvasWidth}px`,
           height: `${canvasHeight}px`,
-          backgroundImage: !hasMiddleWall
+          backgroundImage: hasMiddleWall
             ? `url(${GameMap})`
             : `url(${BlackBackground})`,
         }}
