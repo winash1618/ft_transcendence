@@ -29,7 +29,7 @@ const beforeUpload = (file: RcFile) => {
   }
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
-    ErrorAlert("Image must smaller than 2MB!", 5000);
+    ErrorAlert("Image size must be less than 2MB!", 5000);
   }
   return isJpgOrPng && isLt2M;
 };

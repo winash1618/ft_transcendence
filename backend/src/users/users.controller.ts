@@ -25,7 +25,6 @@ import {
   Query
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
@@ -60,10 +59,11 @@ export class UsersController {
         secret: this.configService.get('JWT_SECRET'),
       });
       if (!decodedToken) {
+        console.log('Invalid token decoded')
         throw new BadRequestException('Invalid token');
       }
       const user = await this.usersService.findOne(
-        filename.substring(0, filename.lastIndexOf('.')),
+        filename.substring(0, filename.indexOf('_')),
       );
       if (
         !user ||
@@ -87,7 +87,7 @@ export class UsersController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: (1024 * 1024) * 4 }),
+          new MaxFileSizeValidator({ maxSize: (1024 * 1024) * 2 }),
           new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
         ],
       }),
