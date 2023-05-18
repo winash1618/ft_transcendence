@@ -94,12 +94,8 @@ export class UsersController {
     )
     image: Express.Multer.File,
   ) {
-    const decodedToken = this.jwtService.verify(
-      request.headers.authorization.split(' ')[1],
-      { secret: this.configService.get('JWT_SECRET') },
-    );
     const user = await this.usersService.updateProfilePicture(
-      decodedToken.id,
+      request.user.id,
       image.filename,
     );
     return { user };

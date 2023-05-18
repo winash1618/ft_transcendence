@@ -101,7 +101,6 @@ const Navbar: React.FC = () => {
       }
       navigate("/pingpong");
     } catch (err) {
-      console.log(err);
     }
   };
 

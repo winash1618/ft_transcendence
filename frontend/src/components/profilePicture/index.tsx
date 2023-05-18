@@ -116,7 +116,6 @@ const ProfilePicture: React.FC = () => {
     const imgWindow = window.open(src);
     imgWindow.document.write(image.outerHTML);
   };
-  console.log(imageUrl.loading);
   return (
     <ProfilePictureContainer>
       <ImgCrop>
