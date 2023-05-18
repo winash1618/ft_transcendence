@@ -62,6 +62,7 @@ const SettingsPage = () => {
       dispatch(resetChangeNickName());
     }
   }, [nickNameIsChanged]);
+  
   return (
     <SettingsContainer>
       <FormContainer onSubmit={handleSubmit(onSubmit)}>
