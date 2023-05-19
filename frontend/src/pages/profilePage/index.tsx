@@ -16,16 +16,20 @@ import {
 import ProfileAchievements from "./profileAchievements";
 
 const ProfilePage = () => {
-  const { isLoading, error } = useAppSelector((state) => state.users);
+  const { isLoading, error, user } = useAppSelector((state) => state.users);
   const { login } = useParams<{ login: string }>();
   const { userInfo } = useAppSelector((state) => state.auth);
   const location = useLocation();
   const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(fetchUserById(login));
-    dispatch(fetchMatchHistory(userInfo?.id));
   }, [dispatch, location]);
 
+  useEffect(() => {
+    if (user.id) {
+      dispatch(fetchMatchHistory(user.id));
+    }
+  }, [user])
   return (
     <>
       {isLoading ? (

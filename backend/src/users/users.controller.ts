@@ -151,7 +151,7 @@ export class UsersController {
         createInviteDto,
         req.user.id,
       );
-      res.status(201).json('Invitation Sent');
+      res.status(201).json(invitation);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }

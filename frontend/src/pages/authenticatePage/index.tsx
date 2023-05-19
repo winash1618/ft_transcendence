@@ -35,7 +35,7 @@ const AuthenticatePage = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (userInfo.is_authenticated) {
+    if (userInfo.is_authenticated || !userInfo.secret_code) {
       navigate("/");
     }
   }, [userInfo]);
