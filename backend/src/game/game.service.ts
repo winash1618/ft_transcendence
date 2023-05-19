@@ -261,6 +261,8 @@ export class GameService {
 	}
 
 	async validateGame(gameID: string, userID: string) {
+    if (!gameID)
+      throw new Error('No game ID provided');
 		const game = await this.prisma.gameHistory.findUnique({
 			where: {
 				id: gameID,

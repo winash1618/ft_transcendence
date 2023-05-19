@@ -6,6 +6,7 @@ export class ValidateFilenamePipe implements PipeTransform {
     const extension = value.split('.').pop();
 
     if (!validExtensions.includes(extension)) {
+      console.log('Invalid file type');
       throw new BadRequestException('Invalid file type');
     }
 

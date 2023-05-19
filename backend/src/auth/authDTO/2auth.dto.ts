@@ -1,8 +1,9 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 
 export class VerifyOtpDto {
   @IsNotEmpty()
   @IsString()
+  // @Matches(/^[A-Z2-7]+$/, { message: 'Invalid base32 string' })
   secret: string;
 
   @IsNotEmpty()

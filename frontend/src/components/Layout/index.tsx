@@ -32,12 +32,9 @@ import {
 import UserInfo from "./userInfo";
 import { IoNotifications } from "react-icons/io5";
 import ButtonComponent from "../ButtonComponent";
-import { Socket, io } from "socket.io-client";
+import { io } from "socket.io-client";
 import { setGameInfo, setSocket } from "../../store/gameReducer";
 const { darkAlgorithm } = theme;
-
-const timeInMinutes = process.env.REACT_APP_JWT_EXPIRES_IN as string;
-const timeInMinutesNumber = parseInt(timeInMinutes.replace("m", "")) * 60;
 
 const { Content, Footer, Header } = Layout;
 
@@ -52,7 +49,7 @@ const Navbar: React.FC = () => {
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(true);
   const { userInfo } = useAppSelector((state) => state.auth);
   const [open, setOpen] = useState<boolean>(false);
-  const { socket } = useAppSelector((state) => state.game);
+  const { socket, isGameStarted } = useAppSelector((state) => state.game);
   const [selected, setSelected] = useState<string>("0");
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [items, setItems] = useState<any[]>([]);
@@ -100,9 +97,7 @@ const Navbar: React.FC = () => {
         );
       }
       navigate("/pingpong");
-    } catch (err) {
-      console.log(err);
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -118,16 +113,17 @@ const Navbar: React.FC = () => {
       }
     });
     socket?.on("Invited", (data) => {
-      console.log(data);
-      setItems((prev) => [
-        ...prev,
-        {
-          key: data.id,
-          inviteId: data.inviteId,
-          type: "GAME",
-          login: data.login,
-        },
-      ]);
+      if (!isGameStarted) {
+        setItems((prev) => [
+          ...prev,
+          {
+            key: data.id,
+            inviteId: data.inviteId,
+            type: "GAME",
+            login: data.login,
+          },
+        ]);
+      }
     });
     socket?.on("start", (data) => {
       console.log(data);
@@ -210,7 +206,7 @@ const Navbar: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (userInfo.id) {
+    if (userInfo.id && !isGameStarted) {
       const getNotifications = async () => {
         try {
           const response = await axiosPrivate.get(

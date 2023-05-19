@@ -273,7 +273,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			const users = Array.from(this.userSockets.keys());
 			const foundUser = users.find(user => user.id === checkInvite.senderId);
 			const sender = this.userSockets.get(foundUser);
-			const invite = await this.usersService.acceptInvite(data.inviteID);
+			const invite = await this.usersService.acceptInvite(data.inviteID, client.data.userID.id);
 			if (!sender || sender.status !== GameStatus.WAITING) {
 				throw new Error('Sender is not waiting');
 			}

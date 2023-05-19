@@ -165,6 +165,9 @@ export class UsersService {
     if (await this.isUserBlocked(userID, friendID))
       throw new Error('User is blocked');
 
+    if (await this.checkIfUsersAreFriends(userID, friendID) === false)
+      throw new Error('Users are not friends');
+
     // Remove the friend connection for both users
     const user = await this.prisma.user.update({
       where: { id: userID },
@@ -471,6 +474,12 @@ export class UsersService {
     if (await this.checkIfUserExists(receiverId) === false)
       throw new Error('User does not exist');
 
+    if (await this.isUserBlocked(receiverId, senderId))
+      throw new Error('User is blocked');
+
+    if (type === 'FRIEND' && await this.checkIfUsersAreFriends(senderId, receiverId))
+      throw new Error('Users are already friends');
+
     const user = await this.prisma.user.findUnique({
       where: { id: senderId },
       include: { friends: true, sentInvites: true, blocked_users: true },
@@ -498,14 +507,30 @@ export class UsersService {
     });
   }
 
-  async acceptInvite(id: string) {
+  async checkIfUsersAreFriends(senderId: string, receiverId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: senderId },
+      include: { friends: true },
+    });
+
+    const friends = user.friends.filter((friend) => friend.id === receiverId);
+
+    return friends.length > 0;
+  }
+
+  async acceptInvite(id: string, receiverId: string) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
 
+    if (await this.checkInvitedUsers(id, receiverId) === false)
+      throw new Error('Invite does not exist');
+
     if (!invite) throw new Error('Invite does not exist');
 
     if (invite.type === 'FRIEND') {
+      if (await this.checkIfUsersAreFriends(invite.senderId, invite.receiverId))
+        throw new Error('Users are already friends');
       await this.prisma.user.update({
         where: { id: invite.senderId },
         data: { friends: { connect: { id: invite.receiverId } } },
@@ -575,7 +600,22 @@ export class UsersService {
     });
   }
 
+  async checkInvitedUsers(id: string, receiverId: string) {
+    const invite = await this.prisma.invitations.findUnique({
+      where: { id },
+    });
+
+    if (!invite) throw new Error('Invite does not exist');
+
+    if (invite.receiverId !== receiverId)
+      throw new Error('User is not invited');
+
+    return true;
+  }
+
   async fetchUserStatus(id: string) {
+    if ((await this.checkIfUserExists(id)) === false)
+      throw new Error('User does not exist');
     return await this.prisma.user.findUnique({
       where: { id },
       select: { user_status: true },

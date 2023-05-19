@@ -29,12 +29,16 @@ const beforeUpload = (file: RcFile) => {
   }
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
-    ErrorAlert("Image must smaller than 2MB!", 5000);
+    ErrorAlert("Image size must be less than 2MB!", 5000);
   }
   return isJpgOrPng && isLt2M;
 };
 
-const ProfilePicture: React.FC = () => {
+const ProfilePicture = ({
+  setShowModal,
+}: {
+  setShowModal: any;
+}) => {
   const [uploadedFile, setUploadedFile] = useState(false);
   const { userInfo, token } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
@@ -77,6 +81,7 @@ const ProfilePicture: React.FC = () => {
           },
         }
       );
+      setShowModal(false);
       dispatch(setUserInfo(response.data.user));
       SuccessAlert("Profile picture changed successfully", 5000);
     } catch (error) {
@@ -86,14 +91,15 @@ const ProfilePicture: React.FC = () => {
 
   useEffect(() => {
     if (userInfo?.profile_picture) {
-      setImageUrl({
-        loading: false,
-        image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`,
-        file: null,
-      });
+      setTimeout(() => {
+        setImageUrl({
+          loading: false,
+          image: `${BASE_URL}/users/profile-image/${userInfo?.profile_picture}/${token}`,
+          file: null,
+        });
+      }, 1000);
     }
   }, [userInfo]);
-
   const uploadButton = (
     <ButtonComponent
       style={{ width: "100%", maxWidth: "250px", marginBottom: "1rem" }}
@@ -116,7 +122,6 @@ const ProfilePicture: React.FC = () => {
     const imgWindow = window.open(src);
     imgWindow.document.write(image.outerHTML);
   };
-  console.log(imageUrl.loading);
   return (
     <ProfilePictureContainer>
       <ImgCrop>

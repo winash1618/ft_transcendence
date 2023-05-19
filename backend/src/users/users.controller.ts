@@ -25,7 +25,6 @@ import {
   Query
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
@@ -60,10 +59,11 @@ export class UsersController {
         secret: this.configService.get('JWT_SECRET'),
       });
       if (!decodedToken) {
+        console.log('Invalid token decoded')
         throw new BadRequestException('Invalid token');
       }
       const user = await this.usersService.findOne(
-        filename.substring(0, filename.lastIndexOf('.')),
+        filename.substring(0, filename.indexOf('_')),
       );
       if (
         !user ||
@@ -87,19 +87,15 @@ export class UsersController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: (1024 * 1024) * 4 }),
+          new MaxFileSizeValidator({ maxSize: (1024 * 1024) * 2 }),
           new FileTypeValidator({ fileType: /(jpg|jpeg|png)$/ }),
         ],
       }),
     )
     image: Express.Multer.File,
   ) {
-    const decodedToken = this.jwtService.verify(
-      request.headers.authorization.split(' ')[1],
-      { secret: this.configService.get('JWT_SECRET') },
-    );
     const user = await this.usersService.updateProfilePicture(
-      decodedToken.id,
+      request.user.id,
       image.filename,
     );
     return { user };
@@ -155,7 +151,7 @@ export class UsersController {
         createInviteDto,
         req.user.id,
       );
-      res.status(201).json(invitation);
+      res.status(201).json('Invitation Sent');
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -164,11 +160,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Put(':id/accept')
   async acceptInvite(
+    @Req() req,
     @Param('id', ParseUUIDPipe) id: string,
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const invitation = await this.usersService.acceptInvite(id);
+      const invitation = await this.usersService.acceptInvite(id, req.user.id);
       res.status(200).json('Invitation accepted');
     } catch (error) {
       console.log(error);
