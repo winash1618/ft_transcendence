@@ -314,7 +314,6 @@ export class UsersService {
       data: { secret_code: secret },
     });
 
-    console.log(code);
     return code;
   }
 

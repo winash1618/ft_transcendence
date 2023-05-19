@@ -113,7 +113,6 @@ export class UsersController {
     if (!user || await this.usersService.isUserBlocked(req.user.id, user.id)) {
       throw new NotFoundException(`User #${params.login}: not found`);
     }
-    console.log(user);
     return user;
   }
 

@@ -194,8 +194,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			console.log('In leaveQueue')
       this.verifyToken(client);
 			const player = this.userSockets.get(client.data.userID);
-			if (player.status !== GameStatus.QUEUED)
-				throw new Error('User is not in queue');
+			if (!player || player.status !== GameStatus.QUEUED)
+				return ;
 			const socketData = this.setUserStatus(client, GameStatus.WAITING);
 			const userid = socketData.userID;
 			this.defaultQ = this.defaultQ.filter(
@@ -205,6 +205,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				(user: any) => user.userID.id !== userid.id,
 			);
 		} catch (e) {
+      console.log('Error leaveQueue: ', e.message);
 			throw new WsException({
 				message: 'Error leaveQueue',
 				error: e.message,
@@ -312,6 +313,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				this.server.to(invitedSocketData.client.id).emit('Rejected', userID);
 			}
 		} catch (e) {
+      console.log('Error reject: ', e.message)
 			throw new WsException({
 				message: 'Error reject',
 				error: e.message,
@@ -331,6 +333,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			if (roomId in this.gameRooms)
 				this.gameRooms[roomId].moveMouse(data.y, client);
 		} catch (e) {
+      console.log('Error moveMouse: ', e.message)
 			throw new WsException({
 				message: 'Error move mouse',
 				error: e.message,
@@ -349,6 +352,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			if (roomId in this.gameRooms)
 				this.gameRooms[roomId].barSelect(keyStatus, client, isPressed);
 		} catch (e) {
+      console.log('Error move: ', e.message)
 			throw new WsException({
 				message: 'Error move',
 				error: e.message,
@@ -363,6 +367,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@ConnectedSocket() client: Socket,
 	) {
 		try {
+      console.log('In startGame', client.data.userID.login)
       this.verifyToken(client);
 			console.log('start game');
 			const roomID = data.roomID;
@@ -384,7 +389,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				this.gameRooms[roomID].startGame(this.usersService, socketData);
 			}
 		} catch (e) {
-			console.log(e);
+      console.log('Error startGame: ', e.message)
 			throw new WsException({
 				message: 'Error start game',
 				error: e.message,

@@ -36,8 +36,6 @@ export class GameService {
 				? gameData.player_one
 				: gameData.player_two;
 
-    console.log('gameData', gameData.winner, gameData.looser)
-
     await this.prisma.gameHistory.update({
       where: {
         id: id,
@@ -263,7 +261,6 @@ export class GameService {
 	}
 
 	async validateGame(gameID: string, userID: string) {
-		console.log(userID)
 		const game = await this.prisma.gameHistory.findUnique({
 			where: {
 				id: gameID,

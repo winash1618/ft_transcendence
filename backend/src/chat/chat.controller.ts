@@ -47,7 +47,6 @@ export class ChatController {
     @Res() res: Response,
   ) {
     try {
-      console.log('In getParticipants')
       const participants = await this.participantService.getConversationMembers(
         conversationID,
         req.user.id,
