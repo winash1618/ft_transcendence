@@ -59,7 +59,6 @@ export class UsersController {
         secret: this.configService.get('JWT_SECRET'),
       });
       if (!decodedToken) {
-        console.log('Invalid token decoded')
         throw new BadRequestException('Invalid token');
       }
       const user = await this.usersService.findOne(
@@ -118,6 +117,7 @@ export class UsersController {
     @Req() req,
     @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body() data: UpdateNameDto,
+    @Res() res: Response,
   ) {
     try {
       if (req.user.id !== uuid)
@@ -166,7 +166,7 @@ export class UsersController {
   ): Promise<void> {
     try {
       const invitation = await this.usersService.acceptInvite(id, req.user.id);
-      res.status(200).json('Invitation accepted');
+      res.status(200).json(invitation);
     } catch (error) {
       console.log(error);
       res.status(400).json({ message: error.message });
@@ -181,7 +181,7 @@ export class UsersController {
   ): Promise<void> {
     try {
       const invitation = await this.usersService.rejectInvite(id);
-      res.status(200).json('Invitation rejected');
+      res.status(200).json(invitation);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -200,7 +200,7 @@ export class UsersController {
     if (userID === friendID)
       throw new BadRequestException('You can not unfriend/friend yourself.');
     const user = await this.usersService.unfriend(userID, friendID);
-    res.status(200).json('User unfriended');
+    res.status(200).json(user);
   }
 
   @UseGuards(JwtAuthGuard)

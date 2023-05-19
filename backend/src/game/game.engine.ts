@@ -301,7 +301,6 @@ export class GameEngine {
     const users = Array.from(this.users.keys());
     const foundUser = users.find(user => user.id === client.data.userID.id);
     if (this.users.get(foundUser) === undefined) {
-      console.log('user not found');
 		return;
     }
     this.users.get(foundUser).client = client;
@@ -361,12 +360,12 @@ export class GameEngine {
       const foundUser = users.find(user => user.id === client.userID.id);
       let updateUser = this.users.get(foundUser);
       updateUser.client = client.client;
-      // if (updateUser.playerNumber === 1) {
-      //   this.gameObj.player1.name = updateUser.userID;
-      // }
-      // if (updateUser.playerNumber === 2) {
-      //   this.gameObj.player2.name = updateUser.userID;
-      // }
+      if (updateUser.playerNumber === 1) {
+        this.gameObj.player1.name = updateUser.userID;
+      }
+      if (updateUser.playerNumber === 2) {
+        this.gameObj.player2.name = updateUser.userID;
+      }
     }
 
     this.gameObj.gameStatus = GameStatus.PLAYING;

@@ -91,7 +91,6 @@ const GroupChat = ({
 	];
 
 	async function handleSelectedConversation(conversation: any) {
-		console.log("handleSelectedConversation in GroupChat")
 		const current_status = conversation.participants[0].conversation_status;
 		setStatus(conversation.participants[0].conversation_status);
 		if (current_status === Status.ACTIVE || current_status === Status.MUTED) {
@@ -133,18 +132,13 @@ const GroupChat = ({
 	}
 
 	const handleMenuClick = (e: any) => {
-		console.log("handleMenuClick in GroupChat ", e.target.outerText);
 		if (e.target.outerText === "Leave conversation") {
-			console.log("Leave conversation");
 			socket?.emit("leaveConversation", { conversationID: conversationID });
 		} else if (e.target.outerText === "Add password") {
 			setMenuVisible(menuVisible === false ? true : false);
-			console.log("Add password");
 		} else if (e.target.outerText === "Update password") {
 			setMenuVisible(menuVisible === false ? true : false);
-			console.log("Update password");
 		} else if (e.target.outerText === "Remove password") {
-			console.log("Remove password");
 			socket?.emit("removePassword", { conversationID: conversationID });
 		}
 	};

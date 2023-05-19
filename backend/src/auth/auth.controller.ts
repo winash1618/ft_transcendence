@@ -256,7 +256,6 @@ export class AuthController {
     @Res() res: Response,
     @Body() body: VerifyOtpDto,
   ): Promise<Response> {
-    console.log(body);
     const verified = speakeasy.totp.verify({
       secret: body.secret,
       encoding: 'base32',
@@ -283,7 +282,6 @@ export class AuthController {
     @Res() res: Response,
     @Body() body: ValidateOtpDto,
   ): Promise<Response> {
-    console.log(body);
     const cookie = req.cookies.auth;
     if (!cookie) {
       return res
@@ -340,7 +338,6 @@ export class AuthController {
   async searchUsers(
     @Query('search') search: string,
   ) {
-    console.log(search);
     return await this.userService.searchUsers(search);
   }
 }

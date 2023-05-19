@@ -61,7 +61,6 @@ const ProfilePicture = ({
         img.src = imageUrl;
         setUploadedFile(true);
         img.addEventListener("load", function () {
-          console.log(info.file.size);
           setImageUrl({ loading: false, image: imageUrl, file: info.file });
         });
       });

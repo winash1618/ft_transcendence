@@ -62,7 +62,6 @@ const GroupChatRelations = ({
 				})
 			);
 		} else if (e.target.textContent === "Ban") {
-			console.log("User Ban", userObject);
 			socket?.emit("banUser", {
 				conversationID: conversation.id,
 				userID: userObject.id,

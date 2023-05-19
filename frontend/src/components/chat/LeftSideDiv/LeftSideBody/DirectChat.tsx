@@ -24,13 +24,11 @@ const DirectChat = ({
 	const { token } = useAppSelector((state) => state.auth);
 
 	const resetState = useCallback(() => {
-		console.log("handleConversationLeft in DirectChat");
 		setMessages([]);
 		setConversationID(null);
 	}, [setMessages, setConversationID]);
 
 	useEffect(() => {
-		console.log("i am in direct useEffect");
 		resetState();
 	}, [conversations, resetState]);
 
@@ -42,7 +40,6 @@ const DirectChat = ({
 	};
 
 	async function handleSelectedConversation(conversation: any) {
-		console.log("i am in direct handleSelectedConversation");
 		setConversationID(conversation.id);
 		setMessages([]);
 		try {
