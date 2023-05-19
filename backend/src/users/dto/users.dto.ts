@@ -36,8 +36,8 @@ export class UpdateUserNameDto {
 
 export class UpdateNameDto {
   @IsString()
-  @Matches(/^[a-zA-Z0-9_-]{4,20}$/, {
-    message: 'name must include 4-20 characters and can only contain a-z, A-Z, 0-9, _ and -',
+  @Matches(/^(?=.*[a-zA-Z])[a-zA-Z0-9_-]{4,20}$/, {
+    message: 'name must include 3-20 characters and can only contain a-z, A-Z, 0-9, _ and -',
   })
   name: string;
 }

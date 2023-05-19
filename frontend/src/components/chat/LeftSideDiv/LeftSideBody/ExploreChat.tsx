@@ -49,7 +49,7 @@ const ExploreChat = ({
 	}
 
 	useEffect(() => {
-		setMenuVisible(false);  
+		setMenuVisible(false);
 	}, [conversations]);
 
 	return (

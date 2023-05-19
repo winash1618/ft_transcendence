@@ -3,11 +3,6 @@ services:
   postgres:
     image: postgres:13.4-buster
     container_name: postgres
-    environment:
-      PGPORT: 5432
-      POSTGRES_USER: mpatel
-      POSTGRES_PASSWORD: transcendence
-      DB_DATABASE: ft_database
     ports:
       - "5432:5432"
     networks:
@@ -30,30 +25,17 @@ services:
       - transcendence
     depends_on:
       - nestjs
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./nginx/:/etc/nginx/
-      - ./frontend/build:/var/www/html
-    ports:
-      - 80:80
-    command: /bin/sh -c "nginx -g 'daemon off;'"
-    depends_on:
-      - reactjs
-    networks:
-      - transcendence
   nestjs:
     image: node:19
     container_name: nestjs
     working_dir: /app/backend
     command: >
       bash -c "npm install
-      && npm i -g @nestjs/cli
       && npx prisma db push
       && npx prisma db seed
       && npm run build
-      && npm run start:dev"
+      && npm run start:prod
+      && npm i -g @nestjs/cli"
     networks:
       - transcendence
     ports:

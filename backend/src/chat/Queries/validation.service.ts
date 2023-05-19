@@ -22,14 +22,15 @@ export class validationService {
     if (!(await this.userService.checkIfUserExists(user)))
       throw new Error('User does not exist');
 
+    if (!(await this.conversationService.validateChannelTitle(createConversationDto.title)))
+      throw new Error('Conversation title already exists');
+
     if (createConversationDto.privacy === Privacy.DIRECT)
       throw new Error('You cannot create a direct conversation');
 
-    if (createConversationDto.privacy === Privacy.PROTECTED || createConversationDto.privacy === Privacy.PRIVATE && !createConversationDto.password)
+    if ((createConversationDto.privacy === Privacy.PROTECTED || createConversationDto.privacy === Privacy.PRIVATE) && !createConversationDto.password)
       throw new Error('You must provide a password for this conversation');
 
-    if (!(await this.conversationService.validateChannelTitle(createConversationDto.title)))
-      throw new Error('Conversation title already exists');
 
     return true;
   }

@@ -18,7 +18,6 @@ import {
 	KeyPress,
 	UserInfo,
 } from './interface/game.interface';
-import { JwtGuard } from 'src/utils/wsJWTGuard.guard';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
@@ -33,9 +32,7 @@ import { UserStatus } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { WebSocketConfig } from 'src/utils/ws-config';
 
-// @UseGuards(JwtGuard)
 @WebSocketGateway(8002, WebSocketConfig.getOptions(new ConfigService()))
-// @WebSocketGateway ()
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
@@ -53,7 +50,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	async handleConnection(client: Socket) {
 		try {
-			// const token = client.handshake.headers.token as string;
 			const userid = this.verifyToken(client);
 			if (!(await this.usersService.getUserById(userid['id'])))
 				throw new Error('User not found');
@@ -64,15 +60,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				this.handleDisconnect(client);
 			}
 
-			const game = await this.gameService.checkIfGameRunning(userid['id']);
+			const game = await this.gameService.checkIfGameRunning(userid.id);
 			if (game) {
-				client.join(game);
+        client.join(game);
 			}
 
 			client.data.userID = userid;
 			const user = await this.usersService.findOne(client.data.userID['login']);
 			client.data.userID['login'] = user.username;
-			// console.log('User connected: ', userid);
+			console.log('User connected: ', userid);
 
 			this.setUserStatus(client, GameStatus.WAITING);
 		}
@@ -85,7 +81,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	handleDisconnect(client: any) {
 		try {
 			const userid = client.data.userID;
-			// console.log('User disconnected: ', userid);
+			console.log('User disconnected: ', userid);
 			this.defaultQ = this.defaultQ.filter(
 				(user: any) => user.userID.login !== userid.login,
 			);
@@ -107,8 +103,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			player_one: player1.userID.id,
 			player_two: player2.userID.id,
 			hasMiddleWall: hasMiddleWall,
-			player_score: -1,
-			opponent_score: -1,
+			player_score: 0,
+			opponent_score: 0,
 			winner: null,
 			looser: null,
 		});
@@ -278,7 +274,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				throw new Error('Sender is not waiting');
 			}
 			if (invite) {
-				console.log('Users are ready')
 				this.initGameRoom(
 					sender,
 					user,
@@ -369,7 +364,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		try {
       console.log('In startGame', client.data.userID.login)
       this.verifyToken(client);
-			console.log('start game');
 			const roomID = data.roomID;
 			await this.gameService.validateGame(roomID, client.data.userID.id);
 			const socketData: SocketData = this.setUserStatus(

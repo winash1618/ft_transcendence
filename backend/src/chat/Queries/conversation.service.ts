@@ -178,9 +178,6 @@ export class ConversationService {
 
     if (!user) throw new Error('User is not participant');
 
-    if (user.conversation_status === Status.ACTIVE)
-      throw new Error('User is not muted');
-
     return await this.prisma.participant.update({
       where: {
         conversation_id_user_id: {

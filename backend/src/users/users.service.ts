@@ -208,6 +208,21 @@ export class UsersService {
     if (await this.isUserBlocked(userID, blockID))
       throw new Error('User is already blocked');
 
+    await this.prisma.invitations.deleteMany({
+      where: {
+        OR: [
+          {
+            senderId: userExists.id,
+            receiverId: blockExists.id,
+          },
+          {
+            senderId: blockExists.id,
+            receiverId: userExists.id,
+          }
+        ]
+      }
+    });
+
     // Block the user
     const user = await this.prisma.user.update({
       where: { id: userID },
@@ -505,6 +520,9 @@ export class UsersService {
         username: true,
         login: true,
         sentInvites: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
       }
     });
 
@@ -522,7 +540,6 @@ export class UsersService {
     }
     user.sentInvites.push(invite);
 
-    console.log(user)
     return user;
   }
 

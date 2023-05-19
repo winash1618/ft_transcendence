@@ -18,8 +18,8 @@ export class GameService {
         player_one: createGameDto.player_one,
         player_two: createGameDto.player_two,
         hasMiddleWall: createGameDto.hasMiddleWall,
-        player_score: -1,
-        opponent_score: -1,
+        player_score: 0,
+        opponent_score: 0,
         winner: '',
         looser: '',
       },
@@ -93,7 +93,6 @@ export class GameService {
   async getGameHistory(playerId: string) {
     if (await this.userService.checkIfUserExists(playerId) === false)
       throw new Error('User not found');
-    console.log(playerId);
     const gameHistory = await this.prisma.gameHistory.findMany({
       where: {
         OR: [
@@ -128,8 +127,6 @@ export class GameService {
         createdAt: 'desc',
       },
     });
-
-    console.log(gameHistory);
 
 		if (!gameHistory) {
 			throw new Error('No game history found');

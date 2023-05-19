@@ -38,75 +38,69 @@ const GroupChatRelations = ({
   setGroupNav,
   groupNav,
 }: GroupChatRelationsProps) => {
-  const [userObject, setUserObject] = useState<any>(null);
-  const [searchText, setSearchText] = useState("");
-  const { token } = useAppSelector((state) => state.auth);
-  /*-----------Handle User Click-------------------------------------------------*/
-  const handleUserClick = (participant: any) => {
-    setUserObject(participant.user);
-  };
-  /*-----------Handle User Click-------------------------------------------------*/
-  /*-----------Handle Menu Click-------------------------------------------------*/
-  const handleMenuClick = (e: any) => {
-    if (e.target.textContent === "Make Admin") {
-      socket?.emit("makeAdmin", {
-        conversationID: conversation.id,
-        userID: userObject.id,
-      });
-      setGroupResults(
-        groupResults.map((result) => {
-          if (result.user.id === userObject.id) {
-            return { ...result, role: Role.ADMIN };
-          }
-          return result;
-        })
-      );
-    } else if (e.target.textContent === "Ban") {
-      socket?.emit("banUser", {
-        conversationID: conversation.id,
-        userID: userObject.id,
-      });
-      setGroupResults(
-        groupResults.filter((result) => result.user.id !== userObject.id)
-      );
-    } else if (e.target.textContent === "Mute") {
-      socket?.emit("muteUser", {
-        conversationID: conversation.id,
-        userID: userObject.id,
-      });
-    } else if (e.target.textContent === "Kick") {
-      socket?.emit("removeParticipant", {
-        conversationID: conversation.id,
-        userID: userObject.id,
-      });
-      setGroupResults(
-        groupResults.filter((result) => result.user.id !== userObject.id)
-      );
-    }
-  };
-  /*-----------Handle Menu Click-------------------------------------------------*/
-  /*-----------Handle Unban Click-------------------------------------------------*/
-  const handleUnbanClick = (object: any) => {
-    setUserObject(object.user);
-    socket?.emit("unbanUser", {
-      conversationID: conversation.id,
-      userID: object.user.id,
-    });
-    setGroupResults(
-      groupResults.filter((result) => result.user.id !== object.user.id)
-    );
-  };
-  /*-----------Handle Unban Click-------------------------------------------------*/
-  /*-----------Handle Add Click-------------------------------------------------*/
-  const handleAddClick = (object: any) => {
-    setUserObject(object.username);
-    socket?.emit("addParticipant", {
-      conversationID: conversation.id,
-      userID: object.id,
-    });
-    setGroupResults(groupResults.filter((result) => result.id !== object.id));
-  };
-  /*-----------Handle Add Click-------------------------------------------------*/
+	const [userObject, setUserObject] = useState<any>(null);
+	const [searchText, setSearchText] = useState("");
+	const { token } = useAppSelector((state) => state.auth);
+	/*-----------Handle User Click-------------------------------------------------*/
+	const handleUserClick = (participant: any) => {
+		setUserObject(participant.user);
+	};
+	/*-----------Handle User Click-------------------------------------------------*/
+	/*-----------Handle Menu Click-------------------------------------------------*/
+	const handleMenuClick = (e: any) => {
+		if (e.target.textContent === "Make Admin") {
+			socket?.emit("makeAdmin", {
+				conversationID: conversation.id,
+				userID: userObject.id,
+			});
+			setGroupResults(
+				groupResults.map((result) => {
+					if (result.user.id === userObject.id) {
+						return { ...result, role: Role.ADMIN };
+					}
+					return result;
+				})
+			);
+		} else if (e.target.textContent === "Ban") {
+			socket?.emit("banUser", {
+				conversationID: conversation.id,
+				userID: userObject.id,
+			});
+			setGroupResults(groupResults.filter((result) => result.user.id !== userObject.id));
+		} else if (e.target.textContent === "Mute") {
+			socket?.emit("muteUser", {
+				conversationID: conversation.id,
+				userID: userObject.id,
+			});
+		} else if (e.target.textContent === "Kick") {
+			socket?.emit("removeParticipant", {
+				conversationID: conversation.id,
+				userID: userObject.id,
+			});
+			setGroupResults(groupResults.filter((result) => result.user.id !== userObject.id));
+		}
+	};
+	/*-----------Handle Menu Click-------------------------------------------------*/
+	/*-----------Handle Unban Click-------------------------------------------------*/
+	const handleUnbanClick = (object: any) => {
+		setUserObject(object.user);
+		socket?.emit("unbanUser", {
+			conversationID: conversation.id,
+			userID: object.user.id,
+		});
+		setGroupResults(groupResults.filter((result) => result.user.id !== object.user.id));
+	};
+	/*-----------Handle Unban Click-------------------------------------------------*/
+	/*-----------Handle Add Click-------------------------------------------------*/
+	const handleAddClick = (object: any) => {
+		setUserObject(object.username);
+		socket?.emit("addParticipant", {
+			conversationID: conversation.id,
+			userID: object.id,
+		});
+		setGroupResults(groupResults.filter((result) => result.id !== object.id));
+	};
+	/*-----------Handle Add Click-------------------------------------------------*/
 
   const filterResults = (data: ResultObject[], searchText: string) => {
     if (!searchText) {
