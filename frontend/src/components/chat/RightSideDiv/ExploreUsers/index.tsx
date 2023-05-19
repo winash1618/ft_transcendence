@@ -31,7 +31,6 @@ const ExploreUsers = () => {
 						window.location.href = '/error';
 					});
 			} catch (err) {
-				console.log(err);
 			}
 		} else {
 			setResults([]);

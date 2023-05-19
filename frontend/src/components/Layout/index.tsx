@@ -61,7 +61,6 @@ const Navbar: React.FC = () => {
     try {
       const response = await axiosPrivate.get(`/game/${userInfo.id}`);
       if (userInfo.id === response.data.playerOne.id) {
-        console.log(response.data);
         dispatch(
           setGameInfo({
             players: {
@@ -128,7 +127,6 @@ const Navbar: React.FC = () => {
       }
     });
     socket?.on("start", (data) => {
-      console.log(data);
       dispatch(
         setGameInfo({
           ...data,
@@ -161,7 +159,6 @@ const Navbar: React.FC = () => {
       if (!response.data.user.username) {
         navigate("/set-nickname");
       }
-      console.log(response.data.user);
       if (
         !response.data.user.is_authenticated &&
         response.data.user.secret_code
@@ -198,7 +195,6 @@ const Navbar: React.FC = () => {
       });
       dispatch(setSocket(socket));
     } catch (err) {
-      console.log(err);
     }
   };
 
@@ -226,7 +222,6 @@ const Navbar: React.FC = () => {
             }))
           );
         } catch (err) {
-          console.log(err);
         }
       };
       getNotifications();
@@ -313,7 +308,6 @@ const Navbar: React.FC = () => {
               collapsedWidth="0"
               collapsible={true}
               onBreakpoint={(broken) => {
-                console.log(broken);
               }}
               collapsed={isCollapsed}
               onCollapse={(collapsed, type) => {

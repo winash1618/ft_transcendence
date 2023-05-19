@@ -24,7 +24,6 @@ export const fetchUserById = createAsyncThunk(
   "users/fetchById",
   async (id: string, thunkApi) => {
     try {
-      console.log(id);
       const result = await axiosPrivate.get(`/users/${id}`);
       return result.data;
     } catch (error) {
@@ -98,7 +97,6 @@ const usersSlide = createSlice({
       };
     });
     builder.addCase(fetchUserById.rejected, (state, action) => {
-      console.log(action.payload);
       return {
         ...state,
         isLoading: false,

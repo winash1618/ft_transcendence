@@ -269,7 +269,6 @@ const PingPongCanvas = () => {
         setPlayer2Score(data);
       });
       if (roomID.length > 0 && timer) {
-        console.log("StartGame");
         socket?.emit("StartGame", {
           roomID,
           hasMiddleWall,
@@ -277,7 +276,6 @@ const PingPongCanvas = () => {
       }
       return () => {
         socket?.off("gameUpdate", (data) => {
-          console.log(data);
           game.ball.x = (data.ball.x * canvaRef.current.width) / 900;
           game.ball.y = (data.ball.y * canvaRef.current.height) / 800;
           game.paddle1.y = (data.paddle1.y * canvaRef.current.height) / 800;

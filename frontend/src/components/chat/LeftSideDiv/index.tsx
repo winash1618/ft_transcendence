@@ -47,7 +47,6 @@ const LeftSideDiv = ({
 			const result = await axiosPrivate.get(`s/chat/${object}/Messages`);
 			setMessages(result.data);
 		} catch (err) {
-			console.log(err);
 		}
 	}, [setConversationID, setMessages]);
 
@@ -58,7 +57,6 @@ const LeftSideDiv = ({
 			setConversations(result.data);
 			setMessages([]);
 		} catch (err) {
-			console.log(err);
 		}
 	}, [setConversations, setMessages, setConversationID]);
 

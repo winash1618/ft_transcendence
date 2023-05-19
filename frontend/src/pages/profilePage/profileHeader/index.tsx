@@ -27,8 +27,6 @@ const ProfileHeader = () => {
       });
       dispatch(setUserInfo(response.data));
     } catch (err) {
-      console.log("test");
-      console.log(err);
     }
   };
 
@@ -37,11 +35,8 @@ const ProfileHeader = () => {
       const response = await axiosPrivate.delete(
         `/users/${userInfo?.id}/unfriend/${user?.id}`
       );
-      console.log(response);
       dispatch(setUserInfo(response.data));
     } catch (err) {
-      console.log("test");
-      console.log(err);
     }
   };
 
@@ -50,11 +45,8 @@ const ProfileHeader = () => {
       const response = await axiosPrivate.post(
         `/users/${userInfo?.id}/block/${user?.id}`
       );
-      console.log(response);
       dispatch(setUserInfo(response.data));
     } catch (err) {
-      console.log("test");
-      console.log(err);
     }
   };
 
@@ -63,11 +55,8 @@ const ProfileHeader = () => {
       const response = await axiosPrivate.delete(
         `/users/${userInfo?.id}/unblock/${user?.id}`
       );
-      console.log(response);
       dispatch(setUserInfo(response.data));
     } catch (err) {
-      console.log("test");
-      console.log(err);
     }
   };
 

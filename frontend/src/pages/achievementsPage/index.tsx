@@ -82,7 +82,6 @@ const AchievementsPage = () => {
             ),
           },
         ]);
-        console.log(response.data);
       };
       fetchAchievements();
     }

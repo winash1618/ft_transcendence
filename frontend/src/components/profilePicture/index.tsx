@@ -61,7 +61,6 @@ const ProfilePicture = ({
         img.src = imageUrl;
         setUploadedFile(true);
         img.addEventListener("load", function () {
-          console.log(info.file.size);
           setImageUrl({ loading: false, image: imageUrl, file: info.file });
         });
       });
@@ -85,7 +84,6 @@ const ProfilePicture = ({
       dispatch(setUserInfo(response.data.user));
       SuccessAlert("Profile picture changed successfully", 5000);
     } catch (error) {
-      console.log(error);
     }
   };
 

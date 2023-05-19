@@ -63,7 +63,6 @@ const MessageDiv = ({
 					window.location.href = '/error';
 				});
 		} catch (err) {
-			console.log(err);
 		}
 	}, [conversationID, setMessages, userInfo]);
 

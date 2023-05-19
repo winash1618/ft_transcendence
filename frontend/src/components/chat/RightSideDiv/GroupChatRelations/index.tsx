@@ -62,7 +62,6 @@ const GroupChatRelations = ({
 				})
 			);
 		} else if (e.target.textContent === "Ban") {
-			console.log("User Ban", userObject);
 			socket?.emit("banUser", {
 				conversationID: conversation.id,
 				userID: userObject.id,
@@ -157,7 +156,6 @@ const GroupChatRelations = ({
 						window.location.href = '/error';
 					});
 			} catch (err) {
-				console.log(err);
 			}
 		}
 		if (nav === GNav.BLOCKED && conversationID !== null) {
@@ -176,7 +174,6 @@ const GroupChatRelations = ({
 						window.location.href = '/error';
 					});
 			} catch (err) {
-				console.log(err);
 			}
 		}
 		if (nav === GNav.ADD && conversationID !== null) {
@@ -195,7 +192,6 @@ const GroupChatRelations = ({
 						window.location.href = '/error';
 					});
 			} catch (err) {
-				console.log(err);
 			}
 		}
 		setGroupNav(nav);

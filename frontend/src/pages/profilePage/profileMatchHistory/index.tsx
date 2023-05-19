@@ -17,7 +17,6 @@ import { BASE_URL } from "../../../api";
 
 const ProfileMatchHistory = () => {
   const { matchHistory } = useAppSelector((state) => state.users);
-  console.log(matchHistory);
   const { user } = useAppSelector((state) => state.users);
   const { token } = useAppSelector((state) => state.auth);
   return (

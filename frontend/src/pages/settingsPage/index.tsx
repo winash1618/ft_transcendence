@@ -52,7 +52,6 @@ const SettingsPage = () => {
       SuccessAlert("2-factor authentication disabled successfully", 5000);
       dispatch(setUserInfo(response.data.user));
     } catch (err) {
-      console.log(err);
     }
   };
 

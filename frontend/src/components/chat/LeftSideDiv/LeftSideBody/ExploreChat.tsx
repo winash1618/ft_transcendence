@@ -33,7 +33,6 @@ const ExploreChat = ({
 	};
 
 	function handleSelectedConversation(conversation: any) {
-		console.log("handleSelectedConversation in ExploreChat")
 		setSelectedConversationID(conversation.id);
 		if (conversation.privacy === "PUBLIC") {
 			socket?.emit("joinConversation", { conversationID: conversation.id, password: "" });
@@ -44,14 +43,12 @@ const ExploreChat = ({
 	}
 
 	function handleProtectedConversation(conversation: any, password: string) {
-		console.log("handleProtectedConversation in ExploreChat")
 		socket?.emit("joinConversation", { conversationID: conversation.id, password: password });
 		setPassword('');
 		setMenuVisible(false);
 	}
 
 	useEffect(() => {
-		console.log("Explore useEffect to reset data");
 		setMenuVisible(false);  
 	}, [conversations]);
 

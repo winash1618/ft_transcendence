@@ -31,7 +31,6 @@ const gameSlide = createSlice({
   initialState,
   reducers: {
     setGameInfo: (state, action) => {
-      console.log(action.payload);
       return {
         ...state,
         players: action.payload.players,

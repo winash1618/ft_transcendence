@@ -156,7 +156,6 @@ function LeftSideHeader({
 
 	useEffect(() => {
 		if (user && user !== undefined) {
-			console.log("i am in leftsideheader useEffect");
 			handleNavbarClick(Navbar);
 		}
 	}, [Navbar, user, handleNavbarClick]);

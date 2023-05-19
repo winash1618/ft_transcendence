@@ -29,7 +29,6 @@ const DirectChatRelations = ({ socket, results }: DirectChatRelationsProps) => {
 				userID: userClicked.id,
 				title: userClicked.username,
 			});
-			console.log("Chat");
 		} else if (e.target.textContent === "Profile") {
 			window.location.href = `/profile/${userClicked.login}`;
 		} else if (e.target.textContent === "Invite") {

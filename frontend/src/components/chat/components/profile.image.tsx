@@ -16,7 +16,6 @@ const ProfilePicture = ({ conversation, token }) => {
 				if (response.status === 200) {
 					setImageUrl(profilePictureUrl);
 				} else {
-					console.log(`URL ${profilePictureUrl} is not available`);
 				}
 			})
 			.catch((error) => {

@@ -22,7 +22,6 @@ const CreateChat = ({
 	};
 
 	const handleStatusChange = (value) => {
-		console.log(value);
 		setShowProtected(value === "PROTECTED" || value === "PRIVATE");
 	};
 

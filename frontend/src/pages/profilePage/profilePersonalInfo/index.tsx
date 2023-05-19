@@ -15,7 +15,6 @@ import { Col, Row } from "antd";
 
 const ProfilePersonalInfo = () => {
   const { user } = useAppSelector((state) => state.users);
-  console.log(user);
   return (
     <ProfilePersonalInfoContainer>
       <PersonalInfoTitle>Personal Info</PersonalInfoTitle>

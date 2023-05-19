@@ -37,7 +37,6 @@ const LeaderBoardPage = () => {
 				window.location.href = '/error';
 			});
 		} catch (err) {
-			console.log(err);
 		}
 	};
 
