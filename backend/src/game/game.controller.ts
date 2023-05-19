@@ -30,7 +30,6 @@ export class GameController {
     @Res() res: Response,
   ) {
     try {
-      if (req.user.id !== id) throw new NotFoundException(`Game history not found`);
       const gameHistory = await this.gameService.getGameHistory(id);
       return res.status(200).json(gameHistory);
     } catch {

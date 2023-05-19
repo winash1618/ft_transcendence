@@ -247,7 +247,6 @@ const PingPongCanvas = () => {
   }, [player, roomID, socket, window]);
 
   useEffect(() => {
-    if (canvaRef.current) {
       socket?.on("win", (data) => {
         setGameStatus(1);
       });
@@ -270,6 +269,7 @@ const PingPongCanvas = () => {
         setPlayer2Score(data);
       });
       if (roomID.length > 0 && timer) {
+        console.log("StartGame");
         socket?.emit("StartGame", {
           roomID,
           hasMiddleWall,
@@ -299,7 +299,6 @@ const PingPongCanvas = () => {
           setGameStatus(3);
         });
       };
-    }
   }, [socket, player, dispatch, roomID]);
 
   useEffect(() => {

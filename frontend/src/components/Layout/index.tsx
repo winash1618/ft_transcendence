@@ -70,6 +70,7 @@ const Navbar: React.FC = () => {
               player1Pic: response.data.playerOne.profile_pic,
               player2Pic: response.data.playerTwo.profile_pic,
             },
+            hasMiddleWall: response.data.hasMiddleWall,
             player1Score: response.data.player_score,
             player2Score: response.data.opponent_score,
             timer: false,
@@ -87,6 +88,7 @@ const Navbar: React.FC = () => {
               player1Pic: response.data.playerOne.profile_pic,
               player2Pic: response.data.playerTwo.profile_pic,
             },
+            hasMiddleWall: response.data.hasMiddleWall,
             player1Score: response.data.player_score,
             player2Score: response.data.opponent_score,
             timer: false,
@@ -101,7 +103,7 @@ const Navbar: React.FC = () => {
   };
 
   useEffect(() => {
-    if (userInfo.id) {
+    if (userInfo.id && !isGameStarted) {
       fetchGameInfo();
     }
   }, [userInfo, navigate]);
@@ -134,7 +136,6 @@ const Navbar: React.FC = () => {
           player2Score: 0,
           player1Score: 0,
           timer: true,
-          hasMiddleWall: data.hasMiddleWall,
         })
       );
       navigate("/pingpong");
@@ -160,6 +161,7 @@ const Navbar: React.FC = () => {
       if (!response.data.user.username) {
         navigate("/set-nickname");
       }
+      console.log(response.data.user);
       if (
         !response.data.user.is_authenticated &&
         response.data.user.secret_code
@@ -201,9 +203,12 @@ const Navbar: React.FC = () => {
   };
 
   useEffect(() => {
-    getToken();
     getSocket();
   }, [dispatch]);
+
+  useEffect(() => {
+    getToken();
+  }, [navigate])
 
   useEffect(() => {
     if (userInfo.id && !isGameStarted) {

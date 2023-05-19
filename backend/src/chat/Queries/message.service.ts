@@ -131,7 +131,7 @@ export class MessageService {
       ...user.blocked_by.map((blockedByUser) => blockedByUser.id),
     ];
 
-    return this.prisma.message.findMany({
+    const messages = await this.prisma.message.findMany({
       where: {
         conversation_id: conversationID,
         author: {
@@ -141,8 +141,9 @@ export class MessageService {
         },
       },
       orderBy: {
-        created_at: 'asc',
+        created_at: 'desc',
       },
+      take: 150,
       select: {
         author: {
           select: {
@@ -160,5 +161,7 @@ export class MessageService {
         conversation_id: true,
       },
     });
+
+    return messages.reverse();
   }
 }

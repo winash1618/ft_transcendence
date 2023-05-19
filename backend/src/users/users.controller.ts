@@ -109,7 +109,6 @@ export class UsersController {
     if (!user || await this.usersService.isUserBlocked(req.user.id, user.id)) {
       throw new NotFoundException(`User #${params.login}: not found`);
     }
-    console.log(user);
     return user;
   }
 
@@ -161,11 +160,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Put(':id/accept')
   async acceptInvite(
+    @Req() req,
     @Param('id', ParseUUIDPipe) id: string,
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const invitation = await this.usersService.acceptInvite(id);
+      const invitation = await this.usersService.acceptInvite(id, req.user.id);
       res.status(200).json('Invitation accepted');
     } catch (error) {
       console.log(error);

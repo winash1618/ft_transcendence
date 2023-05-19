@@ -4,8 +4,4 @@ export class StartGameDto {
   @IsUUID()
   @IsNotEmpty()
   roomID: string;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  hasMiddleWall: boolean;
 }

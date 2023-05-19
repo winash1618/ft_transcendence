@@ -52,6 +52,7 @@ export class UsersService {
         last_name: true,
         profile_picture: true,
         is_authenticated: true,
+        secret_code: true,
         user_status: true,
         blocked_users: true,
         friends: {
@@ -164,6 +165,9 @@ export class UsersService {
 
     if (await this.isUserBlocked(userID, friendID))
       throw new Error('User is blocked');
+
+    if (await this.areUsersFriends(userID, friendID) === false)
+      throw new Error('Users are not friends');
 
     // Remove the friend connection for both users
     const user = await this.prisma.user.update({
@@ -311,10 +315,9 @@ export class UsersService {
   async updateSecretCode(id: string, secret: string | null) {
     const code = await this.prisma.user.update({
       where: { id },
-      data: { secret_code: secret },
+      data: { secret_code: secret, is_authenticated: true },
     });
 
-    console.log(code);
     return code;
   }
 
@@ -399,6 +402,23 @@ export class UsersService {
     return user.blocked_users.length > 0;
   }
 
+  async isBothUsersBlocked(userId1: string, userId2: string): Promise<boolean> {
+    const user1 = await this.prisma.user.findUnique({
+        where: { id: userId1 },
+        select: { blocked_users: { select: { id: true } } }
+    });
+
+    const user2 = await this.prisma.user.findUnique({
+        where: { id: userId2 },
+        select: { blocked_users: { select: { id: true } } }
+    });
+
+    const user1BlockedUsersIds = user1?.blocked_users.map(user => user.id) || [];
+    const user2BlockedUsersIds = user2?.blocked_users.map(user => user.id) || [];
+
+    return user1BlockedUsersIds.includes(userId2) || user2BlockedUsersIds.includes(userId1);
+}
+
   async blockedUsers(userID: string) {
     if ((await this.checkIfUserExists(userID)) === false)
       throw new Error('User does not exist');
@@ -472,9 +492,20 @@ export class UsersService {
     if (await this.checkIfUserExists(receiverId) === false)
       throw new Error('User does not exist');
 
+    if (await this.isBothUsersBlocked(receiverId, senderId))
+      throw new Error('User is blocked');
+
+    if (type === 'FRIEND' && await this.areUsersFriends(senderId, receiverId) === true)
+      throw new Error('Users are friends');
+
     const user = await this.prisma.user.findUnique({
       where: { id: senderId },
-      include: { friends: true, sentInvites: true, blocked_users: true },
+      select: {
+        id: true,
+        username: true,
+        login: true,
+        sentInvites: true,
+      }
     });
 
     const invite = await this.prisma.invitations.create({
@@ -490,6 +521,8 @@ export class UsersService {
       return invite;
     }
     user.sentInvites.push(invite);
+
+    console.log(user)
     return user;
   }
 
@@ -499,14 +532,41 @@ export class UsersService {
     });
   }
 
-  async acceptInvite(id: string) {
+  async areUsersFriends(userId1: string, userId2: string): Promise<boolean> {
+    const user1 = await this.prisma.user.findUnique({
+        where: { id: userId1 },
+        select: { friends: { select: { id: true } } }
+    });
+
+    const user2 = await this.prisma.user.findUnique({
+        where: { id: userId2 },
+        select: { friends: { select: { id: true } } }
+    });
+
+    const user1FriendsIds = user1?.friends.map(friend => friend.id) || [];
+    const user2FriendsIds = user2?.friends.map(friend => friend.id) || [];
+
+    return user1FriendsIds.includes(userId2) && user2FriendsIds.includes(userId1);
+}
+
+  async acceptInvite(id: string, receiverId: string) {
     const invite = await this.prisma.invitations.findUnique({
       where: { id },
     });
 
     if (!invite) throw new Error('Invite does not exist');
 
+    if (await this.isBothUsersBlocked(invite.senderId, receiverId))
+      throw new Error('User is blocked');
+
+    if (await this.checkInvitedUsers(id, receiverId) === false)
+      throw new Error('Invite does not exist');
+
+    if (!invite) throw new Error('Invite does not exist');
+
     if (invite.type === 'FRIEND') {
+      if (await this.areUsersFriends(invite.senderId, invite.receiverId))
+        throw new Error('Users are already friends');
       await this.prisma.user.update({
         where: { id: invite.senderId },
         data: { friends: { connect: { id: invite.receiverId } } },
@@ -576,7 +636,22 @@ export class UsersService {
     });
   }
 
+  async checkInvitedUsers(id: string, receiverId: string) {
+    const invite = await this.prisma.invitations.findUnique({
+      where: { id },
+    });
+
+    if (!invite) throw new Error('Invite does not exist');
+
+    if (invite.receiverId !== receiverId)
+      throw new Error('User is not invited');
+
+    return true;
+  }
+
   async fetchUserStatus(id: string) {
+    if ((await this.checkIfUserExists(id)) === false)
+      throw new Error('User does not exist');
     return await this.prisma.user.findUnique({
       where: { id },
       select: { user_status: true },

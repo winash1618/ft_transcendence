@@ -36,8 +36,6 @@ export class GameService {
 				? gameData.player_one
 				: gameData.player_two;
 
-    console.log('gameData', gameData.winner, gameData.looser)
-
     await this.prisma.gameHistory.update({
       where: {
         id: id,
@@ -93,6 +91,9 @@ export class GameService {
   }
 
   async getGameHistory(playerId: string) {
+    if (await this.userService.checkIfUserExists(playerId) === false)
+      throw new Error('User not found');
+    console.log(playerId);
     const gameHistory = await this.prisma.gameHistory.findMany({
       where: {
         OR: [
@@ -127,6 +128,8 @@ export class GameService {
         createdAt: 'desc',
       },
     });
+
+    console.log(gameHistory);
 
 		if (!gameHistory) {
 			throw new Error('No game history found');
@@ -263,7 +266,8 @@ export class GameService {
 	}
 
 	async validateGame(gameID: string, userID: string) {
-		console.log(userID)
+    if (!gameID)
+      throw new Error('No game ID provided');
 		const game = await this.prisma.gameHistory.findUnique({
 			where: {
 				id: gameID,

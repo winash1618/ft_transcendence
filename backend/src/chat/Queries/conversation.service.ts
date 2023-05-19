@@ -348,18 +348,31 @@ export class ConversationService {
       select: {
         friends: {
           where: {
-            NOT: {
-              participant_in: {
-                some: {
-                  conversation_id: conversationID,
-                  NOT: {
-                    conversation_status: {
-                      in: ['BANNED'],
-                    },
-                  },
-                },
+            OR: [
+              {
+                participant_in: {
+                  none: {
+                    conversation_id: conversationID
+                  }
+                }
               },
-            },
+              {
+                participant_in: {
+                  some: {
+                    AND: [
+                      {
+                        conversation_id: conversationID
+                      },
+                      {
+                        conversation_status: {
+                          in: ['KICKED', 'DELETED']
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
           },
           select: {
             id: true,
@@ -368,7 +381,8 @@ export class ConversationService {
           },
         },
       },
-    });
+  });
+
     return conv;
   }
 

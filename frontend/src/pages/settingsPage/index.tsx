@@ -58,7 +58,6 @@ const SettingsPage = () => {
 
   useEffect(() => {
     if (nickNameIsChanged) {
-      SuccessAlert("Nickname changed successfully", 5000);
       dispatch(resetChangeNickName());
     }
   }, [nickNameIsChanged]);
