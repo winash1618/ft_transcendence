@@ -33,11 +33,11 @@ const NickNamePage = () => {
 
   const dispatch = useAppDispatch();
 
-//   useEffect(() => {
-//     if (!!userInfo.username) {
-//       navigate("/");
-//     }
-//   }, [userInfo]);
+  useEffect(() => {
+    if (!!userInfo.username) {
+      navigate("/");
+    }
+  }, [userInfo, navigate]);
 
   const onSubmit: SubmitHandler<NickNameType> = (data) => {
     dispatch(changeNickName({ id: userInfo.id, name: data.nickName }));
