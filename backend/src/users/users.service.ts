@@ -353,11 +353,6 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { id },
       data: { username: name },
-      select: {
-        id: true,
-        username: true,
-        login: true,
-      },
     });
   }
 

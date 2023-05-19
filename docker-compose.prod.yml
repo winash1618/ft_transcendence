@@ -3,12 +3,30 @@ services:
   postgres:
     image: postgres:13.4-buster
     container_name: postgres
+    environment:
+      PGPORT: 5432
+      POSTGRES_USER: mpatel
+      POSTGRES_PASSWORD: transcendence
+      DB_DATABASE: ft_database
     ports:
       - "5432:5432"
     networks:
       - transcendence
     volumes:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/:/etc/nginx/
+      - ./frontend/build:/var/www/html
+    ports:
+      - 80:80
+    command: /bin/sh -c "nginx -g 'daemon off;'"
+    depends_on:
+      - reactjs
+    networks:
+      - transcendence
   reactjs:
     image: node:19
     container_name: reactjs

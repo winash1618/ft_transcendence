@@ -12,9 +12,11 @@ import {
 import { NickNameSchema } from "../../utils/schema";
 import ButtonComponent from "../../components/ButtonComponent";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { changeNickName, resetChangeNickName } from "../../store/usersReducer";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { setUserInfo } from "../../store/authReducer";
+import { axiosPrivate } from "../../api";
+import { ErrorAlert } from "../../components/toastify";
 
 export type NickNameType = {
   nickName: string;
@@ -28,7 +30,6 @@ const NickNamePage = () => {
   } = useForm<NickNameType>({ resolver: yupResolver(NickNameSchema) });
 
   const { userInfo } = useAppSelector((state) => state.auth);
-  const { nickNameIsChanged } = useAppSelector((state) => state.users);
   const navigate = useNavigate();
 
   const dispatch = useAppDispatch();
@@ -39,16 +40,19 @@ const NickNamePage = () => {
     }
   }, [userInfo, navigate]);
 
-  const onSubmit: SubmitHandler<NickNameType> = (data) => {
-    dispatch(changeNickName({ id: userInfo.id, name: data.nickName }));
-  };
-
-  useEffect(() => {
-    if (nickNameIsChanged) {
-      dispatch(resetChangeNickName());
+  const onSubmit: SubmitHandler<NickNameType> = async (data) => {
+    try {
+      const result = await axiosPrivate.patch(`/users/${userInfo.id}`, {
+        name: data.nickName,
+      });
+      dispatch(setUserInfo(result.data.name));
       navigate("/");
     }
-  }, [nickNameIsChanged, dispatch]);
+    catch (err) {
+      ErrorAlert(err.response.data.message, 5000);
+    }
+  };
+
   return (
     <FormContainer onSubmit={handleSubmit(onSubmit)}>
       <FormTitle>Choose a nick name</FormTitle>

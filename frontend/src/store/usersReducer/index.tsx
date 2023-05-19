@@ -4,7 +4,6 @@ import { axiosPrivate } from "../../api";
 interface UsersState {
   users: [];
   user: any;
-  nickNameIsChanged: boolean;
   matchHistory: [];
   isLoading: boolean;
   error: any;
@@ -14,7 +13,6 @@ const initialState: UsersState = {
   users: [],
   user: {},
   matchHistory: [],
-  nickNameIsChanged: false,
   isLoading: false,
   error: {},
 };
@@ -55,31 +53,10 @@ export const fetchAllUsers = createAsyncThunk(
   }
 );
 
-export const changeNickName = createAsyncThunk(
-  "users/changeNickName",
-  async (data: { id: string; name: string }, thunkApi) => {
-    try {
-      const result = await axiosPrivate.patch(`/users/${data.id}`, {
-        name: data.name,
-      });
-      return result.data;
-    } catch (error) {
-      return thunkApi.rejectWithValue(error);
-    }
-  }
-);
-
 const usersSlide = createSlice({
   name: "Users",
   initialState,
-  reducers: {
-    resetChangeNickName: (state) => {
-      return {
-        ...state,
-        nickNameIsChanged: false,
-      };
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchUserById.pending, (state) => {
       return {
@@ -144,33 +121,7 @@ const usersSlide = createSlice({
         error: action.payload,
       };
     });
-    builder.addCase(changeNickName.pending, (state) => {
-      return {
-        ...state,
-        isLoading: true,
-        error: null,
-        nickNameIsChanged: false,
-      };
-    });
-    builder.addCase(changeNickName.fulfilled, (state) => {
-      console.log('nickNameIsChanged');
-      return {
-        ...state,
-        isLoading: false,
-        nickNameIsChanged: true,
-      };
-    });
-    builder.addCase(changeNickName.rejected, (state, action) => {
-      console.log('rejected')
-      return {
-        ...state,
-        isLoading: false,
-        error: action.payload,
-      };
-    });
   },
 });
-
-export const { resetChangeNickName } = usersSlide.actions;
 
 export default usersSlide.reducer;

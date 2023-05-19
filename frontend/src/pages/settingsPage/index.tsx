@@ -12,13 +12,12 @@ import {
   SettingsContainer,
 } from "./settingsPage.styled";
 import ButtonComponent from "../../components/ButtonComponent";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Modal, Popconfirm } from "antd";
 import TwoFactorAuth from "../../components/twoFactorAuth";
 import { axiosPrivate } from "../../api";
 import { ErrorAlert, SuccessAlert } from "../../components/toastify";
 import { setUserInfo } from "../../store/authReducer";
-import { changeNickName, resetChangeNickName } from "../../store/usersReducer";
 import { NickNameSchema } from "../../utils/schema";
 import ProfilePicture from "../../components/profilePicture";
 
@@ -28,7 +27,6 @@ export type SettingsType = {
 
 const SettingsPage = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
-  const { nickNameIsChanged } = useAppSelector((state) => state.users);
   const [showModal2FA, setShowModal2FA] = useState<boolean>(false);
   const [showModalProfile, setShowModalProfile] = useState<boolean>(false);
   const dispatch = useAppDispatch();
@@ -38,13 +36,23 @@ const SettingsPage = () => {
     control,
   } = useForm<SettingsType>({ resolver: yupResolver(NickNameSchema) });
 
-  const onSubmit: SubmitHandler<SettingsType> = (data) => {
+  const onSubmit: SubmitHandler<SettingsType> = async (data) => {
     if (data.nickName === userInfo.username) {
       ErrorAlert("Nickname is the same as the old one", 5000);
       return;
     }
-    dispatch(changeNickName({ id: userInfo.id, name: data.nickName }));
+    try {
+      const result = await axiosPrivate.patch(`/users/${userInfo.id}`, {
+        name: data.nickName,
+      });
+      dispatch(setUserInfo(result.data.name));
+      SuccessAlert("Nickname changed successfully", 5000);
+    }
+    catch (err) {
+      ErrorAlert(err.response.data.message, 5000);
+    }
   };
+
   const confirmDisable2FA = async () => {
     try {
       const response = await axiosPrivate.get("/disable-2fa");
@@ -53,12 +61,6 @@ const SettingsPage = () => {
     } catch (err) {
     }
   };
-
-  useEffect(() => {
-    if (nickNameIsChanged) {
-      dispatch(resetChangeNickName());
-    }
-  }, [nickNameIsChanged, dispatch]);
   
   return (
     <SettingsContainer>

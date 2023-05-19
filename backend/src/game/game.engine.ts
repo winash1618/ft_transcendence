@@ -297,39 +297,43 @@ export class GameEngine {
     }
   }
 
-  barSelect(keyStatus: KeyPress, client: Socket, isPressed: boolean) {
-    const users = Array.from(this.users.keys());
-    const foundUser = users.find(user => user.id === client.data.userID.id);
-    if (this.users.get(foundUser) === undefined) {
-		return;
-    }
-    this.users.get(foundUser).client = client;
-    if (this.users.get(foundUser).playerNumber === 1) {
-      this.barMove(keyStatus, this.gameObj.paddle1, isPressed);
-    } else if (this.users.get(foundUser).playerNumber === 2) {
-      this.barMove(keyStatus, this.gameObj.paddle2, isPressed);
-    }
-  }
-
-  moveMouse(y: number, client: Socket) {
+  moveMobile(keyStatus: KeyPress, client: Socket) {
     const users = Array.from(this.users.keys());
     const foundUser = users.find(user => user.id === client.data.userID.id);
     if (this.users.get(foundUser) === undefined) {
       return;
     }
     this.users.get(foundUser).client = client;
-    const playerNumber = this.users.get(foundUser).playerNumber;
-    const paddle =
-      playerNumber === 1 ? this.gameObj.paddle1 : this.gameObj.paddle2;
+    if (this.users.get(foundUser).playerNumber === 1) {
+      this.mobileMove(keyStatus, this.gameObj.paddle1);
+    } else if (this.users.get(foundUser).playerNumber === 2) {
+      this.mobileMove(keyStatus, this.gameObj.paddle2);
+    }
+  }
 
-    if (y < paddle.y) {
-      if (paddle.y >= PADDLE_SPEED) {
-        paddle.y -= PADDLE_SPEED;
-      }
-    } else if (y > paddle.y) {
-      if (paddle.y <= GAME_HEIGHT - PADDLE_HEIGHT - PADDLE_SPEED) {
-        paddle.y += PADDLE_SPEED;
-      }
+  mobileMove(key: KeyPress, position: Position) {
+    if (key.upKey && position.y >= PADDLE_SPEED * 5) {
+      position.y = position.y - PADDLE_SPEED * 5;
+    }
+    if (
+      key.downKey &&
+      position.y <= GAME_HEIGHT - PADDLE_HEIGHT - (PADDLE_SPEED * 5)
+    ) {
+      position.y = position.y + PADDLE_SPEED * 5;
+    }
+  }
+
+  barSelect(keyStatus: KeyPress, client: Socket, isPressed: boolean) {
+    const users = Array.from(this.users.keys());
+    const foundUser = users.find(user => user.id === client.data.userID.id);
+    if (this.users.get(foundUser) === undefined) {
+      return;
+    }
+    this.users.get(foundUser).client = client;
+    if (this.users.get(foundUser).playerNumber === 1) {
+      this.barMove(keyStatus, this.gameObj.paddle1, isPressed);
+    } else if (this.users.get(foundUser).playerNumber === 2) {
+      this.barMove(keyStatus, this.gameObj.paddle2, isPressed);
     }
   }
 
@@ -387,68 +391,64 @@ export class GameEngine {
         elapsedTime >= GAME_DURATION ||
         this.gameObj.player1.points >= GAME_POINTS ||
         this.gameObj.player2.points >= GAME_POINTS
-        ) {
-          console.log('Game Over')
-          clearInterval(this.interval);
-          this.gameObj.gameStatus = GameStatus.WAITING;
-          this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-          const winner: UserInfo =
+      ) {
+        console.log('Game Over');
+        clearInterval(this.interval);
+        this.gameObj.gameStatus = GameStatus.WAITING;
+        this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
+        const winner: UserInfo =
           this.gameObj.player1.points >= GAME_POINTS
-          ? this.player1
-          : this.player2;
-          const looser: UserInfo =
+            ? this.player1
+            : this.player2;
+        const looser: UserInfo =
           this.gameObj.player1.points >= GAME_POINTS
-          ? this.player2
-          : this.player1;
-          await this.gameService.storeGameHistory(
-            {
-              player_one: this.gameObj.player1.name.id,
-              player_two: this.gameObj.player2.name.id,
-              hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
-              player_score: this.gameObj.player1.points,
-              opponent_score: this.gameObj.player2.points,
-              winner: '',
-              looser: '',
-            },
-            this.gameID,
-            );
-            if (
-              this.gameObj.player1.points === this.gameObj.player2.points
-              ) {
-                this.users.get(winner).client.emit('draw', winner);
-                this.users.get(looser).client.emit('draw', looser);
-              }
-              else {
-                this.users.get(winner).client.emit('win', winner);
-                this.users.get(looser).client.emit('lose', looser);
-              }
-              await userService.userStatusUpdate(
-                this.gameObj.player1.name.id,
-                UserStatus.ONLINE,
-                );
-                await userService.userStatusUpdate(
-                  this.gameObj.player2.name.id,
-                  UserStatus.ONLINE,
-                  );
-                  this.gameService.updateUserAchievements(this.gameObj.player1.name.id);
-                  this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
-                }
-                else {
-                  this.gameService.checkingGameHistory(
-                    {
-                      player_one: this.gameObj.player1.name.id,
-                      player_two: this.gameObj.player2.name.id,
-                      hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
-                      player_score: this.gameObj.player1.points,
-                      opponent_score: this.gameObj.player2.points,
-                      winner: '',
-                      looser: '',
-                    },
-                    this.gameID,
-                  );
-                }
-              }, GAME_FPS);
-            }
+            ? this.player2
+            : this.player1;
+        await this.gameService.storeGameHistory(
+          {
+            player_one: this.gameObj.player1.name.id,
+            player_two: this.gameObj.player2.name.id,
+            hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
+            player_score: this.gameObj.player1.points,
+            opponent_score: this.gameObj.player2.points,
+            winner: '',
+            looser: '',
+          },
+          this.gameID,
+        );
+        if (this.gameObj.player1.points === this.gameObj.player2.points) {
+          this.users.get(winner).client.emit('draw', winner);
+          this.users.get(looser).client.emit('draw', looser);
+        } else {
+          this.users.get(winner).client.emit('win', winner);
+          this.users.get(looser).client.emit('lose', looser);
+        }
+        await userService.userStatusUpdate(
+          this.gameObj.player1.name.id,
+          UserStatus.ONLINE,
+        );
+        await userService.userStatusUpdate(
+          this.gameObj.player2.name.id,
+          UserStatus.ONLINE,
+        );
+        this.gameService.updateUserAchievements(this.gameObj.player1.name.id);
+        this.gameService.updateUserAchievements(this.gameObj.player2.name.id);
+      } else {
+        this.gameService.checkingGameHistory(
+          {
+            player_one: this.gameObj.player1.name.id,
+            player_two: this.gameObj.player2.name.id,
+            hasMiddleWall: this.gameObj.gameSetting.hasMiddleWall,
+            player_score: this.gameObj.player1.points,
+            opponent_score: this.gameObj.player2.points,
+            winner: '',
+            looser: '',
+          },
+          this.gameID,
+        );
+      }
+    }, GAME_FPS);
+  }
 
   setServer(server: Server) {
     this.server = server;

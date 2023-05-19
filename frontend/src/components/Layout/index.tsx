@@ -130,12 +130,11 @@ const Navbar: React.FC = () => {
     });
     return () => {
       socket?.off("Invited");
-      socket?.on("exception", (data) => {
+      socket?.off("exception", (data) => {
         if (data.error === "Token expired") {
           window.location.reload();
         }
       });
-      socket?.disconnect();
     };
   }, [socket, dispatch, navigate, isGameStarted]);
 

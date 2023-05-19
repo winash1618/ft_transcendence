@@ -4,6 +4,7 @@ import { BlackBackground, GameMap, UserProfilePicture } from "../../../assets";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import { draw } from "./pingPongCanvas.functions";
 import {
+  CustomButton,
   GameProfileImg,
   ScoreText,
   ScoreUserInfoWrapper,
@@ -14,6 +15,9 @@ import {
 import { PingPongContainer, PlayerManual } from "../pingPong.styled";
 import { BASE_URL } from "../../../api";
 import { resetGameInfo } from "../../../store/gameReducer";
+import ButtonComponent from "../../ButtonComponent";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowDown, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 
 export let CANVAS_WIDTH =
   window.innerHeight < 0.9 * window.innerWidth
@@ -175,12 +179,6 @@ const PingPongCanvas = () => {
         );
       }
     }
-    window.addEventListener("mousemove", (event) => {
-      socket?.emit("moveMouse", {
-        roomID: roomID,
-        y: event.clientY - canvaRef.current.offsetTop,
-      });
-    });
     window.addEventListener("keydown", (event) => {
       if (event.key === "w") {
         socket?.emit("move", {
@@ -246,57 +244,66 @@ const PingPongCanvas = () => {
   }, [player, roomID, socket, hasMiddleWall]);
 
   useEffect(() => {
-      socket?.on("win", (data) => {
-        setGameStatus(1);
+    socket?.on("win", (data) => {
+      setGameStatus(1);
+    });
+    socket?.on("lose", (data) => {
+      setGameStatus(2);
+    });
+    socket?.on("draw", (data) => {
+      setGameStatus(3);
+    });
+    socket?.on("gameUpdate", (data) => {
+      game.ball.x = (data.ball.x * canvasWidth) / 900;
+      game.ball.y = (data.ball.y * canvasHeight) / 800;
+      game.paddle1.y = (data.paddle1.y * canvasHeight) / 800;
+      game.paddle2.y = (data.paddle2.y * canvasHeight) / 800;
+    });
+    socket?.on("player1Score", (data) => {
+      setPlayer1Score(data);
+    });
+    socket?.on("player2Score", (data) => {
+      setPlayer2Score(data);
+    });
+    if (roomID.length > 0 && timer) {
+      socket?.emit("StartGame", {
+        roomID,
+        hasMiddleWall,
       });
-      socket?.on("lose", (data) => {
-        setGameStatus(2);
-      });
-      socket?.on("draw", (data) => {
-        setGameStatus(3);
-      });
-      socket?.on("gameUpdate", (data) => {
+    }
+    return () => {
+      socket?.off("gameUpdate", (data) => {
         game.ball.x = (data.ball.x * canvasWidth) / 900;
         game.ball.y = (data.ball.y * canvasHeight) / 800;
         game.paddle1.y = (data.paddle1.y * canvasHeight) / 800;
         game.paddle2.y = (data.paddle2.y * canvasHeight) / 800;
       });
-      socket?.on("player1Score", (data) => {
+      socket?.off("player1Score", (data) => {
         setPlayer1Score(data);
       });
-      socket?.on("player2Score", (data) => {
+      socket?.off("player2Score", (data) => {
         setPlayer2Score(data);
       });
-      if (roomID.length > 0 && timer) {
-        socket?.emit("StartGame", {
-          roomID,
-          hasMiddleWall,
-        });
-      }
-      return () => {
-        socket?.off("gameUpdate", (data) => {
-          game.ball.x = (data.ball.x * canvasWidth) / 900;
-          game.ball.y = (data.ball.y * canvasHeight) / 800;
-          game.paddle1.y = (data.paddle1.y * canvasHeight) / 800;
-          game.paddle2.y = (data.paddle2.y * canvasHeight) / 800;
-        });
-        socket?.off("player1Score", (data) => {
-          setPlayer1Score(data);
-        });
-        socket?.off("player2Score", (data) => {
-          setPlayer2Score(data);
-        });
-        socket?.off("win", (data) => {
-          setGameStatus(1);
-        });
-        socket?.off("lose", (data) => {
-          setGameStatus(2);
-        });
-        socket?.off("draw", (data) => {
-          setGameStatus(3);
-        });
-      };
-  }, [socket, player, dispatch, roomID, hasMiddleWall, timer, canvasWidth, canvasHeight]);
+      socket?.off("win", (data) => {
+        setGameStatus(1);
+      });
+      socket?.off("lose", (data) => {
+        setGameStatus(2);
+      });
+      socket?.off("draw", (data) => {
+        setGameStatus(3);
+      });
+    };
+  }, [
+    socket,
+    player,
+    dispatch,
+    roomID,
+    hasMiddleWall,
+    timer,
+    canvasWidth,
+    canvasHeight,
+  ]);
 
   useEffect(() => {
     if (canvaRef.current) {
@@ -354,16 +361,47 @@ const PingPongCanvas = () => {
         <span>{minutes < 10 ? "0" + minutes : minutes}</span>:
         <span>{seconds < 10 ? "0" + seconds : seconds}</span>
       </div> */}
-      <StyledCanvas
-        style={{
-          width: `${canvasWidth}px`,
-          height: `${canvasHeight}px`,
-          backgroundImage: hasMiddleWall
-            ? `url(${GameMap})`
-            : `url(${BlackBackground})`,
-        }}
-        ref={canvaRef}
-      />
+      <div style={{ position: "relative" }}>
+        <StyledCanvas
+          style={{
+            width: `${canvasWidth}px`,
+            height: `${canvasHeight}px`,
+            backgroundImage: hasMiddleWall
+              ? `url(${GameMap})`
+              : `url(${BlackBackground})`,
+          }}
+          ref={canvaRef}
+        />
+        <CustomButton
+          onMouseDown={() => {
+            socket?.emit("moveMobile", {
+              roomID: roomID,
+              key: { upKey: true, downKey: false },
+            });
+          }}
+          style={{
+            bottom: "100px",
+            right: "40px",
+          }}
+        >
+          <FontAwesomeIcon style={{fontSize: "12px"}} icon={faArrowUp}></FontAwesomeIcon>
+        </CustomButton>
+        <CustomButton
+        type="primary"
+          onMouseDown={() => {
+            socket?.emit("moveMobile", {
+              roomID: roomID,
+              key: { upKey: false, downKey: true },
+            });
+          }}
+          style={{
+            bottom: "30px",
+            right: "40px",
+          }}
+        >
+          <FontAwesomeIcon style={{fontSize: "12px"}} icon={faArrowDown}></FontAwesomeIcon>
+        </CustomButton>
+      </div>
       <ScoreWrapper>
         <ScoreUserInfoWrapper style={{ marginRight: "30px" }}>
           <GameProfileImg

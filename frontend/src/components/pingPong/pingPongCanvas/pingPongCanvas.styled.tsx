@@ -1,3 +1,4 @@
+import { Button } from "antd";
 import { motion } from "framer-motion";
 import styled from "styled-components";
 
@@ -72,3 +73,28 @@ export const GameProfileImg = styled.img`
     width: 20px;
   }
 `;
+
+export const CustomButton = styled(Button)`
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: none !important;
+  height: 40px;
+  width: 40px;
+  display: none;
+  position: absolute;
+  border-radius: 5px;
+  border: 1px solid green;
+  text-transform: capitalize;
+  text-decoration: dashed;
+  &:focus {
+    background: none !important;
+  }
+  :hover {
+    background: none !important;
+  }
+  @media (max-width: 768px)
+  {
+    display: block;
+  }
+`
