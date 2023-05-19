@@ -14,6 +14,7 @@ import {
 } from "./pingPongCanvas.styled";
 import { PingPongContainer, PlayerManual } from "../pingPong.styled";
 import { BASE_URL } from "../../../api";
+import { resetGameInfo } from "../../../store/gameReducer";
 
 export let CANVAS_WIDTH =
   window.innerHeight < 0.9 * window.innerWidth
@@ -341,9 +342,9 @@ const PingPongCanvas = () => {
   }, []);
 
   useEffect(() => {
-    // return () => {
-    //   dispatch(resetGameInfo());
-    // };
+    return () => {
+      dispatch(resetGameInfo());
+    };
   }, []);
   return (
     <PingPongContainer>
