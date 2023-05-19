@@ -520,6 +520,9 @@ export class UsersService {
         username: true,
         login: true,
         sentInvites: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
       }
     });
 
