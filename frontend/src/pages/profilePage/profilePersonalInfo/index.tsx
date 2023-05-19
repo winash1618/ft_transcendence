@@ -11,7 +11,7 @@ import {
 
 import { HiOutlineStatusOffline, HiOutlineStatusOnline } from "react-icons/hi";
 import { FaGamepad } from "react-icons/fa";
-import { Col, Row } from "antd";
+import { Row } from "antd";
 
 const ProfilePersonalInfo = () => {
   const { user } = useAppSelector((state) => state.users);

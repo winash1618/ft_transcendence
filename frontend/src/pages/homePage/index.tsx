@@ -1,6 +1,6 @@
 import ButtonComponent from "../../components/ButtonComponent";
 import axios, { BASE_URL } from "../../api";
-import { HomeContainer, HomeDetails, HomeTitle } from "./homepage.styled";
+import { HomeContainer, HomeDetails } from "./homepage.styled";
 import { useEffect } from "react";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +26,7 @@ const HomePage = () => {
       }
     };
     getToken();
-  }, []);
+  }, [dispatch, navigate]);
   return (
     <HomeContainer>
       <img

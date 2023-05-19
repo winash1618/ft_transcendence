@@ -1,6 +1,4 @@
 import { GameType } from ".";
-import { CANVAS_HEIGHT } from ".";
-import { CANVAS_WIDTH } from ".";
 
 type BallType = {
   x: number;

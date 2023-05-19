@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Input, Select } from "antd";
+import { Input } from "antd";
 
 export const FormContainer = styled.form`
   width: 100%;

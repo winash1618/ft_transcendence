@@ -1,6 +1,4 @@
-import { Card } from "antd";
 import Meta from "antd/es/card/Meta";
-import React from "react";
 import { CustomCard } from "./achievementsCard.styled";
 
 const AchievementsCard = ({

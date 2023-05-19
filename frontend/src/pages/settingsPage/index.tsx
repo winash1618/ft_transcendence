@@ -1,6 +1,5 @@
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { PlaySchema } from "../../utils/schema";
 import { FormInput } from "../nickNamePage/nickNamePage.styled";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import {
@@ -59,7 +58,7 @@ const SettingsPage = () => {
     if (nickNameIsChanged) {
       dispatch(resetChangeNickName());
     }
-  }, [nickNameIsChanged]);
+  }, [nickNameIsChanged, dispatch]);
   
   return (
     <SettingsContainer>

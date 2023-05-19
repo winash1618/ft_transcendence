@@ -97,7 +97,7 @@ const ProfilePicture = ({
         });
       }, 1000);
     }
-  }, [userInfo]);
+  }, [userInfo, token]);
   const uploadButton = (
     <ButtonComponent
       style={{ width: "100%", maxWidth: "250px", marginBottom: "1rem" }}

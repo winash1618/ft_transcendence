@@ -1,5 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios, { axiosPrivate } from "../../api";
+import { createSlice } from "@reduxjs/toolkit";
 import { Socket } from "socket.io-client";
 
 interface GameState {

@@ -5,8 +5,7 @@ import { UserProfilePicture } from "../../assets";
 import LeftSideDiv from "./LeftSideDiv";
 import MessageDiv from "./MessageDiv";
 import RightSideDiv from "./RightSideDiv";
-import { ErrorAlert, SuccessAlert } from "../toastify/index";
-import { useAppSelector } from "../../hooks/reduxHooks";
+import { ErrorAlert } from "../toastify/index";
 
 interface ChatProps {
 	socket: any;

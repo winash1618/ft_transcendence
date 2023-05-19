@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { axiosPrivate } from "../../api";
-import { ErrorAlert, SuccessAlert } from "../../components/toastify";
 
 interface UsersState {
   users: [];

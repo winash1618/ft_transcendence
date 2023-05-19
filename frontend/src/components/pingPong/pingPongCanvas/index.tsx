@@ -1,6 +1,5 @@
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { Socket } from "socket.io-client";
 import { BlackBackground, GameMap, UserProfilePicture } from "../../../assets";
 import { useAppDispatch, useAppSelector } from "../../../hooks/reduxHooks";
 import { draw } from "./pingPongCanvas.functions";
@@ -158,7 +157,7 @@ const PingPongCanvas = () => {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [window]);
+  }, []);
 
   useEffect(() => {
     if (canvaRef.current) {
@@ -244,7 +243,7 @@ const PingPongCanvas = () => {
         }
       });
     };
-  }, [player, roomID, socket, window]);
+  }, [player, roomID, socket, hasMiddleWall]);
 
   useEffect(() => {
       socket?.on("win", (data) => {
@@ -257,10 +256,10 @@ const PingPongCanvas = () => {
         setGameStatus(3);
       });
       socket?.on("gameUpdate", (data) => {
-        game.ball.x = (data.ball.x * canvaRef.current.width) / 900;
-        game.ball.y = (data.ball.y * canvaRef.current.height) / 800;
-        game.paddle1.y = (data.paddle1.y * canvaRef.current.height) / 800;
-        game.paddle2.y = (data.paddle2.y * canvaRef.current.height) / 800;
+        game.ball.x = (data.ball.x * canvasWidth) / 900;
+        game.ball.y = (data.ball.y * canvasHeight) / 800;
+        game.paddle1.y = (data.paddle1.y * canvasHeight) / 800;
+        game.paddle2.y = (data.paddle2.y * canvasHeight) / 800;
       });
       socket?.on("player1Score", (data) => {
         setPlayer1Score(data);
@@ -276,10 +275,10 @@ const PingPongCanvas = () => {
       }
       return () => {
         socket?.off("gameUpdate", (data) => {
-          game.ball.x = (data.ball.x * canvaRef.current.width) / 900;
-          game.ball.y = (data.ball.y * canvaRef.current.height) / 800;
-          game.paddle1.y = (data.paddle1.y * canvaRef.current.height) / 800;
-          game.paddle2.y = (data.paddle2.y * canvaRef.current.height) / 800;
+          game.ball.x = (data.ball.x * canvasWidth) / 900;
+          game.ball.y = (data.ball.y * canvasHeight) / 800;
+          game.paddle1.y = (data.paddle1.y * canvasHeight) / 800;
+          game.paddle2.y = (data.paddle2.y * canvasHeight) / 800;
         });
         socket?.off("player1Score", (data) => {
           setPlayer1Score(data);
@@ -297,7 +296,7 @@ const PingPongCanvas = () => {
           setGameStatus(3);
         });
       };
-  }, [socket, player, dispatch, roomID]);
+  }, [socket, player, dispatch, roomID, hasMiddleWall, timer, canvasWidth, canvasHeight]);
 
   useEffect(() => {
     if (canvaRef.current) {
@@ -342,7 +341,7 @@ const PingPongCanvas = () => {
     return () => {
       dispatch(resetGameInfo());
     };
-  }, []);
+  }, [dispatch]);
   return (
     <PingPongContainer>
       <PlayerManual>

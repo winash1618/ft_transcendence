@@ -6,7 +6,7 @@ import {
   AchievementsWrapper,
   CustomRow,
 } from "./achievementsPage.styled";
-import { Row, Tooltip } from "antd";
+import { Tooltip } from "antd";
 import AchievementsCard from "../../components/achievementsCard";
 import { axiosPrivate } from "../../api";
 import { useAppSelector } from "../../hooks/reduxHooks";

@@ -9,10 +9,9 @@ import {
   InputAlert,
   InputController,
 } from "./authenticatePage.styled";
-import { NickNameSchema, TwoFactorSchema } from "../../utils/schema";
+import { TwoFactorSchema } from "../../utils/schema";
 import ButtonComponent from "../../components/ButtonComponent";
-import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { changeNickName } from "../../store/usersReducer";
+import { useAppSelector } from "../../hooks/reduxHooks";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { axiosPrivate } from "../../api";
@@ -32,13 +31,11 @@ const AuthenticatePage = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const dispatch = useAppDispatch();
-
   useEffect(() => {
     if (userInfo.is_authenticated || !userInfo.secret_code) {
       navigate("/");
     }
-  }, [userInfo]);
+  }, [userInfo, navigate]);
 
   const onSubmit: SubmitHandler<AuthenticatorType> = async (data) => {
     try {

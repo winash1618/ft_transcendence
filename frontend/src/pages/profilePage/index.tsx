@@ -18,18 +18,17 @@ import ProfileAchievements from "./profileAchievements";
 const ProfilePage = () => {
   const { isLoading, error, user } = useAppSelector((state) => state.users);
   const { login } = useParams<{ login: string }>();
-  const { userInfo } = useAppSelector((state) => state.auth);
   const location = useLocation();
   const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(fetchUserById(login));
-  }, [dispatch, location]);
+  }, [dispatch, location, login]);
 
   useEffect(() => {
     if (user.id) {
       dispatch(fetchMatchHistory(user.id));
     }
-  }, [user])
+  }, [user, dispatch])
   return (
     <>
       {isLoading ? (

@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import Countdown from "react-countdown";
 import { useAppSelector } from "../../../hooks/reduxHooks";
 import {

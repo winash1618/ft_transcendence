@@ -1,18 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
 import { TrophyOutlined } from "@ant-design/icons";
-import {
-  Badge,
-  ConfigProvider,
-  Dropdown,
-  Layout,
-  Menu,
-  MenuProps,
-  theme,
-} from "antd";
-import axios, { BASE_URL, axiosPrivate } from "../../api";
+import { Badge, ConfigProvider, Layout, Menu } from "antd";
+import axios, { axiosPrivate } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logOut, setToken, setUserInfo } from "../../store/authReducer";
@@ -34,7 +26,6 @@ import { IoNotifications } from "react-icons/io5";
 import ButtonComponent from "../ButtonComponent";
 import { io } from "socket.io-client";
 import { setGameInfo, setSocket } from "../../store/gameReducer";
-const { darkAlgorithm } = theme;
 
 const { Content, Footer, Header } = Layout;
 
@@ -57,55 +48,54 @@ const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
 
-  const fetchGameInfo = async () => {
-    try {
-      const response = await axiosPrivate.get(`/game/${userInfo.id}`);
-      if (userInfo.id === response.data.playerOne.id) {
-        dispatch(
-          setGameInfo({
-            players: {
-              player1: response.data.playerOne,
-              player2: response.data.playerTwo,
-              player1Pic: response.data.playerOne.profile_pic,
-              player2Pic: response.data.playerTwo.profile_pic,
-            },
-            hasMiddleWall: response.data.hasMiddleWall,
-            player1Score: response.data.player_score,
-            player2Score: response.data.opponent_score,
-            timer: false,
-            player: 1,
-            roomID: response.data.id,
-            isGameStarted: true,
-          })
-        );
-      } else {
-        dispatch(
-          setGameInfo({
-            players: {
-              player1: response.data.playerOne,
-              player2: response.data.playerTwo,
-              player1Pic: response.data.playerOne.profile_pic,
-              player2Pic: response.data.playerTwo.profile_pic,
-            },
-            hasMiddleWall: response.data.hasMiddleWall,
-            player1Score: response.data.player_score,
-            player2Score: response.data.opponent_score,
-            timer: false,
-            player: 2,
-            roomID: response.data.id,
-            isGameStarted: true,
-          })
-        );
-      }
-      navigate("/pingpong");
-    } catch (err) {}
-  };
-
   useEffect(() => {
+    const fetchGameInfo = async () => {
+      try {
+        const response = await axiosPrivate.get(`/game/${userInfo.id}`);
+        if (userInfo.id === response.data.playerOne.id) {
+          dispatch(
+            setGameInfo({
+              players: {
+                player1: response.data.playerOne,
+                player2: response.data.playerTwo,
+                player1Pic: response.data.playerOne.profile_pic,
+                player2Pic: response.data.playerTwo.profile_pic,
+              },
+              hasMiddleWall: response.data.hasMiddleWall,
+              player1Score: response.data.player_score,
+              player2Score: response.data.opponent_score,
+              timer: false,
+              player: 1,
+              roomID: response.data.id,
+              isGameStarted: true,
+            })
+          );
+        } else {
+          dispatch(
+            setGameInfo({
+              players: {
+                player1: response.data.playerOne,
+                player2: response.data.playerTwo,
+                player1Pic: response.data.playerOne.profile_pic,
+                player2Pic: response.data.playerTwo.profile_pic,
+              },
+              hasMiddleWall: response.data.hasMiddleWall,
+              player1Score: response.data.player_score,
+              player2Score: response.data.opponent_score,
+              timer: false,
+              player: 2,
+              roomID: response.data.id,
+              isGameStarted: true,
+            })
+          );
+        }
+        navigate("/pingpong");
+      } catch (err) {}
+    };
     if (userInfo.id && !isGameStarted) {
       fetchGameInfo();
     }
-  }, [userInfo, navigate]);
+  }, [userInfo, isGameStarted, dispatch, navigate]);
 
   useEffect(() => {
     socket?.on("exception", (data) => {
@@ -140,71 +130,67 @@ const Navbar: React.FC = () => {
     });
     return () => {
       socket?.off("Invited");
-      socket?.off("exception", (data) => {
+      socket?.on("exception", (data) => {
         if (data.error === "Token expired") {
-          socket.disconnect();
-          getSocket();
+          window.location.reload();
         }
       });
       socket?.disconnect();
     };
-  }, [socket]);
-
-  const getToken = async () => {
-    try {
-      const response = await axios.get(`/token`);
-      localStorage.setItem("auth", JSON.stringify(response.data));
-      dispatch(setToken(response.data.token));
-      dispatch(setUserInfo(response.data.user));
-      if (!response.data.user.username) {
-        navigate("/set-nickname");
-      }
-      if (
-        !response.data.user.is_authenticated &&
-        response.data.user.secret_code
-      ) {
-        navigate("/authenticate");
-      }
-      setIsLoadingPage(false);
-    } catch (err) {
-      dispatch(logOut());
-      navigate("/login");
-    }
-  };
-
-  const socketToken = async () => {
-    try {
-      const response = await axios.get(`/token`);
-      return response.data.token;
-    } catch (err) {
-      dispatch(logOut());
-      navigate("/login");
-    }
-  };
-
-  const getSocket = async () => {
-    try {
-      const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
-        withCredentials: true,
-        auth: async (cb) => {
-          const token = await socketToken();
-          cb({
-            token,
-          });
-        },
-      });
-      dispatch(setSocket(socket));
-    } catch (err) {
-    }
-  };
+  }, [socket, dispatch, navigate, isGameStarted]);
 
   useEffect(() => {
+    const socketToken = async () => {
+      try {
+        const response = await axios.get(`/token`);
+        return response.data.token;
+      } catch (err) {
+        dispatch(logOut());
+        navigate("/login");
+      }
+    };
+
+    const getSocket = async () => {
+      try {
+        const socket = io(process.env.REACT_APP_GAME_GATEWAY, {
+          withCredentials: true,
+          auth: async (cb) => {
+            const token = await socketToken();
+            cb({
+              token,
+            });
+          },
+        });
+        dispatch(setSocket(socket));
+      } catch (err) {}
+    };
     getSocket();
-  }, [dispatch]);
+  }, [dispatch, navigate]);
 
   useEffect(() => {
+    const getToken = async () => {
+      try {
+        const response = await axios.get(`/token`);
+        localStorage.setItem("auth", JSON.stringify(response.data));
+        dispatch(setToken(response.data.token));
+        dispatch(setUserInfo(response.data.user));
+        if (!response.data.user.username) {
+          navigate("/set-nickname");
+        }
+        if (
+          !response.data.user.is_authenticated &&
+          response.data.user.secret_code
+        ) {
+          navigate("/authenticate");
+        }
+        setIsLoadingPage(false);
+      } catch (err) {
+        dispatch(logOut());
+        navigate("/login");
+      }
+    };
     getToken();
-  }, [navigate])
+  }, [navigate, dispatch]);
 
   useEffect(() => {
     if (userInfo.id && !isGameStarted) {
@@ -221,12 +207,11 @@ const Navbar: React.FC = () => {
               inviteId: item.id,
             }))
           );
-        } catch (err) {
-        }
+        } catch (err) {}
       };
       getNotifications();
     }
-  }, [userInfo]);
+  }, [userInfo, isGameStarted]);
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -307,8 +292,7 @@ const Navbar: React.FC = () => {
             <CustomSider
               collapsedWidth="0"
               collapsible={true}
-              onBreakpoint={(broken) => {
-              }}
+              onBreakpoint={(broken) => {}}
               collapsed={isCollapsed}
               onCollapse={(collapsed, type) => {
                 setIsCollapsed((prev) => !prev);
@@ -347,8 +331,10 @@ const Navbar: React.FC = () => {
               >
                 <HeaderWrapper>
                   <NotificationsWrapper>
-                    <a
+                    <button
                       style={{
+						background: "none",
+						border: "none",
                         display: "flex",
                         alignItems: "center",
                         pointerEvents: items.length === 0 ? "none" : "all",
@@ -358,7 +344,7 @@ const Navbar: React.FC = () => {
                       <Badge count={items.length} overflowCount={9}>
                         <IoNotifications color="#fff" size={30} />
                       </Badge>
-                    </a>
+                    </button>
                     {open && (
                       <NotificationsUl>
                         {items.map((item) => (

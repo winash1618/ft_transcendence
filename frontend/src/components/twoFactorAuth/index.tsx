@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
+import { useAppDispatch } from "../../hooks/reduxHooks";
 import { axiosPrivate } from "../../api";
 import Loading from "../loading";
 import {
@@ -17,7 +17,6 @@ import {
 import ButtonComponent from "../ButtonComponent";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { TwoFactorSchema } from "../../utils/schema";
-import { TwoFactorContainer } from "./twoFactorAuth.styled";
 import { SuccessAlert } from "../toastify";
 import { setUserInfo } from "../../store/authReducer";
 
@@ -95,7 +94,7 @@ const TwoFactorAuth = ({ setShowModal }: { setShowModal: any }) => {
               and scan the QR code below. If you can't scan the QR code, you can
               manually enter the secret key below.
             </p>
-            <img src={qrCode} />
+            <img src={qrCode} alt="qrcode to scan" />
             <p>Secret key: {secretKey}</p>
             <InputController style={{ paddingTop: "20px" }}>
               <FormInputTitle htmlFor="otp">Enter pin</FormInputTitle>

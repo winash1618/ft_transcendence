@@ -1,4 +1,4 @@
-import { Card, Col, Row } from "antd";
+import { Card } from "antd";
 import styled from "styled-components";
 
 export const ProfileMatchHistoryContainer = styled(Card)`
