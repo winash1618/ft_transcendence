@@ -48,7 +48,7 @@ const NickNamePage = () => {
       dispatch(resetChangeNickName());
       navigate("/");
     }
-  }, [nickNameIsChanged, dispatch, navigate]);
+  }, [nickNameIsChanged, dispatch]);
   return (
     <FormContainer onSubmit={handleSubmit(onSubmit)}>
       <FormTitle>Choose a nick name</FormTitle>

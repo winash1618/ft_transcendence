@@ -117,7 +117,6 @@ export class UsersController {
     @Req() req,
     @Param('uuid', ParseUUIDPipe) uuid: string,
     @Body() data: UpdateNameDto,
-    @Res() res: Response,
   ) {
     try {
       if (req.user.id !== uuid)

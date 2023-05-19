@@ -153,6 +153,7 @@ const usersSlide = createSlice({
       };
     });
     builder.addCase(changeNickName.fulfilled, (state) => {
+      console.log('nickNameIsChanged');
       return {
         ...state,
         isLoading: false,
@@ -160,6 +161,7 @@ const usersSlide = createSlice({
       };
     });
     builder.addCase(changeNickName.rejected, (state, action) => {
+      console.log('rejected')
       return {
         ...state,
         isLoading: false,
