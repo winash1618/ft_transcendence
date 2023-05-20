@@ -19,7 +19,6 @@ const ProfileMatchHistory = () => {
   const { matchHistory } = useAppSelector((state) => state.users);
   const { user } = useAppSelector((state) => state.users);
   const { token } = useAppSelector((state) => state.auth);
-  console.log(matchHistory);
   return (
     <ProfileMatchHistoryContainer>
       <MatchHistoryTitle>Match History</MatchHistoryTitle>

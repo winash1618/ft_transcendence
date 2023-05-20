@@ -15,7 +15,6 @@ import {
 import { PingPongContainer, PlayerManual } from "../pingPong.styled";
 import { BASE_URL } from "../../../api";
 import { resetGameInfo } from "../../../store/gameReducer";
-import ButtonComponent from "../../ButtonComponent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowDown, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 

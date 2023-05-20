@@ -44,7 +44,6 @@ export class AuthController {
       const token = await this.authService.getLongExpiryJwtToken(
         req.user as User,
       );
-      console.log(token);
       this.userService.userStatusUpdate(req.user.id, UserStatus.ONLINE);
 
       res.cookie('auth', token, { httpOnly: true });
@@ -81,117 +80,6 @@ export class AuthController {
     const user = await this.userService.findOne('user1');
     await this.userService.updateAuthentication(user.id, false);
     const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest2')
-  async guest2Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user2');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest3')
-  async guest3Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user3');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest4')
-  async guest4Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user4');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest5')
-  async guest5Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user5');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest6')
-  async guest6Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user6');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest7')
-  async guest7Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user7');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest8')
-  async guest8Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user8');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest9')
-  async guest9Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user9');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest10')
-  async guest10Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user10');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest11')
-  async guest11Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user11');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
-
-    res.cookie('auth', token, { httpOnly: true });
-    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
-  }
-  @Get('guest12')
-  async guest12Login(@Res() res: Response) {
-    const user = await this.userService.findOne('user12');
-    await this.userService.updateAuthentication(user.id, false);
-    const token = await this.authService.getLongExpiryJwtToken(user);
-    console.log(token);
 
     res.cookie('auth', token, { httpOnly: true });
     return res.redirect(this.configService.get('FRONTEND_BASE_URL'));

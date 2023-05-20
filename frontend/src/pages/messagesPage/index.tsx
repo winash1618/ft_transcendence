@@ -7,7 +7,6 @@ import { logOut, setToken, setUserInfo } from "../../store/authReducer";
 
 const MessagesPage = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [user, setUser] = useState(null);
   const dispatch = useAppDispatch();
   const { userInfo } = useAppSelector((state) => state.auth);
 
@@ -37,12 +36,11 @@ const MessagesPage = () => {
       setSocket(socket);
     };
     getSocket();
-    // setUser(userInfo);
   }, [dispatch]);
 
   return (
     <>
-      <Chat socket={socket} user={user} />
+      <Chat socket={socket} user={userInfo} />
     </>
   );
 };

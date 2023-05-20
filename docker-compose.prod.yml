@@ -6,20 +6,33 @@ services:
     environment:
       PGPORT: 5432
       POSTGRES_USER: mpatel
-      POSTGRES_PASSWORD: transcendence
+      POSTGRES_PASSWORD: transcendenceProd
       DB_DATABASE: ft_database
     ports:
       - "5432:5432"
     networks:
-      - transcendence
+      - transcendenceProd
     volumes:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./requirement/nginx/:/etc/nginx/
+      - ./frontend/build:/var/www/html
+    ports:
+      - 80:80
+    command: /bin/sh -c "nginx -g 'daemon off;'"
+    depends_on:
+      - reactjs
+    networks:
+      - transcendenceProd
   reactjs:
     image: node:19
     container_name: reactjs
     working_dir: /app/frontend
     env_file:
-      - .env.dev
+      - .env
     command: >
       bash -c "npm install
       && npm run build"
@@ -27,7 +40,7 @@ services:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
     networks:
-      - transcendence
+      - transcendenceProd
     depends_on:
       - nestjs
   nestjs:
@@ -42,14 +55,14 @@ services:
       && npm run start:prod
       && npm i -g @nestjs/cli"
     networks:
-      - transcendence
+      - transcendenceProd
     ports:
       - "3001:3001"
       - "5555:5555"
       - "8001:8001"
       - "8002:8002"
     env_file:
-      - .env.dev
+      - .env
     volumes:
       - ./backend:/app/backend
       - /app/backend/node_modules
@@ -58,6 +71,6 @@ services:
 volumes:
   postgres_data:
 networks:
-  transcendence:
+  transcendenceProd:
     driver: bridge
-    name: transcendence
+    name: transcendenceProd
