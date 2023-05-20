@@ -49,7 +49,7 @@ export class GameController {
         throw new NotFoundException(`Game is finished`);
       return res.status(200).json(game);
     } catch {
-      return res.status(404).json({ error: 'Game not found' });
+      return res.status(204).json({ error: 'Game not found' });
     }
   }
 }

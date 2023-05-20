@@ -61,6 +61,10 @@ export class UsersController {
       if (!decodedToken) {
         throw new BadRequestException('Invalid token');
       }
+      if (filename === null)
+        return res.sendFile(
+          join(__dirname, '../../../', 'uploads', 'default.png'),
+        );
       const user = await this.usersService.findOne(
         filename.substring(0, filename.indexOf('_')),
       );

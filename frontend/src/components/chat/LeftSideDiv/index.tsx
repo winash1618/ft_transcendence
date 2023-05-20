@@ -44,7 +44,7 @@ const LeftSideDiv = ({
 		setConversationID(object);
 		setMessages([]);
 		try {
-			const result = await axiosPrivate.get(`s/chat/${object}/Messages`);
+			const result = await axiosPrivate.get(`/chat/${object}/Messages`);
 			setMessages(result.data);
 		} catch (err) {
 		}
@@ -53,7 +53,7 @@ const LeftSideDiv = ({
 	const handleDirectMessage = useCallback(async (object) => {
 		setConversationID(object.id)
 		try {
-			const result = await axiosPrivate.get(`s/chat/direct`);
+			const result = await axiosPrivate.get(`/chat/direct`);
 			setConversations(result.data);
 			setMessages([]);
 		} catch (err) {
