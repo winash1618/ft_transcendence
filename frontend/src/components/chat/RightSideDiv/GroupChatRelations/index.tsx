@@ -125,7 +125,7 @@ const GroupChatRelations = ({
         conversation !== undefined &&
         conversation.participants &&
         conversation.participants !== undefined &&
-        conversation.participants[0].role !== Role.OWNER
+        (conversation.participants[0].role !== Role.OWNER)
           ? true
           : false,
     },
@@ -161,7 +161,9 @@ const GroupChatRelations = ({
             console.error("An error occurred:", error);
             window.location.href = "/error";
           });
-      } catch (err) {}
+      } catch (err) {
+				console.log(err);
+      }
     }
     if (nav === GNav.BLOCKED && conversationID !== null) {
       setGroupResults([]);
@@ -179,7 +181,9 @@ const GroupChatRelations = ({
             console.error("An error occurred:", error);
             window.location.href = "/error";
           });
-      } catch (err) {}
+      } catch (err) {
+        console.log(err);
+      }
     }
     if (nav === GNav.ADD && conversationID !== null) {
       setGroupResults([]);
@@ -197,7 +201,9 @@ const GroupChatRelations = ({
             console.error("An error occurred:", error);
             window.location.href = "/error";
           });
-      } catch (err) {}
+      } catch (err) {
+        console.log(err);
+      }
     }
     setGroupNav(nav);
   };

@@ -55,6 +55,7 @@ const DirectChat = ({
 					console.error('An error occurred:', error);
 				});
 		} catch (err) {
+			console.log(err);
 		}
 	}
 

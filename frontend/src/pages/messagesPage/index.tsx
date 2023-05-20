@@ -37,8 +37,8 @@ const MessagesPage = () => {
       setSocket(socket);
     };
     getSocket();
-    setUser(userInfo);
-  }, [dispatch, userInfo]);
+    // setUser(userInfo);
+  }, [dispatch]);
 
   return (
     <>

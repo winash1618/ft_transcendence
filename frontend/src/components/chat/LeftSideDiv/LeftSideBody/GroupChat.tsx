@@ -110,6 +110,7 @@ const GroupChat = ({
 						window.location.href = '/error';
 					});
 			} catch (err) {
+				console.log(err);
 			}
 			try {
 				await axiosPrivate.get(`/chat/${conversation.id}/members`)
@@ -125,6 +126,7 @@ const GroupChat = ({
 						window.location.href = '/error';
 					});
 			} catch (err) {
+				console.log(err);
 			}
 		}
 	}
