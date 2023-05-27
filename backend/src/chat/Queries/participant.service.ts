@@ -83,8 +83,8 @@ export class ParticipantService {
           if (
             (await this.conversationService.validatePassword(
               password,
-              conversation.id,
-            )) === null
+              conversation.password,
+            )) === false
           )
             throw new Error('Invalid password');
         }
@@ -235,6 +235,7 @@ export class ParticipantService {
     conversationID: string,
     userID: string,
   ) {
+    await this.updateParticipantRole(conversationID, userID, 'USER');
     return await this.updateParticipantStatus(
       conversationID,
       userID,

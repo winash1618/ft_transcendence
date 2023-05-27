@@ -26,6 +26,29 @@ async function seed() {
       },
     },
   });
+  const user2 = await prisma.user.upsert({
+    where: { login: 'user2' },
+    update: {},
+    create: {
+      login: 'user2',
+      username: 'User2',
+      first_name: 'jane',
+      last_name: 'Doe',
+      user_status: 'ONLINE',
+    },
+  });
+
+  await prisma.achievements.upsert({
+    where: { userID: user2.id },
+    update: {},
+    create: {
+      user: {
+        connect: {
+          id: user2.id,
+        },
+      },
+    },
+  });
 }
 
 seed()

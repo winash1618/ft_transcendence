@@ -396,14 +396,8 @@ export class GameEngine {
         clearInterval(this.interval);
         this.gameObj.gameStatus = GameStatus.WAITING;
         this.server.to(this.gameID).emit('gameUpdate', this.gameObj);
-        const winner: UserInfo =
-          this.gameObj.player1.points >= GAME_POINTS
-            ? this.player1
-            : this.player2;
-        const looser: UserInfo =
-          this.gameObj.player1.points >= GAME_POINTS
-            ? this.player2
-            : this.player1;
+        const winner: UserInfo = this.gameObj.player1.points > this.gameObj.player2.points ? this.player1 : this.player2;
+        const looser: UserInfo = this.gameObj.player1.points > this.gameObj.player2.points ? this.player2 : this.player1;
         await this.gameService.storeGameHistory(
           {
             player_one: this.gameObj.player1.name.id,

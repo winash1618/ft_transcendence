@@ -44,7 +44,8 @@ export class AuthController {
       const token = await this.authService.getLongExpiryJwtToken(
         req.user as User,
       );
-      this.userService.userStatusUpdate(req.user.id, UserStatus.ONLINE);
+      console.log('User: ', token);
+      await this.userService.userStatusUpdate(req.user.id, UserStatus.ONLINE);
 
       res.cookie('auth', token, { httpOnly: true });
       return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
@@ -80,6 +81,18 @@ export class AuthController {
     const user = await this.userService.findOne('user1');
     await this.userService.updateAuthentication(user.id, false);
     const token = await this.authService.getLongExpiryJwtToken(user);
+    console.log('User1: ', token);
+
+    res.cookie('auth', token, { httpOnly: true });
+    return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
+  }
+
+  @Get('guest2')
+  async guestLogin2(@Res() res: Response) {
+    const user = await this.userService.findOne('user2');
+    await this.userService.updateAuthentication(user.id, false);
+    const token = await this.authService.getLongExpiryJwtToken(user);
+    console.log('User2: ', token);
 
     res.cookie('auth', token, { httpOnly: true });
     return res.redirect(this.configService.get('FRONTEND_BASE_URL'));
@@ -194,7 +207,7 @@ export class AuthController {
     const user = await this.authService.validateUser(cookieToken as User);
 
     const verified = speakeasy.totp.verify({
-      secret: user.secret_code,
+      secret: user.Twofa_secret,
       encoding: 'base32',
       token: body.otp,
       window: 1,

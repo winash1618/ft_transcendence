@@ -328,9 +328,15 @@ export class UsersService {
   }
 
   async updateSecretCode(id: string, secret: string | null) {
+    if (secret === null) {
+      return await this.prisma.user.update({
+        where: { id },
+        data: { secret_code: null, is_authenticated: false, Twofa_secret: null },
+      });
+    }
     const code = await this.prisma.user.update({
       where: { id },
-      data: { secret_code: secret, is_authenticated: true },
+      data: { secret_code: 'YES', is_authenticated: true, Twofa_secret: secret },
     });
 
     return code;
@@ -608,8 +614,18 @@ export class UsersService {
     if (invite.type === 'GAME') {
       await this.prisma.invitations.deleteMany({
         where: {
-          senderId: invite.senderId,
-          type: 'GAME',
+          OR: [
+            {
+              senderId: invite.senderId,
+              receiverId: invite.receiverId,
+              type: 'GAME',
+            },
+            {
+              senderId: invite.receiverId,
+              receiverId: invite.senderId,
+              type: 'GAME',
+            },
+          ],
         },
       });
 
