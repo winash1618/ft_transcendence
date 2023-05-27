@@ -1,5 +1,5 @@
 import { GroupTitle } from "./group.styled";
-import { List, Dropdown, MenuProps, Input } from "antd";
+import { List, Dropdown, MenuProps, Input, Pagination } from "antd";
 import { DownOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { UserProfilePicture } from "../../../../assets";
 import { FaUserPlus, FaUserFriends, FaUserSlash } from "react-icons/fa";
@@ -40,7 +40,9 @@ const GroupChatRelations = ({
 }: GroupChatRelationsProps) => {
 	const [userObject, setUserObject] = useState<any>(null);
 	const [searchText, setSearchText] = useState("");
-	const { token } = useAppSelector((state) => state.auth);
+	const { userInfo, token } = useAppSelector((state) => state.auth);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 	/*-----------Handle User Click-------------------------------------------------*/
 	const handleUserClick = (participant: any) => {
 		setUserObject(participant.user);
@@ -237,7 +239,7 @@ const GroupChatRelations = ({
           <List
             itemLayout="horizontal"
             locale={{ emptyText: "No groups found" }}
-            dataSource={filterResults(groupResults, searchText) as any}
+            dataSource={(filterResults(groupResults, searchText) as any).slice((currentPage - 1) * pageSize, currentPage * pageSize)}
             renderItem={(result: ResultObject) => (
               <List.Item
                 onClick={() => handleUserClick(result)}
@@ -271,8 +273,8 @@ const GroupChatRelations = ({
                       }}
                     >
                       {result.user.username}
-                      {conversation.participants[0].role !== Role.USER ? (
-                        result.role === "USER" || result.role === "ADMIN" ? (
+                      {(conversation.participants[0].role !== Role.USER) && (result.user.id !== userInfo.id)? (
+                        (result.role === "USER") || (result.role === "ADMIN") ? (
                           <Dropdown menu={{ items }} trigger={["click"]}>
                             <DownOutlined className="group-arrow" />
                           </Dropdown>
@@ -291,7 +293,7 @@ const GroupChatRelations = ({
         ) : groupNav === GNav.BLOCKED ? (
           <List
             itemLayout="horizontal"
-            dataSource={filterResults(groupResults, searchText) as any}
+            dataSource={(filterResults(groupResults, searchText) as any).slice((currentPage - 1) * pageSize, currentPage * pageSize)}
             renderItem={(result: ResultObject) => (
               <List.Item
                 onClick={() => handleUserClick(result)}
@@ -347,7 +349,7 @@ const GroupChatRelations = ({
         ) : (
           <List
             itemLayout="horizontal"
-            dataSource={filterResults(groupResults, searchText) as any}
+            dataSource={(filterResults(groupResults, searchText) as any).slice((currentPage - 1) * pageSize, currentPage * pageSize)}
             renderItem={(result: ResultObject) => (
               <List.Item
                 onClick={() => handleUserClick(result)}
@@ -397,6 +399,16 @@ const GroupChatRelations = ({
             )}
           />
         )}
+				<Pagination
+				current={currentPage}
+				pageSize={pageSize}
+				total={(filterResults(groupResults, searchText) as any).length}
+				onChange={(page, pageSize) => {
+					setCurrentPage(page);
+					setPageSize(pageSize);
+				}}
+				style={{display: "flex", justifyContent: "center", alignItems: "flex-end", marginTop: "1rem"}}
+			/>
       </>
     );
   }

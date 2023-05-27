@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UserProfilePicture } from "../../../../assets";
 import { FriendTitle } from "./direct.styled";
-import { List, Dropdown, Input, Badge } from "antd";
+import { List, Dropdown, Input, Badge, Pagination } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { Colors, User } from "../../chat.functions";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
@@ -18,6 +18,8 @@ const DirectChatRelations = ({ socket, results }: DirectChatRelationsProps) => {
 	const [searchText, setSearchText] = useState("");
 	const { socket: socketNew } = useAppSelector((state) => state.game);
 	const { token } = useAppSelector((state) => state.auth);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
 	const handleUserClick = (user: User) => {
 		setUserClicked(user);
@@ -73,7 +75,7 @@ const DirectChatRelations = ({ socket, results }: DirectChatRelationsProps) => {
 			<List
 				itemLayout="horizontal"
 				locale={{ emptyText: "No friends found" }}
-				dataSource={filterResults(results, searchText)}
+				dataSource={filterResults(results, searchText).slice((currentPage - 1) * pageSize, currentPage * pageSize)}
 				renderItem={(result) => (
 					<List.Item
 						onClick={() => handleUserClick(result)}
@@ -137,6 +139,16 @@ const DirectChatRelations = ({ socket, results }: DirectChatRelationsProps) => {
 						/>
 					</List.Item>
 				)}
+			/>
+			<Pagination
+				current={currentPage}
+				pageSize={pageSize}
+				total={filterResults(results, searchText).length}
+				onChange={(page, pageSize) => {
+					setCurrentPage(page);
+					setPageSize(pageSize);
+				}}
+				style={{display: "flex", justifyContent: "center", alignItems: "flex-end", marginTop: "1rem"}}
 			/>
 		</>
 	);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Colors, Nav, Privacy } from "../../chat.functions";
-import { Button, Input, List } from "antd";
+import { Button, Input, List, Pagination } from "antd";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
 interface ExploreChatProps {
@@ -24,6 +24,8 @@ const ExploreChat = ({
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
@@ -62,7 +64,7 @@ const ExploreChat = ({
 			<List
 				itemLayout="horizontal"
 				locale={{ emptyText: "No conversations found" }}
-				dataSource={filterResults(conversations, searchText)}
+				dataSource={filterResults(conversations, searchText).slice((currentPage - 1) * pageSize, currentPage * pageSize)}
 				renderItem={(conversation) => (
 					<>
 						<List.Item
@@ -105,7 +107,13 @@ const ExploreChat = ({
 										placeholder="Enter password"
 										style={{ width: "50%" }}
 										value={password}
+										type="password"
 										onChange={(e) => setPassword(e.target.value)}
+										onKeyDown={(event) => {
+											if (event.key === 'Enter') {
+												handleProtectedConversation(conversation, password)
+											}
+										}}
 									/>
 									<Button
 										type="primary"
@@ -120,6 +128,16 @@ const ExploreChat = ({
 							)}
 					</>
 				)}
+			/>
+			<Pagination
+				current={currentPage}
+				pageSize={pageSize}
+				total={filterResults(conversations, searchText).length}
+				onChange={(page, pageSize) => {
+					setCurrentPage(page);
+					setPageSize(pageSize);
+				}}
+				style={{display: "flex", justifyContent: "center", alignItems: "flex-end", marginTop: "1rem"}}
 			/>
 		</>
 	);

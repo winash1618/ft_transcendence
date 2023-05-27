@@ -12,12 +12,16 @@ const CreateChat = ({
 	const [showProtected, setShowProtected] = useState(false);
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
+	const [form] = Form.useForm();
 
 	const handleCreateChat = (channelName, channelPrivacy, password) => {
 		if (Boolean(String(channelName).trim()) === true) {
 			socket?.emit('createConversation', { title: channelName, privacy: channelPrivacy, password: password });
 			setPassword('');
 			setError('');
+			form.resetFields(['channelStatus']);
+			form.resetFields(['channelName']);
+			form.resetFields(['password']);
 		}
 	};
 
@@ -61,6 +65,7 @@ const CreateChat = ({
 			onFinish={(values) => handleSubmit(values.channelName, values.channelStatus, password)}
 			layout="vertical"
 			style={{ padding: '0 50px' }}
+			form={form}
 		>
 			<Row gutter={16}>
 				<Col span={24}>

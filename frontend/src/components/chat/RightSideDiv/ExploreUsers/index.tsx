@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UserProfilePicture } from "../../../../assets";
 import { FriendTitle } from "./explore.styled";
-import { List, Input } from "antd";
+import { List, Input, Pagination } from "antd";
 import { Colors, User } from "../../chat.functions";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { Picture } from "../../chat.styled";
@@ -10,6 +10,8 @@ import { BASE_URL, axiosPrivate } from "../../../../api";
 const ExploreUsers = () => {
 	const [results, setResults] = useState<User[]>([]);
 	const { token } = useAppSelector((state) => state.auth);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
 	const handleUserClick = (user: User) => {
 		window.location.href = `/profile/${user.login}`;
@@ -50,7 +52,7 @@ const ExploreUsers = () => {
 			<List
 				itemLayout="horizontal"
 				locale={{ emptyText: "No friends found" }}
-				dataSource={results}
+				dataSource={results.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
 				renderItem={(result) => (
 					<List.Item
 						onClick={() => handleUserClick(result)}
@@ -89,6 +91,16 @@ const ExploreUsers = () => {
 						/>
 					</List.Item>
 				)}
+			/>
+			<Pagination
+				current={currentPage}
+				pageSize={pageSize}
+				total={results.length}
+				onChange={(page, pageSize) => {
+					setCurrentPage(page);
+					setPageSize(pageSize);
+				}}
+				style={{display: "flex", justifyContent: "center", alignItems: "flex-end", marginTop: "1rem"}}
 			/>
 		</>
 	);

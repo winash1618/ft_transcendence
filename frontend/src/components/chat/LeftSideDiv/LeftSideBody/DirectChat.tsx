@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Colors, Conversation } from "../../chat.functions";
-import { List, Input } from 'antd';
+import { List, Input, Pagination } from 'antd';
 import { Picture } from "../../chat.styled";
 import { useAppSelector } from "../../../../hooks/reduxHooks";
 import { BASE_URL, axiosPrivate } from "../../../../api";
@@ -22,6 +22,8 @@ const DirectChat = ({
 }: DirectChatProp) => {
 	const [searchText, setSearchText] = useState("");
 	const { token } = useAppSelector((state) => state.auth);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
 	const resetState = useCallback(() => {
 		setMessages([]);
@@ -68,7 +70,7 @@ const DirectChat = ({
 			/>
 			<List
 				itemLayout="horizontal"
-				dataSource={filterResults(conversations, searchText)}
+				dataSource={filterResults(conversations, searchText).slice((currentPage - 1) * pageSize, currentPage * pageSize)}
 				renderItem={conversation => (
 					<List.Item
 						onClick={() => handleSelectedConversation(conversation)}
@@ -101,6 +103,16 @@ const DirectChat = ({
 						/>
 					</List.Item>
 				)}
+			/>
+			<Pagination
+				current={currentPage}
+				pageSize={pageSize}
+				total={filterResults(conversations, searchText).length}
+				onChange={(page, pageSize) => {
+					setCurrentPage(page);
+					setPageSize(pageSize);
+				}}
+				style={{display: "flex", justifyContent: "center", alignItems: "flex-end", marginTop: "1rem"}}
 			/>
 		</>
 	);
