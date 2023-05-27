@@ -40,6 +40,7 @@ import { validationService } from './Queries/validation.service';
 import { RemovePasswordDTO } from './dto/GatewayDTO/removePassword.dto';
 
 @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
+// @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -61,7 +62,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const userID = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_SECRET'),
       });
-      this.verifyToken(client);
+      // this.verifyToken(client);
 
       client.data.userID = userID;
       const user = this.gatewaySession.getUserSocket(userID.id);

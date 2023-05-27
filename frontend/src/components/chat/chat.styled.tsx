@@ -65,6 +65,8 @@ export const RightSideContainer = styled.div`
 `;
 
 export const Picture = styled.img`
+	display:flex;
+	align-item: left;
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
