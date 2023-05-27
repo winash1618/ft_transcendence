@@ -90,10 +90,10 @@ export class validationService {
     const adminUser = await this.participantService.checkParticipantExists(conversationID, admin);
 
     if (!adminUser)
-      throw new Error('Admin is not a participant of the conversation');
+      throw new Error('You are not a participant of this conversation');
 
     if (adminUser.role === Role.USER)
-      throw new Error('You are not an admin of the conversation');
+      throw new Error('You are not an OWNER of the conversation');
 
     if (!adminUser || adminUser.conversation_status !== Status.ACTIVE && adminUser.conversation_status !== Status.MUTED)
       throw new Error('You are not active in this conversation.');
@@ -139,9 +139,6 @@ export class validationService {
   }
 
   async validateAddParticipant(conversationID: string, admin: string, user: string): Promise<boolean> {
-    if (admin === user)
-      throw new Error('You are already a part of this channel.');
-
     const conversation = await this.conversationService.checkConversationExists(conversationID);
 
     if (!conversation)
@@ -151,6 +148,9 @@ export class validationService {
       throw new Error('You cannot add a user in a direct conversation');
 
     const adminUser = await this.participantService.checkParticipantExists(conversationID, admin);
+
+    if (!adminUser)
+      throw new Error('You are not a participant of this conversation');
 
     if (adminUser.role === Role.USER)
       throw new Error('You are not an admin of the conversation');
@@ -165,6 +165,9 @@ export class validationService {
 
     if (userParticipant && userParticipant.conversation_status === Status.BANNED)
       throw new Error('User is banned from the conversation');
+
+    if (admin === user)
+      throw new Error('You are already a part of this channel.');
 
     return true;
   }
@@ -257,19 +260,21 @@ export class validationService {
     if (!adminUser)
       throw new Error('Admin is not a participant of the conversation');
 
-    if (adminUser.role === Role.USER)
-      throw new Error('You are not an admin of the conversation');
-
     if (!adminUser || adminUser.conversation_status !== Status.ACTIVE && adminUser.conversation_status !== Status.MUTED)
       throw new Error('You are not active in this conversation.');
+
+    if (adminUser.role === Role.USER)
+      throw new Error('You are not an admin of the conversation');
 
     const userParticipant = await this.participantService.checkParticipantExists(conversationID, user);
 
     if (!userParticipant)
       throw new Error('User is not a participant of the conversation');
 
-    if (userParticipant.conversation_status === Status.ACTIVE)
+    if (userParticipant.conversation_status === Status.ACTIVE || userParticipant.conversation_status === Status.MUTED)
       throw new Error('User is not banned');
+    else if (userParticipant.conversation_status !== Status.BANNED)
+      throw new Error('User is not active in this conversation.');
 
     if (userParticipant.role === Role.OWNER)
       throw new Error('You cannot unban the owner of the conversation');
@@ -291,8 +296,8 @@ export class validationService {
     if (!adminUser)
       throw new Error('You are not a participant of this channel');
 
-    if (adminUser.role !== Role.USER)
-      throw new Error('You are not an admin of the conversation');
+    if (adminUser.role !== Role.OWNER)
+      throw new Error('You are not an Owner of the conversation');
 
     if (!adminUser || adminUser.conversation_status !== Status.ACTIVE && adminUser.conversation_status !== Status.MUTED)
       throw new Error('You are not active in this conversation.');

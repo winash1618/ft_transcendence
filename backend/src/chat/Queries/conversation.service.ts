@@ -26,6 +26,9 @@ export class ConversationService {
   async createConversation(createConversation: CreateConversationDto) {
     try {
       if (createConversation.password) {
+        if (createConversation.privacy === Privacy.PUBLIC) {
+          throw new Error('Cannot set password for public conversation');
+        }
         createConversation.password = await this.hashPassword(
           createConversation.password,
         );
@@ -419,6 +422,10 @@ export class ConversationService {
 
     if (await this.userService.isUserBlocked(otherUserID, userID)) {
       throw new Error('User is blocked');
+    }
+
+    if (await this.userService.areUsersFriends(userID, otherUserID) == false) {
+      throw new Error('Users are not friends');
     }
 
     const conversation = await this.prisma.conversation.findFirst({

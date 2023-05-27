@@ -329,11 +329,13 @@ export class UsersService {
 
   async updateSecretCode(id: string, secret: string | null) {
     if (secret === null) {
+      console.log('null');
       return await this.prisma.user.update({
         where: { id },
         data: { secret_code: null, is_authenticated: false, Twofa_secret: null },
       });
     }
+    console.log('not null');
     const code = await this.prisma.user.update({
       where: { id },
       data: { secret_code: 'YES', is_authenticated: true, Twofa_secret: secret },
