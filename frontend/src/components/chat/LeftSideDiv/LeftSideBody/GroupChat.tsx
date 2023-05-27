@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Colors, Conversation, Privacy, Role, Status } from "../../chat.functions";
-import { List, Dropdown, MenuProps, Input } from 'antd';
+import { List, Dropdown, MenuProps, Input, Pagination } from 'antd';
 import { GroupArrow } from "../../RightSideDiv/GroupChatRelations/group.styled";
 import { DownOutlined } from "@ant-design/icons";
 import { LockOutlined, EyeOutlined, EyeInvisibleOutlined, StopOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
@@ -33,6 +33,8 @@ const GroupChat = ({
 	const [password, setPassword] = useState('');
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
 	const filterResults = (data: Conversation[], searchText: string) => {
 		if (!searchText) {
@@ -153,7 +155,7 @@ const GroupChat = ({
 			<List
 				itemLayout="horizontal"
 				locale={{ emptyText: "No conversations found" }}
-				dataSource={filterResults(conversations, searchText)}
+				dataSource={filterResults(conversations, searchText).slice((currentPage - 1) * pageSize, currentPage * pageSize)}
 				renderItem={conversation => (
 					<>
 						<List.Item
@@ -217,6 +219,16 @@ const GroupChat = ({
 						)}
 					</>
 				)}
+			/>
+			<Pagination
+				current={currentPage}
+				pageSize={pageSize}
+				total={filterResults(conversations, searchText).length}
+				onChange={(page, pageSize) => {
+					setCurrentPage(page);
+					setPageSize(pageSize);
+				}}
+				style={{display: "flex", justifyContent: "center", alignItems: "flex-end", marginTop: "1rem"}}
 			/>
 		</>
 	);
