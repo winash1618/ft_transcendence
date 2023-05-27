@@ -40,7 +40,6 @@ import { validationService } from './Queries/validation.service';
 import { RemovePasswordDTO } from './dto/GatewayDTO/removePassword.dto';
 
 @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
-// @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 

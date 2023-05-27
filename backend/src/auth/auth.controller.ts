@@ -205,7 +205,6 @@ export class AuthController {
         .json({ message: 'Unauthorized' });
     }
     const user = await this.authService.validateUser(cookieToken as User);
-    console.log(user.Twofa_secret)
 
     const verified = speakeasy.totp.verify({
       secret: user.Twofa_secret,
