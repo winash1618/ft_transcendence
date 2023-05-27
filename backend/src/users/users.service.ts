@@ -60,18 +60,6 @@ export class UsersService {
         is_authenticated: true,
         secret_code: true,
         user_status: true,
-        blocked_users: true,
-        friends: {
-          select: {
-            id: true,
-            login: true,
-            username: true,
-            first_name: true,
-            last_name: true,
-            profile_picture: true,
-            user_status: true,
-          },
-        }
       },
     });
     if (user) {
@@ -183,7 +171,15 @@ export class UsersService {
           disconnect: { id: friendID },
         },
       },
-      include: { friends: true, blocked_users: true },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        user_status: true,
+      }
     });
 
     await this.prisma.user.update({
@@ -240,12 +236,15 @@ export class UsersService {
           disconnect: { id: blockID },
         },
       },
-      include: {
-        friends: true,
-        blocked_users: true,
-        sentInvites: true,
-        receivedInvites: true,
-      },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        user_status: true,
+      }
     });
 
     await this.prisma.user.update({
@@ -290,7 +289,15 @@ export class UsersService {
           disconnect: { id: blockID },
         },
       },
-      include: { friends: true, blocked_users: true },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        user_status: true,
+      }
     });
 
     return user;
@@ -323,6 +330,14 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { id },
       data: { profile_picture: picture },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+      }
     });
   }
 
@@ -334,17 +349,24 @@ export class UsersService {
   }
 
   async updateSecretCode(id: string, secret: string | null) {
-    if (secret === null) {
-      console.log('null');
-      return await this.prisma.user.update({
-        where: { id },
-        data: { secret_code: null, is_authenticated: false, Twofa_secret: null },
-      });
+    let scode = null;
+    if (secret) {
+      scode = 'YES';
     }
-    console.log('not null');
     const code = await this.prisma.user.update({
       where: { id },
-      data: { secret_code: 'YES', is_authenticated: true, Twofa_secret: secret },
+      data: { secret_code: scode, is_authenticated: true, Twofa_secret: secret },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+        is_authenticated: true,
+        secret_code: true,
+        user_status: true,
+      },
     });
 
     return code;
@@ -367,6 +389,14 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { id },
       data: { username: name },
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+      }
     });
   }
 
@@ -652,8 +682,18 @@ export class UsersService {
     if (invite.type === 'GAME') {
       await this.prisma.invitations.deleteMany({
         where: {
-          senderId: invite.senderId,
-          type: 'GAME',
+          OR: [
+            {
+              senderId: invite.senderId,
+              receiverId: invite.receiverId,
+              type: 'GAME',
+            },
+            {
+              senderId: invite.receiverId,
+              receiverId: invite.senderId,
+              type: 'GAME',
+            },
+          ],
         },
       });
 
