@@ -1,5 +1,5 @@
-import { UsePipes, InternalServerErrorException } from '@nestjs/common';
-import { ValidationPipe, UseGuards } from '@nestjs/common';
+import { UsePipes } from '@nestjs/common';
+import { ValidationPipe } from 'src/utils/WsValidationPipe.pipe';
 import {
   ConnectedSocket,
   MessageBody,
@@ -39,8 +39,8 @@ import { UsersService } from 'src/users/users.service';
 import { validationService } from './Queries/validation.service';
 import { RemovePasswordDTO } from './dto/GatewayDTO/removePassword.dto';
 
-// @WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
-@WebSocketGateway()
+@WebSocketGateway(8001, WebSocketConfig.getOptions(new ConfigService()))
+// @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -57,11 +57,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket) {
     try {
-      // const token = client.handshake.auth.token as string;
-      const token = client.handshake.headers.token as string;
+      const token = client.handshake.auth.token as string;
+      // const token = client.handshake.headers.token as string;
       const userID = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_SECRET'),
       });
+      this.verifyToken(client);
 
       client.data.userID = userID;
       const user = this.gatewaySession.getUserSocket(userID.id);
@@ -97,15 +98,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('createConversation')
   async createConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: createConversationDto,
+    @MessageBody(new ValidationPipe()) data: createConversationDto,
   ) {
     console.log('In createConversation');
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateCreateConversation(data, client.data.userID.id)
 
       const conversation = await this.conversationService.createConversation({
@@ -141,16 +141,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('joinConversation')
   async joinConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: joinConversationDto,
+    @MessageBody(new ValidationPipe()) data: joinConversationDto,
   ) {
     console.log('In joinConversation');
 
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateJoinConversation(data.conversationID, client.data.userID.id, data.password);
       const participant =
         await this.participantService.addParticipantToConversation(
@@ -180,15 +179,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('directMessage')
   async directMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: DirectMessageDTO,
+    @MessageBody(new ValidationPipe()) data: DirectMessageDTO,
   ) {
     console.log('In directMessage');
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.conversationService.checkDirectConversationExists(
         client.data.userID.id,
         data.userID,
@@ -216,14 +214,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('leaveConversation')
   async leaveConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: LeaveConversationDTO,
+    @MessageBody(new ValidationPipe()) data: LeaveConversationDTO,
   ) {
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateLeaveConversation(data.conversationID, client.data.userID.id);
 
       const removedParticipant =
@@ -255,14 +252,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('addPassword')
   async protectRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: AddPasswordDTO,
+    @MessageBody(new ValidationPipe()) data: AddPasswordDTO,
   ) {
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateAddPassword(data.conversationID, client.data.userID.id);
 
       const conversation = await this.conversationService.protectConversation(
@@ -286,15 +282,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('sendMessage')
   async sendMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: sendMessageDto,
+    @MessageBody(new ValidationPipe()) data: sendMessageDto,
   ) {
     console.log('In sendMessage', data);
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       const participant =
         await this.participantService.findParticipantByUserIDandConversationID(
           client.data.userID.id,
@@ -312,6 +307,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           );
         else throw new Error('You are muted');
       }
+      if (participant.conversation_status !== 'ACTIVE')
+        throw new Error('You are not active in this conversation');
 
       const message = await this.messageService.createMessage(
         {
@@ -332,14 +329,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('makeAdmin')
   async makeAdmin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: MakeAdminDTO,
+    @MessageBody(new ValidationPipe()) data: MakeAdminDTO,
   ) {
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateMakeAdmin(data.conversationID, client.data.userID.id, data.userID);
       const participant = await this.participantService.makeParticipantAdmin(
         data.conversationID,
@@ -359,16 +355,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('addParticipant')
   async addParticipant(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: AddParticipantDTO,
+    @MessageBody(new ValidationPipe()) data: AddParticipantDTO,
   ) {
-    console.log('In addParticipant');
+    console.log('In addParticipant', data.userID, client.data.userID.id);
 
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateAddParticipant(data.conversationID, client.data.userID.id, data.userID);
 
       const participant =
@@ -393,16 +388,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('removeParticipant')
   async removeParticipant(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: RemoveParticipantDTO,
+    @MessageBody(new ValidationPipe()) data: RemoveParticipantDTO,
   ) {
     console.log('In removeParticipant');
 
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateRemoveParticipant(data.conversationID, client.data.userID.id, data.userID);
 
       const participant =
@@ -430,18 +424,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('banUser')
   async banUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: BanUserDTO,
+    @MessageBody(new ValidationPipe()) data: BanUserDTO,
   ) {
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       console.log('In banUser');
 
       await this.validation.validateBanUser(data.conversationID, client.data.userID.id, data.userID);
 
+      await this.participantService.updateParticipantRole(
+        data.conversationID,
+        data.userID,
+        Role.USER,
+      );
       const participant = await this.participantService.updateParticipantStatus(
         data.conversationID,
         data.userID,
@@ -463,14 +461,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('unbanUser')
   async unbanUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: UnBanUserDTO,
+    @MessageBody(new ValidationPipe()) data: UnBanUserDTO,
   ) {
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       console.log('In unbanUser');
 
       await this.validation.validateUnBanUser(data.conversationID, client.data.userID.id, data.userID);
@@ -494,14 +491,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('removePassword')
   async removePassword(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: RemovePasswordDTO,
+    @MessageBody(new ValidationPipe()) data: RemovePasswordDTO,
   ) {
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       console.log('In removePassword');
 
       await this.validation.validateRemovePassword(data.conversationID, client.data.userID.id);
@@ -525,14 +521,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('muteUser')
   async muteUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: MuteUserDTO,
+    @MessageBody(new ValidationPipe()) data: MuteUserDTO,
   ) {
     try {
-      //this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateMute(data.conversationID, client.data.userID.id, data.userID);
       const conversation = await this.conversationService.muteUser(
         data.conversationID,
@@ -589,7 +584,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
       return userid;
     } catch (e) {
-      console.error('Error connecting to game gateway:', e.message);
+      console.error('Error connecting to chat gateway:', e.message);
       throw new WsException('Token expired');
     }
   }
