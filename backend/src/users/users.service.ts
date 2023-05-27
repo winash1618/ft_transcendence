@@ -330,14 +330,14 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { id },
       data: { profile_picture: picture },
-      select: {
-        id: true,
-        login: true,
-        username: true,
-        first_name: true,
-        last_name: true,
-        profile_picture: true,
-      }
+      // select: {
+      //   id: true,
+      //   login: true,
+      //   username: true,
+      //   first_name: true,
+      //   last_name: true,
+      //   profile_picture: true,
+      // }
     });
   }
 
@@ -389,14 +389,14 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { id },
       data: { username: name },
-      select: {
-        id: true,
-        login: true,
-        username: true,
-        first_name: true,
-        last_name: true,
-        profile_picture: true,
-      }
+      // select: {
+      //   id: true,
+      //   login: true,
+      //   username: true,
+      //   first_name: true,
+      //   last_name: true,
+      //   profile_picture: true,
+      // }
     });
   }
 

@@ -62,7 +62,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const userID = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_SECRET'),
       });
-      // this.verifyToken(client);
+      this.verifyToken(client);
 
       client.data.userID = userID;
       const user = this.gatewaySession.getUserSocket(userID.id);
