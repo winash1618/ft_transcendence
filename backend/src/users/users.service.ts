@@ -60,6 +60,18 @@ export class UsersService {
         is_authenticated: true,
         secret_code: true,
         user_status: true,
+        blocked_users: true,
+        friends: {
+          select: {
+            id: true,
+            login: true,
+            username: true,
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
+            user_status: true,
+          },
+        }
       },
     });
     if (user) {
@@ -171,15 +183,7 @@ export class UsersService {
           disconnect: { id: friendID },
         },
       },
-      select: {
-        id: true,
-        login: true,
-        username: true,
-        first_name: true,
-        last_name: true,
-        profile_picture: true,
-        user_status: true,
-      }
+      include: { friends: true, blocked_users: true },
     });
 
     await this.prisma.user.update({
@@ -236,15 +240,10 @@ export class UsersService {
           disconnect: { id: blockID },
         },
       },
-      select: {
-        id: true,
-        login: true,
-        username: true,
-        first_name: true,
-        last_name: true,
-        profile_picture: true,
-        user_status: true,
-      }
+      include: {
+        friends: true,
+        blocked_users: true,
+      },
     });
 
     await this.prisma.user.update({
@@ -289,15 +288,7 @@ export class UsersService {
           disconnect: { id: blockID },
         },
       },
-      select: {
-        id: true,
-        login: true,
-        username: true,
-        first_name: true,
-        last_name: true,
-        profile_picture: true,
-        user_status: true,
-      }
+      include: { friends: true, blocked_users: true },
     });
 
     return user;
@@ -329,15 +320,7 @@ export class UsersService {
   async updateProfilePicture(id: string, picture: string) {
     return await this.prisma.user.update({
       where: { id },
-      data: { profile_picture: picture },
-      // select: {
-      //   id: true,
-      //   login: true,
-      //   username: true,
-      //   first_name: true,
-      //   last_name: true,
-      //   profile_picture: true,
-      // }
+      data: { profile_picture: picture }
     });
   }
 
@@ -355,18 +338,7 @@ export class UsersService {
     }
     const code = await this.prisma.user.update({
       where: { id },
-      data: { secret_code: scode, is_authenticated: true, Twofa_secret: secret },
-      select: {
-        id: true,
-        login: true,
-        username: true,
-        first_name: true,
-        last_name: true,
-        profile_picture: true,
-        is_authenticated: true,
-        secret_code: true,
-        user_status: true,
-      },
+      data: { secret_code: secret, is_authenticated: true },
     });
 
     return code;
@@ -389,14 +361,14 @@ export class UsersService {
     return await this.prisma.user.update({
       where: { id },
       data: { username: name },
-      // select: {
-      //   id: true,
-      //   login: true,
-      //   username: true,
-      //   first_name: true,
-      //   last_name: true,
-      //   profile_picture: true,
-      // }
+      select: {
+        id: true,
+        login: true,
+        username: true,
+        first_name: true,
+        last_name: true,
+        profile_picture: true,
+      }
     });
   }
 
