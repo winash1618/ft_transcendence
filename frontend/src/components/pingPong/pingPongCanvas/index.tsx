@@ -242,67 +242,62 @@ const PingPongCanvas = () => {
     };
   }, [player, roomID, socket, hasMiddleWall]);
 
+  const updateGameInfo = (data: any) => {
+    game.ball.x = (data.ball.x * canvaRef.current.width) / 900;
+    game.ball.y = (data.ball.y * canvaRef.current.height) / 800;
+    game.paddle1.y = (data.paddle1.y * canvaRef.current.height) / 800;
+    game.paddle2.y = (data.paddle2.y * canvaRef.current.height) / 800;
+  };
+
   useEffect(() => {
-    socket?.on("win", (data) => {
-      setGameStatus(1);
-    });
-    socket?.on("lose", (data) => {
-      setGameStatus(2);
-    });
-    socket?.on("draw", (data) => {
-      setGameStatus(3);
-    });
-    socket?.on("gameUpdate", (data) => {
-      game.ball.x = (data.ball.x * canvasWidth) / 900;
-      game.ball.y = (data.ball.y * canvasHeight) / 800;
-      game.paddle1.y = (data.paddle1.y * canvasHeight) / 800;
-      game.paddle2.y = (data.paddle2.y * canvasHeight) / 800;
-    });
-    socket?.on("player1Score", (data) => {
-      setPlayer1Score(data);
-    });
-    socket?.on("player2Score", (data) => {
-      setPlayer2Score(data);
-    });
+    if (canvaRef.current) {
+      socket?.on("win", (data) => {
+        setGameStatus(1);
+      });
+      socket?.on("lose", (data) => {
+        setGameStatus(2);
+      });
+      socket?.on("draw", (data) => {
+        setGameStatus(3);
+      });
+      socket?.on("gameUpdate", updateGameInfo);
+      socket?.on("player1Score", (data) => {
+        console.log(data);
+        setPlayer1Score(data);
+      });
+      socket?.on("player2Score", (data) => {
+        console.log(data);
+        setPlayer2Score(data);
+      });
+      return () => {
+        socket?.off("gameUpdate", updateGameInfo);
+        socket?.off("player1Score", (data) => {
+          setPlayer1Score(data);
+        });
+        socket?.off("player2Score", (data) => {
+          setPlayer2Score(data);
+        });
+        socket?.off("win", (data) => {
+          setGameStatus(1);
+        });
+        socket?.off("lose", (data) => {
+          setGameStatus(2);
+        });
+        socket?.off("draw", (data) => {
+          setGameStatus(3);
+        });
+      };
+    }
+  }, [socket, player, dispatch, roomID, hasMiddleWall, timer]);
+
+  useEffect(() => {
     if (roomID.length > 0 && timer) {
       socket?.emit("StartGame", {
         roomID,
         hasMiddleWall,
       });
     }
-    return () => {
-      socket?.off("gameUpdate", (data) => {
-        game.ball.x = (data.ball.x * canvasWidth) / 900;
-        game.ball.y = (data.ball.y * canvasHeight) / 800;
-        game.paddle1.y = (data.paddle1.y * canvasHeight) / 800;
-        game.paddle2.y = (data.paddle2.y * canvasHeight) / 800;
-      });
-      socket?.off("player1Score", (data) => {
-        setPlayer1Score(data);
-      });
-      socket?.off("player2Score", (data) => {
-        setPlayer2Score(data);
-      });
-      socket?.off("win", (data) => {
-        setGameStatus(1);
-      });
-      socket?.off("lose", (data) => {
-        setGameStatus(2);
-      });
-      socket?.off("draw", (data) => {
-        setGameStatus(3);
-      });
-    };
-  }, [
-    socket,
-    player,
-    dispatch,
-    roomID,
-    hasMiddleWall,
-    timer,
-    canvasWidth,
-    canvasHeight,
-  ]);
+  }, [roomID, timer, socket, hasMiddleWall]);
 
   useEffect(() => {
     if (canvaRef.current) {
@@ -383,10 +378,13 @@ const PingPongCanvas = () => {
             right: "40px",
           }}
         >
-          <FontAwesomeIcon style={{fontSize: "12px"}} icon={faArrowUp}></FontAwesomeIcon>
+          <FontAwesomeIcon
+            style={{ fontSize: "12px" }}
+            icon={faArrowUp}
+          ></FontAwesomeIcon>
         </CustomButton>
         <CustomButton
-        type="primary"
+          type="primary"
           onMouseDown={() => {
             socket?.emit("moveMobile", {
               roomID: roomID,
@@ -398,7 +396,10 @@ const PingPongCanvas = () => {
             right: "40px",
           }}
         >
-          <FontAwesomeIcon style={{fontSize: "12px"}} icon={faArrowDown}></FontAwesomeIcon>
+          <FontAwesomeIcon
+            style={{ fontSize: "12px" }}
+            icon={faArrowDown}
+          ></FontAwesomeIcon>
         </CustomButton>
       </div>
       <ScoreWrapper>
