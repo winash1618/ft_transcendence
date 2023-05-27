@@ -204,7 +204,7 @@ export class AuthController {
         .status(HttpStatus.UNAUTHORIZED)
         .json({ message: 'Unauthorized' });
     }
-    const user = await this.authService.validateUser(cookieToken as User);
+    const user = await this.authService.validateUserTwo(cookieToken as User);
 
     const verified = speakeasy.totp.verify({
       secret: user.Twofa_secret,
