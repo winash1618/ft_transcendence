@@ -105,11 +105,12 @@ const GroupChat = ({
 							setMessages(response.data)
 						} else {
 							window.location.href = '/error';
+							// window.location.reload();
 						}
 					})
 					.catch(error => {
-						console.error('An error occurred:', error);
 						window.location.href = '/error';
+						// window.location.reload();
 					});
 			} catch (err) {
 				console.log(err);
@@ -121,11 +122,12 @@ const GroupChat = ({
 							setGroupResults(response.data);
 						} else {
 							window.location.href = '/error';
+							// window.location.reload();
 						}
 					})
 					.catch(error => {
-						console.error('An error occurred:', error);
 						window.location.href = '/error';
+						// window.location.reload();
 					});
 			} catch (err) {
 				console.log(err);

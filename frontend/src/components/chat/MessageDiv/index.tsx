@@ -56,11 +56,13 @@ const MessageDiv = ({
 					}
 				} else {
 					window.location.href = '/error';
+					// window.location.reload();
 				}
 			})
 				.catch(error => {
 					console.error('An error occurred:', error);
 					window.location.href = '/error';
+					// window.location.reload();
 				});
 		} catch (err) {
 			console.log(err);

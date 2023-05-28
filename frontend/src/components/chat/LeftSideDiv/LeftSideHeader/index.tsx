@@ -43,10 +43,12 @@ function LeftSideHeader({
 							setConversations(response.data);
 						} else {
 							window.location.href = '/error';
+							// window.location.reload();
 						}
 					})
 					.catch(error => {
 						window.location.href = '/error';
+						// window.location.reload();
 					});
 			} catch (err) {
 				setConversations([]);
@@ -59,13 +61,16 @@ function LeftSideHeader({
 						setResults(response.data);
 					} else {
 						window.location.href = '/error';
+						// window.location.reload();
 					}
 				})
 					.catch(error => {
 						window.location.href = '/error';
+						// window.location.reload();
 					});
 			} catch (err) {
 				window.location.href = '/error';
+				// window.location.reload();
 			}
 		} else if (nav === Nav.GROUPS) {
 			try {
@@ -75,10 +80,12 @@ function LeftSideHeader({
 							setConversations(response.data);
 						} else {
 							window.location.href = '/error';
+							// window.location.reload();
 						}
 					})
 					.catch(error => {
 						window.location.href = '/error';
+						// window.location.reload();
 					});
 				setConversation(null);
 			} catch (err) {
@@ -92,10 +99,12 @@ function LeftSideHeader({
 							setConversations(response.data);
 						} else {
 							window.location.href = '/error';
+							// window.location.reload();
 						}
 					})
 					.catch(error => {
 						window.location.href = '/error';
+						// window.location.reload();
 					});
 			} catch (err) {
 				setConversations([]);
@@ -115,10 +124,12 @@ function LeftSideHeader({
 						setConversationID(null);
 					} else {
 						window.location.href = '/error';
+						// window.location.reload();
 					}
 				})
 				.catch(error => {
 					window.location.href = '/error';
+					// window.location.reload();
 				});
 		} catch (err) {
 			setConversations([]);
@@ -134,10 +145,12 @@ function LeftSideHeader({
 					setConversationID(null);
 				} else {
 					window.location.href = '/error';
+					// window.location.reload();
 				}
 			})
 				.catch(error => {
 					window.location.href = '/error';
+					// window.location.reload();
 				});
 		} catch (err) {
 			setConversations([]);

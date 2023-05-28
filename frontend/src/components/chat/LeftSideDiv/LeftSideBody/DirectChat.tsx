@@ -50,11 +50,12 @@ const DirectChat = ({
 					if (response.status === 200) {
 						setMessages(response.data);
 					} else {
+						// window.location.reload();
 						window.location.href = '/error';
 					}
 				})
 				.catch(error => {
-					console.error('An error occurred:', error);
+					// window.location.reload();
 				});
 		} catch (err) {
 			console.log(err);
