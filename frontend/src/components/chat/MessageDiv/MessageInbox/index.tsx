@@ -11,6 +11,16 @@ interface MessageInboxProps {
 	messageEndRef: any;
 	UserProfilePicture: any;
 }
+function splitLongWords(message) {
+	const words = message.split(' ');
+	const splitWords = words.map(word => {
+		if (word.length > 10) {
+			return word.match(/.{1,10}/g).join(' ');
+		}
+		return word;
+	});
+	return splitWords.join(' ');
+}
 
 function MessageInbox(
 	{
@@ -46,8 +56,8 @@ function MessageInbox(
 													<div style={{ color: 'red' }}>
 														{userObject.username}
 													</div>
-													<div style={{ width: '100%', marginRight: '10px' }}>
-														{message.message}
+													<div style={{ width: '100%', maxWidth: '500px', marginRight: '10px' }}>
+														{splitLongWords(message.message)}
 													</div>
 												</div>
 												<PictureRight
@@ -84,12 +94,12 @@ function MessageInbox(
 													}}
 													alt="A profile photo of the current user"
 												/>
-													<div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+												<div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
 													<div style={{ color: 'blue' }}>
 														{message.author.user.username}
 													</div>
-													<div style={{ width: '100%'}}>
-														{message.message}
+													<div style={{ width: '100%' }}>
+														{splitLongWords(message.message)}
 													</div>
 												</div>
 											</div>
