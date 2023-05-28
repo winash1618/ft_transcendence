@@ -411,11 +411,9 @@ export class GameEngine {
           this.gameID,
         );
         if (this.gameObj.player1.points === this.gameObj.player2.points) {
-          this.users.get(winner).client.emit('draw', winner);
-          this.users.get(looser).client.emit('draw', looser);
+          this.gameResults(winner, looser, true);
         } else {
-          this.users.get(winner).client.emit('win', winner);
-          this.users.get(looser).client.emit('lose', looser);
+          this.gameResults(winner, looser, false);
         }
         await userService.userStatusUpdate(
           this.gameObj.player1.name.id,
@@ -446,5 +444,33 @@ export class GameEngine {
 
   setServer(server: Server) {
     this.server = server;
+  }
+
+  gameResults(winner: UserInfo, looser: UserInfo, draw: boolean) {
+    const users = Array.from(this.users.keys());
+    console.log(users)
+    if (draw) {
+      users.forEach(user => {
+        this.users.get(user).client.emit('draw', user);
+      });
+      return;
+    }
+    users.forEach(user => {
+      if (user.id === winner.id) {
+        this.users.get(user).client.emit('win', winner);
+      } else if (user.id === looser.id) {
+        this.users.get(user).client.emit('lose', looser);
+      }
+    });
+  }
+
+  usersAdd(info:UserInfo, client: Socket, id: string) {
+    this.users.set(info, {
+      playerNumber: 3,
+      client: client,
+      gameID: id,
+      userID: info,
+      status: GameStatus.WAITING,
+    });
   }
 }

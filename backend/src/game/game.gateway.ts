@@ -54,7 +54,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!(await this.usersService.getUserById(userid['id'])))
         throw new Error('User not found');
 
-      const oldUser = this.userSockets.get(userid);
+      const users = Array.from(this.userSockets.keys());
+      const foundUser = users.find(user => user.id === userid.id);
+      const oldUser = this.userSockets.get(foundUser);
       if (oldUser) {
         console.log('User reconnected: ', userid);
         this.handleDisconnect(client);
@@ -63,6 +65,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const game = await this.gameService.checkIfGameRunning(userid.id);
       if (game) {
         client.join(game);
+        this.gameRooms[game].usersAdd(userid, client, game);
       }
 
       client.data.userID = userid;
@@ -235,7 +238,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
           invitedUserID,
         )
       ) {
-        return new Error('You have already sent three invites to this user');
+        console.log('You have already sent three invites to this user');
+        return new Error('There is a pending invite from you to this user');
       }
       const users = Array.from(this.userSockets.keys());
       const foundUser = users.find(user => user.id === invitedUserID);

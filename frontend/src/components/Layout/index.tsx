@@ -135,6 +135,12 @@ const Navbar: React.FC = () => {
           window.location.reload();
         }
       });
+      socket?.off("gameUpdate");
+      socket?.off("player1Score");
+      socket?.off("player2Score");
+      socket?.off("win");
+      socket?.off("lose");
+      socket?.off("draw");
     };
   }, [socket, dispatch, navigate, isGameStarted]);
 
@@ -332,8 +338,8 @@ const Navbar: React.FC = () => {
                   <NotificationsWrapper>
                     <button
                       style={{
-						background: "none",
-						border: "none",
+                        background: "none",
+                        border: "none",
                         display: "flex",
                         alignItems: "center",
                         pointerEvents: items.length === 0 ? "none" : "all",

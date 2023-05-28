@@ -104,6 +104,33 @@ export class validationService {
     return true;
   }
 
+  async validateSendMessage(conversationID: string, user: string, message: string): Promise<boolean> {
+    const conversation = await this.conversationService.checkConversationExists(conversationID);
+
+    if (!conversation)
+      throw new Error('Conversation does not exist');
+
+    const userParticipant = await this.participantService.checkParticipantExists(conversationID, user);
+
+    if (!userParticipant || userParticipant.conversation_status !== Status.ACTIVE && userParticipant.conversation_status !== Status.MUTED)
+      throw new Error('You are not active in this conversation.');
+
+      if (userParticipant.mute_expires_at) {
+        const currentTime = new Date();
+        if (currentTime > userParticipant.mute_expires_at)
+          await this.conversationService.unmuteUser(
+            conversationID,
+            user,
+          );
+        else throw new Error('You are muted');
+      }
+
+    if (message.length > 100)
+      throw new Error('Message cannot be longer than 100 characters');
+
+    return true;
+  }
+
   async validateMakeAdmin(conversationID: string, admin: string, user: string): Promise<boolean> {
     if (admin === user)
       throw new Error('You cannot make yourself an admin.');
