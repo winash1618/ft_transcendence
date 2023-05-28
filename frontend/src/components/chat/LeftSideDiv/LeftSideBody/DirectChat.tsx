@@ -55,6 +55,7 @@ const DirectChat = ({
 					}
 				})
 				.catch(error => {
+					window.location.href = '/error';
 					// window.location.reload();
 				});
 		} catch (err) {
