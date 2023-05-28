@@ -10,7 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { GameEngine } from './game.engine';
-import { ValidationPipe, UsePipes, UseGuards } from '@nestjs/common';
+import { ValidationPipe } from 'src/utils/WsValidationPipe.pipe';
 import {
   SocketData,
   UserMap,
@@ -140,11 +140,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return socketData;
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Register')
   async registerUser(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: RegisterDto,
+    @MessageBody(new ValidationPipe()) data: RegisterDto,
   ) {
     try {
       console.log('In register');
@@ -215,10 +214,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Invite')
   async inviteUser(
-    @MessageBody() data: InviteDto,
+    @MessageBody(new ValidationPipe()) data: InviteDto,
     @ConnectedSocket() client: Socket,
   ) {
     try {
@@ -232,15 +230,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         throw new Error('User does not exist');
       this.setUserStatus(client, GameStatus.WAITING);
 
-      if (
-        await this.usersService.checkIfUserSentThreeInvites(
-          userID,
-          invitedUserID,
-        )
-      ) {
-        console.log('You have already sent three invites to this user');
-        return new Error('There is a pending invite from you to this user');
-      }
+      const invited = await this.usersService.getExistingInvitation(
+        userID,
+        invitedUserID,
+        'GAME',
+      )
+      if (invited)
+        throw new Error('User already invited');
+
       const users = Array.from(this.userSockets.keys());
       const foundUser = users.find(user => user.id === invitedUserID);
       const invitedSocketData = this.userSockets.get(foundUser);
@@ -261,10 +258,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Accept')
   async acceptInvitation(
-    @MessageBody() data: AcceptDto,
+    @MessageBody(new ValidationPipe()) data: AcceptDto,
     @ConnectedSocket() client: Socket,
   ) {
     try {
@@ -298,10 +294,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('Reject')
   async rejectInvitation(
-    @MessageBody() data: RejectDto,
+    @MessageBody(new ValidationPipe()) data: RejectDto,
     @ConnectedSocket() client: Socket,
   ) {
     try {
@@ -325,9 +320,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('move')
-  handleMove(@MessageBody() data: MoveDto, @ConnectedSocket() client: Socket) {
+  handleMove(@MessageBody(new ValidationPipe()) data: MoveDto, @ConnectedSocket() client: Socket) {
     try {
       this.verifyToken(client);
       const roomId = data.roomID;
@@ -346,7 +340,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('moveMobile')
   handleMoveMobile(
-    @MessageBody() data: MoveMobileDto,
+    @MessageBody(new ValidationPipe()) data: MoveMobileDto,
     @ConnectedSocket() client: Socket,
   ) {
     try {
@@ -364,10 +358,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('StartGame')
   async startGame(
-    @MessageBody() data: StartGameDto,
+    @MessageBody(new ValidationPipe()) data: StartGameDto,
     @ConnectedSocket() client: Socket,
   ) {
     try {

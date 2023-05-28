@@ -1,5 +1,4 @@
 import { ValidationPipe } from 'src/utils/WsValidationPipe.pipe';
-import { ValidationError } from 'class-validator';
 import {
   ConnectedSocket,
   MessageBody,
@@ -17,7 +16,6 @@ import { MessageService } from './Queries/message.service';
 import { Participant, Privacy, Role, Status } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { GatewaySessionManager } from './gateway.session';
-import { WsJwtStrategy } from 'src/auth/Strategy/ws-jwt.strategy';
 import {
   sendMessageDto,
   createConversationDto,
