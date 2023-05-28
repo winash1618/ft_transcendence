@@ -4,6 +4,7 @@ import { CreateMessageDto } from '../dto/messages.dto';
 import { ConversationService } from './conversation.service';
 import { ParticipantService } from './participant.service';
 import { Status } from '@prisma/client';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class MessageService {
@@ -11,6 +12,7 @@ export class MessageService {
     private prisma: PrismaService,
     private conversationService: ConversationService,
     private participantService: ParticipantService,
+    private usersService: UsersService,
   ) {}
 
   async createMessage(createMessage: CreateMessageDto, userID: string) {
@@ -24,39 +26,12 @@ export class MessageService {
 
     // throw error when the other user in direct conversation is blocked
     if (conversation.privacy === 'DIRECT') {
-      const otherParticipant = await this.prisma.participant.findFirst({
-        where: {
-          conversation_id: createMessage.conversation_id,
-          user_id: {
-            not: userID,
-          },
-        },
-        select: {
-          user: {
-            select: {
-              blocked_by: {
-                select: {
-                  id: true,
-                },
-              },
-              blocked_users: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const blockedUsers = [
-        ...(otherParticipant?.user.blocked_by || []),
-        ...(otherParticipant?.user.blocked_users || []),
-      ];
-
-      if (blockedUsers.length > 0) {
-        throw new Error('User is blocked');
-      }
+      const otherParticipant = await this.getOtherParticipant(
+        createMessage.conversation_id,
+        userID,
+      );
+      if (await this.usersService.isBothUsersBlocked(userID, otherParticipant))
+        throw new Error('You are blocked.');
     }
 
     const participant = await this.participantService.checkParticipantExists(
@@ -107,6 +82,34 @@ export class MessageService {
         author: true,
       },
     });
+  }
+
+  async getOtherParticipant(conversationID: string, userID: string) {
+    const id = this.prisma.conversation.findUnique({
+      where: {
+        id: conversationID,
+      },
+      select: {
+        participants: {
+          where: {
+            user_id: {
+              not: userID,
+            },
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                profile_picture: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return id.then((res) => res.participants[0].user.id);
   }
 
   async getDisplayMessagesByConversationID(conversationID: string, userID: string) {

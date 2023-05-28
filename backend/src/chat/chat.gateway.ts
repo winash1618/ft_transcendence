@@ -105,7 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In createConversation');
     try {
-      // this.verifyToken(client);
+      this.verifyToken(client);
       await this.validation.validateCreateConversation(data, client.data.userID.id)
 
       const conversation = await this.conversationService.createConversation({
@@ -133,7 +133,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         conversation,
       );
     } catch (e) {
-      console.log(e);
       throw new WsException({
         message: 'Create conversation failed',
         error: e.message,

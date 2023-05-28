@@ -15,7 +15,8 @@ export class ValidationPipe implements PipeTransform<any> {
 
     const errors = await validate(object);
     if (errors.length > 0) {
-      throw new WsException(errors);
+      const result = errors.map(item => ({ [item.property]: item.constraints }));
+      throw new WsException(result);
     }
     return value;
   }
