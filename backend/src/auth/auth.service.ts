@@ -24,6 +24,14 @@ export class AuthService implements IAuthService {
     return user;
   }
 
+  async validateUserTwo(userDto: CreateUserDto): Promise<User> {
+    let user = await this.userService.findOneLogin(userDto.login);
+    if (!user) {
+      user = await this.userService.add42User(userDto);
+    }
+    return user;
+  }
+
   async getJwtToken(user): Promise<string> {
     const payload = {
       id: user.id,

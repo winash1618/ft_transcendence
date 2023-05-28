@@ -25,6 +25,7 @@ CREATE TABLE "User" (
     "profile_picture" TEXT,
     "last_name" TEXT,
     "secret_code" TEXT,
+    "Twofa_secret" TEXT,
     "is_authenticated" BOOLEAN NOT NULL DEFAULT true,
     "user_status" "UserStatus" NOT NULL DEFAULT 'OFFLINE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

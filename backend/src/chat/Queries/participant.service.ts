@@ -185,7 +185,7 @@ export class ParticipantService {
           select: {
             username: true,
             id: true,
-						login: true,
+            login: true,
             profile_picture: true,
           },
         },
