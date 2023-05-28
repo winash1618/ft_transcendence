@@ -1,5 +1,5 @@
-import { UsePipes } from '@nestjs/common';
 import { ValidationPipe } from 'src/utils/WsValidationPipe.pipe';
+import { ValidationError } from 'class-validator';
 import {
   ConnectedSocket,
   MessageBody,
@@ -58,7 +58,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: Socket) {
     try {
       const token = client.handshake.auth.token as string;
-    //   const token = client.handshake.headers.token as string;
+      // const token = client.handshake.headers.token as string;
       const userID = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_SECRET'),
       });
@@ -105,7 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     console.log('In createConversation');
     try {
-      this.verifyToken(client);
+      // this.verifyToken(client);
       await this.validation.validateCreateConversation(data, client.data.userID.id)
 
       const conversation = await this.conversationService.createConversation({
@@ -290,26 +290,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('In sendMessage', data);
     try {
       this.verifyToken(client);
+      await this.validation.validateSendMessage(data.conversationID, client.data.userID.id, data.message);
       const participant =
         await this.participantService.findParticipantByUserIDandConversationID(
           client.data.userID.id,
           data.conversationID,
         );
-
-      if (!participant) throw new Error('Participant not found');
-
-      if (participant.mute_expires_at) {
-        const currentTime = new Date();
-        if (currentTime > participant.mute_expires_at)
-          await this.conversationService.unmuteUser(
-            data.conversationID,
-            client.data.userID.id,
-          );
-        else throw new Error('You are muted');
-      }
-      if (participant.conversation_status !== 'ACTIVE')
-        throw new Error('You are not active in this conversation');
-
       const message = await this.messageService.createMessage(
         {
           message: data.message,

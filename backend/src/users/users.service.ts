@@ -3,6 +3,7 @@ import { PrismaService } from '../database/prisma.service';
 import { User, UserStatus } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { createInviteDto } from './dto/users.dto';
+import { InviteType } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -556,6 +557,7 @@ export class UsersService {
     senderId: string,
     receiverId: string,
   ): Promise<boolean> {
+    console.log(senderId, receiverId);
     const sentInvitesCount = await this.prisma.invitations.count({
       where: {
         type: 'GAME',
@@ -564,7 +566,9 @@ export class UsersService {
       },
     });
 
-    return sentInvitesCount >= 3;
+    console.log(sentInvitesCount);
+
+    return sentInvitesCount >= 1;
   }
 
   async getPendingInvitations(userId: string) {
@@ -586,8 +590,27 @@ export class UsersService {
     return pendingInvitations;
   }
 
+  async getExistingInvitation(
+    senderId: string,
+    receiverId: string,
+    type: InviteType,
+  ) {
+    const existingInvitation = await this.prisma.invitations.findFirst({
+      where: {
+        senderId: senderId,
+        receiverId: receiverId,
+        type: type,
+      }
+    });
+
+    return existingInvitation;
+  }
+
   async createInvite(createInviteDto: createInviteDto, senderId: string) {
     const { type, receiverId } = createInviteDto;
+
+    if (type !== 'FRIEND' && type !== 'GAME')
+      throw new Error('Invalid invitation type');
 
     if (await this.checkIfUserExists(receiverId) === false)
       throw new Error('User does not exist');
@@ -597,6 +620,8 @@ export class UsersService {
 
     if (type === 'FRIEND' && await this.areUsersFriends(senderId, receiverId) === true)
       throw new Error('Users are friends');
+
+    const existingInvitation = await this.getExistingInvitation(senderId, receiverId, type);
 
     const user = await this.prisma.user.findUnique({
       where: { id: senderId },
@@ -610,6 +635,12 @@ export class UsersService {
         profile_picture: true,
       }
     });
+
+    if (existingInvitation) {
+      if (existingInvitation.status === 'PENDING') {
+        return user;
+      }
+    }
 
     const invite = await this.prisma.invitations.create({
       data: {
