@@ -121,7 +121,13 @@ const GroupChatRelations = ({
 	const items: MenuProps["items"] = [
 		{
 			key: "1",
-			label: <div onClick={(e) => handleMenuClick(e)}>Make Admin</div>,
+			label: !(conversation &&
+			conversation !== undefined &&
+			conversation.participants &&
+			conversation.participants !== undefined &&
+			(conversation.participants[0].role !== Role.OWNER)
+			? true
+			: false) ? <div onClick={(e) => handleMenuClick(e)}>Make Admin</div> : <div>Make Admin</div>,
 			disabled:
 				conversation &&
 					conversation !== undefined &&

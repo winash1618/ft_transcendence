@@ -22,7 +22,7 @@ const Chat = ({ socket, user }: ChatProps) => {
   const [conversationID, setConversationID] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [status, setStatus] = useState(Status.ACTIVE); // you need to set this for if you are selecting any conversation in group
+  const [status, setStatus] = useState(Status.ACTIVE);
   const [conversation, setConversation] = useState(null);
   const [results, setResults] = useState<User[]>([]);
   const [groupResults, setGroupResults] = useState<User[]>([]);
