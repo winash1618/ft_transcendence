@@ -254,6 +254,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody(new ValidationPipe()) data: AddPasswordDTO,
   ) {
+    console.log('In addPassword');
     try {
       this.verifyToken(client);
       await this.validation.validateAddPassword(data.conversationID, client.data.userID.id);

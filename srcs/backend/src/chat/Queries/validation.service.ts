@@ -98,8 +98,8 @@ export class validationService {
     if (!adminUser || adminUser.conversation_status !== Status.ACTIVE && adminUser.conversation_status !== Status.MUTED)
       throw new Error('You are not active in this conversation.');
 
-    if (conversation.password)
-      throw new Error('Conversation already has a password');
+    // if (conversation.privacy === Privacy)
+    //   throw new Error('Conversation already has a password');
 
     return true;
   }

@@ -68,9 +68,9 @@ export class ConversationService {
       throw new Error('Cannot protect direct conversation');
     }
 
-    if (conversation.privacy === Privacy.PROTECTED) {
-      throw new Error('Conversation is already protected');
-    }
+    // if (conversation.privacy === Privacy.PROTECTED) {
+    //   throw new Error('Conversation is already protected');
+    // }
 
     const participant = await this.participantService.checkParticipantExists(
       conversationID,
