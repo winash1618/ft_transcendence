@@ -65,7 +65,12 @@ const GroupChat = ({
 		},
 		{
 			key: "2",
-			label: <div onClick={(e) => handleMenuClick(e)}>Add password</div>,
+			label: (conversation
+				&& conversation !== undefined
+				&& conversation.participants !== undefined
+				&& conversation.privacy === Privacy.PUBLIC
+				&& (conversation.participants[0].role === Role.OWNER || conversation.participants[0].role === Role.ADMIN)) ? <div onClick={(e) => handleMenuClick(e)}>Add password</div> : 
+				<div>Add password</div>,
 			disabled: !(conversation
 				&& conversation !== undefined
 				&& conversation.participants !== undefined
@@ -74,7 +79,12 @@ const GroupChat = ({
 		},
 		{
 			key: "3",
-			label: <div onClick={(e) => handleMenuClick(e)}>Update password</div>,
+			label: (conversation
+				&& conversation !== undefined
+				&& conversation.participants !== undefined
+				&& conversation.privacy !== Privacy.PUBLIC
+				&& (conversation.participants[0].role === Role.OWNER || conversation.participants[0].role === Role.ADMIN)) ? <div onClick={(e) => handleMenuClick(e)}>Update password</div> : 
+				<div>Update password</div>,
 			disabled: !(conversation
 				&& conversation !== undefined
 				&& conversation.participants !== undefined
@@ -83,7 +93,11 @@ const GroupChat = ({
 		},
 		{
 			key: "4",
-			label: <div onClick={(e) => handleMenuClick(e)}>Remove password</div>,
+			label: (conversation
+				&& conversation !== undefined
+				&& conversation.participants !== undefined
+				&& conversation.privacy !== Privacy.PUBLIC
+				&& (conversation.participants[0].role === Role.OWNER || conversation.participants[0].role === Role.ADMIN)) ? <div onClick={(e) => handleMenuClick(e)}>Remove password</div> : <div>Remove password</div>,
 			disabled: !(conversation
 				&& conversation !== undefined
 				&& conversation.participants !== undefined
