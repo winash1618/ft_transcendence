@@ -335,11 +335,11 @@ export class ConversationService {
     if (!(await this.participantService.checkParticipantExists(conversationID, userID)))
       throw new Error('User is not participant');
 
-    if (
-      !(await this.participantService.isUserAdminInConversation(userID, conversationID))
-    ) {
-      throw new Error('User is not admin of the conversation');
-    }
+    // if (
+    //   !(await this.participantService.isUserAdminInConversation(userID, conversationID))
+    // ) {
+    //   throw new Error('User is not admin of the conversation');
+    // }
 
     const conv = await this.prisma.user.findUnique({
       where: {
