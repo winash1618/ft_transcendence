@@ -4,10 +4,10 @@ services:
     image: postgres:13.4-buster
     container_name: postgres
     environment:
-      PGPORT: 5432
-      POSTGRES_USER: mpatel
-      POSTGRES_PASSWORD: transcendence
-      DB_DATABASE: ft_database
+      PGPORT: ${PGPORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
     ports:
       - "5432:5432"
     networks:
@@ -26,7 +26,7 @@ services:
     env_file:
       - .env.dev
     volumes:
-      - ./frontend:/app/frontend
+      - ./srcs/frontend:/app/frontend
       - /app/frontend/node_modules
     networks:
       - transcendence
@@ -52,7 +52,7 @@ services:
     env_file:
       - .env.dev
     volumes:
-      - ./backend:/app/backend
+      - ./srcs/backend:/app/backend
       - /app/backend/node_modules
     depends_on:
       - postgres

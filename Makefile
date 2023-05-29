@@ -68,6 +68,7 @@ clean: down
 
 fclean: clean
 		@printf "\033[0;31mRemoves images, containers and volumes\033[0m\n"
+		docker system prune -a --volumes
 
 prune:	fclean
 		@printf "\033[0;31mRemoves all unused images, containers and volumes\033[0m\n"
