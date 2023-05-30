@@ -26,7 +26,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiTags } from '@nestjs/swagger';
-import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from 'src/database/prisma-client-exception.filter';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/config/multer.config';

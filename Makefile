@@ -1,5 +1,9 @@
 DOCKER-COMPOSE := docker-compose -f docker-compose.yml
-DOCKER-COMPOSE-PROD := docker-compose -f docker-compose.prod.yml
+DOCKER-COMPOSE-dev := docker-compose -f docker-compose.dev.yml
+
+ifeq ($(env),dev)
+	DOCKER-COMPOSE := $(DOCKER-COMPOSE-dev)
+endif
 
 all: up
 
@@ -7,74 +11,63 @@ up:
 	@printf "\033[0;31mBuild, recreate, start containers\033[0m\n"
 	$(DOCKER-COMPOSE) up -d --build
 
-prod:
-	@printf "\033[0;31mBuild, recreate, start production containers\033[0m\n"
-	$(DOCKER-COMPOSE-PROD) up -d --build
-
 build:
-		@printf "\033[0;31mBuild images from dockerfiles\033[0m\n"
-		$(DOCKER-COMPOSE) build
+	@printf "\033[0;31mBuild images from dockerfiles\033[0m\n"
+	$(DOCKER-COMPOSE) build
 
 start:
-		@printf "\033[0;31mStart stopped containers\033[0m\n"
-		$(DOCKER-COMPOSE) start
+	@printf "\033[0;31mStart stopped containers\033[0m\n"
+	$(DOCKER-COMPOSE) start
 
 restart:
-		@printf "\033[0;31mRestart stopped containers\033[0m\n"
-		$(DOCKER-COMPOSE) restart
+	@printf "\033[0;31mRestart stopped containers\033[0m\n"
+	$(DOCKER-COMPOSE) restart
 
 stop:
-		@printf "\033[0;31mStop containers (main process receive SIGTERM) \033[0m\n"
-		$(DOCKER-COMPOSE) stop
-		# $(DOCKER-COMPOSE) -f docker-compose.prod.yml stop
+	@printf "\033[0;31mStop containers (main process receive SIGTERM) \033[0m\n"
+	$(DOCKER-COMPOSE) stop
 
 down:
-		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
-		$(DOCKER-COMPOSE) down --rmi local --volumes --remove-orphans
-
-pown:
-		@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
-		$(DOCKER-COMPOSE-PROD) down --rmi local --volumes --remove-orphans
+	@printf "\033[0;31mStop and remove containers, networks\033[0m\n"
+	$(DOCKER-COMPOSE) down --rmi local --volumes --remove-orphans
 
 ps:
-		@printf "\033[0;31mList containers\033[0m\n"
-		$(DOCKER-COMPOSE) ps
+	@printf "\033[0;31mList containers\033[0m\n"
+	$(DOCKER-COMPOSE) ps
 
 images:
-		@printf "\033[0;31mList images\033[0m\n"
-		docker images
+	@printf "\033[0;31mList images\033[0m\n"
+	docker images
 
 volume:
-		@printf "\033[0;31mList volumes\033[0m\n"
-		docker volume ls
+	@printf "\033[0;31mList volumes\033[0m\n"
+	docker volume ls
 
 delete:
-		@printf "\033[0;31mDelete all the images\033[0m\n"
-		docker rmi -f $(docker images -aq)
+	@printf "\033[0;31mDelete all the images\033[0m\n"
+	docker rmi -f $(docker images -aq)
 
 nest:
-		@printf "\033[0;31mStart NestJS\033[0m\n"
-		docker-compose exec nestjs bash
+	@printf "\033[0;31mStart NestJS\033[0m\n"
+	docker-compose exec nestjs bash
 
 react:
-		@printf "\033[0;31mStart ReactJS\033[0m\n"
-		docker-compose exec reactjs bash
+	@printf "\033[0;31mStart ReactJS\033[0m\n"
+	docker-compose exec reactjs bash
 
 logs:
-		@printf "\033[0;31mShow logs\033[0m\n"
-		$(DOCKER-COMPOSE) logs -f
+	@printf "\033[0;31mShow logs\033[0m\n"
+	$(DOCKER-COMPOSE) logs -f
 
 clean: down
 
 fclean: clean
-		@printf "\033[0;31mRemoves images, containers and volumes\033[0m\n"
-		docker system prune -a --volumes
+	@printf "\033[0;31mRemoves images, containers and volumes\033[0m\n"
+	docker system prune -a --volumes
 
 prune:	fclean
-		@printf "\033[0;31mRemoves all unused images, containers and volumes\033[0m\n"
+	@printf "\033[0;31mRemoves all unused images, containers and volumes\033[0m\n"
 
 re: fclean all
-
-pe: pown prod
 
 .PHONY: all up build start restart stop down ps images volume clean fclean prune re

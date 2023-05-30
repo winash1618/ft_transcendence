@@ -11,36 +11,25 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - transcendence
+      - transcendenceDev
     volumes:
       - ./requirement/database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./requirement/nginx/:/etc/nginx/
-      - ./srcs/frontend/build:/var/www/html
-    ports:
-      - 80:80
-    command: /bin/sh -c "nginx -g 'daemon off;'"
-    depends_on:
-      - reactjs
-    networks:
-      - transcendence
   reactjs:
     image: node:19
     container_name: reactjs
     working_dir: /app/frontend
-    env_file:
-      - .env
     command: >
       bash -c "npm install
-      && npm run build"
+      && npm start"
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.dev
     volumes:
       - ./srcs/frontend:/app/frontend
       - /app/frontend/node_modules
     networks:
-      - transcendence
+      - transcendenceDev
     depends_on:
       - nestjs
   nestjs:
@@ -49,20 +38,19 @@ services:
     working_dir: /app/backend
     command: >
       bash -c "npm install
+      && npm i -g @nestjs/cli
       && npx prisma db push
       && npx prisma db seed
-      && npm run build
-      && npm run start:prod
-      && npm i -g @nestjs/cli"
+      && npm run start:dev"
     networks:
-      - transcendence
+      - transcendenceDev
     ports:
       - "3001:3001"
       - "5555:5555"
       - "8001:8001"
       - "8002:8002"
     env_file:
-      - .env
+      - .env.dev
     volumes:
       - ./srcs/backend:/app/backend
       - /app/backend/node_modules
@@ -71,6 +59,6 @@ services:
 volumes:
   postgres_data:
 networks:
-  transcendence:
+  transcendenceDev:
     driver: bridge
-    name: transcendence
+    name: transcendenceDev

@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
-import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from './database/prisma-client-exception.filter';
 import { WsExceptionFilter } from './utils/WsExceptionFileter';
 import { HttpExceptionFilter } from './utils/uuid.validation';
 

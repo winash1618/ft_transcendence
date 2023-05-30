@@ -9,7 +9,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { PrismaClientExceptionFilter } from 'src/prisma-client-exception/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from 'src/database/prisma-client-exception.filter';
 import { JwtAuthGuard } from 'src/utils/guards/jwt.guard';
 import { ChatService } from './chat.service';
 import { ConversationService } from './Queries/conversation.service';
