@@ -18,3 +18,10 @@ export class ValidateOtpDto {
   @Length(6, 6) // Assuming OTP is always 6 digits
   otp: string;
 }
+
+export class SearchUserDto {
+  @IsNotEmpty()
+  @IsString()
+  @Length(1, 50) // Change the limits according to your needs
+  search: string;
+}

@@ -297,4 +297,20 @@ export class GameService {
 
 		return game;
 	}
+
+  async getLatestGame(userId: string) {
+    const latestGame = await this.prisma.gameHistory.findFirst({
+      where: {
+        OR: [
+          { playerOne: { id: userId } },
+          { playerTwo: { id: userId } }
+        ]
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+    });
+
+    return latestGame;
+  }
 }

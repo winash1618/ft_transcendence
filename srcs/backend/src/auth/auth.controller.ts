@@ -8,6 +8,8 @@ import {
   Res,
   UseGuards,
   Query,
+  UsePipes,
+  ValidationPipe
 } from '@nestjs/common';
 import { User, UserStatus } from '@prisma/client';
 import { Response } from 'express';
@@ -18,7 +20,7 @@ import { AuthService } from './auth.service';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { ConfigService } from '@nestjs/config';
-import { ValidateOtpDto, VerifyOtpDto } from './authDTO/2auth.dto';
+import { SearchUserDto, ValidateOtpDto, VerifyOtpDto } from './authDTO/2auth.dto';
 
 @Controller()
 export class AuthController {
@@ -236,9 +238,11 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/search')
+  @UsePipes(new ValidationPipe())
   async searchUsers(
-    @Query('search') search: string,
+    @Query() searchUserDto: SearchUserDto,
   ) {
+    const { search } = searchUserDto;
     return await this.userService.searchUsers(search);
   }
 }

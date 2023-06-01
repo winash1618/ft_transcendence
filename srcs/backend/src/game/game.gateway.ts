@@ -71,7 +71,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.data.userID = userid;
       const user = await this.usersService.findOne(client.data.userID['login']);
       client.data.userID['login'] = user.username;
-      console.log('User connected: ', userid);
+      console.log('User connected: ', userid.login);
 
       this.setUserStatus(client, GameStatus.WAITING);
     } catch (e) {
@@ -83,7 +83,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: any) {
     try {
       const userid = client.data.userID;
-      console.log('User disconnected: ', userid);
+      console.log('User disconnected: ', userid.login);
       this.defaultQ = this.defaultQ.filter(
         (user: any) => user.userID.login !== userid.login,
       );
@@ -150,15 +150,26 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.verifyToken(client);
       const player = this.userSockets.get(client.data.userID);
       const user = await this.usersService.findOneID(client.data.userID.id);
-      if (player.status === GameStatus.QUEUED)
-        throw new Error('User is already in queue');
-      if (user.user_status === UserStatus.IN_GAME)
-        throw new Error('User is already playing');
-      if (player.status === GameStatus.READY)
-        throw new Error('User is ready for a different game');
+      if (player.status === GameStatus.QUEUED) {
+        client.emit('error', 'Game not finished');
+        return;
+      }
+      if (user.user_status === UserStatus.IN_GAME){
+        client.emit('error', 'Game not finished');
+        return;
+      }
+      if (player.status === GameStatus.READY){
+        client.emit('error', 'Game not finished');
+        return;
+      }
+      const game = await this.gameService.getLatestGame(client.data.userID.id);
+      if (game.winner == '' || game.looser == ''){
+        client.emit('error', 'Game not finished');
+        return;
+      }
       const socketData: SocketData = this.setUserStatus(
         client,
-        GameStatus.WAITING,
+        GameStatus.QUEUED,
       );
 
       const queue = data.hasMiddleWall ? this.WallQ : this.defaultQ;
@@ -228,6 +239,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         throw new Error('You cannot invite yourself');
       if ((await this.usersService.checkIfUserExists(invitedUserID)) == null)
         throw new Error('User does not exist');
+      if ((await this.usersService.isBothUsersBlocked(userID, invitedUserID)))
+        throw new Error('You are blocked by this user');
       this.setUserStatus(client, GameStatus.WAITING);
 
       const invited = await this.usersService.getExistingInvitation(

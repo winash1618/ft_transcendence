@@ -125,8 +125,8 @@ export class validationService {
         else throw new Error('You are muted');
       }
 
-    if (message.length > 100)
-      throw new Error('Message cannot be longer than 100 characters');
+    if (message.length > 500)
+      throw new Error('Message cannot be longer than 500 characters');
 
     return true;
   }

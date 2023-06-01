@@ -105,7 +105,7 @@ export class ConversationService {
       },
       data: {
         password: hashedPassword,
-        privacy: Privacy.PROTECTED,
+        privacy: conversation.privacy === Privacy.PUBLIC ? Privacy.PROTECTED : conversation.privacy,
       },
     });
   }
