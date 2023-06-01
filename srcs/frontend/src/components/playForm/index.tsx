@@ -32,20 +32,23 @@ const PlayForm = () => {
   } = useForm<PlayType>({ resolver: yupResolver(PlaySchema) });
 
   useEffect(() => {
-    socket?.on("error", (data) => {
-      ErrorAlert("You are already in the queue", 5000);
+    socket?.on("exception", (data) => {
+      ErrorAlert("An unkwown error has occured", 5000);
+      socket?.emit("leaveQueue");
+      setIsSearching(false);
     });
     return () => {
-      socket?.off("error", (data) => {
-        ErrorAlert("You are already in the queue", 5000);
+      socket?.off("exception", (data) => {
+        ErrorAlert("An unkwown error has occured", 5000);
+        socket?.emit("leaveQueue");
+        setIsSearching(false);
       });
-	  socket?.emit("leaveQueue");
+      socket?.emit("leaveQueue");
     };
   }, [socket, dispatch]);
 
   const onSubmit: SubmitHandler<PlayType> = (data) => {
     if (!isSearching) {
-
       setIsSearching(true);
       socket?.emit("Register", data);
     } else {
@@ -77,28 +80,31 @@ const PlayForm = () => {
               />
             )}
           />
-          {errors.hasMiddleWall && <InputAlert>{errors.hasMiddleWall.message}</InputAlert>}
+          {errors.hasMiddleWall && (
+            <InputAlert>{errors.hasMiddleWall.message}</InputAlert>
+          )}
         </InputController>
-        {isSearching ?
-        <>
-        <ButtonComponent
-          style={{ width: "100%", marginBottom: "6px", padding: 0 }}
-          htmlType="submit"
-        >
-          Leave Queue
-        </ButtonComponent>
-          <SearchingWrapper>
-            <p>Searching ...</p>
-            <Spin />
-          </SearchingWrapper>
+        {isSearching ? (
+          <>
+            <ButtonComponent
+              style={{ width: "100%", marginBottom: "6px", padding: 0 }}
+              htmlType="submit"
+            >
+              Leave Queue
+            </ButtonComponent>
+            <SearchingWrapper>
+              <p>Searching ...</p>
+              <Spin />
+            </SearchingWrapper>
           </>
-          : <ButtonComponent
-          style={{ width: "100%", marginBottom: "6px", padding: 0 }}
-          htmlType="submit"
-        >
-          Find game
-        </ButtonComponent>
-        }
+        ) : (
+          <ButtonComponent
+            style={{ width: "100%", marginBottom: "6px", padding: 0 }}
+            htmlType="submit"
+          >
+            Find game
+          </ButtonComponent>
+        )}
       </FormDetails>
     </FormContainer>
   );
