@@ -163,7 +163,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
       const game = await this.gameService.getLatestGame(client.data.userID.id);
-      if (game.winner == '' || game.looser == ''){
+      if (game && (game.winner == '' || game.looser == '')){
         client.emit('error', 'Game not finished');
         return;
       }
