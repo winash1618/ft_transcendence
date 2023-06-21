@@ -6,7 +6,7 @@ export const ProfileAchievementsContainer = styled(Card)`
   border-radius: 10px;
   padding: 30px 0px 0px 0px;
   height: 100%;
-  border: 1px solid green;
+  border: 1px solid #63a4ff;
   overflow-y: auto;
   overflow-x: hidden;
   max-width: 600px;
@@ -30,7 +30,7 @@ export const AchievementsTitle = styled.h1`
 `;
 
 export const AchievementsInfo = styled.div`
-  border: 1px solid green;
+  border: 1px solid #63a4ff;
   padding: 20px;
   margin-bottom: 25px;
   box-sizing: border-box;

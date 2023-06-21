@@ -7,7 +7,7 @@ export const ProfilePersonalInfoContainer = styled(Card)`
   padding: 30px 0px;
   height: 100%;
   max-width: 600px;
-  border: 1px solid green;
+  border: 1px solid #63a4ff;
   color: #fff;
   & .ant-card-body {
     display: flex;

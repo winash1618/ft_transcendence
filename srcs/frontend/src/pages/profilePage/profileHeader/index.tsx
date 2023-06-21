@@ -97,7 +97,7 @@ const ProfileHeader = () => {
             <Button
               type="primary"
               style={{
-                background: "green",
+                background: "#63a4ff",
                 pointerEvents: "none",
                 color: "white",
               }}

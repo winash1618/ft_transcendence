@@ -6,14 +6,18 @@ const { Sider } = Layout;
 export const LogoWrapper = styled.div`
   width: 100%;
   display: flex;
-  padding: 1rem 0.8rem 0 0;
+  padding: 0 0.8rem 0 0;
   justify-content: center;
   align-items: center;
 `;
 
+
 export const LogoImg = styled.img`
   width: 100%;
-  max-width: 100px;
+  max-width: 4rem;
+  max-height: 4rem;
+  min-width: 50px;
+  min-height: 50px;;
 `;
 
 export const HeaderWrapper = styled.div`

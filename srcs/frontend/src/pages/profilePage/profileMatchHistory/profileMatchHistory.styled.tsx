@@ -9,7 +9,7 @@ export const ProfileMatchHistoryContainer = styled(Card)`
   overflow-y: auto;
   overflow-x: hidden;
   border-radius: 10px;
-  border: 1px solid green;
+  border: 1px solid #63a4ff;
   padding: 30px 0px;
   max-width: 600px;
   & .ant-card-body {

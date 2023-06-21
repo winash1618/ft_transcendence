@@ -344,7 +344,7 @@ const GroupChatRelations = ({
 												result.role === "USER" || result.role === "ADMIN" ? (
 													<IoMdAddCircleOutline
 														size={24}
-														color="green"
+														color="#63a4ff"
 														onClick={() => handleUnbanClick(result)}
 													/>
 												) : (
@@ -399,7 +399,7 @@ const GroupChatRelations = ({
 											{conversation.participants[0].role !== Role.USER ? (
 												<IoMdAddCircleOutline
 													size={24}
-													color="green"
+													color="#63a4ff"
 													onClick={() => handleAddClick(result)}
 												/>
 											) : (

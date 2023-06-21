@@ -84,7 +84,7 @@ export const CustomButton = styled(Button)`
   display: none;
   position: absolute;
   border-radius: 5px;
-  border: 1px solid green;
+  border: 1px solid #63a4ff;
   text-transform: capitalize;
   text-decoration: dashed;
   &:focus {

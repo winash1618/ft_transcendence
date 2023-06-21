@@ -46,7 +46,7 @@ function MessageInbox(
 													justifyContent: 'flex-end',
 													alignItems: 'center',
 													background: '#111315',
-													border: '1px solid #00A551',
+													border: '1px solid #63a4ff',
 													borderRadius: '15px 15px 0 15px',
 													color: 'white',
 													padding: '1em',

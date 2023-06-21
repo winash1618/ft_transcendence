@@ -203,7 +203,7 @@ const GroupChat = ({
 											}
 											{
 												conversation && conversation.participants !== undefined && (conversation.participants[0].conversation_status === Status.ACTIVE
-													? <CheckCircleOutlined style={{ color: 'green' }} /> : conversation.participants[0].conversation_status === Status.BANNED
+													? <CheckCircleOutlined style={{ color: '#63a4ff' }} /> : conversation.participants[0].conversation_status === Status.BANNED
 														? <StopOutlined style={{ color: 'red' }} /> : conversation.participants[0].conversation_status === Status.MUTED
 															? <ExclamationCircleOutlined style={{ color: 'yellow' }} /> : conversation.participants[0].conversation_status === Status.KICKED
 																? <ExclamationCircleOutlined style={{ color: 'red' }} /> : null)
@@ -229,7 +229,7 @@ const GroupChat = ({
 									type="password"
 									onChange={(e) => setPassword(e.target.value)}
 								/>
-								<IoMdAddCircleOutline size={24} color="green" onClick={() => handleUpdatePassword(conversation, password)} />
+								<IoMdAddCircleOutline size={24} color="#63a4ff" onClick={() => handleUpdatePassword(conversation, password)} />
 							</div>
 
 						)}

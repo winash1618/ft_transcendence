@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 const LeaderboardItem = styled.div`
-  border: 1px solid green;
+  border: 1px solid #63a4ff;
   display: flex;
   align-items: center;
   margin-bottom: 2em;

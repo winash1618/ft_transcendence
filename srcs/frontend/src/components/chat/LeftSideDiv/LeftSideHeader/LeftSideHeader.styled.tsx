@@ -11,7 +11,7 @@ export const ParentMessageNav = styled.div`
   width: 100%;
   height: auto;
   padding: 10px 20px 10px 20px;
-  background-color: #00a551;
+  background-color: #63a4ff;
   margin-bottom: 1em;
 `;
 
