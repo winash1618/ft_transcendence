@@ -77,3 +77,45 @@ export const SearchingWrapper = styled.div`
   gap: 10px;
   flex-direction: column;
 `;
+
+export const LeaderboardContainer = styled.div`
+width: 20rem;
+min-width: 20rem;
+
+`;
+
+export const LeaderboardItem = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+`;
+
+export const LeaderboardRank = styled.span`
+  font-weight: bold;
+  margin-right: 1rem;
+
+`;
+
+export const LeaderboardAvatar = styled.img`
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+  margin-left: 1rem;
+`;
+
+export const LeaderboardName = styled.span`
+  flex-grow: 1;
+  margin-left: 1rem;
+`;
+
+export const LeaderboardScore = styled.span`
+  font-weight: bold;
+  margin-left: 1rem;
+`;

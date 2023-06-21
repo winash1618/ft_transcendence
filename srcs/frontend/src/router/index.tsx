@@ -15,7 +15,7 @@ export const router = createBrowserRouter([
   {
     element: <Navbar />,
     children: [
-      { path: "/", element: <LeaderBoardPage /> },
+      { path: "/", element: <PingPongPage /> },
       { path: "/messages", element: <MessagesPage /> },
       { path: "/pingpong", element: <PingPongPage /> },
       { path: "/settings", element: <SettingsPage /> },

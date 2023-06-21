@@ -33,11 +33,9 @@ const LeaderBoardPage = () => {
 					setData(response.data);
 				} else {
 					window.location.href = '/error';
-					// window.location.reload();
 				}
 			}).catch(error => {
 				window.location.href = '/error';
-				// window.location.reload();
 			});
 		} catch (err) {
 		}

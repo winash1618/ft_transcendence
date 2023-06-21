@@ -3,6 +3,7 @@ import { MessageOutlined } from "@ant-design/icons";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import { HomeOutlined } from "@ant-design/icons";
 import { TrophyOutlined } from "@ant-design/icons";
+import { SettingOutlined } from "@ant-design/icons";
 import { Badge, ConfigProvider, Layout, Menu } from "antd";
 import axios, { axiosPrivate } from "../../api";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -31,12 +32,7 @@ const navItems = [
     { 
         icon: <HomeOutlined style={{fontSize: '20px' }} />, 
         path: "/", 
-        label: <span style={{ fontSize: '14px' }}>Leaderboard</span> 
-    },
-    { 
-        icon: <PlayCircleOutlined style={{ fontSize: '18px' }} />, 
-        path: "/pingpong", 
-        label: <span style={{ fontSize: '14px' }}>Play ping pong</span> 
+        label: <span style={{ fontSize: '14px' }}>Home</span> 
     },
     { 
         icon: <MessageOutlined style={{ fontSize: '16px' }} />, 
@@ -47,6 +43,11 @@ const navItems = [
         icon: <TrophyOutlined style={{ fontSize: '22px' }} />, 
         path: "/achievements", 
         label: <span style={{ fontSize: '14px' }}>Achievements</span> 
+    },
+	{ 
+        icon: <SettingOutlined style={{ fontSize: '18px' }} />, 
+        path: "/settings", 
+        label: <span style={{ fontSize: '14px' }}>Settings</span> 
     },
 ];
 
@@ -242,11 +243,11 @@ const Navbar: React.FC = () => {
 	useEffect(() => {
 		if (location.pathname === "/") {
 			setSelected("1");
-		} else if (location.pathname === "/pingpong") {
-			setSelected("2");
 		} else if (location.pathname === "/messages") {
-			setSelected("3");
+			setSelected("2");
 		} else if (location.pathname === "/achievements") {
+			setSelected("3");
+		} else if (location.pathname === "/settings") {
 			setSelected("4");
 		} else {
 			setSelected("0");
